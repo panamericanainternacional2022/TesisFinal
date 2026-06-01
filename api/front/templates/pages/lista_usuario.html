@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Usuarios</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card">
+                    <header class="report-header">
+                        <div class="report-header-text">
+                            <h1 class="profile-title">Lista de usuarios</h1>
+                            <p class="profile-subtitle">Administra y consulta la información de los usuarios</p>
+                        </div>
+                    </header>
+
+                    <form class="search-container" method="get" action="">
+                        <div class="input-with-icon">
+                            <span class="search-icon-inside">🔍</span>
+                            <input type="text" name="q" placeholder="Buscar" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                        </div>
+                    </form>
+
+                    <div class="table-wrapper">
+                        <div class="table-title-bar">
+                            Usuarios Registrados
+                        </div>
+                        <div class="table-responsive">
+                            <table class="report-table centered-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cédula</th>
+                                        <th>Nombre</th>
+                                        <th>Apellido</th>
+                                        <th>Dirección</th>
+                                        <th>Edificio</th>
+                                        <th>RIF</th>
+                                        <th>Dir. Edificio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if beneficiarios %}
+                                        {% for beneficiario in beneficiarios %}
+                                            <tr>
+                                                <td>{{ beneficiario.cedula }}</td>
+                                                <td>{{ beneficiario.nombre }}</td>
+                                                <td>{{ beneficiario.apellido }}</td>
+                                                <td title="{{ beneficiario.direccion }}">{{ beneficiario.direccion }}</td>
+                                                <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
+                                                <td title="{{ beneficiario.edificio_rif }}">{{ beneficiario.edificio_rif }}</td>
+                                                <td title="{{ beneficiario.edificio_direccion }}">{{ beneficiario.edificio_direccion }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="7" style="text-align: center; padding: 24px 0;">
+                                                No hay beneficiarios registrados.
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-actions-row action-buttons-row">
+                        {% url 'registro_beneficiario' as registro_url %}
+                        {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar Usuario' %}
+                        <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn">✏️ Editar</a>
+                        <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn">🗑️ Eliminar</a>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

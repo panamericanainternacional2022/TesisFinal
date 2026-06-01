@@ -1,0 +1,141 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil de Usuario</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
+    <script src="{% static 'JS/validacion.js' %}" defer></script>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <form class="perfil-card user-profile-container" method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="profile-header">
+                        <h2 class="profile-title">{% if editing %}Editar Usuario{% else %}Registro de Usuario{% endif %}</h2>
+                    </div>
+                    {% if form_error %}
+                        <div class="error-box" style="margin-bottom:16px;padding:12px;border-radius:8px;background:#ffe9e9;border:1px solid #ffbdbd;color:#8a1f1f;">
+                            {{ form_error }}
+                        </div>
+                    {% endif %}
+                    {% if generated_username and generated_password %}
+                        <div class="credentials-box" style="background:#eef9ff;padding:16px;border:1px solid #c6e7ff;margin-bottom:16px;border-radius:8px;">
+                            <h3 style="margin:0 0 8px;">Credenciales generadas</h3>
+                            <p style="margin:0 0 4px;">Usuario: <strong>{{ generated_username }}</strong></p>
+                            <p style="margin:0;">Contraseña: <strong>{{ generated_password }}</strong></p>
+                        </div>
+                    {% endif %}
+                    <div class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="primerNombre">Primer Nombre</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="20" required />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="segundoNombre">Segundo Nombre</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="20" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="primerApellido">Primer Apellido</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="20" required />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="segundoApellido">Segundo Apellido</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="20" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="email">Email</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="50" required />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="cedula">Cédula (CI)</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="solo-numeros" maxlength="8" required />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="telefono">Teléfono</label>
+                            <div class="input-with-icon">
+                                <input placeholder="+58 412 123 4567" type="tel" id="telefono" name="telefono" value="{{ user.telefono|default:'' }}" data-validate="telefono" maxlength="25" />
+                                <span class="edit-icon">&#9998;</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="direccion">Dirección</label>
+                            <div class="input-with-icon">
+                                    <input placeholder="Calle, Ciudad, Estado" type="text" id="direccion" name="direccion" value="{{ user.direccion|default:'' }}" data-validate="direccion" maxlength="50" />
+                                <span class="edit-icon">&#9998;</span>
+                            </div>
+                        </div>
+
+                        {% if editing and edificio_actual %}
+                        <div class="form-group full-width">
+                            <label>Edificio actual</label>
+                            <div style="background:#f0f7ff;border:1px solid #c6e7ff;border-radius:8px;padding:12px 16px;">
+                                <strong>{{ edificio_actual.nb_edificio }}</strong><br>
+                                <span style="font-size:0.85rem;color:#5f6368;">RIF: {{ edificio_actual.rif }}</span><br>
+                                <span style="font-size:0.85rem;color:#5f6368;">{{ edificio_actual.direccion }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="form-group full-width">
+                            <label for="id_edificio">Elegir edificio</label>
+                            <div class="input-with-icon">
+                                <select id="id_edificio" name="id_edificio" required>
+                                    <option value="">Seleccione un edificio</option>
+                                    {% for edificio in edificios %}
+                                        <option value="{{ edificio.id_edificio }}" {% if user.id_edificio == edificio.id_edificio %}selected{% endif %}>{{ edificio.nb_edificio }} - {{ edificio.rif }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="edit-icon">&#127970;</span>
+                            </div>
+                        </div>
+
+                        <div class="actions-row">
+                            {% if editing %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                            {% else %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar Beneficiario' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

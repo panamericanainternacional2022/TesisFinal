@@ -1,0 +1,106 @@
+{% load static %}
+<script>
+(function(){
+    // ─── BLOQUEO TOTAL DE NAVEGACIÓN ATRÁS/ADELANTE ───────────
+    window.history.pushState(null, null, window.location.href);
+    window.addEventListener('popstate', function () {
+        window.history.pushState(null, null, window.location.href);
+    });
+    // ─── DETECTA bfcache (caché de retroceso del navegador) ──
+    window.addEventListener('pageshow', function (e) {
+        if (e.persisted) {
+            window.location.reload();
+        }
+    });
+})();
+</script>
+<aside class="sidebar" id="sidebar">
+    <style>
+        .sidebar-link-icon {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .sidebar-notif-badge {
+            display: none;
+            position: absolute;
+            top: -5px;
+            right: -9px;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #dc2626;
+            color: #ffffff;
+            font-size: 0.72rem;
+            font-weight: 700;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9);
+            line-height: 1;
+        }
+    </style>
+    <div class="sidebar-header">
+        <span class="sidebar-logo">INES</span>
+        <span class="sidebar-system-name">Sistema de Automatización</span>
+    </div>
+
+    <nav class="sidebar-nav">
+        {% if request.session.usuario_rol == 'SA' or request.session.usuario_rol == 'ADMIN' %}
+        <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="{% url 'registro_beneficiario' %}" class="sidebar-link">
+            <i class="fa-solid fa-user-plus"></i> Registrar Usuario
+        </a>
+        <a href="{% url 'lista_usuario' %}" class="sidebar-link">
+            <i class="fa-solid fa-users"></i> Lista Usuarios
+        </a>
+        <a href="{% url 'registro_edificio' %}" class="sidebar-link">
+            <i class="fa-solid fa-city"></i> Registrar Edificio
+        </a>
+        <a href="{% url 'lista_edificios' %}" class="sidebar-link">
+            <i class="fa-solid fa-building"></i> Lista Edificios
+        </a>
+        <a href="{% url 'monitoreo' %}" class="sidebar-link">
+            <i class="fa-solid fa-chart-line"></i> Monitoreo Global
+        </a>
+        <a href="{% url 'notificaciones' %}" class="sidebar-link">
+            <span class="sidebar-link-icon">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-hidden="true"></span>
+            </span>
+            <span>Notificaciones</span>
+        </a>
+        <a href="{% url 'configuracion' %}" class="sidebar-link">
+            <i class="fa-solid fa-gears"></i> Configuración
+        </a>
+        {% else %}
+        <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
+            <i class="fa-solid fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="{% url 'notificaciones' %}" class="sidebar-link">
+            <span class="sidebar-link-icon">
+                <i class="fa-solid fa-bell"></i>
+                <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-hidden="true"></span>
+            </span>
+            <span>Notificaciones</span>
+        </a>
+        <a href="{% url 'monitoreo' %}" class="sidebar-link">
+            <i class="fa-solid fa-chart-line"></i> Monitoreo
+        </a>
+        <a href="{% url 'configuracion' %}" class="sidebar-link">
+            <i class="fa-solid fa-gears"></i> Configuración
+        </a>
+        {% endif %}
+    </nav>
+
+    <div class="sidebar-footer">
+        <span class="sidebar-user">{{ request.session.usuario_username }}</span>
+        <a href="{% url 'logout' %}" class="sidebar-link sidebar-logout">
+            <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
+        </a>
+    </div>
+</aside>

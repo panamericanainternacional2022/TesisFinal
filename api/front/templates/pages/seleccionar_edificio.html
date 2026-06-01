@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seleccionar Edificio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+    <style>
+        .select-list { list-style: none; padding: 0; margin: 0; }
+        .select-list li { border-bottom: 1px solid #f0f0f0; border-radius: 8px; }
+        .select-list li a {
+            display: flex; justify-content: space-between; align-items: center;
+            text-decoration: none; color: inherit; padding: 14px 18px; width: 100%;
+            transition: background 0.2s;
+        }
+        .select-list li a:hover { background: var(--light-blue); border-radius: 8px; }
+        .item-name { font-weight: 600; color: var(--text-main); }
+        .item-id { color: var(--text-muted); font-size: 0.85rem; }
+        .back-link { display: inline-block; margin-top: 20px; color: var(--primary-blue); text-decoration: none; font-weight: 600; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card">
+                    <header class="report-header">
+                        <div class="report-header-text">
+                            <h1 class="profile-title">{% if accion == 'editar' %}Editar Edificio{% else %}Eliminar Edificio{% endif %}</h1>
+                            <p class="profile-subtitle">Selecciona un edificio de la lista</p>
+                        </div>
+                    </header>
+
+                    {% if items %}
+                    <ul class="select-list">
+                        {% for item in items %}
+                        <li>
+                            {% if accion == 'editar' %}
+                            <a href="{% url 'editar_edificio' item.id %}">
+                            {% else %}
+                            <a href="{% url 'eliminar_edificio' item.id %}" onclick="return confirm('¿Estás seguro de eliminar {{ item.nombre }}?')">
+                            {% endif %}
+                                <span class="item-name">{{ item.nombre }}</span>
+                                <span class="item-id">{{ item.rif }}</span>
+                            </a>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <p style="text-align:center;padding:40px 0;color:var(--text-muted);">No hay edificios registrados.</p>
+                    {% endif %}
+
+                    <a href="{% url 'lista_edificios' %}" class="back-link">← Volver a lista de edificios</a>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

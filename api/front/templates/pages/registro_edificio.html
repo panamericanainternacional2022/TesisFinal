@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Edificio - INES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
+    <script src="{% static 'JS/validacion.js' %}" defer></script>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                {% if page_messages %}
+                    {% for msg in page_messages %}
+                        <div class="alert alert-{{ msg.type }}">{{ msg.text }}</div>
+                    {% endfor %}
+                {% endif %}
+                <form class="perfil-card user-profile-container" method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="profile-header">
+                        <h2 class="profile-title">{% if editing %}Editar Edificio{% else %}Registro de Edificio{% endif %}</h2>
+                    </div>
+
+                    <div class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label for="nombreEdificio">Nombre del Edificio</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ edificio.nb_edificio|default:'' }}" data-validate="solo-letras" maxlength="20" required />
+                                    <span class="edit-icon">&#127970;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="parroquia">Dirección</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="parroquia" name="parroquia" value="{{ edificio.direccion|default:'' }}" data-validate="direccion" maxlength="50" required />
+                                    <span class="edit-icon">&#128205;</span>
+                                </div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="rif">RIF</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ edificio.rif|default:'' }}" data-validate="rif" maxlength="12" required />
+                                    <span class="edit-icon">&#128188;</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="actions-row">
+                            {% if editing %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                            {% else %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar Edificio' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

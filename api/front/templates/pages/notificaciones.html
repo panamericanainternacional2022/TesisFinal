@@ -1,0 +1,105 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones - INES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+    <style>
+        .notif-list { list-style: none; padding: 0; margin: 0; }
+        .notif-count-badge {
+            display: none;
+            background: #dc2626;
+            color: #fff;
+            border-radius: 9999px;
+            padding: 4px 10px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-left: 12px;
+            vertical-align: middle;
+        }
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 16px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        .notif-item:hover { background: #f8f9fa; }
+        .notif-icon {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #e8f0fe;
+            color: #1967d2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .notif-body { flex: 1; }
+        .notif-body p { margin: 0 0 4px; color: #202124; font-size: 0.95rem; }
+        .notif-meta { font-size: 0.78rem; color: #5f6368; }
+        .notif-meta span { margin-right: 12px; }
+        .no-notif { text-align: center; padding: 60px 20px; color: #5f6368; }
+        .no-notif i { font-size: 3rem; margin-bottom: 16px; color: #dadce0; }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card" style="max-width:800px;">
+                    <header class="report-header">
+                        <div class="report-header-text">
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <h1 class="profile-title" style="margin:0;">Notificaciones</h1>
+                                <span id="notificationBadgeCount" class="notif-count-badge">0</span>
+                            </div>
+                            <p class="profile-subtitle">Alertas y eventos del sistema</p>
+                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; font-size:0.95rem; font-weight:600;">
+                                Conectando al backend de monitoreo...
+                            </div>
+                        </div>
+                    </header>
+
+                    <div id="live-notifications-list">
+                        {% if notificaciones %}
+                        <ul class="notif-list">
+                        {% for notif in notificaciones %}
+                        <li class="notif-item">
+                            <div class="notif-icon">
+                                <i class="fa-solid fa-bell"></i>
+                            </div>
+                            <div class="notif-body">
+                                <p>{{ notif.mensaje }}</p>
+                                <div class="notif-meta">
+                                    <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                    <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.nb_equipo|default:"-" }}</span>
+                                    {% if notif.id_equipo_monitoreo.id_edificio %}
+                                    <span>{{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                        </ul>
+                        {% else %}
+                        <div class="no-notif" id="live-no-notif">
+                            <i class="fa-regular fa-bell-slash"></i>
+                            <p>No hay notificaciones pendientes.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="{% static 'JS/live_monitoring.js' %}" defer></script>
+</body>
+</html>

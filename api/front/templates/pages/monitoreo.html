@@ -1,0 +1,157 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitoreo - INES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .sensor-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .sensor-active { background: #e8f5e9; color: #2e7d32; }
+        .sensor-warning { background: #fff3e0; color: #e65100; }
+        .sensor-critical { background: #ffebee; color: #c62828; }
+        .sensor-inactive { background: #f5f5f5; color: #757575; }
+        .equipo-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
+        .equipo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .equipo-header h3 { margin: 0; color: #1967d2; font-size: 1.2rem; }
+        .equipo-edificio { color: #5f6368; font-size: 0.85rem; }
+        .live-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 10px; }
+        .live-grid div { padding: 10px; background: #f4f8fb; border-radius: 10px; border: 1px solid #e8f1f8; font-size: 0.9rem; }
+        .sensor-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 20px; }
+        .sensor-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 16px; box-shadow: 0 6px 18px rgba(15,23,42,0.06); }
+        .sensor-card-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .sensor-value { font-size: 1.3rem; font-weight: 700; color: #1d4ed8; margin-bottom: 4px; }
+        .sensor-meta { font-size: 0.9rem; color: #475569; }
+        .monitoring-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin-bottom: 18px; }
+        .monitoring-summary .summary-card { background: #f4f8fb; border: 1px solid #e8f1f8; border-radius: 1rem; padding: 16px; }
+        .monitoring-sections { display: grid; gap: 20px; }
+        .monitoring-section { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 18px; box-shadow: 0 8px 24px rgba(15,23,42,0.05); }
+        .monitoring-section h2 { margin: 0 0 14px; font-size: 1.15rem; color: #1e293b; }
+        .monitoring-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+        .monitor-card { background: #fff; border-radius: 1rem; padding: 16px; border: 1px solid #e8f1f8; box-shadow: 0 6px 18px rgba(15,23,42,0.05); }
+        .monitor-card-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; color: #0f172a; }
+        .monitor-card-value { font-size: 1.4rem; font-weight: 800; color: #1d4ed8; }
+        .monitor-card-meta { margin-top: 8px; font-size: 0.85rem; color: #475569; }
+        .monitor-card-badge { display: inline-flex; align-items: center; justify-content: center; padding: 4px 10px; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; }
+        .badge-green { background: #d1fae5; color: #047857; }
+        .badge-yellow { background: #fef9c3; color: #b45309; }
+        .badge-orange { background: #ffedd5; color: #c2410c; }
+        .badge-red { background: #fee2e2; color: #b91c1c; }
+        .section-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .section-title i { color: #2563eb; }
+        .sensor-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 1px solid #e8eaed;
+        }
+        .sensor-name { font-weight: 600; font-size: 0.9rem; color: #202124; }
+        .sensor-value { font-size: 1.1rem; font-weight: 700; color: #1967d2; margin: 4px 0; }
+        .sensor-time { font-size: 0.75rem; color: #5f6368; }
+        .no-data { text-align: center; padding: 60px 20px; color: #5f6368; }
+        .no-data i { font-size: 3rem; margin-bottom: 16px; color: #dadce0; }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card" style="max-width:1200px;">
+                    <header class="report-header">
+                        <div class="report-header-text">
+                            <h1 class="profile-title">
+                                {% if rol == 'SA' or rol == 'ADMIN' %}Monitoreo Global{% else %}Monitoreo{% endif %}
+                            </h1>
+                            <p class="profile-subtitle">
+                                {% if rol == 'SA' or rol == 'ADMIN' %}
+                                    {% if selected_edificio %}
+                                        Estado de sensores en {{ selected_edificio.nb_edificio }}
+                                    {% else %}
+                                        Estado de todos los sensores desplegados
+                                    {% endif %}
+                                {% else %}
+                                    Sensores instalados en tu edificio
+                                {% endif %}
+                            </p>
+                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; font-size:0.95rem; font-weight:600;">
+                                Conectando al backend de monitoreo...
+                            </div>
+                        </div>
+                    </header>
+
+                    <div id="live-monitoring-content" class="bg-white rounded-xl shadow p-5 mb-6">
+                        <div class="monitoring-summary" id="monitoringSummary">
+                            <div class="summary-card"><strong>Última actualización</strong><div id="summaryLastUpdate">--:--:--</div></div>
+                            <div class="summary-card"><strong>Caudal</strong><div id="summaryFlowRate">-- L/s</div></div>
+                            <div class="summary-card"><strong>Presión</strong><div id="summaryPressure">-- bar</div></div>
+                            <div class="summary-card"><strong>Temperatura</strong><div id="summaryTemperature">-- °C</div></div>
+                            <div class="summary-card"><strong>Voltaje</strong><div id="summaryVoltage">-- V</div></div>
+                            <div class="summary-card"><strong>Corriente</strong><div id="summaryCurrent">-- A</div></div>
+                            <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ON</div></div>
+                            <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ON</div></div>
+                            <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">OFF</div></div>
+                            <div class="summary-card"><strong>Alertas recientes</strong><div id="summaryAlertCount">0</div></div>
+                            <div class="summary-card"><strong>Estado</strong><div id="summaryRationing">Operación normal</div></div>
+                        </div>
+                        <div class="monitoring-sections">
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-oil-can"></i><h2>Sensores de Bomba / Eléctricos</h2></div>
+                                <div id="bombaCards" class="monitoring-cards-grid"></div>
+                            </div>
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-arrow-up"></i><h2>Sensores de Ascensor / Motor</h2></div>
+                                <div id="ascensorCards" class="monitoring-cards-grid"></div>
+                            </div>
+                        </div>
+                        <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:24px;">
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-chart-line"></i><span>Caudal / Presión / Temperatura</span></div>
+                                <canvas id="chart1" height="200"></canvas>
+                            </div>
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-chart-area"></i><span>Vibración / Nivel de tanque</span></div>
+                                <canvas id="chart2" height="200"></canvas>
+                            </div>
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-chart-column"></i><span>Velocidad / Carga / Energía</span></div>
+                                <canvas id="chart3" height="200"></canvas>
+                            </div>
+                            <div class="monitoring-section">
+                                <div class="section-title"><i class="fa-solid fa-bolt"></i><span>Voltaje / Corriente</span></div>
+                                <canvas id="chart4" height="200"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="{% static 'JS/live_monitoring.js' %}?v=2" defer></script>
+</body>
+</html>

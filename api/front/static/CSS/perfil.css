@@ -1,0 +1,207 @@
+:root {
+    --primary-blue: #1967d2;
+    --light-blue-bg: #f1f3f4;
+    --border-color: #dadce0;
+    --text-color: #202124;
+    --muted-text: #5f6368;
+    --white: #ffffff;
+}
+/* Esto evita que el contenido se encime con el navbar fixed */
+.perfil-page {
+    padding-top: 90px !important;
+}
+
+/* Si tu CSS de perfil tiene algo que afecte a los "li", esto lo neutraliza */
+.perfil-page ul, .perfil-page li {
+    list-style: none;
+}
+.perfil-page {
+    padding: 120px 20px 40px;
+    min-height: 100vh;
+    background-color: #f8f9fa; /* Fondo gris muy suave igual que el anterior */
+}
+
+.perfil-card {
+    background: var(--white);
+    border-radius: 24px; /* Bordes más redondeados */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+    padding: 35px;
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    text-align: left;
+    margin-bottom: 30px;
+    border-bottom: 2px solid #e8f0fe;
+    padding-bottom: 15px;
+}
+
+.profile-title {
+    margin: 0;
+    font-size: 1.8rem;
+    color: var(--primary-blue);
+    font-weight: 700;
+}
+
+.profile-form {
+    display: grid;
+    gap: 20px;
+}
+
+/* --- Filas y Grupos de Formulario --- */
+.form-row {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.form-group label {
+    font-weight: 600;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin-bottom: 8px;
+    display: block;
+}
+
+/* --- Estilo de Inputs --- */
+.input-with-icon input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background: var(--light-blue-bg);
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    height: 48px;
+}
+
+.input-with-icon input:focus {
+    outline: none;
+    background: var(--white);
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 4px rgba(25, 103, 210, 0.1);
+}
+
+/* El icono de editar ahora es más sutil */
+.edit-icon {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    color: var(--primary-blue);
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+/* --- Botón Guardar --- */
+.actions-row {
+    margin-top: 25px;
+    text-align: right;
+}
+
+.save-button {
+    background: var(--primary-blue);
+    color: white !important;
+    padding: 14px 30px;
+    border-radius: 12px;
+    border: none;
+    font-weight: 700;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px rgba(25, 103, 210, 0.2);
+}
+
+.save-button:hover {
+    background: #1557b0;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(25, 103, 210, 0.3);
+}
+
+/* --- Validación --- */
+.validation-error {
+    color: #d32f2f;
+    font-size: 0.78rem;
+    margin-top: 4px;
+    padding-left: 4px;
+    min-height: 18px;
+    font-weight: 500;
+}
+
+.input-error {
+    border-color: #d32f2f !important;
+    background: #fff5f5 !important;
+    box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.08) !important;
+}
+
+.input-valid {
+    border-color: #2e7d32 !important;
+    background: #f1f8e9 !important;
+}
+
+.save-button:disabled,
+.primary-button:disabled {
+    opacity: 0.5 !important;
+    cursor: not-allowed !important;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .perfil-card {
+        padding: 25px;
+    }
+
+    .save-button {
+        width: 100%;
+    }
+}
+
+/* --- Mensajes del sistema (Django messages) --- */
+.alert {
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.alert::before {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.alert.alert-error {
+    background: #fff5f5;
+    color: #b71c1c;
+    border: 1px solid #ffcdd2;
+}
+.alert.alert-error::before {
+    content: "⚠️";
+}
+.alert.alert-success {
+    background: #f1f8e9;
+    color: #1b5e20;
+    border: 1px solid #c8e6c9;
+}
+.alert.alert-success::before {
+    content: "✓";
+    font-weight: 700;
+    color: #2e7d32;
+}

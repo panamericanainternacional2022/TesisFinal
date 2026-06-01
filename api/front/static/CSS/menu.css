@@ -1,0 +1,96 @@
+/* menu.css */
+.menu-container {
+    padding: 100px 40px 40px 40px; /* 100px arriba: 70px navbar + 30px de respiro */
+    max-width: 1200px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.menu-title {
+    color: #1967d2;
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.menu-subtitle {
+    color: #5f6368;
+    margin-bottom: 50px;
+}
+
+/* Cuadrícula de tarjetas: 5 columnas exactas en PC */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); 
+    gap: 25px;
+    padding: 20px;
+}
+
+/* Estilo de la Tarjeta */
+.menu-card {
+    background: #ffffff;
+    padding: 40px 20px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: #202124;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    border: 1px solid #e8f0fe;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    aspect-ratio: 1 / 1;
+}
+
+.menu-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(25, 103, 210, 0.1);
+    border-color: #1967d2;
+}
+
+.icon-card {
+    font-size: 3.5rem;
+    color: #1967d2;
+    margin-bottom: 20px;
+}
+
+.menu-card span {
+    font-weight: 700;
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* RESPONSIVE: Para tablets y móviles ajusta el grid y padding-top */
+@media (max-width: 1200px) {
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets grandes */
+    }
+}
+
+@media (max-width: 900px) {
+    .menu-container {
+        padding: 90px 20px 30px 20px; /* menos en tablet */
+    }
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets medianos */
+        gap: 18px;
+        padding: 10px;
+    }
+}
+
+@media (max-width: 600px) {
+    .menu-container {
+        padding: 75px 5px 18px 5px; /* navbar más chico y menos padding */
+        max-width: 98vw;
+    }
+    .menu-grid {
+        grid-template-columns: 1fr;
+        max-width: 350px;
+        margin: 0 auto;
+    }
+    .menu-card {
+        aspect-ratio: auto;
+        padding: 25px;
+    }
+}

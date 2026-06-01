@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - INES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
+    <script src="{% static 'JS/validacion.js' %}" defer></script>
+    <style>
+        .config-card { max-width: 600px; }
+        .password-section { margin-top: 24px; padding-top: 24px; border-top: 2px solid #e8f0fe; }
+        .password-section h3 { color: #1967d2; font-size: 1.1rem; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                {% for msg in page_messages %}
+                    <div style="max-width:600px;margin:0 auto 16px;padding:12px 20px;border-radius:8px;
+                        {% if msg.type == 'error' %}background:#ffe9e9;border:1px solid #ffbdbd;color:#8a1f1f;
+                        {% else %}background:#e8f5e9;border:1px solid #c8e6c9;color:#2e7d32;{% endif %}">
+                        {{ msg.text }}
+                    </div>
+                {% endfor %}
+
+                <form class="perfil-card config-card" method="post" novalidate>
+                    {% csrf_token %}
+                    <div class="profile-header">
+                        <h2 class="profile-title">Configuración de Cuenta</h2>
+                    </div>
+
+                    <div class="profile-form">
+                        <div class="form-group full-width">
+                            <label for="username">Nombre de Usuario</label>
+                            <div class="input-with-icon">
+                                <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required />
+                                <span class="edit-icon">&#9998;</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="email">Correo Electrónico</label>
+                            <div class="input-with-icon">
+                                <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required />
+                                <span class="edit-icon">&#9998;</span>
+                            </div>
+                        </div>
+
+                        <div class="password-section">
+                            <h3>Cambiar Contraseña</h3>
+                            <p style="color:#5f6368;font-size:0.85rem;margin-bottom:16px;">Deja los campos de contraseña en blanco si no deseas cambiarla.</p>
+
+                            <div class="form-group full-width">
+                                <label for="current_password">Contraseña Actual</label>
+                                <div class="input-with-icon">
+                                    <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" data-validate="password" required />
+                                    <span class="edit-icon">&#128274;</span>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group half-width">
+                                    <label for="new_password">Nueva Contraseña</label>
+                                    <div class="input-with-icon">
+                                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" />
+                                        <span class="edit-icon">&#128274;</span>
+                                    </div>
+                                </div>
+                                <div class="form-group half-width">
+                                    <label for="confirm_password">Confirmar Contraseña</label>
+                                    <div class="input-with-icon">
+                                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" />
+                                        <span class="edit-icon">&#128274;</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="actions-row">
+                            {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
