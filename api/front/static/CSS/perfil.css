@@ -6,24 +6,29 @@
     --muted-text: #5f6368;
     --white: #ffffff;
 }
+
 /* Esto evita que el contenido se encime con el navbar fixed */
 .perfil-page {
     padding-top: 90px !important;
 }
 
 /* Si tu CSS de perfil tiene algo que afecte a los "li", esto lo neutraliza */
-.perfil-page ul, .perfil-page li {
+.perfil-page ul,
+.perfil-page li {
     list-style: none;
 }
+
 .perfil-page {
     padding: 120px 20px 40px;
     min-height: 100vh;
-    background-color: #f8f9fa; /* Fondo gris muy suave igual que el anterior */
+    background-color: #f8f9fa;
+    /* Fondo gris muy suave igual que el anterior */
 }
 
 .perfil-card {
     background: var(--white);
-    border-radius: 24px; /* Bordes más redondeados */
+    border-radius: 24px;
+    /* Bordes más redondeados */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
     border: 1px solid #edf2f7;
     padding: 35px;
@@ -161,7 +166,7 @@
     .form-row {
         grid-template-columns: 1fr;
     }
-    
+
     .perfil-card {
         padding: 25px;
     }
@@ -181,25 +186,30 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
+
 .alert::before {
     font-size: 1.2rem;
     flex-shrink: 0;
 }
+
 .alert.alert-error {
     background: #fff5f5;
     color: #b71c1c;
     border: 1px solid #ffcdd2;
 }
+
 .alert.alert-error::before {
     content: "⚠️";
 }
+
 .alert.alert-success {
     background: #f1f8e9;
     color: #1b5e20;
     border: 1px solid #c8e6c9;
 }
+
 .alert.alert-success::before {
     content: "✓";
     font-weight: 700;

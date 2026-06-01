@@ -1,6 +1,7 @@
 /* menu.css */
 .menu-container {
-    padding: 100px 40px 40px 40px; /* 100px arriba: 70px navbar + 30px de respiro */
+    padding: 100px 40px 40px 40px;
+    /* 100px arriba: 70px navbar + 30px de respiro */
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
@@ -21,7 +22,7 @@
 /* Cuadrícula de tarjetas: 5 columnas exactas en PC */
 .menu-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); 
+    grid-template-columns: repeat(5, 1fr);
     gap: 25px;
     padding: 20px;
 }
@@ -64,16 +65,20 @@
 /* RESPONSIVE: Para tablets y móviles ajusta el grid y padding-top */
 @media (max-width: 1200px) {
     .menu-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets grandes */
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columnas en tablets grandes */
     }
 }
 
 @media (max-width: 900px) {
     .menu-container {
-        padding: 90px 20px 30px 20px; /* menos en tablet */
+        padding: 90px 20px 30px 20px;
+        /* menos en tablet */
     }
+
     .menu-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets medianos */
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columnas en tablets medianos */
         gap: 18px;
         padding: 10px;
     }
@@ -81,14 +86,17 @@
 
 @media (max-width: 600px) {
     .menu-container {
-        padding: 75px 5px 18px 5px; /* navbar más chico y menos padding */
+        padding: 75px 5px 18px 5px;
+        /* navbar más chico y menos padding */
         max-width: 98vw;
     }
+
     .menu-grid {
         grid-template-columns: 1fr;
         max-width: 350px;
         margin: 0 auto;
     }
+
     .menu-card {
         aspect-ratio: auto;
         padding: 25px;

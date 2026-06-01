@@ -1,12 +1,12 @@
 CREATE TABLE `Usuario` (
-  `id_usuario` int PRIMARY KEY,
+  `id_usuario` int AUTO_INCREMENT PRIMARY KEY,
   `username` text,
   `password` text,
   `id_persona` int
 );
 
 CREATE TABLE `persona` (
-  `id_persona` int PRIMARY KEY,
+  `id_persona` int AUTO_INCREMENT PRIMARY KEY,
   `ci` int,
   `name` text,
   `apellido` text,
@@ -15,32 +15,32 @@ CREATE TABLE `persona` (
 );
 
 CREATE TABLE `edificio` (
-  `id_edificio` int PRIMARY KEY,
+  `id_edificio` int AUTO_INCREMENT PRIMARY KEY,
   `nb_edificio` text,
   `rif` int,
   `direccion` text
 );
 
 CREATE TABLE `equipo_monitoreo` (
-  `id_equipo_monitoreo` int PRIMARY KEY,
+  `id_equipo_monitoreo` int AUTO_INCREMENT PRIMARY KEY,
   `nb_equipo` text,
   `id_edificio` int
 );
 
 CREATE TABLE `usuario_edificio` (
-  `id_usuario_beneficiario` int PRIMARY KEY,
+  `id_usuario_beneficiario` int AUTO_INCREMENT PRIMARY KEY,
   `id_usuario` int,
   `id_edificio` int
 );
 
 CREATE TABLE `dispos_sensor` (
-  `id_dispos_sensor` int PRIMARY KEY,
+  `id_dispos_sensor` int AUTO_INCREMENT PRIMARY KEY,
   `nb_sensor` text,
   `modelo_iot` text
 );
 
 CREATE TABLE `equipo_sensor` (
-  `id_equipo_sensor` int PRIMARY KEY,
+  `id_equipo_sensor` int AUTO_INCREMENT PRIMARY KEY,
   `id_equipo_monitoreo` int,
   `id_dispos_sensor` int,
   `tipo_valor_capt` float,
@@ -49,18 +49,18 @@ CREATE TABLE `equipo_sensor` (
 );
 
 CREATE TABLE `status` (
-  `id_status` int PRIMARY KEY,
+  `id_status` int AUTO_INCREMENT PRIMARY KEY,
   `nb_status` text
 );
 
 CREATE TABLE `status_equipo_monitoreo` (
-  `id_status_equipo_monitoreo` int PRIMARY KEY,
+  `id_status_equipo_monitoreo` int AUTO_INCREMENT PRIMARY KEY,
   `id_status` int,
   `id_equipo_monitoreo` int
 );
 
 CREATE TABLE `accion_prev` (
-  `id_accion_prev` int PRIMARY KEY,
+  `id_accion_prev` int AUTO_INCREMENT PRIMARY KEY,
   `id_equipo_monitoreo` int,
   `id_dispos_sensor` int,
   `parametro` text,
@@ -71,7 +71,7 @@ CREATE TABLE `accion_prev` (
 );
 
 CREATE TABLE `notificacion` (
-  `id_notificacion` int PRIMARY KEY,
+  `id_notificacion` int AUTO_INCREMENT PRIMARY KEY,
   `id_usuario` int,
   `id_equipo_monitoreo` int,
   `fecha` datetime,
@@ -79,7 +79,7 @@ CREATE TABLE `notificacion` (
 );
 
 CREATE TABLE `historico_falla` (
-  `id_historico_falla` int PRIMARY KEY,
+  `id_historico_falla` int AUTO_INCREMENT PRIMARY KEY,
   `id_equipo_sensor` int,
   `fecha` datetime,
   `id_status_equipo_monitoreo` int

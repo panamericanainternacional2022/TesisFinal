@@ -23,28 +23,56 @@ from .views import (
 )
 
 urlpatterns = [
-    path('', RedirectView.as_view(url='/login/', permanent=False), name='home'),
-    path('login/', login_view, name='login'),
-    path('logout/', logout_view, name='logout'),
-    path('menu_seleccion/', menu_seleccion_view, name='menu_seleccion'),
-
-    path('usuario/', usuario_view, name='usuario'),
-    path('lista_usuario/', lista_usuario_view, name='lista_usuario'),
-    path('registro_beneficiario/', registro_beneficiario_view, name='registro_beneficiario'),
-
-    path('registro_edificio/', registro_edificio_view, name='registro_edificio'),
-    path('lista_edificios/', lista_edificios_view, name='lista_edificios'),
-    path('editar_edificio/<int:edificio_id>/', editar_edificio_view, name='editar_edificio'),
-    path('eliminar_edificio/<int:edificio_id>/', eliminar_edificio_view, name='eliminar_edificio'),
-
-    path('editar_beneficiario/<int:beneficiario_id>/', editar_beneficiario_view, name='editar_beneficiario'),
-    path('eliminar_beneficiario/<int:beneficiario_id>/', eliminar_beneficiario_view, name='eliminar_beneficiario'),
-    path('descargar_pdf/', descargar_pdf_view, name='descargar_pdf'),
-
-    path('notificaciones/', notificaciones_view, name='notificaciones'),
-    path('monitoreo/', monitoreo_view, name='monitoreo'),
-    path('monitoreo/edificio/<int:edificio_id>/', monitoreo_edificio_view, name='monitoreo_edificio'),
-    path('configuracion/', configuracion_view, name='configuracion'),
-    path('seleccionar/usuario/<str:accion>/', seleccionar_usuario_view, name='seleccionar_usuario'),
-    path('seleccionar/edificio/<str:accion>/', seleccionar_edificio_view, name='seleccionar_edificio'),
+    path("", RedirectView.as_view(url="/login/", permanent=False), name="home"),
+    path("login/", login_view, name="login"),
+    path("logout/", logout_view, name="logout"),
+    path("menu_seleccion/", menu_seleccion_view, name="menu_seleccion"),
+    path("usuario/", usuario_view, name="usuario"),
+    path("lista_usuario/", lista_usuario_view, name="lista_usuario"),
+    path(
+        "registro_beneficiario/",
+        registro_beneficiario_view,
+        name="registro_beneficiario",
+    ),
+    path("registro_edificio/", registro_edificio_view, name="registro_edificio"),
+    path("lista_edificios/", lista_edificios_view, name="lista_edificios"),
+    path(
+        "editar_edificio/<int:edificio_id>/",
+        editar_edificio_view,
+        name="editar_edificio",
+    ),
+    path(
+        "eliminar_edificio/<int:edificio_id>/",
+        eliminar_edificio_view,
+        name="eliminar_edificio",
+    ),
+    path(
+        "editar_beneficiario/<int:beneficiario_id>/",
+        editar_beneficiario_view,
+        name="editar_beneficiario",
+    ),
+    path(
+        "eliminar_beneficiario/<int:beneficiario_id>/",
+        eliminar_beneficiario_view,
+        name="eliminar_beneficiario",
+    ),
+    path("descargar_pdf/", descargar_pdf_view, name="descargar_pdf"),
+    path("notificaciones/", notificaciones_view, name="notificaciones"),
+    path("monitoreo/", monitoreo_view, name="monitoreo"),
+    path(
+        "monitoreo/edificio/<int:edificio_id>/",
+        monitoreo_edificio_view,
+        name="monitoreo_edificio",
+    ),
+    path("configuracion/", configuracion_view, name="configuracion"),
+    path(
+        "seleccionar/usuario/<str:accion>/",
+        seleccionar_usuario_view,
+        name="seleccionar_usuario",
+    ),
+    path(
+        "seleccionar/edificio/<str:accion>/",
+        seleccionar_edificio_view,
+        name="seleccionar_edificio",
+    ),
 ]
