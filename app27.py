@@ -37,7 +37,7 @@ try:
 except ImportError:
     PDF_AVAILABLE = False
     print(
-        "⚠️ fpdf2 no instalado. Reportes PDF no disponibles. Instale: pip install fpdf2"
+        "fpdf2 no instalado. Reportes PDF no disponibles. Instale: pip install fpdf2"
     )
 
 logging.basicConfig(
@@ -309,29 +309,29 @@ def classify_risk(variable, value):
 def generate_recommendations(data, stats=None):
     recs = []
     if data["temperature"] > 85:
-        recs.append("⚠️ Temperatura del motor muy alta (>85°C). Revisar refrigeración.")
+        recs.append("Temperatura del motor muy alta (>85°C). Revisar refrigeración.")
     elif data["temperature"] > 70:
-        recs.append("📈 Temperatura elevada. Monitorear.")
+        recs.append("Temperatura elevada. Monitorear.")
     if data["flow_rate"] < 10:
-        recs.append("🚰 Caudal bajo (<10 L/s). Revisar bomba.")
+        recs.append("Caudal bajo (<10 L/s). Revisar bomba.")
     elif data["flow_rate"] < 20:
-        recs.append("💧 Caudal bajo óptimo. Revisar filtros.")
+        recs.append("Caudal bajo óptimo. Revisar filtros.")
     if data["pressure"] > 8:
-        recs.append("💥 Presión excesiva (>8 bar). Riesgo de fugas.")
+        recs.append("Presión excesiva (>8 bar). Riesgo de fugas.")
     if data["vibration"] > 7:
-        recs.append("📳 Vibración anómala (>7 mm/s). Verificar alineamiento.")
+        recs.append("Vibración anómala (>7 mm/s). Verificar alineamiento.")
     if data["tank_level"] < 20:
-        recs.append("⛽ Nivel de tanque crítico (<20%). Reposición urgente.")
+        recs.append("Nivel de tanque crítico (<20%). Reposición urgente.")
     elif data["tank_level"] < 30:
-        recs.append("⚠️ Nivel de tanque bajo.")
+        recs.append("Nivel de tanque bajo.")
     if data["load"] > 800:
-        recs.append("🏋️ Sobrepeso en ascensor (>800 kg). Reducir carga.")
+        recs.append("Sobrepeso en ascensor (>800 kg). Reducir carga.")
     if data["voltage"] < 200 or data["voltage"] > 240:
-        recs.append("⚡ Inestabilidad eléctrica. Revisar suministro.")
+        recs.append("Inestabilidad eléctrica. Revisar suministro.")
     if data["current"] > 45:
-        recs.append("🔌 Sobrecarga eléctrica (corriente >45A).")
+        recs.append("Sobrecarga eléctrica (corriente >45A).")
     if data["motor_stuck"]:
-        recs.append("🛑 MOTOR PEGADO. Mantenimiento urgente.")
+        recs.append("MOTOR PEGADO. Mantenimiento urgente.")
     at_floor = abs(data["position"] - round(data["position"])) < 0.05
     if (
         data["speed"] == 0
@@ -343,10 +343,10 @@ def generate_recommendations(data, stats=None):
                 f"[SIM] {time.strftime('%H:%M:%S')} DOORS: speed={data['speed']} at_floor={at_floor} door_close_attempts={door_close_attempts} position={data['position']}"
             )
         recs.append(
-            f"⚠️ Revisar puertas: {door_close_attempts} intentos de cierre fallidos."
+            f"Revisar puertas: {door_close_attempts} intentos de cierre fallidos."
         )
     if not recs:
-        recs.append("✅ Todos los parámetros normales. Operación estable.")
+        recs.append("Todos los parámetros normales. Operación estable.")
     return recs[:5]
 
 
@@ -480,7 +480,7 @@ def enter_protection_mode(reason=None, targets=None):
             elevator_on = False
     reason_text = f" ({reason})" if reason else ""
     targets_text = " y ".join(sorted(targets_set))
-    logger.warning(f"⚠️ PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text}.")
+    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text}.")
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "Protección automática",
@@ -1217,7 +1217,7 @@ def generate_pdf_report(period):
         pdf.cell(
             0,
             10,
-            "⚠️ RACIONAMIENTO ACTIVO - Caudal por debajo del mínimo",
+            "RACIONAMIENTO ACTIVO - Caudal por debajo del mínimo",
             ln=1,
             align="C",
         )
@@ -1394,7 +1394,7 @@ def test_alert(channel, risk_level, contact):
                 message + f"\n\n(No se pudo adjuntar el reporte: {e})",
             )
     elif channel == "telegram":
-        message = "🔔 Este es tu reporte del edificio (El PDF fue enviado al correo) - PCLogo."
+        message = "Este es tu reporte del edificio (El PDF fue enviado al correo) - PCLogo."
         send_telegram_alert(risk_level, message)
 
     if contact not in original:
@@ -1571,7 +1571,7 @@ HTML_TEMPLATE = """
 </head>
 <body class="bg-gray-100 p-6">
     <div class="container mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2">📊 PCLogo - Sistema de Monitoreo Avanzado</h1>
+        <h1 class="text-3xl font-bold text-gray-800 mb-2"><i class="fa-solid fa-chart-line text-blue-600 mr-2"></i> PCLogo - Sistema de Monitoreo Avanzado</h1>
         <p class="text-gray-600 mb-6">Sensores de bomba, ascensor, eléctricos y motor</p>
 
         <div class="mb-4 flex flex-wrap justify-between items-center gap-2">
@@ -1579,19 +1579,19 @@ HTML_TEMPLATE = """
                 <button id="toggleAlertsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
                     <i class="fas fa-bell"></i> Desactivar Alertas
                 </button>
-                <div id="rationingIndicator" class="hidden rationing-badge"><i class="fas fa-tint"></i> RACIONAMIENTO ACTIVO</div>
+                <div id="rationingIndicator" class="hidden rationing-badge"><i class="fas fa-droplet-slash"></i> RACIONAMIENTO ACTIVO</div>
                 <button id="clearHistoryBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded shadow">
                     <i class="fas fa-trash-alt"></i> Limpiar Historial
                 </button>
             </div>
             <div class="flex gap-2">
                 <select id="reportPeriodSelect" class="border rounded p-2 bg-white shadow-sm">
-                    <option value="minute">📄 Último minuto</option>
-                    <option value="ten_minutes">📄 Últimos 10 min</option>
-                    <option value="hour">📄 Última hora</option>
-                    <option value="day">📄 Último día</option>
-                    <option value="week">📄 Última semana</option>
-                    <option value="month">📄 Último mes</option>
+                    <option value="minute">Último minuto</option>
+                    <option value="ten_minutes">Últimos 10 min</option>
+                    <option value="hour">Última hora</option>
+                    <option value="day">Último día</option>
+                    <option value="week">Última semana</option>
+                    <option value="month">Último mes</option>
                 </select>
                 <button id="generateReportBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">
                     <i class="fas fa-file-pdf"></i> Generar PDF
@@ -1613,17 +1613,17 @@ HTML_TEMPLATE = """
 
         <!-- Diagnóstico de credenciales -->
         <div id="credsWarning" class="mb-4 p-2 rounded bg-yellow-100 text-yellow-800 text-sm hidden">
-            ⚠️ <span id="credsMsg"></span>
+            <span id="credsMsg"></span>
         </div>
 
         <!-- Panel de estadísticas y recomendaciones -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <div class="bg-white p-4 rounded-xl shadow">
-                <h2 class="text-xl font-bold text-gray-700 mb-2">📈 Estadísticas Recientes</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-2"><i class="fa-solid fa-chart-bar text-slate-500 mr-2"></i> Estadísticas Recientes</h2>
                 <div id="statsPanel" class="text-sm space-y-1"><p>Cargando...</p></div>
             </div>
             <div class="rec-card p-4 rounded-xl shadow">
-                <h2 class="text-xl font-bold text-gray-700 mb-2">💡 Recomendaciones</h2>
+                <h2 class="text-xl font-bold text-gray-700 mb-2"><i class="fa-solid fa-lightbulb text-slate-500 mr-2"></i> Recomendaciones</h2>
                 <div id="doorAttemptsInfo" class="text-xs text-gray-600 mb-2"></div>
                 <div id="recommendationsPanel" class="text-sm space-y-2"><p>Cargando...</p></div>
             </div>
@@ -1631,7 +1631,7 @@ HTML_TEMPLATE = """
 
         <!-- Suscriptores -->
         <div class="bg-white p-5 rounded-xl shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-3">📢 Suscriptores de Alertas por Criticidad</h2>
+            <h2 class="text-xl font-semibold mb-3"><i class="fa-solid fa-bullhorn text-slate-500 mr-2"></i> Suscriptores de Alertas por Criticidad</h2>
             <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                 <div><label class="block text-sm font-medium">Canal</label><select id="subChannel" class="mt-1 block w-full border rounded p-2"><option value="email">Correo</option><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option></select></div>
                 <div><label class="block text-sm font-medium">Nivel Riesgo</label><select id="subRiskLevel" class="mt-1 block w-full border rounded p-2"><option value="Bajo">Bajo</option><option value="Medio">Medio</option><option value="Alto">Alto</option><option value="Crítico">Crítico</option></select></div>
@@ -1644,7 +1644,7 @@ HTML_TEMPLATE = """
 
         <!-- Control manual -->
         <div class="bg-white p-5 rounded-xl shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-3">🎮 Control Manual de Sensores</h2>
+            <h2 class="text-xl font-semibold mb-3"><i class="fa-solid fa-sliders text-slate-500 mr-2"></i> Control Manual de Sensores</h2>
             <div class="flex flex-wrap gap-4 items-end">
                 <div class="flex-1 min-w-[200px]">
                     <label class="block text-sm font-medium text-gray-700">Sensor</label>
@@ -1666,27 +1666,27 @@ HTML_TEMPLATE = """
         </div>
 
         <!-- Tarjetas de sensores -->
-        <div class="section-bomba"><h2 class="text-2xl font-bold text-blue-700 mb-3">🛢️ Sensores de Bomba y Eléctricos</h2><div id="bombaCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
-        <div class="section-ascensor"><h2 class="text-2xl font-bold text-purple-700 mb-3">🛗 Sensores de Ascensor y Motor</h2><div id="ascensorCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
+        <div class="section-bomba"><h2 class="text-2xl font-bold text-blue-700 mb-3"><i class="fa-solid fa-oil-can text-blue-600 mr-2"></i> Sensores de Bomba y Eléctricos</h2><div id="bombaCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
+        <div class="section-ascensor"><h2 class="text-2xl font-bold text-purple-700 mb-3"><i class="fa-solid fa-elevator text-purple-600 mr-2"></i> Sensores de Ascensor y Motor</h2><div id="ascensorCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
 
         <!-- Gráficos de barras -->
-        <h2 class="text-2xl font-semibold mt-4 mb-2">📊 Evolución (últimas 20 lecturas)</h2>
+        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-chart-line text-slate-500 mr-2"></i> Evolución (últimas 20 lecturas)</h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2">🌡️ Temperatura · Presión · Vibración</h3><canvas id="chart1"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2">💧 Caudal · Carga · Velocidad</h3><canvas id="chart2"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2">📊 Nivel de Tanque · Energía</h3><canvas id="chart3"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2">⚡ Voltaje · Corriente</h3><canvas id="chart4"></canvas></div>
+            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-temperature-half text-slate-500 mr-2"></i> Temperatura · Presión · Vibración</h3><canvas id="chart1"></canvas></div>
+            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-droplet text-slate-500 mr-2"></i> Caudal · Carga · Velocidad</h3><canvas id="chart2"></canvas></div>
+            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-percent text-slate-500 mr-2"></i> Nivel de Tanque · Energía</h3><canvas id="chart3"></canvas></div>
+            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-bolt-lightning text-slate-500 mr-2"></i> Voltaje · Corriente</h3><canvas id="chart4"></canvas></div>
         </div>
 
         <!-- Historial y alertas -->
-        <h2 class="text-2xl font-semibold mt-6 mb-2">📜 Historial Completo</h2>
+        <h2 class="text-2xl font-semibold mt-6 mb-2"><i class="fa-solid fa-list-ul text-slate-500 mr-2"></i> Historial Completo</h2>
         <div class="bg-white rounded-xl shadow overflow-hidden mb-6"><div class="scroll-table"><table class="min-w-full"><thead class="bg-gray-50"><tr><th class="p-2">Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center p-4">Cargando...</td></tr></tbody></table></div></div>
 
-        <h2 class="text-2xl font-semibold mt-4 mb-2">🔔 Alertas Recientes</h2>
+        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-bell text-slate-500 mr-2"></i> Alertas Recientes</h2>
         <div class="bg-white rounded-xl shadow overflow-hidden mb-6"><div class="scroll-table"><table class="min-w-full"><thead class="bg-gray-50"><tr><th class="p-2">Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead><tbody id="alertTableBody"><tr><td colspan="5" class="text-center p-4">No hay alertas</td></tr></tbody></table></div></div>
 
         <!-- Umbrales -->
-        <h2 class="text-2xl font-semibold mt-4 mb-2">⚙️ Umbrales de Riesgo</h2>
+        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-gears text-slate-500 mr-2"></i> Umbrales de Riesgo</h2>
         <div class="bg-white p-5 rounded-xl shadow mb-6"><div id="thresholdsPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div class="mt-4"><button id="saveThresholdsBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">Guardar Umbrales</button><span id="saveMessage" class="ml-2 text-sm text-green-600"></span></div></div>
     </div>
 
@@ -1838,7 +1838,7 @@ HTML_TEMPLATE = """
         async function clearHistory(){ if(confirm('¿Limpiar historial?')){ let resp=await fetch('/clear_history',{method:'POST'}); if(resp.ok) alert('Historial limpiado'); else alert('Error'); } }
         function populateManualSensorSelect(){
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
-            [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{let opt=document.createElement('option'); opt.value=v; opt.textContent=(BOMBA_VARS.includes(v)?'🛢️':'🛗')+' '+v.replace(/_/g,' ').toUpperCase(); sel.appendChild(opt);});
+            [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{let opt=document.createElement('option'); opt.value=v; opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+v.replace(/_/g,' ').toUpperCase(); sel.appendChild(opt);});
         }
         function updateSensorTypeIndicator(){
             let v=document.getElementById('manualSensorSelect').value;
