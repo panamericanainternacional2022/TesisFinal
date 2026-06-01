@@ -16,6 +16,7 @@ import webbrowser
 import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
 from datetime import datetime, timedelta
 from io import BytesIO
 from collections import deque
@@ -104,17 +105,23 @@ def build_live_payload():
     }
 
 # ----------------------------------------------------------------------
-# Credenciales desde variables de entorno (obligatorias para envíos reales)
+# Credenciales (ahora lee directamente desde el .env si existe)
 # ----------------------------------------------------------------------
+env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '.env')
+if os.path.exists(env_path):
+    with open(env_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                if '=' in line:
+                    key, val = line.strip().split('=', 1)
+                    os.environ[key.strip()] = val.strip().strip("'\"")
+
 SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
 SMTP_PORT = int(os.environ.get('SMTP_PORT', 587))
 SMTP_USER = os.environ.get('SMTP_USER', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
-TWILIO_ACCOUNT_SID = os.environ.get('TWILIO_ACCOUNT_SID', '')
-TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN', '')
-TWILIO_WHATSAPP_FROM = os.environ.get('TWILIO_WHATSAPP_FROM', '')
 
 # ----------------------------------------------------------------------
 # Suscriptores (persistencia)
@@ -128,7 +135,6 @@ def load_subscribers():
     else:
         return {
             "email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
-            "whatsapp": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
             "telegram": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []}
         }
 
@@ -297,7 +303,7 @@ def reset_critical_values(targets):
 # ----------------------------------------------------------------------
 # Envío de alertas (reales si hay credenciales)
 # ----------------------------------------------------------------------
-def send_email_alert(risk_level, subject, body):
+def send_email_alert(risk_level, subject, body, attachment_pdf=None, attachment_name="reporte.pdf"):
     recipients = subscribers["email"].get(risk_level, [])
     if not recipients:
         logger.info(f"No hay suscriptores para nivel {risk_level} en email")
@@ -310,6 +316,13 @@ def send_email_alert(risk_level, subject, body):
         msg['From'] = SMTP_USER
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'plain'))
+        
+        if attachment_pdf:
+            attachment_pdf.seek(0)
+            part = MIMEApplication(attachment_pdf.read(), _subtype="pdf")
+            part.add_header('Content-Disposition', 'attachment', filename=attachment_name)
+            msg.attach(part)
+            
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
@@ -341,24 +354,7 @@ def send_telegram_alert(risk_level, message):
     except Exception as e:
         logger.error(f"Error Telegram: {e}")
 
-def send_whatsapp_alert(risk_level, message):
-    recipients = subscribers["whatsapp"].get(risk_level, [])
-    if not recipients:
-        logger.info(f"No hay suscriptores para nivel {risk_level} en WhatsApp")
-        return
-    if not TWILIO_ACCOUNT_SID or not TWILIO_WHATSAPP_FROM:
-        logger.warning("⚠️ Credenciales Twilio no configuradas. No se enviará WhatsApp real.")
-        return
-    try:
-        from twilio.rest import Client
-        client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
-        for to in recipients:
-            client.messages.create(body=message, from_=TWILIO_WHATSAPP_FROM, to=to)
-            logger.info(f"✅ WhatsApp REAL enviado a {to} (riesgo {risk_level})")
-    except ImportError:
-        logger.warning("Twilio no instalado: pip install twilio")
-    except Exception as e:
-        logger.error(f"Error WhatsApp: {e}")
+
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action):
     if not DJANGO_CONNECTED:
@@ -478,7 +474,6 @@ def send_alert(variable, value, risk_level, recommended_action):
     body = f"{timestamp}\nSensor: {variable}\nValor: {value}\nRiesgo: {risk_level}\nAcciÃ³n: {recommended_action}"
     threading.Thread(target=send_email_alert, args=(risk_level, subject, body), daemon=True).start()
     threading.Thread(target=send_telegram_alert, args=(risk_level, body), daemon=True).start()
-    threading.Thread(target=send_whatsapp_alert, args=(risk_level, body), daemon=True).start()
     notification_payload = {
         'timestamp': timestamp,
         'variable': variable,
@@ -988,22 +983,28 @@ def remove_subscriber():
 
 @app.route('/test_alert/<channel>/<risk_level>/<contact>')
 def test_alert(channel, risk_level, contact):
-    if channel not in ['email', 'whatsapp', 'telegram']:
+    if channel not in ['email', 'telegram']:
         return f"Canal inválido", 400
     original = subscribers[channel].get(risk_level, [])
     if contact not in original:
         subscribers[channel][risk_level].append(contact)
-    message = f"🔔 ALERTA DE PRUEBA: Nivel {risk_level.upper()} - Verificación del sistema PCLogo."
+    
     if channel == 'email':
-        send_email_alert(risk_level, "Prueba PCLogo", message)
+        message = "Este es tu reporte del edificio generado por el sistema de monitoreo."
+        try:
+            pdf_io = generate_pdf_report('hour')  # O el periodo que desees
+            send_email_alert(risk_level, "Reporte de Edificio - PCLogo", message, attachment_pdf=pdf_io)
+        except Exception as e:
+            logger.error(f"Error generando o enviando PDF: {e}")
+            send_email_alert(risk_level, "Reporte de Edificio - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})")
     elif channel == 'telegram':
+        message = f"🔔 Este es tu reporte del edificio (El PDF fue enviado al correo) - PCLogo."
         send_telegram_alert(risk_level, message)
-    elif channel == 'whatsapp':
-        send_whatsapp_alert(risk_level, message)
+        
     if contact not in original:
         subscribers[channel][risk_level] = original
         save_subscribers(subscribers)
-    return f"Prueba enviada a {contact} (riesgo {risk_level}) - Revisa logs y tu dispositivo."
+    return f"Reporte enviado a {contact} (riesgo {risk_level}) - Revisa logs y tu dispositivo."
 
 @app.route('/manual_update', methods=['POST'])
 def manual_update():
