@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lista de Usuarios</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
 </head>
@@ -25,7 +26,7 @@
 
                     <form class="search-container" method="get" action="">
                         <div class="input-with-icon">
-                            <span class="search-icon-inside">🔍</span>
+                            <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
                             <input type="text" name="q" placeholder="Buscar" class="search-input" value="{{ request.GET.q|default:'' }}" />
                         </div>
                     </form>
@@ -75,8 +76,8 @@
                     <div class="table-actions-row action-buttons-row">
                         {% url 'registro_beneficiario' as registro_url %}
                         {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar Usuario' %}
-                        <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn">✏️ Editar</a>
-                        <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn">🗑️ Eliminar</a>
+                        <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                     </div>
                 </div>
             </div>

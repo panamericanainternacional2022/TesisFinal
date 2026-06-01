@@ -6,21 +6,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Seleccionar Edificio</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
     <style>
         .select-list { list-style: none; padding: 0; margin: 0; }
-        .select-list li { border-bottom: 1px solid #f0f0f0; border-radius: 8px; }
+        .select-list li { border-bottom: 1px solid var(--color-border); }
         .select-list li a {
             display: flex; justify-content: space-between; align-items: center;
-            text-decoration: none; color: inherit; padding: 14px 18px; width: 100%;
-            transition: background 0.2s;
+            text-decoration: none; color: inherit; padding: 13px var(--sp-3); width: 100%;
+            transition: background var(--transition-fast);
         }
-        .select-list li a:hover { background: var(--light-blue); border-radius: 8px; }
-        .item-name { font-weight: 600; color: var(--text-main); }
-        .item-id { color: var(--text-muted); font-size: 0.85rem; }
-        .back-link { display: inline-block; margin-top: 20px; color: var(--primary-blue); text-decoration: none; font-weight: 600; }
-        .back-link:hover { text-decoration: underline; }
+        .select-list li a:hover { background: var(--color-bg); }
+        .item-name { font-weight: var(--weight-medium); color: var(--color-text-primary); font-size: var(--text-base); }
+        .item-id { color: var(--color-text-secondary); font-size: var(--text-sm); }
+        .back-link {
+            display: inline-block; margin-top: var(--sp-3);
+            color: var(--color-ink); text-decoration: none;
+            font-weight: var(--weight-medium); font-size: var(--text-sm);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 2px;
+            transition: border-color var(--transition-fast);
+        }
+        .back-link:hover { border-color: var(--color-ink); }
     </style>
 </head>
 <body>
@@ -52,7 +60,7 @@
                         {% endfor %}
                     </ul>
                     {% else %}
-                    <p style="text-align:center;padding:40px 0;color:var(--text-muted);">No hay edificios registrados.</p>
+                    <p style="text-align:center;padding:var(--sp-5) 0;color:var(--color-text-secondary);">No hay edificios registrados.</p>
                     {% endif %}
 
                     <a href="{% url 'lista_edificios' %}" class="back-link">← Volver a lista de edificios</a>

@@ -1,96 +1,119 @@
-/* menu.css */
+/* ==========================================================================
+   menu.css — Swiss Typographic Grid
+   Menú de selección / Dashboard principal
+   ========================================================================== */
+
+/* ── Contenedor ────────────────────────────────────────────────────────────── */
 .menu-container {
-    padding: 100px 40px 40px 40px; /* 100px arriba: 70px navbar + 30px de respiro */
+    padding: var(--sp-5) var(--sp-5) var(--sp-5);
     max-width: 1200px;
     margin: 0 auto;
-    text-align: center;
 }
 
+/* ── Títulos ──────────────────────────────────────────────────────────────── */
 .menu-title {
-    color: #1967d2;
-    font-size: 2.2rem;
-    font-weight: 800;
-    margin-bottom: 10px;
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin: 0 0 6px;
+    line-height: var(--leading-tight);
 }
 
 .menu-subtitle {
-    color: #5f6368;
-    margin-bottom: 50px;
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-normal);
+    margin-bottom: var(--sp-5);
+    letter-spacing: 0.01em;
 }
 
-/* Cuadrícula de tarjetas: 5 columnas exactas en PC */
+/* ── Cuadrícula ────────────────────────────────────────────────────────────── */
 .menu-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr); 
-    gap: 25px;
-    padding: 20px;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;                           /* gap de 1px = efecto cuadrícula de líneas */
+    background: var(--color-border);    /* el background "rellena" los gaps de 1px */
+    border: 1px solid var(--color-border);
 }
 
-/* Estilo de la Tarjeta */
+/* ── Tarjeta ───────────────────────────────────────────────────────────────── */
 .menu-card {
-    background: #ffffff;
-    padding: 40px 20px;
-    border-radius: 20px;
+    background: var(--color-surface);
+    padding: var(--sp-5) var(--sp-3);
     text-decoration: none;
-    color: #202124;
+    color: var(--color-text-primary);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-    border: 1px solid #e8f0fe;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+    transition: background var(--transition-base), color var(--transition-base);
     aspect-ratio: 1 / 1;
-}
-
-.menu-card:hover {
-    transform: translateY(-10px);
-    box-shadow: 0 15px 30px rgba(25, 103, 210, 0.1);
-    border-color: #1967d2;
-}
-
-.icon-card {
-    font-size: 3.5rem;
-    color: #1967d2;
-    margin-bottom: 20px;
-}
-
-.menu-card span {
-    font-weight: 700;
-    font-size: 1rem;
+    gap: var(--sp-2);
     text-align: center;
 }
 
-/* RESPONSIVE: Para tablets y móviles ajusta el grid y padding-top */
-@media (max-width: 1200px) {
+.menu-card:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+}
+
+.menu-card:hover .icon-card {
+    color: var(--color-surface);
+}
+
+/* ── Icono ─────────────────────────────────────────────────────────────────── */
+.icon-card {
+    font-size: 1.6rem;
+    color: var(--color-text-secondary);
+    transition: color var(--transition-base);
+    line-height: 1;
+}
+
+/* ── Etiqueta ──────────────────────────────────────────────────────────────── */
+.menu-card span {
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    letter-spacing: 0.02em;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
     .menu-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets grandes */
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
-@media (max-width: 900px) {
+@media (max-width: 768px) {
     .menu-container {
-        padding: 90px 20px 30px 20px; /* menos en tablet */
+        padding: var(--sp-4) var(--sp-3) var(--sp-4);
     }
+
     .menu-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets medianos */
-        gap: 18px;
-        padding: 10px;
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 500px) {
     .menu-container {
-        padding: 75px 5px 18px 5px; /* navbar más chico y menos padding */
-        max-width: 98vw;
+        padding: var(--sp-3) var(--sp-2) var(--sp-3);
     }
+
     .menu-grid {
         grid-template-columns: 1fr;
-        max-width: 350px;
+        max-width: 340px;
         margin: 0 auto;
     }
+
     .menu-card {
         aspect-ratio: auto;
-        padding: 25px;
+        padding: var(--sp-3);
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--sp-2);
+    }
+
+    .icon-card {
+        font-size: 1.2rem;
     }
 }

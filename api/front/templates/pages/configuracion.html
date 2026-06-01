@@ -6,13 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Configuración - INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
     <script src="{% static 'JS/validacion.js' %}" defer></script>
     <style>
         .config-card { max-width: 600px; }
-        .password-section { margin-top: 24px; padding-top: 24px; border-top: 2px solid #e8f0fe; }
-        .password-section h3 { color: #1967d2; font-size: 1.1rem; margin-bottom: 16px; }
     </style>
 </head>
 <body>
@@ -22,11 +21,7 @@
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
                 {% for msg in page_messages %}
-                    <div style="max-width:600px;margin:0 auto 16px;padding:12px 20px;border-radius:8px;
-                        {% if msg.type == 'error' %}background:#ffe9e9;border:1px solid #ffbdbd;color:#8a1f1f;
-                        {% else %}background:#e8f5e9;border:1px solid #c8e6c9;color:#2e7d32;{% endif %}">
-                        {{ msg.text }}
-                    </div>
+                    <div class="alert alert-{{ msg.type }}">{{ msg.text }}</div>
                 {% endfor %}
 
                 <form class="perfil-card config-card" method="post" novalidate>
