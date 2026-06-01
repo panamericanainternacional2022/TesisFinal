@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso al Sistema</title>
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/login.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/navbar.css' %}">
 </head>
@@ -20,7 +21,7 @@
 
             <h1>Acceso al Sistema</h1>
             {% if error %}
-                <div class="login-error" style="margin:12px 0;padding:12px;border-radius:8px;background:#ffe9e9;border:1px solid #ffbdbd;color:#8a1f1f;">
+                <div class="login-error">
                     {{ error }}
                 </div>
             {% endif %}
