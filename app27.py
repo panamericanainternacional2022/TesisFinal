@@ -1542,153 +1542,649 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PCLogo - Monitoreo Avanzado</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>INES — Panel de Monitoreo</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        .risk-green { background-color: #10b981; color: white; }
-        .risk-yellow { background-color: #f59e0b; color: black; }
-        .risk-orange { background-color: #f97316; color: white; }
-        .risk-red { background-color: #ef4444; color: white; }
-        .card { transition: 0.2s; }
-        .card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
-        .section-bomba { border-left: 4px solid #3b82f6; padding-left: 1rem; margin-top: 1rem; }
-        .section-ascensor { border-left: 4px solid #8b5cf6; padding-left: 1rem; margin-top: 1rem; }
-        .chart-container { background: white; border-radius: 0.75rem; padding: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1.5rem; }
-        .rationing-badge { background: #dc2626; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-weight: bold; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-        canvas { max-height: 280px; width: 100%; }
-        .rec-card { background: #f0f9ff; border-left: 4px solid #0284c7; }
-        .scroll-table { max-height: 400px; overflow-y: auto; display: block; }
-        .scroll-table table { width: 100%; }
-        .scroll-table thead tr { position: sticky; top: 0; background: #f3f4f6; }
-        .alert-row-critical { background-color: #fee2e2; }
-        .alert-row-high { background-color: #ffedd5; }
-        .warning-badge { background-color: #fef08a; color: #854d0e; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; }
+        /* ── Design Tokens ── */
+        :root {
+            --font: 'DM Sans', system-ui, sans-serif;
+            --color-ink: #0a0a0a;
+            --color-ink-soft: #1a1a1a;
+            --color-surface: #ffffff;
+            --color-bg: #f5f5f5;
+            --color-border: #e0e0e0;
+            --color-border-strong: #b0b0b0;
+            --color-text-primary: #1a1a1a;
+            --color-text-secondary: #5f5f5f;
+            --color-text-placeholder: #a0a0a0;
+
+            /* Estados funcionales (solo para semáforos) */
+            --state-ok: #166534;
+            --state-ok-bg: #f0fdf4;
+            --state-ok-border: #bbf7d0;
+            --state-warn: #92400e;
+            --state-warn-bg: #fffbeb;
+            --state-warn-border: #fde68a;
+            --state-critical: #991b1b;
+            --state-critical-bg: #fef2f2;
+            --state-critical-border: #fecaca;
+            --state-inactive: #374151;
+            --state-inactive-bg: #f9fafb;
+            --state-inactive-border: #e5e7eb;
+
+            --radius: 0px;
+            --sp-1: 8px; --sp-2: 16px; --sp-3: 24px; --sp-4: 32px; --sp-5: 40px;
+            --text-xs: 0.75rem; --text-sm: 0.875rem; --text-base: 1rem;
+            --text-lg: 1.125rem; --text-xl: 1.25rem; --text-2xl: 1.5rem;
+            --weight-normal: 400; --weight-medium: 500; --weight-bold: 700;
+            --tracking-wide: 0.06em; --tracking-tight: -0.02em;
+            --leading-tight: 1.2; --leading-normal: 1.5;
+            --transition-base: 0.15s ease;
+            --transition-fast: 0.1s ease;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font);
+            background: var(--color-bg);
+            color: var(--color-text-primary);
+            font-size: var(--text-base);
+            line-height: var(--leading-normal);
+            font-weight: var(--weight-normal);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Layout ── */
+        .page-wrapper { max-width: 1400px; margin: 0 auto; padding: var(--sp-4); }
+
+        .page-header {
+            border-bottom: 2px solid var(--color-ink);
+            padding-bottom: var(--sp-2);
+            margin-bottom: var(--sp-4);
+        }
+
+        .page-title {
+            font-size: var(--text-2xl);
+            font-weight: var(--weight-bold);
+            letter-spacing: var(--tracking-tight);
+            color: var(--color-ink);
+            line-height: var(--leading-tight);
+        }
+
+        .page-subtitle {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+        }
+
+        /* ── Paneles / Tarjetas ── */
+        .panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            padding: var(--sp-3);
+            margin-bottom: var(--sp-3);
+        }
+
+        .panel-title {
+            font-size: var(--text-base);
+            font-weight: var(--weight-bold);
+            letter-spacing: var(--tracking-tight);
+            color: var(--color-ink);
+            margin-bottom: var(--sp-2);
+            padding-bottom: var(--sp-1);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title i { color: var(--color-text-secondary); font-size: 0.9rem; }
+
+        /* ── Grids ── */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--color-border); }
+        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--color-border); }
+        .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
+
+        .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
+
+        /* ── Fila de controles ── */
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: var(--sp-2);
+            margin-bottom: var(--sp-3);
+            padding: var(--sp-2) var(--sp-3);
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+        }
+
+        .controls-row .spacer { flex: 1; }
+
+        /* ── Botones ── */
+        .btn {
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-medium);
+            cursor: pointer;
+            border: 1px solid var(--color-ink);
+            background: var(--color-ink);
+            color: var(--color-surface);
+            padding: 8px var(--sp-2);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity var(--transition-fast);
+            border-radius: var(--radius);
+        }
+
+        .btn:hover { opacity: 0.8; }
+        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        .btn-ghost {
+            background: none;
+            color: var(--color-ink);
+            border: 1px solid var(--color-border);
+        }
+
+        .btn-danger {
+            background: var(--state-critical);
+            border-color: var(--state-critical);
+        }
+
+        .btn-ok {
+            background: var(--state-ok);
+            border-color: var(--state-ok);
+        }
+
+        /* ── Inputs y Selects ── */
+        .form-group { display: flex; flex-direction: column; gap: 4px; }
+
+        .form-label {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="email"],
+        select {
+            font-family: var(--font);
+            font-size: var(--text-base);
+            color: var(--color-text-primary);
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            padding: 9px var(--sp-1);
+            width: 100%;
+            outline: none;
+            border-radius: var(--radius);
+            transition: border-color var(--transition-base);
+        }
+
+        input:focus, select:focus { border-color: var(--color-ink); background: var(--color-surface); }
+
+        /* ── Sensor Cards ── */
+        .sensor-card {
+            padding: var(--sp-2);
+            background: var(--color-surface);
+            border-left: 3px solid var(--color-border);
+        }
+
+        .sensor-card.risk-low   { border-left-color: var(--state-ok); }
+        .sensor-card.risk-med   { border-left-color: var(--state-warn); }
+        .sensor-card.risk-high  { border-left-color: #c2410c; }
+        .sensor-card.risk-crit  { border-left-color: var(--state-critical); }
+
+        .sensor-card-name {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .sensor-card-value {
+            font-size: var(--text-xl);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            line-height: var(--leading-tight);
+        }
+
+        .sensor-card-footer {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* ── Risk Badges ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            font-size: var(--text-xs);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border: 1px solid;
+        }
+
+        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok);       border-color: var(--state-ok-border); }
+        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn);     border-color: var(--state-warn-border); }
+        .badge-high   { background: #fff7ed;                  color: #c2410c;               border-color: #fed7aa; }
+        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); border-color: var(--state-critical-border); }
+        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); border-color: var(--state-inactive-border); }
+
+        /* ── Estado Sistema ── */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1px;
+            background: var(--color-border);
+            border: 1px solid var(--color-border);
+            margin-bottom: var(--sp-2);
+        }
+
+        .status-cell {
+            background: var(--color-surface);
+            padding: var(--sp-1) var(--sp-2);
+        }
+
+        .status-cell-label {
+            font-size: var(--text-xs);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            font-weight: var(--weight-medium);
+            margin-bottom: 2px;
+        }
+
+        .status-cell-value {
+            font-size: var(--text-lg);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+        }
+
+        /* ── Secciones de Sensores ── */
+        .sensor-section {
+            margin-bottom: var(--sp-3);
+        }
+
+        .sensor-section-title {
+            font-size: var(--text-sm);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--sp-1);
+            padding-bottom: var(--sp-1);
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sensor-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1px;
+            background: var(--color-border);
+            border: 1px solid var(--color-border);
+        }
+
+        /* ── Tabla ── */
+        .table-wrapper {
+            border: 1px solid var(--color-border);
+            overflow: hidden;
+            margin-bottom: var(--sp-3);
+        }
+
+        .scroll-table {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--text-sm);
+        }
+
+        thead th {
+            background: var(--color-bg);
+            color: var(--color-text-secondary);
+            font-size: var(--text-xs);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            padding: 8px var(--sp-2);
+            text-align: left;
+            border-bottom: 2px solid var(--color-ink);
+            position: sticky;
+            top: 0;
+        }
+
+        tbody td {
+            padding: 10px var(--sp-2);
+            border-top: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+        }
+
+        tbody tr:hover td { background: var(--color-bg); }
+
+        .row-crit td { background: var(--state-critical-bg); }
+        .row-high td { background: var(--state-warn-bg); }
+
+        /* ── Chart Container ── */
+        .chart-panel {
+            background: var(--color-surface);
+            border: 1px solid var(--color-border);
+            padding: var(--sp-2);
+        }
+
+        .chart-panel-title {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-medium);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--sp-1);
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        canvas { max-height: 220px; width: 100%; }
+
+        /* ── Alerta / Aviso ── */
+        .sys-alert {
+            padding: var(--sp-1) var(--sp-2);
+            margin-bottom: var(--sp-2);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-medium);
+            display: flex;
+            align-items: center;
+            gap: var(--sp-1);
+            border-left: 3px solid;
+        }
+
+        .sys-alert-warn {
+            background: var(--state-warn-bg);
+            color: var(--state-warn);
+            border-left-color: var(--state-warn);
+        }
+
+        .sys-alert-crit {
+            background: var(--state-critical-bg);
+            color: var(--state-critical);
+            border-left-color: var(--state-critical);
+        }
+
+        /* ── Racionamiento ── */
+        #rationingIndicator {
+            display: none;
+            background: var(--state-critical);
+            color: #fff;
+            padding: 4px var(--sp-1);
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+        }
+
+        #rationingIndicator.visible { display: inline-flex; align-items: center; gap: 6px; }
+
+        /* ── Suscriptores ── */
+        .subs-table { font-size: var(--text-sm); width: 100%; border-collapse: collapse; }
+        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-medium); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
+        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-border); }
+        .subs-table button { background: none; border: none; cursor: pointer; font-family: var(--font); font-size: var(--text-xs); font-weight: var(--weight-medium); padding: 2px 0; border-bottom: 1px solid; transition: opacity var(--transition-fast); }
+        .subs-table button:hover { opacity: 0.55; }
+        .btn-test-sub { color: var(--color-ink); border-bottom-color: var(--color-ink); margin-right: var(--sp-1); }
+        .btn-rm-sub   { color: var(--state-critical); border-bottom-color: var(--state-critical); }
+
+        .subs-container { max-height: 220px; overflow-y: auto; border: 1px solid var(--color-border); }
+
+        /* ── Responsive ── */
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .grid-charts { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 640px) {
+            .page-wrapper { padding: var(--sp-2); }
+            .controls-row { flex-direction: column; align-items: flex-start; }
+        }
     </style>
 </head>
-<body class="bg-gray-100 p-6">
-    <div class="container mx-auto">
-        <h1 class="text-3xl font-bold text-gray-800 mb-2"><i class="fa-solid fa-chart-line text-blue-600 mr-2"></i> PCLogo - Sistema de Monitoreo Avanzado</h1>
-        <p class="text-gray-600 mb-6">Sensores de bomba, ascensor, eléctricos y motor</p>
+<body>
+    <div class="page-wrapper">
 
-        <div class="mb-4 flex flex-wrap justify-between items-center gap-2">
-            <div class="flex gap-3">
-                <button id="toggleAlertsBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded shadow">
-                    <i class="fas fa-bell"></i> Desactivar Alertas
-                </button>
-                <div id="rationingIndicator" class="hidden rationing-badge"><i class="fas fa-droplet-slash"></i> RACIONAMIENTO ACTIVO</div>
-                <button id="clearHistoryBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded shadow">
-                    <i class="fas fa-trash-alt"></i> Limpiar Historial
-                </button>
-            </div>
-            <div class="flex gap-2">
-                <select id="reportPeriodSelect" class="border rounded p-2 bg-white shadow-sm">
-                    <option value="minute">Último minuto</option>
-                    <option value="ten_minutes">Últimos 10 min</option>
-                    <option value="hour">Última hora</option>
-                    <option value="day">Último día</option>
-                    <option value="week">Última semana</option>
-                    <option value="month">Último mes</option>
-                </select>
-                <button id="generateReportBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">
-                    <i class="fas fa-file-pdf"></i> Generar PDF
-                </button>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 w-full">
-                <div class="bg-white p-3 rounded-lg shadow text-sm text-gray-700">
-                    <strong>Estado de protección:</strong> <span id="protectionStatus">OFF</span>
-                </div>
-                <div class="bg-white p-3 rounded-lg shadow text-sm text-gray-700">
-                    <strong>Bomba:</strong> <span id="pumpStatus">ON</span>
-                </div>
-                <div class="bg-white p-3 rounded-lg shadow text-sm text-gray-700">
-                    <strong>Ascensor:</strong> <span id="elevatorStatus">ON</span>
-                </div>
-            </div>
-            <div class="text-sm text-gray-500">Última actualización: <span id="lastUpdate">--</span></div>
+        <!-- Encabezado -->
+        <header class="page-header">
+            <h1 class="page-title"><i class="fa-solid fa-chart-line"></i> INES — Panel de Monitoreo</h1>
+            <p class="page-subtitle">Sensores de bomba, ascensor, eléctricos y motor · Actualización en vivo</p>
+        </header>
+
+        <!-- Barra de controles -->
+        <div class="controls-row">
+            <button id="toggleAlertsBtn" class="btn">
+                <i class="fas fa-bell"></i> Desactivar Alertas
+            </button>
+            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> RACIONAMIENTO ACTIVO</div>
+            <button id="clearHistoryBtn" class="btn btn-ghost">
+                <i class="fas fa-trash-alt"></i> Limpiar Historial
+            </button>
+            <div class="spacer"></div>
+            <select id="reportPeriodSelect" style="width:auto;">
+                <option value="minute">Último minuto</option>
+                <option value="ten_minutes">Últimos 10 min</option>
+                <option value="hour" selected>Última hora</option>
+                <option value="day">Último día</option>
+                <option value="week">Última semana</option>
+                <option value="month">Último mes</option>
+            </select>
+            <button id="generateReportBtn" class="btn btn-ok">
+                <i class="fas fa-file-pdf"></i> Generar PDF
+            </button>
         </div>
 
-        <!-- Diagnóstico de credenciales -->
-        <div id="credsWarning" class="mb-4 p-2 rounded bg-yellow-100 text-yellow-800 text-sm hidden">
+        <!-- Aviso de credenciales -->
+        <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
+            <i class="fas fa-triangle-exclamation"></i>
             <span id="credsMsg"></span>
         </div>
 
-        <!-- Panel de estadísticas y recomendaciones -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-            <div class="bg-white p-4 rounded-xl shadow">
-                <h2 class="text-xl font-bold text-gray-700 mb-2"><i class="fa-solid fa-chart-bar text-slate-500 mr-2"></i> Estadísticas Recientes</h2>
-                <div id="statsPanel" class="text-sm space-y-1"><p>Cargando...</p></div>
+        <!-- Estado del sistema -->
+        <div class="status-grid" id="statusGrid">
+            <div class="status-cell">
+                <div class="status-cell-label">Protección</div>
+                <div class="status-cell-value" id="protectionStatus">OFF</div>
             </div>
-            <div class="rec-card p-4 rounded-xl shadow">
-                <h2 class="text-xl font-bold text-gray-700 mb-2"><i class="fa-solid fa-lightbulb text-slate-500 mr-2"></i> Recomendaciones</h2>
-                <div id="doorAttemptsInfo" class="text-xs text-gray-600 mb-2"></div>
-                <div id="recommendationsPanel" class="text-sm space-y-2"><p>Cargando...</p></div>
+            <div class="status-cell">
+                <div class="status-cell-label">Bomba</div>
+                <div class="status-cell-value" id="pumpStatus">ON</div>
+            </div>
+            <div class="status-cell">
+                <div class="status-cell-label">Ascensor</div>
+                <div class="status-cell-value" id="elevatorStatus">ON</div>
+            </div>
+            <div class="status-cell">
+                <div class="status-cell-label">Última actualización</div>
+                <div class="status-cell-value" id="lastUpdate">--:--:--</div>
+            </div>
+        </div>
+
+        <!-- Stats + Recomendaciones -->
+        <div class="grid-2" style="margin-bottom: var(--sp-3);">
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-chart-bar"></i> Estadísticas recientes</h2>
+                <div id="statsPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+            </div>
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones</h2>
+                <div id="doorAttemptsInfo" style="font-size:var(--text-xs); color:var(--color-text-secondary); margin-bottom:8px;"></div>
+                <div id="recommendationsPanel" style="font-size:var(--text-sm);">Cargando...</div>
             </div>
         </div>
 
         <!-- Suscriptores -->
-        <div class="bg-white p-5 rounded-xl shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-3"><i class="fa-solid fa-bullhorn text-slate-500 mr-2"></i> Suscriptores de Alertas por Criticidad</h2>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                <div><label class="block text-sm font-medium">Canal</label><select id="subChannel" class="mt-1 block w-full border rounded p-2"><option value="email">Correo</option><option value="whatsapp">WhatsApp</option><option value="telegram">Telegram</option></select></div>
-                <div><label class="block text-sm font-medium">Nivel Riesgo</label><select id="subRiskLevel" class="mt-1 block w-full border rounded p-2"><option value="Bajo">Bajo</option><option value="Medio">Medio</option><option value="Alto">Alto</option><option value="Crítico">Crítico</option></select></div>
-                <div><label class="block text-sm font-medium">Contacto</label><input type="text" id="subContact" class="mt-1 block w-full border rounded p-2" placeholder="email / teléfono / chat_id"></div>
-                <div class="flex items-end"><button id="addSubscriberBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow w-full"><i class="fas fa-plus"></i> Agregar</button></div>
+        <div class="panel">
+            <h2 class="panel-title"><i class="fa-solid fa-bullhorn"></i> Suscriptores de alertas</h2>
+            <div class="grid-4" style="margin-bottom: var(--sp-2);">
+                <div style="background:var(--color-surface); padding: var(--sp-1);">
+                    <div class="form-group">
+                        <label class="form-label">Canal</label>
+                        <select id="subChannel">
+                            <option value="email">Correo</option>
+                            <option value="telegram">Telegram</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="background:var(--color-surface); padding: var(--sp-1);">
+                    <div class="form-group">
+                        <label class="form-label">Nivel de riesgo</label>
+                        <select id="subRiskLevel">
+                            <option value="Bajo">Bajo</option>
+                            <option value="Medio">Medio</option>
+                            <option value="Alto">Alto</option>
+                            <option value="Crítico">Crítico</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="background:var(--color-surface); padding: var(--sp-1);">
+                    <div class="form-group">
+                        <label class="form-label">Contacto</label>
+                        <input type="text" id="subContact" placeholder="email / chat_id">
+                    </div>
+                </div>
+                <div style="background:var(--color-surface); padding: var(--sp-1); display:flex; align-items:flex-end;">
+                    <button id="addSubscriberBtn" class="btn" style="width:100%; justify-content:center;">
+                        <i class="fas fa-plus"></i> Agregar
+                    </button>
+                </div>
             </div>
-            <div id="subscribersList" class="text-sm border rounded p-3 max-h-60 overflow-y-auto">Cargando...</div>
-            <div class="mt-2 text-xs text-gray-500">* Botón "Probar" envía una alerta de prueba al contacto.</div>
+            <div class="subs-container">
+                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+            </div>
+            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* Botón "Probar" envía una alerta real de prueba.</p>
         </div>
 
         <!-- Control manual -->
-        <div class="bg-white p-5 rounded-xl shadow-md mb-6">
-            <h2 class="text-xl font-semibold mb-3"><i class="fa-solid fa-sliders text-slate-500 mr-2"></i> Control Manual de Sensores</h2>
-            <div class="flex flex-wrap gap-4 items-end">
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700">Sensor</label>
-                    <select id="manualSensorSelect" class="mt-1 block w-full border-gray-300 rounded-md p-2 border"></select>
+        <div class="panel">
+            <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Control manual de sensores</h2>
+            <div style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
+                <div class="form-group" style="flex:1; min-width:180px;">
+                    <label class="form-label">Sensor</label>
+                    <select id="manualSensorSelect"></select>
                 </div>
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-gray-700">Valor</label>
-                    <input type="text" id="manualValueInput" class="mt-1 block w-full border-gray-300 rounded-md p-2 border" placeholder="Ingrese valor">
-                    <div class="text-xs mt-1" id="manualRiskPreview"></div>
+                <div class="form-group" style="flex:1; min-width:180px;">
+                    <label class="form-label">Valor</label>
+                    <input type="text" id="manualValueInput" placeholder="Ingrese valor">
+                    <div style="font-size:var(--text-xs); margin-top:4px;" id="manualRiskPreview"></div>
                 </div>
                 <div>
-                    <button id="sendManualBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded shadow">
+                    <button id="sendManualBtn" class="btn">
                         <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
             </div>
-            <div id="manualMessage" class="mt-2 text-sm text-gray-600"></div>
-            <div id="sensorTypeIndicator" class="mt-2 text-sm font-semibold"></div>
+            <div id="manualMessage" style="margin-top:8px; font-size:var(--text-sm);"></div>
+            <div id="sensorTypeIndicator" style="margin-top:6px; font-size:var(--text-sm); font-weight:var(--weight-medium); color:var(--color-text-secondary);"></div>
         </div>
 
-        <!-- Tarjetas de sensores -->
-        <div class="section-bomba"><h2 class="text-2xl font-bold text-blue-700 mb-3"><i class="fa-solid fa-oil-can text-blue-600 mr-2"></i> Sensores de Bomba y Eléctricos</h2><div id="bombaCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
-        <div class="section-ascensor"><h2 class="text-2xl font-bold text-purple-700 mb-3"><i class="fa-solid fa-elevator text-purple-600 mr-2"></i> Sensores de Ascensor y Motor</h2><div id="ascensorCards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8"></div></div>
-
-        <!-- Gráficos de barras -->
-        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-chart-line text-slate-500 mr-2"></i> Evolución (últimas 20 lecturas)</h2>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-temperature-half text-slate-500 mr-2"></i> Temperatura · Presión · Vibración</h3><canvas id="chart1"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-droplet text-slate-500 mr-2"></i> Caudal · Carga · Velocidad</h3><canvas id="chart2"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-percent text-slate-500 mr-2"></i> Nivel de Tanque · Energía</h3><canvas id="chart3"></canvas></div>
-            <div class="chart-container"><h3 class="text-lg font-semibold mb-2"><i class="fa-solid fa-bolt-lightning text-slate-500 mr-2"></i> Voltaje · Corriente</h3><canvas id="chart4"></canvas></div>
+        <!-- Tarjetas de sensores: Bomba -->
+        <div class="sensor-section">
+            <div class="sensor-section-title">
+                <i class="fa-solid fa-oil-can"></i> Sensores de Bomba y Eléctricos
+            </div>
+            <div class="sensor-cards-grid" id="bombaCards"></div>
         </div>
 
-        <!-- Historial y alertas -->
-        <h2 class="text-2xl font-semibold mt-6 mb-2"><i class="fa-solid fa-list-ul text-slate-500 mr-2"></i> Historial Completo</h2>
-        <div class="bg-white rounded-xl shadow overflow-hidden mb-6"><div class="scroll-table"><table class="min-w-full"><thead class="bg-gray-50"><tr><th class="p-2">Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead><tbody id="historyBody"><tr><td colspan="5" class="text-center p-4">Cargando...</td></tr></tbody></table></div></div>
+        <!-- Tarjetas de sensores: Ascensor -->
+        <div class="sensor-section">
+            <div class="sensor-section-title">
+                <i class="fa-solid fa-elevator"></i> Sensores de Ascensor y Motor
+            </div>
+            <div class="sensor-cards-grid" id="ascensorCards"></div>
+        </div>
 
-        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-bell text-slate-500 mr-2"></i> Alertas Recientes</h2>
-        <div class="bg-white rounded-xl shadow overflow-hidden mb-6"><div class="scroll-table"><table class="min-w-full"><thead class="bg-gray-50"><tr><th class="p-2">Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead><tbody id="alertTableBody"><tr><td colspan="5" class="text-center p-4">No hay alertas</td></tr></tbody></table></div></div>
+        <!-- Gráficos -->
+        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
+            <i class="fa-solid fa-chart-line"></i> Evolución — últimas 20 lecturas
+        </h2>
+        <div class="grid-charts">
+            <div class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-temperature-half"></i> Temperatura · Presión · Vibración</div>
+                <canvas id="chart1"></canvas>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-droplet"></i> Caudal · Carga · Velocidad</div>
+                <canvas id="chart2"></canvas>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-percent"></i> Nivel de Tanque · Energía</div>
+                <canvas id="chart3"></canvas>
+            </div>
+            <div class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-bolt-lightning"></i> Voltaje · Corriente</div>
+                <canvas id="chart4"></canvas>
+            </div>
+        </div>
+
+        <!-- Historial -->
+        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1); margin-top:var(--sp-3);">
+            <i class="fa-solid fa-list-ul"></i> Historial completo
+        </h2>
+        <div class="table-wrapper">
+            <div class="scroll-table">
+                <table>
+                    <thead><tr><th>Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
+                    <tbody id="historyBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">Cargando...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Alertas -->
+        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
+            <i class="fa-solid fa-bell"></i> Alertas recientes
+        </h2>
+        <div class="table-wrapper">
+            <div class="scroll-table">
+                <table>
+                    <thead><tr><th>Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
+                    <tbody id="alertTableBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">No hay alertas</td></tr></tbody>
+                </table>
+            </div>
+        </div>
 
         <!-- Umbrales -->
-        <h2 class="text-2xl font-semibold mt-4 mb-2"><i class="fa-solid fa-gears text-slate-500 mr-2"></i> Umbrales de Riesgo</h2>
-        <div class="bg-white p-5 rounded-xl shadow mb-6"><div id="thresholdsPanel" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div><div class="mt-4"><button id="saveThresholdsBtn" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">Guardar Umbrales</button><span id="saveMessage" class="ml-2 text-sm text-green-600"></span></div></div>
-    </div>
+        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
+            <i class="fa-solid fa-gears"></i> Umbrales de riesgo
+        </h2>
+        <div class="panel">
+            <div id="thresholdsPanel" class="grid-2"></div>
+            <div style="margin-top:var(--sp-2); display:flex; align-items:center; gap:var(--sp-2);">
+                <button id="saveThresholdsBtn" class="btn btn-ok"><i class="fas fa-check"></i> Guardar Umbrales</button>
+                <span id="saveMessage" style="font-size:var(--text-sm); color:var(--state-ok);"></span>
+            </div>
+        </div>
+
+    </div><!-- /page-wrapper -->
 
     <script>
         let socket = io();
@@ -1700,123 +2196,168 @@ HTML_TEMPLATE = """
         const ASCENSOR_VARS = ['position','speed','load','trip_count','door_status','energy','motor_stuck'];
 
         function getUnit(v){ return {flow_rate:'L/s',pressure:'bar',temperature:'°C',vibration:'mm/s',tank_level:'%',position:'piso',speed:'m/s',load:'kg',trip_count:'viajes',door_status:'',energy:'kW',voltage:'V',current:'A'}[v]||''; }
-        function getRiskInfo(varName,value){
-            if(NO_RISK_VARS.includes(varName)) return {risk:varName==='motor_stuck'&&value?'Crítico':'Bajo', bgClass:varName==='motor_stuck'&&value?'risk-red':'risk-green', borderClass:varName==='motor_stuck'&&value?'border-red-500':'border-green-500'};
-            let cfg=currentThresholds[varName]; if(!cfg) return {risk:'Desconocido',bgClass:'risk-gray',borderClass:'border-gray-500'};
-            let risk='Bajo',color='green';
-            if(cfg.direction==='range'){
-                if(value>=cfg.low&&value<=cfg.high){risk='Bajo';color='green';}else{risk='Alto';color='orange';}
-            }else{
-                let d=cfg.direction, low=cfg.low, med=cfg.medium, high=cfg.high;
-                if(d==='higher'){ if(value<=low){risk='Bajo';color='green';}else if(value<=med){risk='Medio';color='yellow';}else if(value<=high){risk='Alto';color='orange';}else{risk='Crítico';color='red';} }
-                else{ if(value>=low){risk='Bajo';color='green';}else if(value>=med){risk='Medio';color='yellow';}else if(value>=high){risk='Alto';color='orange';}else{risk='Crítico';color='red';} }
+
+        function getRiskClass(varName, value){
+            if(NO_RISK_VARS.includes(varName)){
+                let crit = (varName==='motor_stuck' && value);
+                return { card:'risk-'+(crit?'crit':'low'), badge:'badge-'+(crit?'crit':'low'), label:crit?'Crítico':'Bajo' };
             }
-            return {risk, bgClass:`risk-${color}`, borderClass:`border-${color==='green'?'green-500':color==='yellow'?'yellow-500':color==='orange'?'orange-500':'red-500'}`};
+            let cfg = currentThresholds[varName];
+            if(!cfg) return { card:'', badge:'badge-info', label:'Desconocido' };
+            let risk='Bajo', cls='low';
+            if(cfg.direction==='range'){
+                if(!(value>=cfg.low && value<=cfg.high)){ risk='Alto'; cls='high'; }
+            } else {
+                let d=cfg.direction, low=cfg.low, med=cfg.medium, high=cfg.high;
+                if(d==='higher'){
+                    if(value>high){risk='Crítico';cls='crit';}
+                    else if(value>med){risk='Alto';cls='high';}
+                    else if(value>low){risk='Medio';cls='med';}
+                } else {
+                    if(value<high){risk='Crítico';cls='crit';}
+                    else if(value<med){risk='Alto';cls='high';}
+                    else if(value<low){risk='Medio';cls='med';}
+                }
+            }
+            return { card:'risk-'+cls, badge:'badge-'+cls, label:risk };
         }
+
         function updateCards(data){
             let b=document.getElementById('bombaCards'), a=document.getElementById('ascensorCards');
             b.innerHTML=''; a.innerHTML='';
             for(let [k,v] of Object.entries(data)){
-                let ri=getRiskInfo(k,v);
-                let dn=k.replace(/_/g,' ').toUpperCase(); if(k==='motor_stuck') dn='MOTOR PEGADO';
-                let card=document.createElement('div'); card.className=`card bg-white rounded-lg shadow p-4 border-l-8 ${ri.borderClass}`;
-                card.innerHTML=`<div class="flex justify-between items-start"><div><h3 class="font-bold text-gray-700">${dn}</h3><p class="text-2xl font-bold">${v} ${getUnit(k)}</p></div><span class="px-2 py-1 rounded text-xs font-semibold ${ri.bgClass}">${ri.risk}</span></div>`;
+                let ri = getRiskClass(k,v);
+                let dn = (k==='motor_stuck') ? 'MOTOR PEGADO' : k.replace(/_/g,' ').toUpperCase();
+                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : `${v} ${getUnit(k)}`;
+                let card = document.createElement('div');
+                card.className = `sensor-card ${ri.card}`;
+                card.innerHTML = `
+                    <div class="sensor-card-name">${dn}</div>
+                    <div class="sensor-card-value">${valStr}</div>
+                    <div class="sensor-card-footer">
+                        <span class="badge ${ri.badge}">${ri.label}</span>
+                    </div>`;
                 if(BOMBA_VARS.includes(k)) b.appendChild(card);
                 else if(ASCENSOR_VARS.includes(k)) a.appendChild(card);
             }
         }
+
         function updateHistoryTable(hist){
             let tbody=document.getElementById('historyBody'); tbody.innerHTML='';
-            if(hist.length===0){ tbody.innerHTML='<tr><td colspan="5" class="text-center p-4">No hay registros</td></tr>'; return; }
+            if(!hist||hist.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay registros</td></tr>'; return; }
             for(let i=hist.length-1;i>=0;i--){
-                let r=hist[i]; let rc=r.risk==='Bajo'?'text-green-600':(r.risk==='Medio'?'text-yellow-600':(r.risk==='Alto'?'text-orange-600':'text-red-600'));
-                let tr=document.createElement('tr'); tr.innerHTML=`<td class="p-2">${r.timestamp}</td><td class="p-2">${r.type}</td><td class="p-2">${r.variable}</td><td class="p-2">${r.value}</td><td class="p-2 ${rc} font-semibold">${r.risk}</td>`;
+                let r=hist[i];
+                let cls = r.risk==='Crítico'?'row-crit':r.risk==='Alto'?'row-high':'';
+                let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[r.risk]||'badge-info';
+                let tr=document.createElement('tr'); tr.className=cls;
+                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${r.variable}</td><td>${r.value}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
                 tbody.appendChild(tr);
             }
         }
+
         function updateAlertTable(alerts){
             let tbody=document.getElementById('alertTableBody'); tbody.innerHTML='';
-            if(!alerts||alerts.length===0){ tbody.innerHTML='<tr><td colspan="5" class="text-center p-4">No hay alertas</td></tr>'; return; }
+            if(!alerts||alerts.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay alertas</td></tr>'; return; }
             for(let a of alerts){
-                let rc=(a.risk==='Crítico')?'alert-row-critical':(a.risk==='Alto'?'alert-row-high':'');
-                let tr=document.createElement('tr'); tr.className=rc;
-                tr.innerHTML=`<td class="p-2">${a.timestamp}</td><td class="p-2">${a.variable}</td><td class="p-2">${a.value}</td><td class="p-2 font-semibold">${a.risk}</td><td class="p-2">${a.message}</td>`;
+                let cls = a.risk==='Crítico'?'row-crit':a.risk==='Alto'?'row-high':'';
+                let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[a.risk]||'badge-info';
+                let tr=document.createElement('tr'); tr.className=cls;
+                tr.innerHTML=`<td>${a.timestamp}</td><td>${a.variable}</td><td>${a.value}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
                 tbody.appendChild(tr);
             }
         }
+
         function initCharts(){
-            const optionsBase = { responsive: true, plugins: { legend: { position: 'top' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.raw}` } } } };
-            const ctx1 = document.getElementById('chart1').getContext('2d');
-            chart1 = new Chart(ctx1, { type: 'bar', data: { labels: [], datasets: [
-                { label: 'Temperatura (°C)', backgroundColor: '#e63946', data: [], borderRadius: 4 },
-                { label: 'Presión (bar)', backgroundColor: '#1e6091', data: [], borderRadius: 4 },
-                { label: 'Vibración (mm/s)', backgroundColor: '#f4a261', data: [], borderRadius: 4 }
-            ]}, options: optionsBase });
-            const ctx2 = document.getElementById('chart2').getContext('2d');
-            chart2 = new Chart(ctx2, { type: 'bar', data: { labels: [], datasets: [
-                { label: 'Caudal (L/s)', backgroundColor: '#2d6a4f', data: [], borderRadius: 4 },
-                { label: 'Carga (kg)', backgroundColor: '#9c27b0', data: [], borderRadius: 4 },
-                { label: 'Velocidad (m/s)', backgroundColor: '#ff6d00', data: [], borderRadius: 4 }
-            ]}, options: optionsBase });
-            const ctx3 = document.getElementById('chart3').getContext('2d');
-            chart3 = new Chart(ctx3, { type: 'bar', data: { labels: [], datasets: [
-                { label: 'Nivel tanque (%)', backgroundColor: '#0077b6', data: [], borderRadius: 4 },
-                { label: 'Energía (kW)', backgroundColor: '#d62828', data: [], borderRadius: 4 }
-            ]}, options: optionsBase });
-            const ctx4 = document.getElementById('chart4').getContext('2d');
-            chart4 = new Chart(ctx4, { type: 'bar', data: { labels: [], datasets: [
-                { label: 'Voltaje (V)', backgroundColor: '#ffb703', data: [], borderRadius: 4 },
-                { label: 'Corriente (A)', backgroundColor: '#fb8500', data: [], borderRadius: 4 }
-            ]}, options: optionsBase });
+            const chartDefaults = {
+                responsive:true,
+                plugins:{ legend:{ position:'bottom', labels:{ font:{ family:"'DM Sans', system-ui", size:11 }, boxWidth:10 } }, tooltip:{ callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.raw}` } } },
+                scales:{ x:{ ticks:{ font:{ size:10 } } }, y:{ ticks:{ font:{ size:10 } } } }
+            };
+            const colors = ['#0a0a0a','#5f5f5f','#b0b0b0','#e0e0e0'];
+            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
+                { label:'Temperatura (°C)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Presión (bar)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Vibración (mm/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
+            ]}, options: chartDefaults });
+            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
+                { label:'Caudal (L/s)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Carga (kg)',   borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Velocidad (m/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
+            ]}, options: chartDefaults });
+            chart3 = new Chart(document.getElementById('chart3').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
+                { label:'Nivel tanque (%)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Energía (kW)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
+            ]}, options: chartDefaults });
+            chart4 = new Chart(document.getElementById('chart4').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
+                { label:'Voltaje (V)',   borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
+                { label:'Corriente (A)',borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
+            ]}, options: chartDefaults });
         }
+
         function updateCharts(hist){
-            let last20 = hist.slice(-20);
-            let temp = last20.filter(r=>r.variable==='temperature').map(r=>r.value);
-            let pres = last20.filter(r=>r.variable==='pressure').map(r=>r.value);
-            let vib = last20.filter(r=>r.variable==='vibration').map(r=>r.value);
-            let flow = last20.filter(r=>r.variable==='flow_rate').map(r=>r.value);
-            let load = last20.filter(r=>r.variable==='load').map(r=>r.value);
-            let speed = last20.filter(r=>r.variable==='speed').map(r=>r.value);
-            let tank = last20.filter(r=>r.variable==='tank_level').map(r=>r.value);
-            let energy = last20.filter(r=>r.variable==='energy').map(r=>r.value);
-            let volt = last20.filter(r=>r.variable==='voltage').map(r=>r.value);
-            let curr = last20.filter(r=>r.variable==='current').map(r=>r.value);
-            let labels = temp.map((_,i)=>i+1);
-            chart1.data.labels = labels; chart1.data.datasets[0].data = temp; chart1.data.datasets[1].data = pres; chart1.data.datasets[2].data = vib; chart1.update();
-            chart2.data.labels = labels; chart2.data.datasets[0].data = flow; chart2.data.datasets[1].data = load; chart2.data.datasets[2].data = speed; chart2.update();
-            chart3.data.labels = labels; chart3.data.datasets[0].data = tank; chart3.data.datasets[1].data = energy; chart3.update();
-            chart4.data.labels = labels; chart4.data.datasets[0].data = volt; chart4.data.datasets[1].data = curr; chart4.update();
+            let last20=hist.slice(-20);
+            let labels=last20.filter(r=>r.variable==='temperature').map((_,i)=>i+1);
+            let set = v => last20.filter(r=>r.variable===v).map(r=>r.value);
+            chart1.data.labels=labels; chart1.data.datasets[0].data=set('temperature'); chart1.data.datasets[1].data=set('pressure'); chart1.data.datasets[2].data=set('vibration'); chart1.update();
+            chart2.data.labels=labels; chart2.data.datasets[0].data=set('flow_rate');   chart2.data.datasets[1].data=set('load');     chart2.data.datasets[2].data=set('speed');       chart2.update();
+            chart3.data.labels=labels; chart3.data.datasets[0].data=set('tank_level');  chart3.data.datasets[1].data=set('energy');   chart3.update();
+            chart4.data.labels=labels; chart4.data.datasets[0].data=set('voltage');     chart4.data.datasets[1].data=set('current');  chart4.update();
         }
-        function updateStatsAndRecs(stats,recs,attempts){
+
+        function updateStatsAndRecs(stats, recs, attempts){
             let statsDiv=document.getElementById('statsPanel');
-            if(stats&&Object.keys(stats).length){
-                let html='<div class="grid grid-cols-2 gap-2">';
-                for(let [k,v] of Object.entries(stats)) html+=`<div><strong>${k.replace('_',' ').toUpperCase()}</strong><br>Prom: ${v.avg.toFixed(1)} | Min: ${v.min} | Max: ${v.max}</div>`;
-                html+='</div>'; statsDiv.innerHTML=html;
-            }else statsDiv.innerHTML='<p>No hay datos.</p>';
-            let recDiv=document.getElementById('recommendationsPanel');
-            if(recs&&recs.length) recDiv.innerHTML='<ul class="list-disc pl-5">'+recs.map(r=>`<li>${r}</li>`).join('')+'</ul>';
-            else recDiv.innerHTML='<p>No hay recomendaciones.</p>';
-            let attemptsDiv=document.getElementById('doorAttemptsInfo');
-            if(typeof attempts==='number' && attempts>0){
-                attemptsDiv.innerHTML=`<span class="font-semibold">Intentos de cierre de puertas:</span> ${attempts}`;
+            if(stats && Object.keys(stats).length){
+                let rows = Object.entries(stats).map(([k,v])=>
+                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${k.replace(/_/g,' ').toUpperCase()}</td>`+
+                    `<td style="padding:4px 8px;">${v.avg.toFixed(1)}</td>`+
+                    `<td style="padding:4px 8px;">${v.min}</td>`+
+                    `<td style="padding:4px 8px;">${v.max}</td></tr>`).join('');
+                statsDiv.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
+                    <thead><tr>
+                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Variable</th>
+                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Prom.</th>
+                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Mín.</th>
+                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Máx.</th>
+                    </tr></thead><tbody>${rows}</tbody></table>`;
             } else {
-                attemptsDiv.innerHTML='';
+                statsDiv.innerHTML='<p style="color:var(--color-text-secondary);">No hay datos.</p>';
             }
+            let recDiv=document.getElementById('recommendationsPanel');
+            if(recs&&recs.length){
+                recDiv.innerHTML='<ul style="padding-left:var(--sp-2); margin:0;">'+recs.map(r=>`<li style="margin-bottom:4px;">${r}</li>`).join('')+'</ul>';
+            } else {
+                recDiv.innerHTML='<p style="color:var(--color-text-secondary);">Sin recomendaciones activas.</p>';
+            }
+            let attDiv=document.getElementById('doorAttemptsInfo');
+            if(typeof attempts==='number' && attempts>0){
+                attDiv.innerHTML=`<span class="badge badge-high">Intentos cierre de puerta: ${attempts}</span>`;
+            } else { attDiv.innerHTML=''; }
         }
+
         function renderThresholdsPanel(th){
             let panel=document.getElementById('thresholdsPanel'); panel.innerHTML='';
             for(let [k,cfg] of Object.entries(th)){
                 if(NO_RISK_VARS.includes(k)) continue;
-                let div=document.createElement('div'); div.className='border p-2 rounded';
+                let div=document.createElement('div');
+                div.style.cssText='border:1px solid var(--color-border);padding:var(--sp-1);';
                 if(cfg.direction==='range'){
-                    div.innerHTML=`<label class="font-semibold block mb-1">${k.replace(/_/g,' ').toUpperCase()} (rango)</label><div class="grid grid-cols-2 gap-2 text-sm"><div>Mín: <input type="number" step="any" class="border rounded w-full p-1" data-var="${k}" data-level="low" value="${cfg.low}"></div><div>Máx: <input type="number" step="any" class="border rounded w-full p-1" data-var="${k}" data-level="high" value="${cfg.high}"></div></div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
-                }else{
-                    div.innerHTML=`<label class="font-semibold block mb-1">${k.replace(/_/g,' ').toUpperCase()}</label><div class="grid grid-cols-3 gap-2 text-sm"><div>Bajo: <input type="number" step="any" class="border rounded w-full p-1" data-var="${k}" data-level="low" value="${cfg.low}"></div><div>Medio: <input type="number" step="any" class="border rounded w-full p-1" data-var="${k}" data-level="medium" value="${cfg.medium}"></div><div>Alto: <input type="number" step="any" class="border rounded w-full p-1" data-var="${k}" data-level="high" value="${cfg.high}"></div></div><input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')} (rango)</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
+                            <div class="form-group"><label class="form-label">Mín</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
+                            <div class="form-group"><label class="form-label">Máx</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
+                        </div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
+                } else {
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')}</div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
+                            <div class="form-group"><label class="form-label">Bajo</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
+                            <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
+                            <div class="form-group"><label class="form-label">Alto</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
+                        </div><input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
                 }
                 panel.appendChild(div);
             }
         }
+
         async function saveThresholds(){
             let newTh={};
             document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp=>{
@@ -1826,24 +2367,42 @@ HTML_TEMPLATE = """
             });
             let resp=await fetch('/update_thresholds',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newTh)});
             let res=await resp.json();
-            if(res.status==='ok'){ document.getElementById('saveMessage').innerText='✓ Guardados'; setTimeout(()=>document.getElementById('saveMessage').innerText='',2000); currentThresholds=res.thresholds; }
+            if(res.status==='ok'){
+                document.getElementById('saveMessage').innerText='✓ Guardados';
+                setTimeout(()=>document.getElementById('saveMessage').innerText='',2000);
+                currentThresholds=res.thresholds;
+            }
         }
+
         async function toggleAlerts(){
             let btn=document.getElementById('toggleAlertsBtn');
-            let currentlyEnabled=!btn.innerText.includes('Desactivar');
-            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!currentlyEnabled})});
+            let enabled=!btn.innerText.includes('Desactivar');
+            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!enabled})});
             let data=await resp.json();
             if(data.status==='ok') btn.innerHTML=data.alert_enabled?'<i class="fas fa-bell"></i> Desactivar Alertas':'<i class="fas fa-bell-slash"></i> Activar Alertas';
         }
-        async function clearHistory(){ if(confirm('¿Limpiar historial?')){ let resp=await fetch('/clear_history',{method:'POST'}); if(resp.ok) alert('Historial limpiado'); else alert('Error'); } }
+
+        async function clearHistory(){
+            if(confirm('¿Limpiar historial de lecturas?')){
+                let resp=await fetch('/clear_history',{method:'POST'});
+                if(resp.ok) alert('Historial limpiado.'); else alert('Error al limpiar.');
+            }
+        }
+
         function populateManualSensorSelect(){
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
-            [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{let opt=document.createElement('option'); opt.value=v; opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+v.replace(/_/g,' ').toUpperCase(); sel.appendChild(opt);});
+            [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{
+                let opt=document.createElement('option'); opt.value=v;
+                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+v.replace(/_/g,' ').toUpperCase();
+                sel.appendChild(opt);
+            });
         }
+
         function updateSensorTypeIndicator(){
             let v=document.getElementById('manualSensorSelect').value;
-            document.getElementById('sensorTypeIndicator').innerHTML=BOMBA_VARS.includes(v)?'<span class="text-blue-600"><i class="fas fa-oil-can"></i> Bomba/Eléctrico</span>':'<span class="text-purple-600"><i class="fas fa-arrow-up"></i> Ascensor/Motor</span>';
+            document.getElementById('sensorTypeIndicator').textContent=BOMBA_VARS.includes(v)?'Bomba / Eléctrico':'Ascensor / Motor';
         }
+
         function updateManualRiskPreview(){
             let v=document.getElementById('manualSensorSelect').value;
             let raw=document.getElementById('manualValueInput').value;
@@ -1852,26 +2411,28 @@ HTML_TEMPLATE = """
             let val=raw;
             if(v==='door_status'){}
             else if(v==='motor_stuck') val=(raw==='true'||raw==='1');
-            else{let n=parseFloat(raw); if(isNaN(n)){span.innerHTML='<span class="text-red-600">Inválido</span>';return;} val=n;}
-            let ri=getRiskInfo(v,val);
-            span.innerHTML=`Riesgo estimado: <span class="font-bold ${ri.bgClass} px-2 py-0.5 rounded">${ri.risk}</span>`;
+            else{let n=parseFloat(raw); if(isNaN(n)){span.innerHTML='<span style="color:var(--state-critical)">Valor inválido</span>';return;} val=n;}
+            let ri=getRiskClass(v,val);
+            span.innerHTML=`Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
         }
+
         async function sendManualValue(){
             let v=document.getElementById('manualSensorSelect').value;
             let raw=document.getElementById('manualValueInput').value;
-            if(raw===''){document.getElementById('manualMessage').innerHTML='<span class="text-red-600">Ingrese un valor</span>';return;}
+            let msgEl=document.getElementById('manualMessage');
+            if(raw===''){msgEl.innerHTML='<span style="color:var(--state-critical)">Ingrese un valor</span>';return;}
             let val=raw;
-            if(v==='door_status'){val=raw.toLowerCase(); if(!['open','closed'].includes(val)){document.getElementById('manualMessage').innerHTML='<span class="text-red-600">door_status debe ser "open" o "closed"</span>';return;}}
+            if(v==='door_status'){val=raw.toLowerCase(); if(!['open','closed'].includes(val)){msgEl.innerHTML='<span style="color:var(--state-critical)">Debe ser "open" o "closed"</span>';return;}}
             else if(v==='motor_stuck') val=(raw==='true'||raw==='1');
-            else{let n=parseFloat(raw); if(isNaN(n)){document.getElementById('manualMessage').innerHTML='<span class="text-red-600">Valor numérico inválido</span>';return;} val=n;}
+            else{let n=parseFloat(raw); if(isNaN(n)){msgEl.innerHTML='<span style="color:var(--state-critical)">Valor numérico inválido</span>';return;} val=n;}
             try{
                 let resp=await fetch('/manual_update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variable:v,value:val})});
                 let res=await resp.json();
-                if(res.status==='ok'){document.getElementById('manualMessage').innerHTML=`<span class="text-green-600">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(()=>document.getElementById('manualMessage').innerHTML='',3000);}
-                else{document.getElementById('manualMessage').innerHTML=`<span class="text-red-600">Error: ${res.message}</span>`;}
-            }catch(e){document.getElementById('manualMessage').innerHTML='<span class="text-red-600">Error de conexión</span>';}
-            document.getElementById('manualValueInput').focus(); document.getElementById('manualValueInput').select();
+                if(res.status==='ok'){msgEl.innerHTML=`<span style="color:var(--state-ok)">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(()=>msgEl.innerHTML='',3000);}
+                else{msgEl.innerHTML=`<span style="color:var(--state-critical)">Error: ${res.message}</span>`;}
+            }catch(e){msgEl.innerHTML='<span style="color:var(--state-critical)">Error de conexión</span>';}
         }
+
         async function generateReport(){
             let period=document.getElementById('reportPeriodSelect').value;
             let btn=document.getElementById('generateReportBtn');
@@ -1881,101 +2442,117 @@ HTML_TEMPLATE = """
                 if(resp.ok){
                     let blob=await resp.blob();
                     let url=URL.createObjectURL(blob);
-                    let a=document.createElement('a'); a.href=url; a.download=`reporte_${period}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.pdf`;
+                    let a=document.createElement('a'); a.href=url;
+                    a.download=`reporte_${period}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.pdf`;
                     document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
                 }else{
                     let err=await resp.text();
-                    try{ let e=JSON.parse(err); alert('Error: '+e.message); }catch(e){ alert('Error: '+err); }
+                    try{let e=JSON.parse(err);alert('Error: '+e.message);}catch(e){alert('Error: '+err);}
                 }
-            }catch(e){ alert('Error de conexión'); }
-            finally{ btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF'; }
+            }catch(e){alert('Error de conexión');}
+            finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF';}
         }
+
         function updateSubscribersList(){
             let container=document.getElementById('subscribersList');
-            if(!subscribers) return;
-            let html='<table class="min-w-full text-xs"><thead><tr><th>Canal</th><th>Nivel</th><th>Contacto</th><th></th><th></th></tr></thead><tbody>';
-            for(let ch of ['email','whatsapp','telegram']){
+            if(!subscribers){ return; }
+            let rows='';
+            for(let ch of ['email','telegram']){
+                if(!subscribers[ch]) continue;
                 for(let lv of ['Bajo','Medio','Alto','Crítico']){
-                    subscribers[ch][lv].forEach(ct=>{
-                        html+=`<tr><td>${ch}</td><td>${lv}</td><td>${ct}</td><td><button class="test-subscriber text-blue-600 mr-2" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Probar</button></td><td><button class="remove-subscriber text-red-600" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Eliminar</button></td></tr>`;
+                    (subscribers[ch][lv]||[]).forEach(ct=>{
+                        rows+=`<tr>
+                            <td>${ch}</td><td>${lv}</td><td>${ct}</td>
+                            <td><button class="btn-test-sub test-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Probar</button></td>
+                            <td><button class="btn-rm-sub remove-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Eliminar</button></td>
+                        </tr>`;
                     });
                 }
             }
-            html+='</tbody></table>';
-            container.innerHTML=html;
+            if(rows){
+                container.innerHTML=`<table class="subs-table"><thead><tr><th>Canal</th><th>Nivel</th><th>Contacto</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
+            } else {
+                container.innerHTML='<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay suscriptores.</p>';
+            }
             document.querySelectorAll('.remove-subscriber').forEach(btn=>{
-                btn.addEventListener('click',async ()=>{
+                btn.addEventListener('click', async ()=>{
                     let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
                     let resp=await fetch('/remove_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
-                    if(resp.ok){
-                        let subsResp=await fetch('/get_subscribers');
-                        subscribers=await subsResp.json();
-                        updateSubscribersList();
-                    }else alert('Error');
+                    if(resp.ok){let s=await fetch('/get_subscribers'); subscribers=await s.json(); updateSubscribersList();}
+                    else alert('Error');
                 });
             });
             document.querySelectorAll('.test-subscriber').forEach(btn=>{
-                btn.addEventListener('click',async ()=>{
+                btn.addEventListener('click', async ()=>{
                     let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
                     let resp=await fetch(`/test_alert/${ch}/${lv}/${ct}`);
-                    let msg=await resp.text();
-                    alert(msg);
+                    let msg=await resp.text(); alert(msg);
                 });
             });
         }
-        document.getElementById('addSubscriberBtn').addEventListener('click',async()=>{
-            let ch=document.getElementById('subChannel').value, lv=document.getElementById('subRiskLevel').value, ct=document.getElementById('subContact').value.trim();
+
+        // Eventos
+        document.getElementById('addSubscriberBtn').addEventListener('click', async ()=>{
+            let ch=document.getElementById('subChannel').value;
+            let lv=document.getElementById('subRiskLevel').value;
+            let ct=document.getElementById('subContact').value.trim();
             if(!ct) return;
             let resp=await fetch('/add_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
             let data=await resp.json();
-            if(data.status==='ok'){ subscribers=data.subscribers; updateSubscribersList(); document.getElementById('subContact').value=''; }
+            if(data.status==='ok'){subscribers=data.subscribers; updateSubscribersList(); document.getElementById('subContact').value='';}
             else alert(data.message);
         });
-        socket.on('connect',()=>console.log('Conectado'));
-        socket.on('init_data',(data)=>{
-            currentThresholds=data.thresholds; subscribers=data.subscribers;
-            renderThresholdsPanel(currentThresholds); updateCards(data.current);
-            updateHistoryTable(data.history); updateCharts(data.history); updateAlertTable(data.alert_log);
-            updateStatsAndRecs(data.stats,data.recommendations,data.door_close_attempts);
-            document.getElementById('toggleAlertsBtn').innerHTML=data.alert_enabled?'<i class="fas fa-bell"></i> Desactivar Alertas':'<i class="fas fa-bell-slash"></i> Activar Alertas';
-            if(data.rationing) document.getElementById('rationingIndicator').classList.remove('hidden'); else document.getElementById('rationingIndicator').classList.add('hidden');
-            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ON' : 'OFF';
+        document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
+        document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
+        document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+        document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
+        document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
+        document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
+        document.getElementById('generateReportBtn').addEventListener('click', generateReport);
+
+        // Socket
+        socket.on('connect', ()=>console.log('[INES] Socket conectado'));
+
+        function applyPayload(data){
+            if(data.thresholds) currentThresholds=data.thresholds;
+            if(data.subscribers) subscribers=data.subscribers;
+            if(data.thresholds) renderThresholdsPanel(data.thresholds);
+            if(data.current) updateCards(data.current);
+            if(data.history){ updateHistoryTable(data.history); updateCharts(data.history); }
+            if(data.alert_log) updateAlertTable(data.alert_log);
+            updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
+            document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
+            document.getElementById('toggleAlertsBtn').innerHTML = data.alert_enabled ?
+                '<i class="fas fa-bell"></i> Desactivar Alertas' :
+                '<i class="fas fa-bell-slash"></i> Activar Alertas';
+            let ri = document.getElementById('rationingIndicator');
+            if(data.rationing) ri.classList.add('visible'); else ri.classList.remove('visible');
+            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'OFF';
             document.getElementById('pumpStatus').innerText = data.pump_on ? 'ON' : 'OFF';
             document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ON' : 'OFF';
-            document.getElementById('lastUpdate').innerText=new Date().toLocaleTimeString();
-            populateManualSensorSelect(); updateSensorTypeIndicator(); updateSubscribersList();
-            // Diagnóstico de credenciales
+        }
+
+        socket.on('init_data', (data)=>{
+            applyPayload(data);
+            populateManualSensorSelect();
+            updateSensorTypeIndicator();
+            updateSubscribersList();
             const hasSMTP = !!(data.smtp_user);
             const hasTelegram = !!(data.telegram_token);
-            const hasTwilio = !!(data.twilio_sid);
-            if(!hasSMTP && !hasTelegram && !hasTwilio){
-                document.getElementById('credsWarning').classList.remove('hidden');
-                document.getElementById('credsMsg').innerText = 'No se han configurado credenciales para enviar alertas reales. Los mensajes solo se simularán en la consola. Para envíos reales, defina las variables de entorno SMTP_USER, SMTP_PASSWORD, TELEGRAM_BOT_TOKEN, etc.';
+            if(!hasSMTP && !hasTelegram){
+                let w=document.getElementById('credsWarning');
+                document.getElementById('credsMsg').innerText='No se configuraron credenciales SMTP o Telegram. Los mensajes solo se simularán en consola.';
+                w.style.display='flex';
             }
         });
-        socket.on('sensor_update',(data)=>{
-            currentThresholds=data.thresholds;
-            updateCards(data.current); updateHistoryTable(data.history); updateCharts(data.history);
-            updateAlertTable(data.alert_log); updateStatsAndRecs(data.stats,data.recommendations,data.door_close_attempts);
-            document.getElementById('lastUpdate').innerText=new Date().toLocaleTimeString();
-            if(data.rationing) document.getElementById('rationingIndicator').classList.remove('hidden'); else document.getElementById('rationingIndicator').classList.add('hidden');
-            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ON' : 'OFF';
-            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ON' : 'OFF';
-            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ON' : 'OFF';
-        });
-        document.getElementById('saveThresholdsBtn').addEventListener('click',saveThresholds);
-        document.getElementById('toggleAlertsBtn').addEventListener('click',toggleAlerts);
-        document.getElementById('clearHistoryBtn').addEventListener('click',clearHistory);
-        document.getElementById('manualValueInput').addEventListener('input',updateManualRiskPreview);
-        document.getElementById('manualSensorSelect').addEventListener('change',()=>{updateManualRiskPreview(); updateSensorTypeIndicator();});
-        document.getElementById('sendManualBtn').addEventListener('click',sendManualValue);
-        document.getElementById('generateReportBtn').addEventListener('click',generateReport);
+
+        socket.on('sensor_update', (data)=>{ applyPayload(data); });
+
         initCharts();
     </script>
 </body>
 </html>
 """
-
 # ----------------------------------------------------------------------
 # Inicio del servidor
 # ----------------------------------------------------------------------
