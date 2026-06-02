@@ -16,30 +16,24 @@
 </script>
 <aside class="sidebar" id="sidebar">
     <style>
-        .sidebar-link-icon {
-            position: relative;
-            display: inline-flex;
+        /* Badge de notificaciones: inline, alineado al texto "Notificaciones"
+           La visibilidad la controla setNotificationBadge() en live_monitoring.js
+           mediante badge.style.display = 'inline-flex' / 'none'  */
+        .sidebar-notif-badge {
+            display: none;              /* oculto por defecto */
             align-items: center;
             justify-content: center;
-        }
-        .sidebar-notif-badge {
-            display: none;
-            position: absolute;
-            top: -5px;
-            right: -9px;
             min-width: 18px;
             height: 18px;
             padding: 0 5px;
-            background: #dc2626;
-            color: #ffffff;
-            font-size: 0.72rem;
-            font-weight: 700;
-            border-radius: 999px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.9);
+            background: var(--state-critical, #991b1b);
+            color: var(--color-surface, #ffffff);
+            font-size: 0.7rem;
+            font-weight: var(--weight-bold, 700);
             line-height: 1;
+            border-radius: 0;           /* cuadrado, coherente con el diseño */
+            flex-shrink: 0;
+            vertical-align: middle;
         }
     </style>
     <div class="sidebar-header">
@@ -68,11 +62,9 @@
             <i class="fa-solid fa-chart-line"></i> Monitoreo Global
         </a>
         <a href="{% url 'notificaciones' %}" class="sidebar-link">
-            <span class="sidebar-link-icon">
-                <i class="fa-solid fa-bell"></i>
-                <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-hidden="true"></span>
-            </span>
+            <i class="fa-solid fa-bell"></i>
             <span>Notificaciones</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="notificaciones sin leer"></span>
         </a>
         <a href="{% url 'configuracion' %}" class="sidebar-link">
             <i class="fa-solid fa-gears"></i> Configuración
@@ -82,11 +74,9 @@
             <i class="fa-solid fa-gauge-high"></i> Dashboard
         </a>
         <a href="{% url 'notificaciones' %}" class="sidebar-link">
-            <span class="sidebar-link-icon">
-                <i class="fa-solid fa-bell"></i>
-                <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-hidden="true"></span>
-            </span>
+            <i class="fa-solid fa-bell"></i>
             <span>Notificaciones</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="notificaciones sin leer"></span>
         </a>
         <a href="{% url 'monitoreo' %}" class="sidebar-link">
             <i class="fa-solid fa-chart-line"></i> Monitoreo
