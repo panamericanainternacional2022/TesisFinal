@@ -15,7 +15,6 @@ from .views import (
     editar_edificio_view,
     eliminar_edificio_view,
     notificaciones_view,
-    limpiar_notificaciones_view,
     monitoreo_view,
     monitoreo_edificio_view,
     configuracion_view,
@@ -59,11 +58,6 @@ urlpatterns = [
     ),
     path("descargar_pdf/", descargar_pdf_view, name="descargar_pdf"),
     path("notificaciones/", notificaciones_view, name="notificaciones"),
-    path(
-        "notificaciones/limpiar/",
-        limpiar_notificaciones_view,
-        name="limpiar_notificaciones",
-    ),
     path("monitoreo/", monitoreo_view, name="monitoreo"),
     path(
         "monitoreo/edificio/<int:edificio_id>/",

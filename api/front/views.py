@@ -766,7 +766,7 @@ def notificaciones_view(request):
     if _is_admin_role(rol):
         notificaciones = Notificacion.objects.select_related(
             "id_usuario", "id_equipo_monitoreo__id_edificio"
-        ).all().order_by("-fecha")
+        ).all()
     else:
         usuario_edificios = UsuarioEdificio.objects.filter(
             id_usuario_id=usuario_id
@@ -784,42 +784,14 @@ def notificaciones_view(request):
             .distinct()
             .order_by("-fecha")
         )
-    
-    from django.core.paginator import Paginator
-    paginator = Paginator(notificaciones, 30)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
-
     return render(
         request,
         "pages/notificaciones.html",
         {
-            "notificaciones": page_obj,
+            "notificaciones": notificaciones,
             "rol": rol,
         },
     )
-
-
-@_login_required
-def limpiar_notificaciones_view(request):
-    usuario_id = request.session["usuario_id"]
-    rol = request.session.get("usuario_rol", "US")
-    
-    if _is_admin_role(rol):
-        Notificacion.objects.all().delete()
-    else:
-        usuario_edificios = UsuarioEdificio.objects.filter(
-            id_usuario_id=usuario_id
-        ).values_list("id_edificio", flat=True)
-        equipos = EquipoMonitoreo.objects.filter(
-            id_edificio_id__in=list(usuario_edificios)
-        ).values_list("id_equipo_monitoreo", flat=True)
-        
-        Notificacion.objects.filter(id_usuario_id=usuario_id).delete()
-        Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos)).delete()
-        
-    messages.success(request, "Se han limpiado las notificaciones correctamente.")
-    return redirect("notificaciones")
 
 
 # ─── MONITOREO ──────────────────────────────────────────────────

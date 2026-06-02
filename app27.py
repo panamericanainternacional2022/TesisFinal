@@ -652,7 +652,7 @@ def update_sensor_data():
     # Generación de fallas aleatorias para bomba y ascensor (independientes)
     # Si un dispositivo está en protección, no cambiamos sus valores (se retiene la falla)
     # Inyectar falla de bomba aleatoria si no está protegida
-    if "pump" not in protection_ends and pump_on and random.random() < 0.10:
+    if "pump" not in protection_ends and pump_on and random.random() < 0.02:
         sensor_data["flow_rate"] = 0.0
         sensor_data["pressure"] = 0.0
         sensor_data["vibration"] = 12.0
@@ -681,7 +681,7 @@ def update_sensor_data():
                     f"[SIM] {time.strftime('%H:%M:%S')} INYECCION-SIMULT: elevator falla -> protection_ends={protection_ends}"
                 )
     # Inyectar falla de ascensor aleatoria si no está protegida
-    if "elevator" not in protection_ends and elevator_on and random.random() < 0.08:
+    if "elevator" not in protection_ends and elevator_on and random.random() < 0.02:
         sensor_data["speed"] = 0.0
         sensor_data["load"] = 950
         sensor_data["motor_stuck"] = True
@@ -1450,8 +1450,25 @@ def get_alert_log():
 @app.route("/clear_history", methods=["POST"])
 def clear_history():
     global history
-    history = []
+    history.clear()
     return jsonify({"status": "ok", "message": "Historial limpiado"})
+
+
+@app.route("/clear_alerts", methods=["POST"])
+def clear_alerts():
+    global alert_log
+    alert_log = []
+    if DJANGO_CONNECTED:
+        try:
+            equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
+            if equipo:
+                Notificacion.objects.filter(id_equipo_monitoreo=equipo).delete()
+            else:
+                Notificacion.objects.all().delete()
+            logger.info("Notificaciones de Django eliminadas")
+        except Exception as e:
+            logger.warning("Error al eliminar notificaciones en Django: %s", e)
+    return jsonify({"status": "ok", "message": "Alertas limpiadas"})
 
 
 @app.route("/get_subscribers", methods=["GET"])
@@ -2145,6 +2162,9 @@ HTML_TEMPLATE = """
             <button id="clearHistoryBtn" class="btn btn-ghost">
                 <i class="fas fa-trash-alt"></i> Limpiar Historial
             </button>
+            <button id="clearAlertsBtn" class="btn btn-ghost">
+                <i class="fas fa-bell-slash"></i> Limpiar Alertas
+            </button>
             <div class="spacer"></div>
             <select id="reportPeriodSelect" style="width:auto;">
                 <option value="minute">Último minuto</option>
@@ -2602,8 +2622,9 @@ HTML_TEMPLATE = """
 
         async function toggleAlerts(){
             let btn=document.getElementById('toggleAlertsBtn');
-            let enabled=!btn.innerText.includes('Desactivar');
-            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!enabled})});
+            let isCurrentlyEnabled=btn.innerText.includes('Desactivar');
+            let targetState=!isCurrentlyEnabled;
+            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:targetState})});
             let data=await resp.json();
             if(data.status==='ok') btn.innerHTML=data.alert_enabled?'<i class="fas fa-bell"></i> Desactivar Alertas':'<i class="fas fa-bell-slash"></i> Activar Alertas';
         }
@@ -2611,7 +2632,25 @@ HTML_TEMPLATE = """
         async function clearHistory(){
             if(await window.showConfirm('¿Limpiar historial de lecturas?')){
                 let resp=await fetch('/clear_history',{method:'POST'});
-                if(resp.ok) await window.showAlert('Historial limpiado.', 'success'); else await window.showAlert('Error al limpiar.', 'error');
+                if(resp.ok) {
+                    await window.showAlert('Historial limpiado.', 'success');
+                    updateHistoryTable([]);
+                    updateCharts([]);
+                } else {
+                    await window.showAlert('Error al limpiar.', 'error');
+                }
+            }
+        }
+
+        async function clearAlerts(){
+            if(await window.showConfirm('¿Limpiar historial de alertas y notificaciones?')){
+                let resp=await fetch('/clear_alerts',{method:'POST'});
+                if(resp.ok) {
+                    await window.showAlert('Alertas limpiadas.', 'success');
+                    updateAlertTable([]);
+                } else {
+                    await window.showAlert('Error al limpiar alertas.', 'error');
+                }
             }
         }
 
@@ -2731,6 +2770,7 @@ HTML_TEMPLATE = """
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
         document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
         document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+        document.getElementById('clearAlertsBtn').addEventListener('click', clearAlerts);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);

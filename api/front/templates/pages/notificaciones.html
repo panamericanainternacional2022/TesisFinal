@@ -17,8 +17,8 @@
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width:800px;">
-                    <header class="report-header" style="display:flex; justify-content:between; align-items:flex-start; flex-wrap:wrap; gap:var(--sp-2);">
-                        <div class="report-header-text" style="flex:1;">
+                    <header class="report-header">
+                        <div class="report-header-text">
                             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                                 <h1 class="profile-title" style="margin:0;">Notificaciones</h1>
                                 <span id="notificationBadgeCount" class="notif-count-badge">0</span>
@@ -28,23 +28,7 @@
                                 Conectando al backend de monitoreo...
                             </div>
                         </div>
-                        {% if notificaciones %}
-                        <a href="{% url 'limpiar_notificaciones' %}" class="register-button-react delete-btn" id="btnClearNotifications" style="margin-top: 8px;">
-                            <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
-                        </a>
-                        {% endif %}
                     </header>
-
-                    {% if messages %}
-                        <div style="margin-bottom: var(--sp-3);">
-                            {% for msg in messages %}
-                                <div class="alert alert-{% if msg.tags == 'error' %}error{% elif msg.tags == 'success' %}success{% else %}warning{% endif %}">
-                                    <i class="fa-solid fa-circle-info"></i>
-                                    <span>{{ msg.message }}</span>
-                                </div>
-                            {% endfor %}
-                        </div>
-                    {% endif %}
 
                     <div id="live-notifications-list">
                         {% if notificaciones %}
@@ -67,25 +51,6 @@
                         </li>
                         {% endfor %}
                         </ul>
-
-                        {% if notificaciones.has_other_pages %}
-                        <div class="table-actions-row" style="justify-content: center; margin-top: var(--sp-4); padding-top: var(--sp-3); border-top: 1px solid var(--color-border);">
-                            {% if notificaciones.has_previous %}
-                                <a href="?page=1" class="register-button-react" style="border-bottom: 1px solid var(--color-ink);">« Primera</a>
-                                <a href="?page={{ notificaciones.previous_page_number }}" class="register-button-react" style="border-bottom: 1px solid var(--color-ink);">Anterior</a>
-                            {% endif %}
-
-                            <span style="font-family: var(--font); font-size: var(--text-base); font-weight: var(--weight-medium); color: var(--color-text-secondary); margin: 0 var(--sp-2);">
-                                Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
-                            </span>
-
-                            {% if notificaciones.has_next %}
-                                <a href="?page={{ notificaciones.next_page_number }}" class="register-button-react" style="border-bottom: 1px solid var(--color-ink);">Siguiente</a>
-                                <a href="?page={{ notificaciones.paginator.num_pages }}" class="register-button-react" style="border-bottom: 1px solid var(--color-ink);">Última »</a>
-                            {% endif %}
-                        </div>
-                        {% endif %}
-
                         {% else %}
                         <div class="no-notif" id="live-no-notif">
                             <i class="fa-regular fa-bell-slash"></i>
@@ -97,111 +62,6 @@
             </div>
         </main>
     </div>
-
-    <style>
-        /* ── Modal Custom ── */
-        .custom-modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(10, 10, 10, 0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            opacity: 0;
-            transition: opacity 150ms ease;
-        }
-        .custom-modal-backdrop.active {
-            opacity: 1;
-        }
-        .custom-modal-container {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            padding: var(--sp-3);
-            width: 90%;
-            max-width: 440px;
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            transform: scale(0.92);
-            transition: transform 150ms ease;
-            box-sizing: border-box;
-        }
-        .custom-modal-backdrop.active .custom-modal-container {
-            transform: scale(1);
-        }
-    </style>
-
     <script src="{% static 'JS/live_monitoring.js' %}" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const clearBtn = document.getElementById('btnClearNotifications');
-            if (clearBtn) {
-                clearBtn.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const url = this.getAttribute('href');
-                    
-                    showCustomModal({
-                        title: 'Confirmar Limpieza',
-                        message: '¿Estás seguro de que deseas limpiar todas las notificaciones? Esta acción eliminará los registros de forma permanente.',
-                        type: 'confirm',
-                        showCancel: true
-                    }).then(confirmed => {
-                        if (confirmed) {
-                            window.location.href = url;
-                        }
-                    });
-                });
-            }
-        });
-
-        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
-            return new Promise((resolve) => {
-                const backdrop = document.createElement('div');
-                backdrop.className = 'custom-modal-backdrop';
-
-                const container = document.createElement('div');
-                container.className = 'custom-modal-container';
-
-                let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
-
-                container.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
-                        ${iconHtml}
-                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
-                    </div>
-                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
-                        ${message}
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
-                        ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Cancelar</button>` : ''}
-                        <button id="customModalConfirmBtn" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Aceptar</button>
-                    </div>
-                `;
-
-                backdrop.appendChild(container);
-                document.body.appendChild(backdrop);
-
-                setTimeout(() => {
-                    backdrop.classList.add('active');
-                }, 10);
-
-                const cleanUp = (value) => {
-                    backdrop.classList.remove('active');
-                    setTimeout(() => {
-                        backdrop.remove();
-                        resolve(value);
-                    }, 150);
-                };
-
-                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
-                if (showCancel) {
-                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
-                }
-            });
-        }
-    </script>
 </body>
 </html>
