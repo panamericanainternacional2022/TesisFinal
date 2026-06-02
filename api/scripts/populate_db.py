@@ -1,6 +1,10 @@
+import sys
 import os
 import django
 from django.utils import timezone
+
+# Add the project root directory to python path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Set the Django settings module
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")

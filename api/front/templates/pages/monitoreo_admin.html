@@ -213,10 +213,6 @@
                         <div class="building-selected" id="selectedBuildingText">Haz clic en un edificio para ver su monitoreo.</div>
                         <div class="building-action-row">
                             <button type="button" class="open-monitor-button" id="openMonitorButton" onclick="openMonitorNewTab()" disabled>Abrir en nueva pestaña</button>
-                            <div class="building-url" id="monitorUrlText">URL: <span style="font-weight:700;">--</span></div>
-                        </div>
-                        <div class="building-action-row">
-                            <span class="building-url">Estado iframe: <strong id="iframeStatusText">esperando selección</strong></span>
                         </div>
                         {% else %}
                         <p>No hay edificios registrados.</p>
@@ -232,16 +228,8 @@
     <script>
         const buildingFrame = document.getElementById('adminMonitorFrame');
         const selectedText = document.getElementById('selectedBuildingText');
-        const monitorUrlText = document.getElementById('monitorUrlText');
-        const iframeStatusText = document.getElementById('iframeStatusText');
         const openMonitorButton = document.getElementById('openMonitorButton');
         let currentMonitorUrl = null;
-
-        function updateIframeStatus(status) {
-            if (iframeStatusText) {
-                iframeStatusText.textContent = status;
-            }
-        }
 
         function selectBuilding(button){
             if (!button) return;
@@ -250,13 +238,9 @@
             if (targetUrl) {
                 buildingFrame.src = targetUrl;
                 currentMonitorUrl = targetUrl;
-                updateIframeStatus('cargando...');
             }
             if (selectedText) {
                 selectedText.textContent = `Monitoreando edificio: ${name}`;
-            }
-            if (monitorUrlText) {
-                monitorUrlText.querySelector('span').textContent = currentMonitorUrl || '--';
             }
             if (openMonitorButton) {
                 openMonitorButton.disabled = !currentMonitorUrl;
@@ -272,11 +256,6 @@
         }
 
         document.addEventListener('DOMContentLoaded', ()=>{
-            if (buildingFrame) {
-                buildingFrame.addEventListener('load', () => {
-                    updateIframeStatus('cargado');
-                });
-            }
             const firstButton = document.querySelector('.building-item');
             if(firstButton){
                 selectBuilding(firstButton);

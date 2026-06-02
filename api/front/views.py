@@ -17,6 +17,8 @@ from core.models import (
     EquipoMonitoreo,
     EquipoSensor,
     StatusEquipoMonitoreo,
+    AccionPrev,
+    HistoricoFalla,
 )
 
 
@@ -715,9 +717,42 @@ def lista_edificios_view(request):
 def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
     with transaction.atomic():
+        # Get all monitoring equipment associated with this building
+        equipos = EquipoMonitoreo.objects.filter(id_edificio=edificio)
+        
+        # Get all sensors associated with those equipments
+        sensores = EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipos)
+        
+        # Get all status records associated with those equipments
+        status_equipos = StatusEquipoMonitoreo.objects.filter(id_equipo_monitoreo__in=equipos)
+        
+        # Delete HistoricoFalla records that reference our sensors or equipment statuses
+        HistoricoFalla.objects.filter(
+            Q(id_equipo_sensor__in=sensores) | Q(id_status_equipo_monitoreo__in=status_equipos)
+        ).delete()
+        
+        # Delete the sensors
+        sensores.delete()
+        
+        # Delete status records
+        status_equipos.delete()
+        
+        # Delete preventive actions
+        AccionPrev.objects.filter(id_equipo_monitoreo__in=equipos).delete()
+        
+        # Delete notifications
+        Notificacion.objects.filter(id_equipo_monitoreo__in=equipos).delete()
+        
+        # Delete the monitoring equipment
+        equipos.delete()
+        
+        # Delete user-building associations
         UsuarioEdificio.objects.filter(id_edificio=edificio).delete()
+        
+        # Finally, delete the building
         edificio.delete()
-    messages.success(request, "Edificio eliminado correctamente.")
+        
+    messages.success(request, "Edificio y todos sus datos asociados fueron eliminados correctamente.")
     return redirect("lista_edificios")
 
 
@@ -731,7 +766,7 @@ def notificaciones_view(request):
     if _is_admin_role(rol):
         notificaciones = Notificacion.objects.select_related(
             "id_usuario", "id_equipo_monitoreo__id_edificio"
-        ).all()
+        ).all().order_by("-fecha")
     else:
         usuario_edificios = UsuarioEdificio.objects.filter(
             id_usuario_id=usuario_id
@@ -749,14 +784,42 @@ def notificaciones_view(request):
             .distinct()
             .order_by("-fecha")
         )
+    
+    from django.core.paginator import Paginator
+    paginator = Paginator(notificaciones, 30)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
     return render(
         request,
         "pages/notificaciones.html",
         {
-            "notificaciones": notificaciones,
+            "notificaciones": page_obj,
             "rol": rol,
         },
     )
+
+
+@_login_required
+def limpiar_notificaciones_view(request):
+    usuario_id = request.session["usuario_id"]
+    rol = request.session.get("usuario_rol", "US")
+    
+    if _is_admin_role(rol):
+        Notificacion.objects.all().delete()
+    else:
+        usuario_edificios = UsuarioEdificio.objects.filter(
+            id_usuario_id=usuario_id
+        ).values_list("id_edificio", flat=True)
+        equipos = EquipoMonitoreo.objects.filter(
+            id_edificio_id__in=list(usuario_edificios)
+        ).values_list("id_equipo_monitoreo", flat=True)
+        
+        Notificacion.objects.filter(id_usuario_id=usuario_id).delete()
+        Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos)).delete()
+        
+    messages.success(request, "Se han limpiado las notificaciones correctamente.")
+    return redirect("notificaciones")
 
 
 # ─── MONITOREO ──────────────────────────────────────────────────

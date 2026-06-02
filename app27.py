@@ -652,7 +652,7 @@ def update_sensor_data():
     # Generación de fallas aleatorias para bomba y ascensor (independientes)
     # Si un dispositivo está en protección, no cambiamos sus valores (se retiene la falla)
     # Inyectar falla de bomba aleatoria si no está protegida
-    if "pump" not in protection_ends and pump_on and random.random() < 0.15:
+    if "pump" not in protection_ends and pump_on and random.random() < 0.10:
         sensor_data["flow_rate"] = 0.0
         sensor_data["pressure"] = 0.0
         sensor_data["vibration"] = 12.0
@@ -681,7 +681,7 @@ def update_sensor_data():
                     f"[SIM] {time.strftime('%H:%M:%S')} INYECCION-SIMULT: elevator falla -> protection_ends={protection_ends}"
                 )
     # Inyectar falla de ascensor aleatoria si no está protegida
-    if "elevator" not in protection_ends and elevator_on and random.random() < 0.12:
+    if "elevator" not in protection_ends and elevator_on and random.random() < 0.08:
         sensor_data["speed"] = 0.0
         sensor_data["load"] = 950
         sensor_data["motor_stuck"] = True
@@ -872,7 +872,7 @@ def update_sensor_data():
 
 def generate_data_and_emit():
     while True:
-        eventlet.sleep(2)
+        eventlet.sleep(5)
         update_protection_state()
         update_sensor_data()
         for var, value in sensor_data.items():
@@ -959,18 +959,31 @@ def generate_data_and_emit():
 
 
 # ----------------------------------------------------------------------
-# Reporte PDF mejorado (con gráfico de barras)
+# Reporte PDF mejorado (con diseño coherente con la web)
 # ----------------------------------------------------------------------
 class PDFReport(FPDF):
     def header(self):
-        if self.page_no() > 1:
-            self.set_font("Arial", "I", 8)
-            self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "R")
+        # Cabecera principal solo en la primera página o cabecera reducida en páginas posteriores
+        if self.page_no() == 1:
+            # Dibujar una línea negra gruesa superior (estilo minimalista de la web)
+            self.set_fill_color(10, 10, 10)
+            self.rect(10, 10, 190, 2, "F")
+            self.ln(5)
+        else:
+            # Cabecera secundaria para páginas siguientes
+            self.set_font("Helvetica", "I", 8)
+            self.set_text_color(95, 95, 95)
+            self.cell(0, 10, "SISTEMA PCLogo - Reporte de Monitoreo", 0, 0, "L")
+            self.cell(0, 10, f"Página {self.page_no()}", 0, 1, "R")
+            self.set_draw_color(224, 224, 224)
+            self.line(10, 18, 200, 18)
+            self.ln(2)
 
     def footer(self):
         self.set_y(-15)
-        self.set_font("Arial", "I", 8)
-        self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(95, 95, 95)
+        self.cell(0, 10, f"Generado por INES - Página {self.page_no()}", 0, 0, "C")
 
 
 def generate_pdf_report(period):
@@ -1036,41 +1049,77 @@ def generate_pdf_report(period):
     ]
     pdf = PDFReport()
     pdf.add_page()
-    pdf.set_font("Arial", "B", 20)
-    pdf.cell(0, 20, "SISTEMA PCLogo", ln=1, align="C")
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "Reporte de Monitoreo", ln=1, align="C")
-    pdf.ln(10)
-    pdf.set_font("Arial", "", 12)
-    pdf.cell(0, 8, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1, align="C")
+    
+    # Título principal minimalista
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 12, "INES", ln=1, align="L")
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.set_text_color(95, 95, 95)
+    pdf.cell(0, 8, "REPORTE DE MONITOREO AUTOMATIZADO", ln=1, align="L")
+    pdf.ln(5)
+    
+    # Metadata del reporte
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_text_color(26, 26, 26)
+    pdf.cell(0, 6, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1, align="L")
     pdf.cell(
         0,
-        8,
-        f"Período: {period_name} (desde {start_time.strftime('%d/%m/%Y %H:%M:%S')})",
+        6,
+        f"Periodo de Análisis: {period_name} (desde {start_time.strftime('%d/%m/%Y %H:%M:%S')})",
         ln=1,
-        align="C",
+        align="L",
     )
-    pdf.ln(10)
-    # Leyenda de riesgos
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Leyenda de Riesgos", ln=1)
-    pdf.set_font("Arial", "", 10)
-    pdf.set_fill_color(34, 197, 94)
-    pdf.cell(30, 8, " Bajo", 1, 0, "L", True)
-    pdf.cell(160, 8, "Valores normales", 1, 1, "L")
-    pdf.set_fill_color(234, 179, 8)
-    pdf.cell(30, 8, " Medio", 1, 0, "L", True)
-    pdf.cell(160, 8, "Cerca del límite, monitorear", 1, 1, "L")
-    pdf.set_fill_color(249, 115, 22)
-    pdf.cell(30, 8, " Alto", 1, 0, "L", True)
-    pdf.cell(160, 8, "Fuera de rango peligroso", 1, 1, "L")
-    pdf.set_fill_color(239, 68, 68)
-    pdf.cell(30, 8, " Crítico", 1, 0, "L", True)
-    pdf.cell(160, 8, "Acción inmediata", 1, 1, "L")
     pdf.ln(8)
-    # Gráfico de barras
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Gráfico de Barras: Valores Promedio", ln=1)
+    
+    # Leyenda de riesgos estilizada con la paleta de la web
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "LEYENDA DE RIESGOS", ln=1)
+    pdf.ln(2)
+    
+    # Bajo (Verde)
+    pdf.set_fill_color(240, 253, 244)
+    pdf.set_text_color(22, 101, 52)
+    pdf.set_draw_color(187, 247, 208)
+    pdf.cell(30, 8, "  Bajo", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(224, 224, 224)
+    pdf.cell(160, 8, " Valores normales de funcionamiento", 1, 1, "L")
+    
+    # Medio (Amarillo/Ámbar)
+    pdf.set_fill_color(255, 251, 235)
+    pdf.set_text_color(146, 64, 14)
+    pdf.set_draw_color(253, 230, 138)
+    pdf.cell(30, 8, "  Medio", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(224, 224, 224)
+    pdf.cell(160, 8, " Cerca del limite sugerido, requiere observacion", 1, 1, "L")
+    
+    # Alto (Naranja)
+    pdf.set_fill_color(255, 247, 237)
+    pdf.set_text_color(194, 65, 12)
+    pdf.set_draw_color(254, 215, 170)
+    pdf.cell(30, 8, "  Alto", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(224, 224, 224)
+    pdf.cell(160, 8, " Fuera de rango seguro, requiere revision preventiva", 1, 1, "L")
+    
+    # Crítico (Rojo)
+    pdf.set_fill_color(254, 242, 242)
+    pdf.set_text_color(153, 27, 27)
+    pdf.set_draw_color(254, 202, 202)
+    pdf.cell(30, 8, "  Critico", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(224, 224, 224)
+    pdf.cell(160, 8, " Estado de peligro, requiere accion correctiva inmediata", 1, 1, "L")
+    pdf.ln(10)
+    
+    # Gráfico de barras estilizado
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "VALORES PROMEDIO DEL PERIODO", ln=1)
+    pdf.ln(2)
     bar_vars = [
         "temperature",
         "pressure",
@@ -1083,13 +1132,13 @@ def generate_pdf_report(period):
         "current",
     ]
     display_names = {
-        "temperature": "Temp. (°C)",
-        "pressure": "Presión (bar)",
+        "temperature": "Temp. (C)",
+        "pressure": "Presion (bar)",
         "flow_rate": "Caudal (L/s)",
-        "vibration": "Vibración (mm/s)",
-        "tank_level": "Nivel tanque (%)",
+        "vibration": "Vibracion (mm/s)",
+        "tank_level": "Tanque (%)",
         "load": "Carga (kg)",
-        "energy": "Energía (kW)",
+        "energy": "Energia (kW)",
         "voltage": "Voltaje (V)",
         "current": "Corriente (A)",
     }
@@ -1101,129 +1150,202 @@ def generate_pdf_report(period):
             avgs.append(stats[v]["avg"])
     if avgs:
         max_avg = max(avgs)
-        x0 = 30
+        x0 = 15
         y0 = pdf.get_y()
-        bar_width = 30
-        spacing = 12
-        max_bar_height = 80
-        pdf.set_font("Arial", "", 7)
+        bar_width = 16
+        spacing = 4
+        max_bar_height = 50
+        pdf.set_font("Helvetica", "", 7)
         for i, (lab, val) in enumerate(zip(labels, avgs)):
             x = x0 + i * (bar_width + spacing)
-            if x + bar_width > 190:
+            if x + bar_width > 200:
                 break
             height = (val / max_avg) * max_bar_height if max_avg > 0 else 10
-            pdf.set_fill_color(70, 130, 200)
-            pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "F")
+            # Usar color carbón/azul oscuro para las barras (#1E293B)
+            pdf.set_fill_color(30, 41, 59)
+            pdf.set_draw_color(15, 23, 42)
+            pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "FD")
+            
+            # Valor encima de la barra
+            pdf.set_text_color(30, 41, 59)
             pdf.set_xy(x, y0 + max_bar_height - height - 4)
             pdf.cell(bar_width, 4, f"{val:.1f}", 0, 0, "C")
+            
+            # Label debajo de la barra
+            pdf.set_text_color(95, 95, 95)
             pdf.set_xy(x, y0 + max_bar_height + 2)
-            pdf.cell(bar_width, 5, lab, 0, 0, "C")
-        pdf.set_y(y0 + max_bar_height + 15)
-    pdf.ln(5)
+            pdf.cell(bar_width, 4, lab, 0, 0, "C")
+        pdf.set_y(y0 + max_bar_height + 12)
+    pdf.ln(6)
+    
     # Tabla valores actuales
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Valores Actuales", ln=1)
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(80, 8, "Variable", 1, 0, "C", 1)
-    pdf.cell(50, 8, "Valor", 1, 0, "C", 1)
-    pdf.cell(60, 8, "Riesgo", 1, 1, "C", 1)
-    pdf.set_font("Arial", "", 9)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "VALORES ACTUALES DE SENSORES", ln=1)
+    pdf.ln(2)
+    
+    # Cabecera de la tabla
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(10, 10, 10) # Cabecera oscura
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(80, 8, "  Variable", 1, 0, "L", True)
+    pdf.cell(50, 8, "  Valor Actual", 1, 0, "L", True)
+    pdf.cell(60, 8, "Riesgo / Estado", 1, 1, "C", True)
+    
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_draw_color(224, 224, 224)
     for var, val in sensor_data.items():
         risk, color = classify_risk(var, val)
         if color == "green":
-            fill = (34, 197, 94)
+            fill = (240, 253, 244)
+            text_c = (22, 101, 52)
+            border_c = (187, 247, 208)
         elif color == "yellow":
-            fill = (234, 179, 8)
+            fill = (255, 251, 235)
+            text_c = (146, 64, 14)
+            border_c = (253, 230, 138)
         elif color == "orange":
-            fill = (249, 115, 22)
+            fill = (255, 247, 237)
+            text_c = (194, 65, 12)
+            border_c = (254, 215, 170)
         elif color == "red":
-            fill = (239, 68, 68)
+            fill = (254, 242, 242)
+            text_c = (153, 27, 27)
+            border_c = (254, 202, 202)
         else:
-            fill = (200, 200, 200)
-        pdf.set_fill_color(*fill)
+            fill = (249, 250, 251)
+            text_c = (55, 65, 81)
+            border_c = (229, 231, 235)
+            
         if isinstance(val, bool):
             val_str = "Sí" if val else "No"
         else:
             val_str = f"{val} {get_unit(var)}"
-        pdf.cell(80, 8, var.replace("_", " ").title(), 1, 0, "L", True)
-        pdf.cell(50, 8, val_str, 1, 0, "L", True)
+            
+        # Dibujar fila
+        pdf.set_text_color(26, 26, 26)
+        pdf.set_draw_color(224, 224, 224)
+        pdf.cell(80, 8, f"  {var.replace('_', ' ').title()}", 1, 0, "L")
+        pdf.cell(50, 8, f"  {val_str}", 1, 0, "L")
+        
+        # Celda tipo Badge para riesgo
+        pdf.set_fill_color(*fill)
+        pdf.set_text_color(*text_c)
+        pdf.set_draw_color(*border_c)
         pdf.cell(60, 8, risk, 1, 1, "C", True)
-    pdf.ln(5)
+    pdf.ln(8)
+    
+    # Forzar salto de página si queda poco espacio
+    if pdf.get_y() > 220:
+        pdf.add_page()
+        
     # Estadísticas
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, f"Estadísticas - {period_name}", ln=1)
-    pdf.set_font("Arial", "B", 9)
-    pdf.set_fill_color(240, 240, 240)
-    pdf.cell(50, 7, "Variable", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Mínimo", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Máximo", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Promedio", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Lecturas", 1, 1, "C", 1)
-    pdf.set_font("Arial", "", 8)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, f"ESTADISTICAS DE VARIABLES ({period_name.upper()})", ln=1)
+    pdf.ln(2)
+    
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(10, 10, 10)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(55, 7, "  Variable", 1, 0, "L", True)
+    pdf.cell(32, 7, "Minimo", 1, 0, "C", True)
+    pdf.cell(32, 7, "Maximo", 1, 0, "C", True)
+    pdf.cell(36, 7, "Promedio", 1, 0, "C", True)
+    pdf.cell(35, 7, "Lecturas", 1, 1, "C", True)
+    
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_draw_color(224, 224, 224)
+    pdf.set_text_color(26, 26, 26)
     for var in numeric_vars:
         s = stats[var]
-        pdf.cell(50, 6, var.replace("_", " ").title(), 1)
-        pdf.cell(35, 6, str(s["min"]), 1)
-        pdf.cell(35, 6, str(s["max"]), 1)
+        pdf.cell(55, 6, f"  {var.replace('_', ' ').title()}", 1)
+        pdf.cell(32, 6, str(s["min"]), 1, 0, "C")
+        pdf.cell(32, 6, str(s["max"]), 1, 0, "C")
         avg_val = f"{s['avg']:.2f}" if isinstance(s["avg"], float) else "N/A"
-        pdf.cell(35, 6, avg_val, 1)
-        pdf.cell(35, 6, str(s["count"]), 1, 1)
-    pdf.ln(5)
+        pdf.cell(36, 6, avg_val, 1, 0, "C")
+        pdf.cell(35, 6, str(s["count"]), 1, 1, "C")
+    pdf.ln(8)
+    
+    # Recomendaciones y Alertas
+    if pdf.get_y() > 210:
+        pdf.add_page()
+        
     # Recomendaciones
     recs = []
     if "temperature" in stats and isinstance(stats["temperature"]["avg"], float):
         if stats["temperature"]["avg"] > 85:
-            recs.append("Temperatura promedio elevada. Mejorar ventilación.")
+            recs.append("Temperatura promedio elevada. Mejorar ventilación de sala.")
     if "flow_rate" in stats and isinstance(stats["flow_rate"]["avg"], float):
         if stats["flow_rate"]["avg"] < 10:
-            recs.append("Caudal promedio bajo. Revisar bomba y filtros.")
+            recs.append("Caudal promedio bajo. Revisar bomba hidráulica y filtros.")
     if "pressure" in stats and isinstance(stats["pressure"]["avg"], float):
         if stats["pressure"]["avg"] > 7:
-            recs.append("Presión media alta. Verificar reguladores.")
+            recs.append("Presion media alta. Verificar reguladores de presion.")
     if "tank_level" in stats and isinstance(stats["tank_level"]["avg"], float):
         if stats["tank_level"]["avg"] < 25:
             recs.append("Nivel de tanque bajo. Aumentar frecuencia de recarga.")
     if not recs:
-        recs.append("Parámetros dentro de rangos normales.")
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Recomendaciones", ln=1)
-    pdf.set_font("Arial", "", 10)
+        recs.append("Todos los parámetros promedio se encuentran estables.")
+        
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "DIAGNOSTICO Y RECOMENDACIONES", ln=1)
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(55, 65, 81)
     for rec in recs[:5]:
         pdf.cell(0, 6, f"- {rec}", ln=1)
-    pdf.ln(5)
+    pdf.ln(8)
+    
     # Alertas
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, f"Alertas en el período: {len(alerts_in_period)}", ln=1)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, f"ALERTAS DETECTADAS EN EL PERIODO: {len(alerts_in_period)}", ln=1)
+    pdf.ln(2)
     if alerts_in_period:
-        pdf.set_font("Arial", "B", 9)
-        pdf.set_fill_color(255, 220, 220)
-        pdf.cell(50, 7, "Fecha/Hora", 1, 0, "C", 1)
-        pdf.cell(50, 7, "Variable", 1, 0, "C", 1)
-        pdf.cell(40, 7, "Valor", 1, 0, "C", 1)
-        pdf.cell(50, 7, "Riesgo", 1, 1, "C", 1)
-        pdf.set_font("Arial", "", 8)
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(254, 242, 242)
+        pdf.set_text_color(153, 27, 27)
+        pdf.set_draw_color(254, 202, 202)
+        pdf.cell(50, 7, "  Fecha/Hora", 1, 0, "L", True)
+        pdf.cell(50, 7, "  Variable", 1, 0, "L", True)
+        pdf.cell(40, 7, "Valor", 1, 0, "C", True)
+        pdf.cell(50, 7, "Riesgo", 1, 1, "C", True)
+        
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_draw_color(224, 224, 224)
+        pdf.set_text_color(26, 26, 26)
         for a in alerts_in_period[:15]:
-            pdf.cell(50, 6, a["timestamp"], 1)
-            pdf.cell(50, 6, a["variable"], 1)
-            pdf.cell(40, 6, str(a["value"]), 1)
-            pdf.cell(50, 6, a["risk"], 1, 1)
+            pdf.cell(50, 6, f"  {a['timestamp']}", 1)
+            pdf.cell(50, 6, f"  {a['variable']}", 1)
+            pdf.cell(40, 6, str(a["value"]), 1, 0, "C")
+            pdf.cell(50, 6, a["risk"], 1, 1, "C")
     else:
-        pdf.cell(0, 8, "No hubo alertas en este período.", ln=1)
-    # Racionamiento
-    pdf.ln(5)
-    pdf.set_font("Arial", "B", 12)
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.set_text_color(95, 95, 95)
+        pdf.cell(0, 8, "No se registraron alertas críticas durante este período.", ln=1)
+    pdf.ln(8)
+    
+    # Racionamiento de agua
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "ESTADO GENERAL DE RACIONAMIENTO", ln=1)
+    pdf.ln(2)
+    
     if sensor_data["flow_rate"] < RATIONING_THRESHOLD:
-        pdf.set_text_color(255, 0, 0)
-        pdf.cell(
-            0,
-            10,
-            "RACIONAMIENTO ACTIVO - Caudal por debajo del mínimo",
-            ln=1,
-            align="C",
-        )
+        pdf.set_fill_color(254, 242, 242)
+        pdf.set_text_color(153, 27, 27)
+        pdf.set_draw_color(254, 202, 202)
+        pdf.cell(0, 10, "  RACIONAMIENTO ACTIVO - Caudal por debajo del minimo admisible", 1, 1, "L", True)
     else:
-        pdf.set_text_color(0, 150, 0)
-        pdf.cell(0, 10, "Racionamiento inactivo. Caudal normal.", ln=1, align="C")
+        pdf.set_fill_color(240, 253, 244)
+        pdf.set_text_color(22, 101, 52)
+        pdf.set_draw_color(187, 247, 208)
+        pdf.cell(0, 10, "  Racionamiento inactivo. Flujo hidraulico normal.", 1, 1, "L", True)
+        
     pdf_output = pdf.output(dest="S")
     if isinstance(pdf_output, str):
         pdf_output = pdf_output.encode("latin-1")
@@ -1261,7 +1383,7 @@ def api_status():
 def stream_monitoring():
     def event_stream():
         while True:
-            eventlet.sleep(2)
+            eventlet.sleep(5)
             monitoring_payload = build_live_payload()
             yield f"data: {json.dumps(monitoring_payload)}\n\n"
             while pending_notifications:
@@ -1969,6 +2091,40 @@ HTML_TEMPLATE = """
             .page-wrapper { padding: var(--sp-2); }
             .controls-row { flex-direction: column; align-items: flex-start; }
         }
+
+        /* ── Modal Custom ── */
+        .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 150ms ease;
+        }
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+        .custom-modal-container {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-3);
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            transform: scale(0.92);
+            transition: transform 150ms ease;
+            box-sizing: border-box;
+        }
+        .custom-modal-backdrop.active .custom-modal-container {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body>
@@ -2191,6 +2347,75 @@ HTML_TEMPLATE = """
         let chart1, chart2, chart3, chart4;
         let currentThresholds = {};
         let subscribers = {};
+
+        // ── Helper de Modales Personalizados ──
+        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'custom-modal-backdrop';
+
+                const container = document.createElement('div');
+                container.className = 'custom-modal-container';
+
+                let iconHtml = '';
+                if (type === 'success') {
+                    iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--state-ok); font-size: var(--text-xl);"></i>';
+                } else if (type === 'error') {
+                    iconHtml = '<i class="fa-solid fa-circle-xmark" style="color: var(--state-critical); font-size: var(--text-xl);"></i>';
+                } else if (type === 'warn' || type === 'confirm') {
+                    iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+                } else {
+                    iconHtml = '<i class="fa-solid fa-circle-info" style="color: var(--color-ink); font-size: var(--text-xl);"></i>';
+                }
+
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
+                        ${iconHtml}
+                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
+                        ${showCancel ? `<button id="customModalCancelBtn" class="btn btn-ghost" style="border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer;">Cancelar</button>` : ''}
+                        <button id="customModalConfirmBtn" class="btn btn-ok" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer;">Aceptar</button>
+                    </div>
+                `;
+
+                backdrop.appendChild(container);
+                document.body.appendChild(backdrop);
+
+                // Forzar reflujo y activar clase de animación
+                setTimeout(() => {
+                    backdrop.classList.add('active');
+                }, 10);
+
+                const cleanUp = (value) => {
+                    backdrop.classList.remove('active');
+                    setTimeout(() => {
+                        backdrop.remove();
+                        resolve(value);
+                    }, 150);
+                };
+
+                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
+                if (showCancel) {
+                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
+                }
+            });
+        }
+
+        window.showAlert = function(message, type = 'info') {
+            let title = 'Notificación';
+            if (type === 'error') title = 'Error';
+            else if (type === 'success') title = 'Éxito';
+            else if (type === 'warn') title = 'Advertencia';
+            return showCustomModal({ title, message, type, showCancel: false });
+        };
+
+        window.showConfirm = function(message) {
+            return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
+        };
         const NO_RISK_VARS = ['position','door_status','motor_stuck'];
         const BOMBA_VARS = ['flow_rate','pressure','temperature','vibration','tank_level','voltage','current'];
         const ASCENSOR_VARS = ['position','speed','load','trip_count','door_status','energy','motor_stuck'];
@@ -2245,8 +2470,9 @@ HTML_TEMPLATE = """
         function updateHistoryTable(hist){
             let tbody=document.getElementById('historyBody'); tbody.innerHTML='';
             if(!hist||hist.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay registros</td></tr>'; return; }
-            for(let i=hist.length-1;i>=0;i--){
-                let r=hist[i];
+            let lastRecords = hist.slice(-30);
+            for(let i=lastRecords.length-1;i>=0;i--){
+                let r=lastRecords[i];
                 let cls = r.risk==='Crítico'?'row-crit':r.risk==='Alto'?'row-high':'';
                 let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[r.risk]||'badge-info';
                 let tr=document.createElement('tr'); tr.className=cls;
@@ -2383,9 +2609,9 @@ HTML_TEMPLATE = """
         }
 
         async function clearHistory(){
-            if(confirm('¿Limpiar historial de lecturas?')){
+            if(await window.showConfirm('¿Limpiar historial de lecturas?')){
                 let resp=await fetch('/clear_history',{method:'POST'});
-                if(resp.ok) alert('Historial limpiado.'); else alert('Error al limpiar.');
+                if(resp.ok) await window.showAlert('Historial limpiado.', 'success'); else await window.showAlert('Error al limpiar.', 'error');
             }
         }
 
@@ -2447,9 +2673,9 @@ HTML_TEMPLATE = """
                     document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
                 }else{
                     let err=await resp.text();
-                    try{let e=JSON.parse(err);alert('Error: '+e.message);}catch(e){alert('Error: '+err);}
+                    try{let e=JSON.parse(err);await window.showAlert('Error: '+e.message, 'error');}catch(e){await window.showAlert('Error: '+err, 'error');}
                 }
-            }catch(e){alert('Error de conexión');}
+            }catch(e){await window.showAlert('Error de conexión', 'error');}
             finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF';}
         }
 
@@ -2479,14 +2705,14 @@ HTML_TEMPLATE = """
                     let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
                     let resp=await fetch('/remove_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
                     if(resp.ok){let s=await fetch('/get_subscribers'); subscribers=await s.json(); updateSubscribersList();}
-                    else alert('Error');
+                    else await window.showAlert('Error al eliminar suscriptor.', 'error');
                 });
             });
             document.querySelectorAll('.test-subscriber').forEach(btn=>{
                 btn.addEventListener('click', async ()=>{
                     let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
                     let resp=await fetch(`/test_alert/${ch}/${lv}/${ct}`);
-                    let msg=await resp.text(); alert(msg);
+                    let msg=await resp.text(); await window.showAlert(msg, resp.ok ? 'success' : 'error');
                 });
             });
         }
@@ -2500,7 +2726,7 @@ HTML_TEMPLATE = """
             let resp=await fetch('/add_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
             let data=await resp.json();
             if(data.status==='ok'){subscribers=data.subscribers; updateSubscribersList(); document.getElementById('subContact').value='';}
-            else alert(data.message);
+            else await window.showAlert(data.message, 'error');
         });
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
         document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
