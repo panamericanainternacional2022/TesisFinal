@@ -78,14 +78,14 @@ function getUnit(variable) {
 function renderCard(variable, value, risk, label) {
     const name = getVariableName(variable).toUpperCase();
     const badgeClass = getRiskBadge(risk);
-    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : 
-                         (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
-                         `${formatNumeric(value)} ${getUnit(variable)}`);
+    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') :
+        (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
+            `${formatNumeric(value)} ${getUnit(variable)}`);
     let riskCls = 'risk-low';
     if (risk === 'Medio') riskCls = 'risk-med';
     else if (risk === 'Alto') riskCls = 'risk-high';
     else if (risk === 'Crítico') riskCls = 'risk-crit';
-    
+
     return `
         <div class="sensor-card ${riskCls}">
             <div class="sensor-card-name">${name}</div>
@@ -154,40 +154,40 @@ function addLiveNotificationEvent(notification) {
 function initCharts() {
     const chartDefaults = {
         responsive: true,
-        plugins: { 
-            legend: { display: false }, 
-            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+        plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } }
         },
-        scales: { 
-            x: { ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } }, 
-            y: { beginAtZero: true, ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } } 
+        scales: {
+            x: { ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } },
+            y: { beginAtZero: true, ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } }
         }
     };
 
     chart1 = createChart('chart1', {
         type: 'bar',
-        data: { 
-            labels: ['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'], 
+        data: {
+            labels: ['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'],
             datasets: [{
                 backgroundColor: '#0a0a0a',
                 borderColor: '#0a0a0a',
                 borderWidth: 1,
                 data: [0, 0, 0, 0, 0, 0, 0]
-            }] 
+            }]
         },
         options: chartDefaults
     });
 
     chart2 = createChart('chart2', {
         type: 'bar',
-        data: { 
-            labels: ['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'], 
+        data: {
+            labels: ['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'],
             datasets: [{
                 backgroundColor: '#0a0a0a',
                 borderColor: '#0a0a0a',
                 borderWidth: 1,
                 data: [0, 0, 0]
-            }] 
+            }]
         },
         options: chartDefaults
     });
@@ -323,9 +323,28 @@ function fetchLiveNotifications() {
 
 function renderConnectionStatus(isConnected, message) {
     const badge = document.getElementById('monitor-backend-status');
-    if (!badge) return;
-    badge.textContent = message || (isConnected ? 'Backend de monitoreo conectado' : 'No se pudo conectar al backend de monitoreo.');
-    badge.className = isConnected ? 'sensor-active' : 'sensor-critical';
+    if (badge) {
+        badge.textContent = message || (isConnected ? 'Backend de monitoreo conectado' : 'No se pudo conectar al backend de monitoreo.');
+        badge.className = isConnected ? 'sensor-active' : 'sensor-critical';
+    }
+
+    const activeContent = document.getElementById('monitoringActiveContent');
+    const fallback = document.getElementById('userOfflineFallback');
+    const loading = document.getElementById('userLoadingFallback');
+    
+    if (loading) {
+        loading.style.display = 'none';
+    }
+    
+    if (activeContent && fallback) {
+        if (isConnected) {
+            activeContent.style.display = 'block';
+            fallback.style.display = 'none';
+        } else {
+            activeContent.style.display = 'none';
+            fallback.style.display = 'flex';
+        }
+    }
 }
 
 function initLiveMonitoring() {
@@ -343,7 +362,7 @@ function initLiveMonitoring() {
     };
 
     source.onerror = (err) => {
-        renderConnectionStatus(false, 'El simulador de monitoreo (app27.py) está apagado. Comuníquese con el administrador para encenderlo.');
+        renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
         console.error('Error de conexión SSE:', err);
     };
 
@@ -393,7 +412,7 @@ function initLiveNotifications() {
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
             const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las notificaciones?');
-                
+
             if (shouldClear) {
                 try {
                     const csrfToken = getCookie('csrftoken');
@@ -401,14 +420,14 @@ function initLiveNotifications() {
                     if (csrfToken) {
                         headers['X-CSRFToken'] = csrfToken;
                     }
-                    
+
                     const respDjango = await fetch('/notificaciones/limpiar/', {
                         method: 'POST',
                         headers: headers
                     });
-                    
-                    await fetch(`${MONITOR_BACKEND_ORIGIN}/clear_alerts`, { method: 'POST' }).catch(() => {});
-                    
+
+                    await fetch(`${MONITOR_BACKEND_ORIGIN}/clear_alerts`, { method: 'POST' }).catch(() => { });
+
                     if (respDjango.ok) {
                         await window.showAlert('Notificaciones limpiadas con éxito.', 'success');
                         renderNotificationList([]);
@@ -429,7 +448,7 @@ function fetchInitialData() {
         .then((r) => r.ok ? r.json() : Promise.reject(r.statusText))
         .then((data) => renderLiveMonitor(data))
         .catch((error) => {
-            renderConnectionStatus(false, 'El simulador de monitoreo (app27.py) está apagado. Comuníquese con el administrador para encenderlo.');
+            renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
             console.warn('No se pudo obtener el estado inicial desde el backend de monitoreo.', error);
         });
 }

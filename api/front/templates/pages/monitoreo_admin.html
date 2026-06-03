@@ -263,7 +263,12 @@
                         </div>
                     </div>
                     <div class="iframe-wrapper">
-                        <iframe id="adminMonitorFrame" src="{% if edificios %}http://127.0.0.1:5000/?edificio={{ edificios.0.id_edificio }}{% endif %}" title="Dashboard Administrativo PCLogo"></iframe>
+                        <div id="iframeFallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                            <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
+                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
+                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento. Presione "Encender" en el panel izquierdo para iniciarlo.</p>
+                        </div>
+                        <iframe id="adminMonitorFrame" src="" style="display: none;" title="Dashboard Administrativo PCLogo"></iframe>
                     </div>
                 </div>
             </div>
@@ -281,8 +286,10 @@
             const targetUrl = button.dataset.url;
             const name = button.dataset.name;
             if (targetUrl) {
-                buildingFrame.src = targetUrl;
                 currentMonitorUrl = targetUrl;
+                if (isSimulatorOnline) {
+                    buildingFrame.src = targetUrl;
+                }
             }
             if (selectedText) {
                 selectedText.textContent = `Monitoreando edificio: ${name}`;
@@ -314,6 +321,12 @@
                     btnToggle.style.background = '#dc2626';
                     btnToggle.style.color = '#ffffff';
                     btnToggle.style.borderColor = '#0a0a0a';
+                    
+                    document.getElementById('iframeFallback').style.display = 'none';
+                    buildingFrame.style.display = 'block';
+                    if ((!buildingFrame.src || !buildingFrame.src.includes(':5000')) && currentMonitorUrl) {
+                        buildingFrame.src = currentMonitorUrl;
+                    }
                 } else {
                     badge.textContent = 'APAGADO';
                     badge.className = 'badge badge-inactive';
@@ -321,6 +334,10 @@
                     btnToggle.style.background = 'var(--color-ink)';
                     btnToggle.style.color = 'var(--color-surface)';
                     btnToggle.style.borderColor = 'var(--color-ink)';
+                    
+                    document.getElementById('iframeFallback').style.display = 'flex';
+                    buildingFrame.style.display = 'none';
+                    buildingFrame.removeAttribute('src');
                 }
             } catch (error) {
                 console.error('Error checking simulator status:', error);

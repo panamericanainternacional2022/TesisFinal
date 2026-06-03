@@ -134,44 +134,58 @@
                                     Sensores instalados en tu edificio
                                 {% endif %}
                             </p>
-                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:0px; border:2px solid var(--color-ink); box-shadow:4px 4px 0px rgba(10, 10, 10, 0.1); font-size:0.95rem; font-weight:600;">
-                                Conectando al backend de monitoreo...
-                            </div>
                         </div>
                     </header>
 
                     <div id="live-monitoring-content" class="equipo-card" style="padding: var(--sp-4);">
-                        <div class="monitoring-summary" id="monitoringSummary">
-                            <div class="summary-card"><strong>Última actualización</strong><div id="summaryLastUpdate">--:--:--</div></div>
-                            <div class="summary-card"><strong>Caudal</strong><div id="summaryFlowRate">-- L/s</div></div>
-                            <div class="summary-card"><strong>Presión</strong><div id="summaryPressure">-- bar</div></div>
-                            <div class="summary-card"><strong>Temperatura</strong><div id="summaryTemperature">-- °C</div></div>
-                            <div class="summary-card"><strong>Voltaje</strong><div id="summaryVoltage">-- V</div></div>
-                            <div class="summary-card"><strong>Corriente</strong><div id="summaryCurrent">-- A</div></div>
-                            <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ENCENDIDA</div></div>
-                            <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ENCENDIDO</div></div>
-                            <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">INACTIVA</div></div>
-                            <div class="summary-card"><strong>Alertas recientes</strong><div id="summaryAlertCount">0</div></div>
-                            <div class="summary-card"><strong>Estado</strong><div id="summaryRationing">Operación normal</div></div>
+                        <!-- Loading message for initial check -->
+                        <div id="userLoadingFallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--color-ink); margin-bottom: var(--sp-2);"></i>
+                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Conectando al servicio...</h3>
+                            <p style="font-size: var(--text-sm); max-width: 500px; margin: 0; color: var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
                         </div>
-                        <div class="monitoring-sections">
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-oil-can"></i><h2>Sensores de Bomba / Eléctricos</h2></div>
-                                <div id="bombaCards" class="monitoring-cards-grid"></div>
-                            </div>
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-arrow-up"></i><h2>Sensores de Ascensor / Motor</h2></div>
-                                <div id="ascensorCards" class="monitoring-cards-grid"></div>
-                            </div>
+
+                        <!-- Fallback message for offline simulator -->
+                        <div id="userOfflineFallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--state-warn, #b45309); margin-bottom: var(--sp-2);"></i>
+                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Sistema fuera de línea</h3>
+                            <p style="font-size: var(--text-sm); max-width: 500px; margin: 0; color: var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio para iniciar el simulador.</p>
                         </div>
-                        <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:24px;">
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-oil-can"></i><span>Variables de Bomba / Eléctricas</span></div>
-                                <canvas id="chart1" height="180"></canvas>
+
+                        <!-- Active monitoring telemetry block -->
+                        <div id="monitoringActiveContent" style="display: none;">
+                            <div class="monitoring-summary" id="monitoringSummary">
+                                <div class="summary-card"><strong>Última actualización</strong><div id="summaryLastUpdate">--:--:--</div></div>
+                                <div class="summary-card"><strong>Caudal</strong><div id="summaryFlowRate">-- L/s</div></div>
+                                <div class="summary-card"><strong>Presión</strong><div id="summaryPressure">-- bar</div></div>
+                                <div class="summary-card"><strong>Temperatura</strong><div id="summaryTemperature">-- °C</div></div>
+                                <div class="summary-card"><strong>Voltaje</strong><div id="summaryVoltage">-- V</div></div>
+                                <div class="summary-card"><strong>Corriente</strong><div id="summaryCurrent">-- A</div></div>
+                                <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ENCENDIDA</div></div>
+                                <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ENCENDIDO</div></div>
+                                <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">INACTIVA</div></div>
+                                <div class="summary-card"><strong>Alertas recientes</strong><div id="summaryAlertCount">0</div></div>
+                                <div class="summary-card"><strong>Estado</strong><div id="summaryRationing">Operación normal</div></div>
                             </div>
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-elevator"></i><span>Variables de Ascensor / Motor</span></div>
-                                <canvas id="chart2" height="180"></canvas>
+                            <div class="monitoring-sections">
+                                <div class="monitoring-section">
+                                    <div class="section-title"><i class="fa-solid fa-oil-can"></i><h2>Sensores de Bomba / Eléctricos</h2></div>
+                                    <div id="bombaCards" class="monitoring-cards-grid"></div>
+                                </div>
+                                <div class="monitoring-section">
+                                    <div class="section-title"><i class="fa-solid fa-arrow-up"></i><h2>Sensores de Ascensor / Motor</h2></div>
+                                    <div id="ascensorCards" class="monitoring-cards-grid"></div>
+                                </div>
+                            </div>
+                            <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:24px;">
+                                <div class="monitoring-section">
+                                    <div class="section-title"><i class="fa-solid fa-oil-can"></i><span>Variables de Bomba / Eléctricas</span></div>
+                                    <canvas id="chart1" height="180"></canvas>
+                                </div>
+                                <div class="monitoring-section">
+                                    <div class="section-title"><i class="fa-solid fa-elevator"></i><span>Variables de Ascensor / Motor</span></div>
+                                    <canvas id="chart2" height="180"></canvas>
+                                </div>
                             </div>
                         </div>
                     </div>
