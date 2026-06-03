@@ -262,10 +262,10 @@
                         <!-- Loading message during state transitions -->
                         <div id="iframeLoading" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--color-ink); margin-bottom: var(--sp-2);"></i>
-                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Conectando al servicio...</h3>
-                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Iniciando el simulador de monitoreo y cargando la interfaz gráfica de telemetría.</p>
+                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Procesando...</h3>
+                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);"></p>
                         </div>
-                        <div id="iframeFallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                        <div id="iframeFallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
                             <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
                             <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento. Presione "Encender" en el panel izquierdo para iniciarlo.</p>
@@ -282,6 +282,7 @@
         const openMonitorButton = document.getElementById('openMonitorButton');
         let currentMonitorUrl = null;
         let isSimulatorOnline = false;
+        let isTransitioning = false;
 
         function selectBuilding(button){
             if (!button) return;
@@ -310,6 +311,7 @@
         }
 
         async function checkSimulatorStatus() {
+            if (isTransitioning) return;
             const badge = document.getElementById('simulatorStatusBadge');
             const btnToggle = document.getElementById('btnToggleSimulator');
             try {
@@ -365,6 +367,7 @@
         }
 
         async function toggleSimulator() {
+            isTransitioning = true;
             const btnToggle = document.getElementById('btnToggleSimulator');
             const badge = document.getElementById('simulatorStatusBadge');
             const targetState = !isSimulatorOnline;
@@ -395,9 +398,11 @@
                 const data = await response.json();
                 // Wait until the target state (Online or Offline) is verified
                 await pollStatusUntil(targetState);
-                window.location.reload();
+                isTransitioning = false;
+                await checkSimulatorStatus();
             } catch (error) {
                 console.error('Error toggling simulator:', error);
+                isTransitioning = false;
                 await checkSimulatorStatus();
             } finally {
                 btnToggle.disabled = false;
@@ -405,6 +410,7 @@
         }
 
         async function restartSimulator() {
+            isTransitioning = true;
             const btnRestart = document.getElementById('btnRestartSimulator');
             const badge = document.getElementById('simulatorStatusBadge');
             
@@ -428,9 +434,16 @@
                 const data = await response.json();
                 // Wait until it is confirmed to be online again
                 await pollStatusUntil(true);
-                window.location.reload();
+                isTransitioning = false;
+                
+                // Force iframe reload if it's already there
+                if (currentMonitorUrl) {
+                    buildingFrame.src = currentMonitorUrl;
+                }
+                await checkSimulatorStatus();
             } catch (error) {
                 console.error('Error restarting simulator:', error);
+                isTransitioning = false;
                 await checkSimulatorStatus();
             } finally {
                 btnRestart.disabled = false;

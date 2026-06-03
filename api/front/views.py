@@ -1045,35 +1045,112 @@ def eliminar_edificio_view(request, edificio_id):
 def notificaciones_view(request):
     usuario_id = request.session["usuario_id"]
     rol = request.session.get("usuario_rol", "US")
+    edificio_id = request.GET.get("edificio", "").strip()
+
     if _is_admin_role(rol):
-        notificaciones = Notificacion.objects.select_related(
-            "id_usuario", "id_equipo_monitoreo__id_edificio"
-        ).all()
+        edificios = Edificio.objects.all()
+        notificaciones = Notificacion.objects.all()
+        if edificio_id:
+            notificaciones = notificaciones.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
     else:
         usuario_edificios = UsuarioEdificio.objects.filter(
             id_usuario_id=usuario_id
         ).values_list("id_edificio", flat=True)
-        equipos = EquipoMonitoreo.objects.filter(
-            id_edificio_id__in=list(usuario_edificios)
-        ).values_list("id_equipo_monitoreo", flat=True)
-        notificaciones = Notificacion.objects.filter(
-            id_usuario_id=usuario_id
-        ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
-        notificaciones = (
-            notificaciones.select_related(
-                "id_usuario", "id_equipo_monitoreo__id_edificio"
-            )
-            .distinct()
-            .order_by("-fecha")
-        )
+        edificios = Edificio.objects.filter(id_edificio__in=usuario_edificios)
+        
+        if edificio_id:
+            if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
+                notificaciones = Notificacion.objects.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+            else:
+                notificaciones = Notificacion.objects.none()
+        else:
+            equipos = EquipoMonitoreo.objects.filter(
+                id_edificio_id__in=list(usuario_edificios)
+            ).values_list("id_equipo_monitoreo", flat=True)
+            notificaciones = Notificacion.objects.filter(
+                id_usuario_id=usuario_id
+            ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
+
+    import re
+    # Exclude Info alerts
+    notificaciones = notificaciones.exclude(mensaje__icontains="[Info]")
+
+    notificaciones = (
+        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
+        .distinct()
+        .order_by("-fecha")
+    )
+
+    from django.core.paginator import Paginator
+    paginator = Paginator(notificaciones, 10)  # 10 notificaciones por página
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    # Parse notifications message for beautiful UI rendering
+    var_names = {
+        "flow_rate": "Caudal (flujo)",
+        "pressure": "Presión",
+        "temperature": "Temperatura",
+        "vibration": "Vibración",
+        "tank_level": "Nivel de tanque",
+        "voltage": "Voltaje (tensión)",
+        "current": "Corriente (amperaje)",
+        "speed": "Velocidad",
+        "load": "Carga",
+        "energy": "Consumo eléctrico",
+        "motor_stuck": "Motor atascado",
+        "Racionamiento": "Caudal (racionamiento)"
+    }
+    
+    for notif in page_obj:
+        match = re.match(r"^\[(.*?)\]\s+(.*?)\s+=\s+(.*?)\s+-\s+(.*)$", notif.mensaje or "")
+        if match:
+            risk = match.group(1).strip()
+            variable = match.group(2).strip()
+            value = match.group(3).strip()
+            action = match.group(4).strip()
+            
+            var_display = var_names.get(variable, variable.replace("_", " ").title())
+            
+            units = {
+                "flow_rate": "L/s",
+                "pressure": "bar",
+                "temperature": "°C",
+                "vibration": "mm/s",
+                "tank_level": "%",
+                "speed": "m/s",
+                "load": "kg",
+                "energy": "kW",
+                "voltage": "V",
+                "current": "A",
+                "trip_count": "viajes",
+                "Racionamiento": "L/s"
+            }
+            
+            notif.parsed_data = {
+                "parsed": True,
+                "risk": risk,
+                "variable": var_display,
+                "value": value,
+                "unit": units.get(variable, ""),
+                "action": action
+            }
+        else:
+            notif.parsed_data = {
+                "parsed": False
+            }
+
     return render(
         request,
         "pages/notificaciones.html",
         {
-            "notificaciones": notificaciones,
+            "notificaciones": page_obj,
+            "edificios": edificios,
+            "selected_edificio_id": int(edificio_id) if edificio_id.isdigit() else None,
             "rol": rol,
         },
     )
+
 
 
 @_login_required

@@ -127,6 +127,7 @@ function setNotificationBadge(count) {
 }
 
 function addLiveNotificationEvent(notification) {
+    if (notification.risk === 'Info') return;
     unreadNotificationCount += 1;
     setNotificationBadge(unreadNotificationCount);
     const container = document.getElementById('live-notifications-list');
@@ -135,20 +136,45 @@ function addLiveNotificationEvent(notification) {
     if (placeholder) {
         placeholder.remove();
     }
-    const item = document.createElement('div');
+    
+    const risk = safeText(notification.risk);
+    const variable = getVariableName(notification.variable);
+    const value = notification.value !== null && notification.value !== undefined ? notification.value : '';
+    const unit = getUnit(notification.variable);
+    
+    let badgeClass = 'sensor-active';
+    if (risk === 'Crítico') badgeClass = 'sensor-critical';
+    else if (risk === 'Alto' || risk === 'Medio') badgeClass = 'sensor-warning';
+    
+    const isBoolean = value === true || value === false || String(value).toLowerCase() === 'true' || String(value).toLowerCase() === 'false';
+    const displayVal = value !== '' && !isBoolean ? `${value}${unit ? ' ' + unit : ''}` : '';
+    const valueBadge = displayVal !== '' ? `<span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">${displayVal}</span>` : '';
+
+    const item = document.createElement('li');
     item.className = 'notif-item live-notif-item';
     item.innerHTML = `
         <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
         <div class="notif-body">
-            <p>${safeText(notification.message)}</p>
-            <div class="notif-meta">
+            <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                <span class="sensor-badge ${badgeClass}">${risk}</span>
+                <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">${variable}</span>
+                ${valueBadge}
+            </div>
+            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">${safeText(notification.message)}</p>
+            <div class="notif-meta" style="margin-top: 8px;">
                 <span><i class="fa-regular fa-clock"></i> ${new Date(notification.timestamp).toLocaleString()}</span>
-                <span><strong>Variable:</strong> ${safeText(getVariableName(notification.variable))}</span>
-                <span><strong>Riesgo:</strong> ${safeText(notification.risk)}</span>
+                <span><i class="fa-solid fa-building"></i> Telemetría en vivo</span>
             </div>
         </div>
     `;
-    container.prepend(item);
+    
+    let list = container.querySelector('.notif-list');
+    if (!list) {
+        list = document.createElement('ul');
+        list.className = 'notif-list';
+        container.appendChild(list);
+    }
+    list.prepend(item);
 }
 
 function initCharts() {
@@ -405,8 +431,9 @@ function getCookie(name) {
 function initLiveNotifications() {
     const notifContainer = document.getElementById('live-notifications-list');
     if (!notifContainer) return;
-    fetchLiveNotifications();
-    setInterval(fetchLiveNotifications, 5000);
+    // Disabled to avoid overwriting Django database notifications, pagination and filtering
+    // fetchLiveNotifications();
+    // setInterval(fetchLiveNotifications, 5000);
 
     const clearBtn = document.getElementById('clearDbNotificationsBtn');
     if (clearBtn) {

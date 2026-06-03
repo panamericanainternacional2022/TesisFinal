@@ -578,8 +578,12 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
             if EquipoMonitoreo.objects.exists()
             else None
         )
+        usuario = (
+            Usuario.objects.filter(rol="SA").first()
+            or Usuario.objects.first()
+        )
         Notificacion.objects.create(
-            id_usuario_id=None,
+            id_usuario=usuario,
             id_equipo_monitoreo=equipo,
             fecha=timezone.now(),
             mensaje=f"[{risk_level}] {variable} = {value} - {recommended_action}",

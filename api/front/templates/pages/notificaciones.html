@@ -16,18 +16,42 @@
 
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card" style="max-width:800px;">
+                 <div class="reportes-card" style="max-width:800px;">
                     <div class="admin-info">
                         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
                             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
                                 <h1 style="margin:0;">Notificaciones — INES</h1>
                                 <span id="notificationBadgeCount" class="notif-count-badge">0</span>
                             </div>
-                            <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-left:auto;">
+                        </div>
+                        <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+                        
+                        <!-- Filtro de Edificio y Botón Limpiar en la misma línea -->
+                        <div style="margin-top: var(--sp-3); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
+                            {% if edificios|length > 1 %}
+                            <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <select name="edificio" id="edificio-filter" onchange="this.form.submit()" style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 220px; box-shadow: 3px 3px 0px var(--color-ink);">
+                                        <option value="">Todos los edificios</option>
+                                        {% for edif in edificios %}
+                                        <option value="{{ edif.id_edificio }}" {% if selected_edificio_id == edif.id_edificio %}selected{% endif %}>
+                                            {{ edif.nb_edificio }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% if selected_edificio_id %}
+                                <a href="?" class="btn-action" style="box-shadow: 2px 2px 0px var(--color-ink); padding: 5px 10px !important; font-size: var(--text-xs);"><i class="fa-solid fa-xmark"></i> Quitar Filtro</a>
+                                {% endif %}
+                            </form>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
+                            
+                            <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
                                 <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
                             </button>
                         </div>
-                        <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
                     </div>
 
                     <div class="notif-card">
@@ -40,12 +64,32 @@
                                     <i class="fa-solid fa-bell"></i>
                                 </div>
                                 <div class="notif-body">
-                                    <p>{{ notif.mensaje }}</p>
-                                    <div class="notif-meta">
+                                    {% if notif.parsed_data.parsed %}
+                                        <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                                            <span class="sensor-badge {% if notif.parsed_data.risk == 'Crítico' %}sensor-critical{% elif notif.parsed_data.risk == 'Alto' or notif.parsed_data.risk == 'Medio' %}sensor-warning{% else %}sensor-active{% endif %}">
+                                                {{ notif.parsed_data.risk }}
+                                            </span>
+                                            {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" %}
+                                            <span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">
+                                                {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">
+                                                {{ notif.parsed_data.variable }}
+                                            </span>
+                                        </div>
+                                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">
+                                            {{ notif.parsed_data.action }}
+                                        </p>
+                                    {% else %}
+                                        <p style="margin: 0; font-size: var(--text-base); color: var(--color-text-primary); line-height: var(--leading-normal);">
+                                            {{ notif.mensaje }}
+                                        </p>
+                                    {% endif %}
+                                    <div class="notif-meta" style="margin-top: 8px;">
                                         <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
-                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.nb_equipo|default:"-" }}</span>
                                         {% if notif.id_equipo_monitoreo.id_edificio %}
-                                        <span>{{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -60,6 +104,39 @@
                             {% endif %}
                         </div>
                     </div>
+
+                    <!-- Paginación -->
+                    {% if notificaciones.has_other_pages %}
+                    <div class="pagination-container">
+                        {% if notificaciones.has_previous %}
+                            <a href="?page=1{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Primera Página">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.previous_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Anterior">
+                                <i class="fa-solid fa-angle-left"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+                        {% endif %}
+
+                        <span class="page-current-info">
+                            Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
+                        </span>
+
+                        {% if notificaciones.has_next %}
+                            <a href="?page={{ notificaciones.next_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Siguiente">
+                                <i class="fa-solid fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.paginator.num_pages }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Última Página">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </main>
@@ -82,6 +159,57 @@
         .notif-card .no-notif {
             border: none;
             box-shadow: none;
+        }
+        .notif-icon {
+            border: none !important;
+            width: auto !important;
+            height: auto !important;
+            box-shadow: none !important;
+            color: var(--color-ink) !important;
+            font-size: 1.3rem !important;
+            padding-top: 2px;
+        }
+
+        /* ── Paginación Neo-Brutalista ── */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: var(--sp-4);
+            flex-wrap: wrap;
+        }
+        .page-link-btn {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            padding: 8px 12px;
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            box-shadow: 3px 3px 0px var(--color-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-link-btn:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.2);
+        }
+        .page-link-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-current-info {
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            padding: 8px var(--sp-2);
+            border: 2px solid transparent;
         }
 
         /* ── Modal Custom (Estilo Suizo sin bordes redondeados) ── */
