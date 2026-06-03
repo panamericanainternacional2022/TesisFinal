@@ -12,7 +12,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
 # Setup Django
 django.setup()
 
-from core.models import (
+from core.models import (  # noqa: E402
     Persona,
     Usuario,
     Edificio,

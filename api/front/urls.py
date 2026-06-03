@@ -60,7 +60,11 @@ urlpatterns = [
     ),
     path("descargar_pdf/", descargar_pdf_view, name="descargar_pdf"),
     path("notificaciones/", notificaciones_view, name="notificaciones"),
-    path("notificaciones/limpiar/", limpiar_notificaciones_view, name="limpiar_notificaciones"),
+    path(
+        "notificaciones/limpiar/",
+        limpiar_notificaciones_view,
+        name="limpiar_notificaciones",
+    ),
     path("monitoreo/", monitoreo_view, name="monitoreo"),
     path(
         "monitoreo/edificio/<int:edificio_id>/",

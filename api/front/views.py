@@ -8,6 +8,7 @@ from email.mime.multipart import MIMEMultipart
 
 from django.core import signing
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
@@ -127,7 +128,7 @@ def _validar_unico_telefono(telefono, exclude_persona_id=None):
 
 def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     errores = {}
-    
+
     # primerNombre
     campo = _validar_campo(
         data.get("primerNombre", ""),
@@ -142,7 +143,7 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     campo = _validar_longitud_max(data.get("primerNombre", ""), 20, "El primer nombre")
     if campo:
         errores["primerNombre_long"] = campo
-        
+
     # segundoNombre
     campo = _validar_campo(
         data.get("segundoNombre", ""),
@@ -159,7 +160,7 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["segundoNombre_long"] = campo
-        
+
     # primerApellido
     campo = _validar_campo(
         data.get("primerApellido", ""),
@@ -168,7 +169,9 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["primerApellido"] = campo
-    campo = _validar_longitud_min(data.get("primerApellido", ""), 2, "El primer apellido")
+    campo = _validar_longitud_min(
+        data.get("primerApellido", ""), 2, "El primer apellido"
+    )
     if campo:
         errores["primerApellido_min"] = campo
     campo = _validar_longitud_max(
@@ -176,7 +179,7 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["primerApellido_long"] = campo
-        
+
     # segundoApellido
     campo = _validar_campo(
         data.get("segundoApellido", ""),
@@ -185,7 +188,9 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["segundoApellido"] = campo
-    campo = _validar_longitud_min(data.get("segundoApellido", ""), 2, "El segundo apellido")
+    campo = _validar_longitud_min(
+        data.get("segundoApellido", ""), 2, "El segundo apellido"
+    )
     if campo:
         errores["segundoApellido_min"] = campo
     campo = _validar_longitud_max(
@@ -193,7 +198,7 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["segundoApellido_long"] = campo
-        
+
     # cedula
     campo = _validar_campo(
         data.get("cedula", ""), REGEX_SOLO_NUMEROS, "La cédula solo acepta números."
@@ -206,17 +211,17 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     campo = _validar_longitud_max(data.get("cedula", ""), 8, "La cédula")
     if campo:
         errores["cedula_long"] = campo
-        
+
     # email
     campo = _validar_email(data.get("email", ""))
     if campo:
         errores["email"] = campo
-        
+
     # telefono
     campo = _validar_telefono(data.get("telefono", ""))
     if campo:
         errores["telefono"] = campo
-        
+
     # direccion
     campo = _validar_longitud_min(data.get("direccion", ""), 8, "La dirección")
     if campo:
@@ -338,9 +343,12 @@ def _send_activation_email(email, user_id, request):
     protocol = "https" if request.is_secure() else "http"
     host = request.get_host()
     link = f"{protocol}://{host}/completar_registro/?token={token}"
-    
+
     # Cargar variables de entorno desde .env si existen (como en app27.py)
-    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+    env_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+        ".env",
+    )
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
@@ -359,11 +367,11 @@ def _send_activation_email(email, user_id, request):
         return False, link
 
     try:
-        msg = MIMEMultipart('alternative')
+        msg = MIMEMultipart("alternative")
         msg["From"] = smtp_user
         msg["To"] = email
         msg["Subject"] = "[INES] Activacion y Acceso al Sistema"
-        
+
         body = f"""Hola,
         
 Se ha registrado su usuario en el Sistema de Monitoreo INES.
@@ -438,7 +446,7 @@ Si usted no solicito este registro, por favor ignore este correo.
 
         msg.attach(MIMEText(body, "plain", "utf-8"))
         msg.attach(MIMEText(html_content, "html", "utf-8"))
-        
+
         server = smtplib.SMTP(smtp_server, smtp_port)
         server.starttls()
         server.login(smtp_user, smtp_password)
@@ -448,7 +456,6 @@ Si usted no solicito este registro, por favor ignore este correo.
     except Exception as e:
         print(f"Error enviando email de activacion: {e}")
         return False, link
-
 
 
 ADMIN_ROLES = ("SA", "ADMIN")
@@ -600,15 +607,26 @@ def registro_beneficiario_view(request):
             }
 
             if not (
-                primer_nombre and primer_apellido and email and cedula and id_edificio and telefono
+                primer_nombre
+                and primer_apellido
+                and email
+                and cedula
+                and id_edificio
+                and telefono
             ):
                 form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio."
-                if not primer_nombre: form_errors["primerNombre"] = "Este campo es obligatorio."
-                if not primer_apellido: form_errors["primerApellido"] = "Este campo es obligatorio."
-                if not email: form_errors["email"] = "Este campo es obligatorio."
-                if not cedula: form_errors["cedula"] = "Este campo es obligatorio."
-                if not telefono: form_errors["telefono"] = "Este campo es obligatorio."
-                if not id_edificio: form_errors["id_edificio"] = "Este campo es obligatorio."
+                if not primer_nombre:
+                    form_errors["primerNombre"] = "Este campo es obligatorio."
+                if not primer_apellido:
+                    form_errors["primerApellido"] = "Este campo es obligatorio."
+                if not email:
+                    form_errors["email"] = "Este campo es obligatorio."
+                if not cedula:
+                    form_errors["cedula"] = "Este campo es obligatorio."
+                if not telefono:
+                    form_errors["telefono"] = "Este campo es obligatorio."
+                if not id_edificio:
+                    form_errors["id_edificio"] = "Este campo es obligatorio."
             else:
                 form_errors = _validaciones_formulario_usuario(user_data)
                 if form_errors:
@@ -644,7 +662,9 @@ def registro_beneficiario_view(request):
                                 id_usuario=usuario,
                                 id_edificio_id=id_edificio,
                             )
-                        email_sent, activation_link = _send_activation_email(email, usuario.id_usuario, request)
+                        email_sent, activation_link = _send_activation_email(
+                            email, usuario.id_usuario, request
+                        )
 
     edificios = Edificio.objects.all()
     context = {
@@ -653,7 +673,7 @@ def registro_beneficiario_view(request):
         "form_error": form_error,
         "form_errors": form_errors,
     }
-    if 'email_sent' in locals():
+    if "email_sent" in locals():
         context["email_sent"] = email_sent
         context["activation_link"] = activation_link
         context["sent_to"] = email
@@ -696,14 +716,27 @@ def editar_beneficiario_view(request, beneficiario_id):
             "id_edificio": int(id_edificio) if id_edificio else "",
         }
 
-        if not (primer_nombre and primer_apellido and email and cedula and id_edificio and telefono):
+        if not (
+            primer_nombre
+            and primer_apellido
+            and email
+            and cedula
+            and id_edificio
+            and telefono
+        ):
             form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio para actualizar."
-            if not primer_nombre: form_errors["primerNombre"] = "Este campo es obligatorio."
-            if not primer_apellido: form_errors["primerApellido"] = "Este campo es obligatorio."
-            if not email: form_errors["email"] = "Este campo es obligatorio."
-            if not cedula: form_errors["cedula"] = "Este campo es obligatorio."
-            if not telefono: form_errors["telefono"] = "Este campo es obligatorio."
-            if not id_edificio: form_errors["id_edificio"] = "Este campo es obligatorio."
+            if not primer_nombre:
+                form_errors["primerNombre"] = "Este campo es obligatorio."
+            if not primer_apellido:
+                form_errors["primerApellido"] = "Este campo es obligatorio."
+            if not email:
+                form_errors["email"] = "Este campo es obligatorio."
+            if not cedula:
+                form_errors["cedula"] = "Este campo es obligatorio."
+            if not telefono:
+                form_errors["telefono"] = "Este campo es obligatorio."
+            if not id_edificio:
+                form_errors["id_edificio"] = "Este campo es obligatorio."
         else:
             form_errors = _validaciones_formulario_usuario(
                 data,
@@ -738,7 +771,9 @@ def editar_beneficiario_view(request, beneficiario_id):
         id_edificio_actual = edificio_actual.id_edificio if edificio_actual else None
 
         data = {
-            "primerNombre": persona.name.split(" ")[0] if persona and persona.name else "",
+            "primerNombre": persona.name.split(" ")[0]
+            if persona and persona.name
+            else "",
             "segundoNombre": " ".join(persona.name.split(" ")[1:])
             if persona and persona.name
             else "",
@@ -800,20 +835,26 @@ def registro_edificio_view(request):
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        
+
         edificio_data = {
             "nb_edificio": nombre,
             "direccion": parroquia,
             "rif": rif,
         }
-        
+
         if not (nombre and rif and parroquia):
             bld_msgs.append(
-                {"text": "Complete el nombre, la dirección y el RIF del edificio.", "type": "error"}
+                {
+                    "text": "Complete el nombre, la dirección y el RIF del edificio.",
+                    "type": "error",
+                }
             )
-            if not nombre: form_errors["nombreEdificio"] = "Este campo es obligatorio."
-            if not rif: form_errors["rif"] = "Este campo es obligatorio."
-            if not parroquia: form_errors["direccion"] = "Este campo es obligatorio."
+            if not nombre:
+                form_errors["nombreEdificio"] = "Este campo es obligatorio."
+            if not rif:
+                form_errors["rif"] = "Este campo es obligatorio."
+            if not parroquia:
+                form_errors["direccion"] = "Este campo es obligatorio."
         else:
             form_errors = _validaciones_formulario_edificio(
                 {
@@ -823,14 +864,21 @@ def registro_edificio_view(request):
                 }
             )
             if form_errors:
-                bld_msgs.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
+                bld_msgs.append(
+                    {
+                        "text": "Por favor, corrige los errores en el formulario.",
+                        "type": "error",
+                    }
+                )
             else:
                 Edificio.objects.create(
                     nb_edificio=nombre,
                     rif=rif,
                     direccion=parroquia,
                 )
-                request.session["_bld_msg"] = [{"text": "Edificio registrado correctamente.", "type": "success"}]
+                request.session["_bld_msg"] = [
+                    {"text": "Edificio registrado correctamente.", "type": "success"}
+                ]
                 return redirect("lista_edificios")
     return render(
         request,
@@ -854,11 +902,11 @@ def editar_edificio_view(request, edificio_id):
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        
+
         edificio.nb_edificio = nombre
         edificio.direccion = parroquia
         edificio.rif = rif
-        
+
         if not (nombre and rif and parroquia):
             bld_msgs.append(
                 {
@@ -866,9 +914,12 @@ def editar_edificio_view(request, edificio_id):
                     "type": "error",
                 }
             )
-            if not nombre: form_errors["nombreEdificio"] = "Este campo es obligatorio."
-            if not rif: form_errors["rif"] = "Este campo es obligatorio."
-            if not parroquia: form_errors["direccion"] = "Este campo es obligatorio."
+            if not nombre:
+                form_errors["nombreEdificio"] = "Este campo es obligatorio."
+            if not rif:
+                form_errors["rif"] = "Este campo es obligatorio."
+            if not parroquia:
+                form_errors["direccion"] = "Este campo es obligatorio."
         else:
             form_errors = _validaciones_formulario_edificio(
                 {
@@ -879,10 +930,17 @@ def editar_edificio_view(request, edificio_id):
                 exclude_edificio_id=edificio_id,
             )
             if form_errors:
-                bld_msgs.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
+                bld_msgs.append(
+                    {
+                        "text": "Por favor, corrige los errores en el formulario.",
+                        "type": "error",
+                    }
+                )
             else:
                 edificio.save()
-                request.session["_bld_msg"] = [{"text": "Edificio actualizado correctamente.", "type": "success"}]
+                request.session["_bld_msg"] = [
+                    {"text": "Edificio actualizado correctamente.", "type": "success"}
+                ]
                 return redirect("lista_edificios")
     return render(
         request,
@@ -926,40 +984,45 @@ def eliminar_edificio_view(request, edificio_id):
     with transaction.atomic():
         # Get all monitoring equipment associated with this building
         equipos = EquipoMonitoreo.objects.filter(id_edificio=edificio)
-        
+
         # Get all sensors associated with those equipments
         sensores = EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipos)
-        
+
         # Get all status records associated with those equipments
-        status_equipos = StatusEquipoMonitoreo.objects.filter(id_equipo_monitoreo__in=equipos)
-        
+        status_equipos = StatusEquipoMonitoreo.objects.filter(
+            id_equipo_monitoreo__in=equipos
+        )
+
         # Delete HistoricoFalla records that reference our sensors or equipment statuses
         HistoricoFalla.objects.filter(
-            Q(id_equipo_sensor__in=sensores) | Q(id_status_equipo_monitoreo__in=status_equipos)
+            Q(id_equipo_sensor__in=sensores)
+            | Q(id_status_equipo_monitoreo__in=status_equipos)
         ).delete()
-        
+
         # Delete the sensors
         sensores.delete()
-        
+
         # Delete status records
         status_equipos.delete()
-        
+
         # Delete preventive actions
         AccionPrev.objects.filter(id_equipo_monitoreo__in=equipos).delete()
-        
+
         # Delete notifications
         Notificacion.objects.filter(id_equipo_monitoreo__in=equipos).delete()
-        
+
         # Delete the monitoring equipment
         equipos.delete()
-        
+
         # Delete user-building associations
         UsuarioEdificio.objects.filter(id_edificio=edificio).delete()
-        
+
         # Finally, delete the building
         edificio.delete()
-        
-    messages.success(request, "Edificio y todos sus datos asociados fueron eliminados correctamente.")
+
+    messages.success(
+        request, "Edificio y todos sus datos asociados fueron eliminados correctamente."
+    )
     return redirect("lista_edificios")
 
 
@@ -1004,6 +1067,7 @@ def notificaciones_view(request):
 @_login_required
 def limpiar_notificaciones_view(request):
     from django.http import JsonResponse
+
     if request.method == "POST":
         usuario_id = request.session["usuario_id"]
         rol = request.session.get("usuario_rol", "US")
@@ -1017,9 +1081,15 @@ def limpiar_notificaciones_view(request):
                 id_edificio_id__in=list(usuario_edificios)
             ).values_list("id_equipo_monitoreo", flat=True)
             Notificacion.objects.filter(id_usuario_id=usuario_id).delete()
-            Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos)).delete()
-        return JsonResponse({"status": "ok", "message": "Notificaciones eliminadas correctamente"})
-    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+            Notificacion.objects.filter(
+                id_equipo_monitoreo_id__in=list(equipos)
+            ).delete()
+        return JsonResponse(
+            {"status": "ok", "message": "Notificaciones eliminadas correctamente"}
+        )
+    return JsonResponse(
+        {"status": "error", "message": "Método no permitido"}, status=405
+    )
 
 
 # ─── MONITOREO ──────────────────────────────────────────────────
@@ -1154,11 +1224,15 @@ def configuracion_view(request):
                 if err_user:
                     form_errors["username"] = err_user
                 else:
-                    err_user_min = _validar_longitud_min(username, 4, "El nombre de usuario")
+                    err_user_min = _validar_longitud_min(
+                        username, 4, "El nombre de usuario"
+                    )
                     if err_user_min:
                         form_errors["username"] = err_user_min
                     else:
-                        err_user_max = _validar_longitud_max(username, 20, "El nombre de usuario")
+                        err_user_max = _validar_longitud_max(
+                            username, 20, "El nombre de usuario"
+                        )
                         if err_user_max:
                             form_errors["username"] = err_user_max
             if new_password:
@@ -1167,7 +1241,9 @@ def configuracion_view(request):
                         "La contraseña debe tener al menos 6 caracteres."
                     )
                 elif new_password != confirm_password:
-                    form_errors["confirm_password"] = "Las contraseñas nuevas no coinciden."
+                    form_errors["confirm_password"] = (
+                        "Las contraseñas nuevas no coinciden."
+                    )
 
             if not form_errors:
                 if email:
@@ -1180,14 +1256,22 @@ def configuracion_view(request):
                 usuario.save()
                 request.session["usuario_username"] = usuario.username
                 request.session["_cfg_msg"] = [
-                    {"text": "Configuración actualizada correctamente.", "type": "success"}
+                    {
+                        "text": "Configuración actualizada correctamente.",
+                        "type": "success",
+                    }
                 ]
                 return redirect("configuracion")
 
         # In case of validation error, re-render values typed
         usuario_data = {"username": username}
         persona_data = {"email": email}
-        page_messages.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
+        page_messages.append(
+            {
+                "text": "Por favor, corrige los errores en el formulario.",
+                "type": "error",
+            }
+        )
         return render(
             request,
             "pages/configuracion.html",
@@ -1268,8 +1352,6 @@ def seleccionar_edificio_view(request, accion):
 
 
 # ─── LEGACY ─────────────────────────────────────────────────────
-
-from django.http import HttpResponse
 
 
 def descargar_pdf_view(request):
@@ -1362,18 +1444,26 @@ def descargar_pdf_view(request):
 def completar_registro_view(request):
     token = request.GET.get("token") or request.POST.get("token")
     if not token:
-        return render(request, "pages/completar_registro.html", {"error": "Token de registro faltante o inválido."})
+        return render(
+            request,
+            "pages/completar_registro.html",
+            {"error": "Token de registro faltante o inválido."},
+        )
 
     try:
         data = signing.loads(token, max_age=86400)  # 24 horas de validez
         user_id = data["user_id"]
         usuario = Usuario.objects.get(id_usuario=user_id)
     except (signing.BadSignature, signing.SignatureExpired, Usuario.DoesNotExist):
-        return render(request, "pages/completar_registro.html", {"error": "El enlace de registro ha expirado o es inválido."})
+        return render(
+            request,
+            "pages/completar_registro.html",
+            {"error": "El enlace de registro ha expirado o es inválido."},
+        )
 
     form_error = None
     form_errors = {}
-    
+
     # Pre-cargar datos del formulario si es necesario
     username_val = request.POST.get("username", "").strip()
 
@@ -1397,17 +1487,26 @@ def completar_registro_view(request):
             form_errors["password"] = "La contraseña debe tener al menos 6 caracteres."
         elif not REGEX_USERNAME.match(username_val):
             form_error = "El nombre de usuario solo acepta letras y números."
-            form_errors["username"] = "El nombre de usuario solo acepta letras y números."
+            form_errors["username"] = (
+                "El nombre de usuario solo acepta letras y números."
+            )
         else:
             # Validar que el username no esté en uso por OTRO usuario
-            if Usuario.objects.filter(username=username_val).exclude(id_usuario=usuario.id_usuario).exists():
+            if (
+                Usuario.objects.filter(username=username_val)
+                .exclude(id_usuario=usuario.id_usuario)
+                .exists()
+            ):
                 form_error = "El nombre de usuario ya está registrado."
                 form_errors["username"] = "El nombre de usuario ya está registrado."
             else:
                 usuario.username = username_val
                 usuario.password = make_password(password)
                 usuario.save()
-                messages.success(request, "Registro completado con éxito. Ahora puede iniciar sesión.")
+                messages.success(
+                    request,
+                    "Registro completado con éxito. Ahora puede iniciar sesión.",
+                )
                 return redirect("login")
 
     return render(
@@ -1421,4 +1520,3 @@ def completar_registro_view(request):
             "form_errors": form_errors,
         },
     )
-

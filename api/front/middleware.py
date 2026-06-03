@@ -18,7 +18,10 @@ class AuthMiddleware:
         is_logged_in = request.session.get("usuario_id") is not None
         if is_logged_in:
             from core.models import Usuario
-            if not Usuario.objects.filter(id_usuario=request.session.get("usuario_id")).exists():
+
+            if not Usuario.objects.filter(
+                id_usuario=request.session.get("usuario_id")
+            ).exists():
                 request.session.flush()
                 is_logged_in = False
 

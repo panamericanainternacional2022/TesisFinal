@@ -2593,7 +2593,7 @@ HTML_TEMPLATE = """
         <div class="table-wrapper">
             <div class="scroll-table" style="max-height: 500px;">
                 <table>
-                    <thead><tr><th>Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
+                    <thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
                     <tbody id="historyBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">Cargando...</td></tr></tbody>
                 </table>
             </div>
@@ -2606,7 +2606,7 @@ HTML_TEMPLATE = """
         <div class="table-wrapper">
             <div class="scroll-table" style="max-height: 500px;">
                 <table>
-                    <thead><tr><th>Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
+                    <thead><tr><th>Fecha y hora</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
                     <tbody id="alertTableBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">No hay alertas</td></tr></tbody>
                 </table>
             </div>

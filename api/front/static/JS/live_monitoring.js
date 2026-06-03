@@ -76,7 +76,7 @@ function getUnit(variable) {
 }
 
 function renderCard(variable, value, risk, label) {
-    const name = (label || getVariableName(variable)).replace(/_/g, ' ').toUpperCase();
+    const name = getVariableName(variable).toUpperCase();
     const badgeClass = getRiskBadge(risk);
     const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : 
                          (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
