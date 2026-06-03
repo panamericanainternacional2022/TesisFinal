@@ -78,7 +78,9 @@ function getUnit(variable) {
 function renderCard(variable, value, risk, label) {
     const name = (label || getVariableName(variable)).replace(/_/g, ' ').toUpperCase();
     const badgeClass = getRiskBadge(risk);
-    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : `${formatNumeric(value)} ${getUnit(variable)}`;
+    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : 
+                         (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
+                         `${formatNumeric(value)} ${getUnit(variable)}`);
     let riskCls = 'risk-low';
     if (risk === 'Medio') riskCls = 'risk-med';
     else if (risk === 'Alto') riskCls = 'risk-high';
@@ -141,7 +143,7 @@ function addLiveNotificationEvent(notification) {
             <p>${safeText(notification.message)}</p>
             <div class="notif-meta">
                 <span><i class="fa-regular fa-clock"></i> ${new Date(notification.timestamp).toLocaleString()}</span>
-                <span><strong>Variable:</strong> ${safeText(notification.variable)}</span>
+                <span><strong>Variable:</strong> ${safeText(getVariableName(notification.variable))}</span>
                 <span><strong>Riesgo:</strong> ${safeText(notification.risk)}</span>
             </div>
         </div>
@@ -238,11 +240,11 @@ function renderLiveMonitor(data) {
     document.getElementById('summaryCurrent').textContent = `${formatNumeric(current.current)} A`;
     document.getElementById('summaryAlertCount').textContent = alertCount;
     document.getElementById('summaryRationing').textContent = rationingText;
-    document.getElementById('summaryPumpStatus').textContent = data.pump_on ? 'ON' : 'OFF';
-    document.getElementById('summaryElevatorStatus').textContent = data.elevator_on ? 'ON' : 'OFF';
+    document.getElementById('summaryPumpStatus').textContent = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
+    document.getElementById('summaryElevatorStatus').textContent = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
     const protectionStatusEl = document.getElementById('summaryProtectionStatus');
     if (protectionStatusEl) {
-        protectionStatusEl.textContent = data.protection_active ? 'ON' : 'OFF';
+        protectionStatusEl.textContent = data.protection_active ? 'ACTIVA' : 'INACTIVA';
     }
 
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
@@ -296,7 +298,7 @@ function renderNotificationList(alerts) {
                 <p>${safeText(alert.message)}</p>
                 <div class="notif-meta">
                     <span><i class="fa-regular fa-clock"></i> ${new Date(alert.timestamp).toLocaleString()}</span>
-                    <span><strong>Variable:</strong> ${safeText(alert.variable)}</span>
+                    <span><strong>Variable:</strong> ${safeText(getVariableName(alert.variable))}</span>
                     <span><strong>Riesgo:</strong> ${safeText(alert.risk)}</span>
                 </div>
             </div>

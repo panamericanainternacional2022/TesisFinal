@@ -159,7 +159,7 @@ TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 # ----------------------------------------------------------------------
 def get_building_emails(edificio_id=None):
     if not DJANGO_CONNECTED:
-        return ["simulado@ejemplo.com"]
+        return []
     try:
         if not edificio_id:
             # Buscar el edificio del primer equipo de monitoreo disponible
@@ -172,7 +172,7 @@ def get_building_emails(edificio_id=None):
                 if first_edf:
                     edificio_id = first_edf.id_edificio
                 else:
-                    return ["simulado@ejemplo.com"]
+                    return []
         
         users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
         emails = []
@@ -181,10 +181,10 @@ def get_building_emails(edificio_id=None):
                 email = u.id_usuario.id_persona.email.strip()
                 if email and email not in emails:
                     emails.append(email)
-        return emails if emails else ["simulado@ejemplo.com"]
+        return emails
     except Exception as e:
         logger.error(f"Error al obtener correos del edificio {edificio_id}: {e}")
-        return ["simulado@ejemplo.com"]
+        return []
 
 
 subscribers = {"email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []}}
@@ -409,10 +409,143 @@ def send_email_alert(
         )
         return
     try:
-        msg = MIMEMultipart()
+        # Definir colores según riesgo al estilo Swiss (design-tokens.css)
+        if risk_level == "Bajo":
+            bg_color = "#f0fdf4"
+            border_color = "#bbf7d0"
+            text_color = "#16a34a"
+        elif risk_level == "Medio":
+            bg_color = "#fffbeb"
+            border_color = "#fde68a"
+            text_color = "#b45309"
+        elif risk_level in ("Alto", "Crítico"):
+            bg_color = "#fef2f2"
+            border_color = "#fecaca"
+            text_color = "#dc2626"
+        else:
+            bg_color = "#f5f5f5"
+            border_color = "#e0e0e0"
+            text_color = "#6b6b6b"
+
+        # Formatear el cuerpo de texto plano a HTML estructurado
+        lines = body.strip().split('\n')
+        html_paragraphs = []
+        in_details = False
+        in_actions = False
+        details_rows = []
+        action_text = ""
+        
+        for line in lines:
+            line_strip = line.strip()
+            if not line_strip:
+                continue
+            if "DETALLES DEL EVENTO:" in line_strip:
+                in_details = True
+                in_actions = False
+                continue
+            elif "MEDIDAS CORRECTIVAS SUGERIDAS:" in line_strip:
+                in_details = False
+                in_actions = True
+                continue
+            elif line_strip.startswith("---") or line_strip.startswith("==="):
+                continue
+                
+            if in_details:
+                if ":" in line_strip:
+                    parts = line_strip.split(":", 1)
+                    key = parts[0].strip()
+                    val = parts[1].strip()
+                    details_rows.append(f"""
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0; font-weight: 700; width: 35%; color: #0a0a0a;">{key}</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #2e2e2e;">{val}</td>
+                      </tr>
+                    """)
+                else:
+                    if details_rows:
+                        html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
+            elif in_actions:
+                if line_strip.startswith("Accion:") or line_strip.startswith("Acción:"):
+                    action_text = line_strip.split(":", 1)[1].strip()
+                else:
+                    action_text += " " + line_strip
+            else:
+                if "SISTEMA INES" in line_strip and "REPORTE" in line_strip:
+                    html_paragraphs.append(f"<h2 style='margin: 0 0 16px 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid #0a0a0a; padding-bottom: 8px;'>{line_strip}</h2>")
+                else:
+                    html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
+
+        formatted_content = "".join(html_paragraphs)
+        if details_rows:
+            formatted_content += f"""
+            <h3 style="margin: 20px 0 10px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a;">Detalles del Evento</h3>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; margin-bottom: 24px; font-size: 13px;">
+              {"".join(details_rows)}
+            </table>
+            """
+        if action_text:
+            formatted_content += f"""
+            <div style="margin: 24px 0; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 4px solid {text_color};">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 6px;">Medida Correctiva Recomendada</span>
+              <p style="margin: 0; font-size: 13px; font-weight: 500; color: #0a0a0a; line-height: 1.4;">{action_text}</p>
+            </div>
+            """
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; color: #0a0a0a;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5; padding: 24px 0;">
+    <tr>
+      <td align="center">
+        <!-- Contenedor Principal (Retícula Suiza - Bordes Rectos) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border: 1px solid #0a0a0a; border-collapse: collapse;">
+          <!-- Cabecera -->
+          <tr>
+            <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">SISTEMA INES</span>
+            </td>
+          </tr>
+          <!-- Estado / Banner de Riesgo -->
+          <tr>
+            <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: {bg_color}; border-left: 6px solid {text_color};">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 4px;">NIVEL DE RIESGO: {risk_level.upper()}</span>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo</h1>
+            </td>
+          </tr>
+          <!-- Contenido -->
+          <tr>
+            <td style="padding: 24px; font-size: 14px; line-height: 1.55; color: #2e2e2e;">
+              {formatted_content}
+            </td>
+          </tr>
+          <!-- Pie de página -->
+          <tr>
+            <td style="padding: 16px 24px; border-top: 1px solid #e0e0e0; background-color: #f5f5f5; font-size: 11px; color: #6b6b6b; text-align: center;">
+              Este es un mensaje generado de forma automática por el Sistema de Monitoreo INES.<br>
+              Por favor, no responda a este correo electrónico.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+        msg = MIMEMultipart('mixed')
         msg["From"] = SMTP_USER
         msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
+
+        # Agregar alternativas text/plain y text/html
+        alt_part = MIMEMultipart('alternative')
+        alt_part.attach(MIMEText(body, "plain", "utf-8"))
+        alt_part.attach(MIMEText(html_content, "html", "utf-8"))
+        msg.attach(alt_part)
 
         if attachment_pdf:
             attachment_pdf.seek(0)
@@ -1548,7 +1681,7 @@ def api_edificios():
 @app.route("/api/usuarios_edificio/<int:edificio_id>", methods=["GET"])
 def api_usuarios_edificio(edificio_id):
     if not DJANGO_CONNECTED:
-        return jsonify([{"nombre": "Usuario", "apellido": "Simulado", "email": "simulado@ejemplo.com"}])
+        return jsonify([])
     try:
         users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
         payload = []
@@ -2339,15 +2472,15 @@ HTML_TEMPLATE = """
         <div class="status-grid" id="statusGrid">
             <div class="status-cell">
                 <div class="status-cell-label">Protección</div>
-                <div class="status-cell-value" id="protectionStatus">OFF</div>
+                <div class="status-cell-value" id="protectionStatus">INACTIVA</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Bomba</div>
-                <div class="status-cell-value" id="pumpStatus">ON</div>
+                <div class="status-cell-value" id="pumpStatus">ENCENDIDA</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Ascensor</div>
-                <div class="status-cell-value" id="elevatorStatus">ON</div>
+                <div class="status-cell-value" id="elevatorStatus">ENCENDIDO</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Última actualización</div>
@@ -2571,6 +2704,26 @@ HTML_TEMPLATE = """
         const BOMBA_VARS = ['flow_rate','pressure','temperature','vibration','tank_level','voltage','current'];
         const ASCENSOR_VARS = ['position','speed','load','trip_count','door_status','energy','motor_stuck'];
 
+        function getVariableName(variable) {
+            const names = {
+                flow_rate: 'Caudal',
+                pressure: 'Presión',
+                temperature: 'Temperatura',
+                vibration: 'Vibración',
+                tank_level: 'Nivel de tanque',
+                voltage: 'Voltaje',
+                current: 'Corriente',
+                position: 'Posición',
+                speed: 'Velocidad',
+                load: 'Carga',
+                trip_count: 'Viajes',
+                door_status: 'Estado de puerta',
+                energy: 'Energía',
+                motor_stuck: 'Motor pegado'
+            };
+            return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
+
         function getUnit(v){ return {flow_rate:'L/s',pressure:'bar',temperature:'°C',vibration:'mm/s',tank_level:'%',position:'piso',speed:'m/s',load:'kg',trip_count:'viajes',door_status:'',energy:'kW',voltage:'V',current:'A'}[v]||''; }
 
         function getRiskClass(varName, value){
@@ -2603,8 +2756,10 @@ HTML_TEMPLATE = """
             b.innerHTML=''; a.innerHTML='';
             for(let [k,v] of Object.entries(data)){
                 let ri = getRiskClass(k,v);
-                let dn = (k==='motor_stuck') ? 'MOTOR PEGADO' : k.replace(/_/g,' ').toUpperCase();
-                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : `${v} ${getUnit(k)}`;
+                let dn = getVariableName(k).toUpperCase();
+                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : 
+                             (k === 'door_status' ? (v === 'open' ? 'Abierta' : (v === 'closed' ? 'Cerrada' : v)) :
+                             `${v} ${getUnit(k)}`);
                 let card = document.createElement('div');
                 card.className = `sensor-card ${ri.card}`;
                 card.innerHTML = `
@@ -2627,7 +2782,9 @@ HTML_TEMPLATE = """
                 let cls = r.risk==='Crítico'?'row-crit':r.risk==='Alto'?'row-high':'';
                 let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[r.risk]||'badge-info';
                 let tr=document.createElement('tr'); tr.className=cls;
-                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${r.variable}</td><td>${r.value}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
+                let varName = r.variable.includes(' (manual)') ? getVariableName(r.variable.replace(' (manual)', '')) + ' (manual)' : getVariableName(r.variable);
+                let valDisplay = r.variable.includes('door_status') ? (r.value === 'open' ? 'Abierta' : (r.value === 'closed' ? 'Cerrada' : r.value)) : r.value;
+                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
                 tbody.appendChild(tr);
             }
         }
@@ -2639,7 +2796,9 @@ HTML_TEMPLATE = """
                 let cls = a.risk==='Crítico'?'row-crit':a.risk==='Alto'?'row-high':'';
                 let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[a.risk]||'badge-info';
                 let tr=document.createElement('tr'); tr.className=cls;
-                tr.innerHTML=`<td>${a.timestamp}</td><td>${a.variable}</td><td>${a.value}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
+                let varName = getVariableName(a.variable);
+                let valDisplay = a.variable.includes('door_status') ? (a.value === 'open' ? 'Abierta' : (a.value === 'closed' ? 'Cerrada' : a.value)) : a.value;
+                tr.innerHTML=`<td>${a.timestamp}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
                 tbody.appendChild(tr);
             }
         }
@@ -2713,7 +2872,7 @@ HTML_TEMPLATE = """
             let statsDiv=document.getElementById('statsPanel');
             if(stats && Object.keys(stats).length){
                 let rows = Object.entries(stats).map(([k,v])=>
-                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${k.replace(/_/g,' ').toUpperCase()}</td>`+
+                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${getVariableName(k).toUpperCase()}</td>`+
                     `<td style="padding:4px 8px;">${v.avg.toFixed(1)}</td>`+
                     `<td style="padding:4px 8px;">${v.min}</td>`+
                     `<td style="padding:4px 8px;">${v.max}</td></tr>`).join('');
@@ -2746,13 +2905,13 @@ HTML_TEMPLATE = """
                 let div=document.createElement('div');
                 div.style.cssText='border:1px solid var(--color-border);padding:var(--sp-1);';
                 if(cfg.direction==='range'){
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')} (rango)</div>
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)} (rango)</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
                             <div class="form-group"><label class="form-label">Mín</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
                             <div class="form-group"><label class="form-label">Máx</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
                         </div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
                 } else {
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')}</div>
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)}</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
                             <div class="form-group"><label class="form-label">Bajo</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
                             <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
@@ -2817,7 +2976,7 @@ HTML_TEMPLATE = """
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
             [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{
                 let opt=document.createElement('option'); opt.value=v;
-                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+v.replace(/_/g,' ').toUpperCase();
+                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+getVariableName(v).toUpperCase();
                 sel.appendChild(opt);
             });
         }
@@ -3023,9 +3182,9 @@ HTML_TEMPLATE = """
                 '<i class="fas fa-bell-slash"></i> Activar Alertas';
             let ri = document.getElementById('rationingIndicator');
             if(data.rationing) ri.classList.add('visible'); else ri.classList.remove('visible');
-            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'OFF';
-            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ON' : 'OFF';
-            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ON' : 'OFF';
+            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'INACTIVA';
+            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
+            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
         }
 
 
