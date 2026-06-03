@@ -34,17 +34,19 @@
                         <div class="form-group full-width">
                             <label for="username">Nombre de Usuario</label>
                             <div class="input-with-icon">
-                                <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required />
+                                <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="{% if form_errors.username %}input-error{% endif %}" />
                                 <span class="edit-icon">&#9998;</span>
                             </div>
+                            <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
                         </div>
 
                         <div class="form-group full-width">
                             <label for="email">Correo Electrónico</label>
                             <div class="input-with-icon">
-                                <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required />
+                                <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
                                 <span class="edit-icon">&#9998;</span>
                             </div>
+                            <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
                         </div>
 
                         <div class="password-section">
@@ -54,25 +56,28 @@
                             <div class="form-group full-width">
                                 <label for="current_password">Contraseña Actual</label>
                                 <div class="input-with-icon">
-                                    <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" data-validate="password" required />
+                                    <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" data-validate="password" required class="{% if form_errors.current_password %}input-error{% endif %}" />
                                     <span class="edit-icon">&#128274;</span>
                                 </div>
+                                <div class="validation-error">{% if form_errors.current_password %}{{ form_errors.current_password }}{% endif %}</div>
                             </div>
 
                             <div class="form-row">
                                 <div class="form-group half-width">
                                     <label for="new_password">Nueva Contraseña</label>
                                     <div class="input-with-icon">
-                                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" />
+                                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" class="{% if form_errors.new_password %}input-error{% endif %}" />
                                         <span class="edit-icon">&#128274;</span>
                                     </div>
+                                    <div class="validation-error">{% if form_errors.new_password %}{{ form_errors.new_password }}{% endif %}</div>
                                 </div>
                                 <div class="form-group half-width">
                                     <label for="confirm_password">Confirmar Contraseña</label>
                                     <div class="input-with-icon">
-                                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" />
+                                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" class="{% if form_errors.confirm_password %}input-error{% endif %}" />
                                         <span class="edit-icon">&#128274;</span>
                                     </div>
+                                    <div class="validation-error">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
                                 </div>
                             </div>
                         </div>

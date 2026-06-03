@@ -41,6 +41,12 @@ def _validar_campo(valor, regex, mensaje):
     return None
 
 
+def _validar_longitud_min(valor, minimo, campo):
+    if valor and len(valor) < minimo:
+        return f"{campo} debe tener al menos {minimo} caracteres."
+    return None
+
+
 def _validar_longitud_max(valor, maximo, campo):
     if valor and len(valor) > maximo:
         return f"{campo} no puede tener más de {maximo} caracteres."
@@ -53,8 +59,8 @@ def _validar_telefono(valor):
     if not REGEX_TELEFONO.match(valor):
         return "El teléfono contiene caracteres no válidos."
     digitos = re.sub(r"[\s\+\-]", "", valor)
-    if len(digitos) < 7:
-        return "El teléfono debe tener al menos 7 dígitos."
+    if len(digitos) < 10:
+        return "El teléfono debe tener al menos 10 dígitos reales."
     if len(digitos) > 20:
         return "El teléfono no puede tener más de 20 dígitos."
     return None
@@ -76,6 +82,8 @@ def _validar_email(valor):
     local = valor.split("@")[0]
     if len(local) > 30:
         return "La parte antes del @ no puede tener más de 30 caracteres."
+    if len(valor) < 6:
+        return "El correo debe tener al menos 6 caracteres."
     return None
 
 
@@ -114,6 +122,8 @@ def _validar_unico_telefono(telefono, exclude_persona_id=None):
 
 def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     errores = {}
+    
+    # primerNombre
     campo = _validar_campo(
         data.get("primerNombre", ""),
         REGEX_SOLO_LETRAS,
@@ -121,9 +131,14 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["primerNombre"] = campo
+    campo = _validar_longitud_min(data.get("primerNombre", ""), 2, "El primer nombre")
+    if campo:
+        errores["primerNombre_min"] = campo
     campo = _validar_longitud_max(data.get("primerNombre", ""), 20, "El primer nombre")
     if campo:
         errores["primerNombre_long"] = campo
+        
+    # segundoNombre
     campo = _validar_campo(
         data.get("segundoNombre", ""),
         REGEX_SOLO_LETRAS,
@@ -131,11 +146,16 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["segundoNombre"] = campo
+    campo = _validar_longitud_min(data.get("segundoNombre", ""), 2, "El segundo nombre")
+    if campo:
+        errores["segundoNombre_min"] = campo
     campo = _validar_longitud_max(
         data.get("segundoNombre", ""), 20, "El segundo nombre"
     )
     if campo:
         errores["segundoNombre_long"] = campo
+        
+    # primerApellido
     campo = _validar_campo(
         data.get("primerApellido", ""),
         REGEX_SOLO_LETRAS,
@@ -143,11 +163,16 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["primerApellido"] = campo
+    campo = _validar_longitud_min(data.get("primerApellido", ""), 2, "El primer apellido")
+    if campo:
+        errores["primerApellido_min"] = campo
     campo = _validar_longitud_max(
         data.get("primerApellido", ""), 20, "El primer apellido"
     )
     if campo:
         errores["primerApellido_long"] = campo
+        
+    # segundoApellido
     campo = _validar_campo(
         data.get("segundoApellido", ""),
         REGEX_SOLO_LETRAS,
@@ -155,25 +180,42 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     )
     if campo:
         errores["segundoApellido"] = campo
+    campo = _validar_longitud_min(data.get("segundoApellido", ""), 2, "El segundo apellido")
+    if campo:
+        errores["segundoApellido_min"] = campo
     campo = _validar_longitud_max(
         data.get("segundoApellido", ""), 20, "El segundo apellido"
     )
     if campo:
         errores["segundoApellido_long"] = campo
+        
+    # cedula
     campo = _validar_campo(
         data.get("cedula", ""), REGEX_SOLO_NUMEROS, "La cédula solo acepta números."
     )
     if campo:
         errores["cedula"] = campo
+    campo = _validar_longitud_min(data.get("cedula", ""), 6, "La cédula")
+    if campo:
+        errores["cedula_min"] = campo
     campo = _validar_longitud_max(data.get("cedula", ""), 8, "La cédula")
     if campo:
         errores["cedula_long"] = campo
+        
+    # email
     campo = _validar_email(data.get("email", ""))
     if campo:
         errores["email"] = campo
+        
+    # telefono
     campo = _validar_telefono(data.get("telefono", ""))
     if campo:
         errores["telefono"] = campo
+        
+    # direccion
+    campo = _validar_longitud_min(data.get("direccion", ""), 8, "La dirección")
+    if campo:
+        errores["direccion_min"] = campo
     campo = _validar_longitud_max(data.get("direccion", ""), 50, "La dirección")
     if campo:
         errores["direccion_long"] = campo
@@ -210,6 +252,11 @@ def _validaciones_formulario_edificio(data, exclude_edificio_id=None):
     )
     if campo:
         errores["nombreEdificio"] = campo
+    campo = _validar_longitud_min(
+        data.get("nombreEdificio", ""), 3, "El nombre del edificio"
+    )
+    if campo:
+        errores["nombreEdificio_min"] = campo
     campo = _validar_longitud_max(
         data.get("nombreEdificio", ""), 20, "El nombre del edificio"
     )
@@ -222,6 +269,9 @@ def _validaciones_formulario_edificio(data, exclude_edificio_id=None):
     )
     if campo:
         errores["direccion"] = campo
+    campo = _validar_longitud_min(data.get("direccion", ""), 8, "La dirección")
+    if campo:
+        errores["direccion_min"] = campo
     campo = _validar_longitud_max(data.get("direccion", ""), 50, "La dirección")
     if campo:
         errores["direccion_long"] = campo
@@ -396,6 +446,7 @@ def registro_beneficiario_view(request):
     generated_password = None
     user_data = {}
     form_error = None
+    form_errors = {}
 
     if request.method == "POST":
         if Edificio.objects.count() == 0:
@@ -426,13 +477,19 @@ def registro_beneficiario_view(request):
             }
 
             if not (
-                primer_nombre and primer_apellido and email and cedula and id_edificio
+                primer_nombre and primer_apellido and email and cedula and id_edificio and telefono
             ):
-                form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio."
+                form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio."
+                if not primer_nombre: form_errors["primerNombre"] = "Este campo es obligatorio."
+                if not primer_apellido: form_errors["primerApellido"] = "Este campo es obligatorio."
+                if not email: form_errors["email"] = "Este campo es obligatorio."
+                if not cedula: form_errors["cedula"] = "Este campo es obligatorio."
+                if not telefono: form_errors["telefono"] = "Este campo es obligatorio."
+                if not id_edificio: form_errors["id_edificio"] = "Este campo es obligatorio."
             else:
-                errores_val = _validaciones_formulario_usuario(user_data)
-                if errores_val:
-                    form_error = " | ".join(errores_val.values())
+                form_errors = _validaciones_formulario_usuario(user_data)
+                if form_errors:
+                    form_error = "Por favor, corrige los errores en el formulario."
                 else:
                     nombre_completo = f"{primer_nombre} {segundo_nombre}".strip()
                     apellido_completo = f"{primer_apellido} {segundo_apellido}".strip()
@@ -475,6 +532,7 @@ def registro_beneficiario_view(request):
             "generated_username": generated_username,
             "generated_password": generated_password,
             "form_error": form_error,
+            "form_errors": form_errors,
         },
     )
 
@@ -484,6 +542,8 @@ def registro_beneficiario_view(request):
 def editar_beneficiario_view(request, beneficiario_id):
     usuario = get_object_or_404(Usuario, id_usuario=beneficiario_id)
     persona = usuario.id_persona
+    form_error = None
+    form_errors = {}
 
     if request.method == "POST":
         primer_nombre = request.POST.get("primerNombre", "").strip()
@@ -496,27 +556,33 @@ def editar_beneficiario_view(request, beneficiario_id):
         direccion = request.POST.get("direccion", "").strip()
         id_edificio = request.POST.get("id_edificio", "").strip()
 
-        if not (primer_nombre and primer_apellido and email and cedula and id_edificio):
-            messages.error(
-                request,
-                "Complete los campos obligatorios (incluyendo edificio) para actualizar.",
-            )
+        data = {
+            "primerNombre": primer_nombre,
+            "segundoNombre": segundo_nombre,
+            "primerApellido": primer_apellido,
+            "segundoApellido": segundo_apellido,
+            "email": email,
+            "cedula": cedula,
+            "telefono": telefono,
+            "direccion": direccion,
+            "id_edificio": int(id_edificio) if id_edificio else "",
+        }
+
+        if not (primer_nombre and primer_apellido and email and cedula and id_edificio and telefono):
+            form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio para actualizar."
+            if not primer_nombre: form_errors["primerNombre"] = "Este campo es obligatorio."
+            if not primer_apellido: form_errors["primerApellido"] = "Este campo es obligatorio."
+            if not email: form_errors["email"] = "Este campo es obligatorio."
+            if not cedula: form_errors["cedula"] = "Este campo es obligatorio."
+            if not telefono: form_errors["telefono"] = "Este campo es obligatorio."
+            if not id_edificio: form_errors["id_edificio"] = "Este campo es obligatorio."
         else:
-            errores_edit = _validaciones_formulario_usuario(
-                {
-                    "primerNombre": primer_nombre,
-                    "segundoNombre": segundo_nombre,
-                    "primerApellido": primer_apellido,
-                    "segundoApellido": segundo_apellido,
-                    "email": email,
-                    "cedula": cedula,
-                    "telefono": telefono,
-                },
+            form_errors = _validaciones_formulario_usuario(
+                data,
                 exclude_persona_id=persona.id_persona,
             )
-            if errores_edit:
-                for err in errores_edit.values():
-                    messages.error(request, err)
+            if form_errors:
+                form_error = "Por favor, corrige los errores en el formulario."
             else:
                 persona.name = f"{primer_nombre} {segundo_nombre}".strip()
                 persona.apellido = f"{primer_apellido} {segundo_apellido}".strip()
@@ -538,29 +604,31 @@ def editar_beneficiario_view(request, beneficiario_id):
 
                 messages.success(request, "Beneficiario actualizado correctamente.")
                 return redirect("lista_usuario")
+    else:
+        usuario_edificio = UsuarioEdificio.objects.filter(id_usuario=usuario).first()
+        edificio_actual = usuario_edificio.id_edificio if usuario_edificio else None
+        id_edificio_actual = edificio_actual.id_edificio if edificio_actual else None
+
+        data = {
+            "primerNombre": persona.name.split(" ")[0] if persona and persona.name else "",
+            "segundoNombre": " ".join(persona.name.split(" ")[1:])
+            if persona and persona.name
+            else "",
+            "primerApellido": persona.apellido.split(" ")[0]
+            if persona and persona.apellido
+            else "",
+            "segundoApellido": " ".join(persona.apellido.split(" ")[1:])
+            if persona and persona.apellido
+            else "",
+            "email": persona.email if persona else "",
+            "cedula": persona.ci if persona else "",
+            "telefono": persona.telefono if persona else "",
+            "direccion": persona.direccion if persona else "",
+            "id_edificio": id_edificio_actual,
+        }
 
     usuario_edificio = UsuarioEdificio.objects.filter(id_usuario=usuario).first()
     edificio_actual = usuario_edificio.id_edificio if usuario_edificio else None
-    id_edificio_actual = edificio_actual.id_edificio if edificio_actual else None
-
-    data = {
-        "primerNombre": persona.name.split(" ")[0] if persona and persona.name else "",
-        "segundoNombre": " ".join(persona.name.split(" ")[1:])
-        if persona and persona.name
-        else "",
-        "primerApellido": persona.apellido.split(" ")[0]
-        if persona and persona.apellido
-        else "",
-        "segundoApellido": " ".join(persona.apellido.split(" ")[1:])
-        if persona and persona.apellido
-        else "",
-        "email": persona.email if persona else "",
-        "cedula": persona.ci if persona else "",
-        "telefono": persona.telefono if persona else "",
-        "direccion": persona.direccion if persona else "",
-        "id_edificio": id_edificio_actual,
-    }
-
     edificios = Edificio.objects.all()
     return render(
         request,
@@ -571,6 +639,8 @@ def editar_beneficiario_view(request, beneficiario_id):
             "beneficiario_id": beneficiario_id,
             "edificios": edificios,
             "edificio_actual": edificio_actual,
+            "form_error": form_error,
+            "form_errors": form_errors,
         },
     )
 
@@ -596,37 +666,43 @@ def eliminar_beneficiario_view(request, beneficiario_id):
 @_admin_required
 def registro_edificio_view(request):
     bld_msgs = request.session.pop("_bld_msg", [])
+    form_errors = {}
+    edificio_data = {}
     if request.method == "POST":
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        if not (nombre and rif):
+        
+        edificio_data = {
+            "nb_edificio": nombre,
+            "direccion": parroquia,
+            "rif": rif,
+        }
+        
+        if not (nombre and rif and parroquia):
             bld_msgs.append(
-                {"text": "Complete el nombre del edificio y el RIF.", "type": "error"}
+                {"text": "Complete el nombre, la dirección y el RIF del edificio.", "type": "error"}
             )
-            request.session["_bld_msg"] = bld_msgs
+            if not nombre: form_errors["nombreEdificio"] = "Este campo es obligatorio."
+            if not rif: form_errors["rif"] = "Este campo es obligatorio."
+            if not parroquia: form_errors["direccion"] = "Este campo es obligatorio."
         else:
-            errores_bld = _validaciones_formulario_edificio(
+            form_errors = _validaciones_formulario_edificio(
                 {
                     "nombreEdificio": nombre,
                     "direccion": parroquia,
                     "rif": rif,
                 }
             )
-            if errores_bld:
-                for err in errores_bld.values():
-                    bld_msgs.append({"text": err, "type": "error"})
-                request.session["_bld_msg"] = bld_msgs
+            if form_errors:
+                bld_msgs.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
             else:
                 Edificio.objects.create(
                     nb_edificio=nombre,
                     rif=rif,
                     direccion=parroquia,
                 )
-                bld_msgs.append(
-                    {"text": "Edificio registrado correctamente.", "type": "success"}
-                )
-                request.session["_bld_msg"] = bld_msgs
+                request.session["_bld_msg"] = [{"text": "Edificio registrado correctamente.", "type": "success"}]
                 return redirect("lista_edificios")
     return render(
         request,
@@ -634,6 +710,8 @@ def registro_edificio_view(request):
         {
             "editing": False,
             "page_messages": bld_msgs,
+            "form_errors": form_errors,
+            "edificio": edificio_data,
         },
     )
 
@@ -643,20 +721,28 @@ def registro_edificio_view(request):
 def editar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
     bld_msgs = request.session.pop("_bld_msg", [])
+    form_errors = {}
     if request.method == "POST":
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        if not (nombre and rif):
+        
+        edificio.nb_edificio = nombre
+        edificio.direccion = parroquia
+        edificio.rif = rif
+        
+        if not (nombre and rif and parroquia):
             bld_msgs.append(
                 {
-                    "text": "Complete el nombre del edificio y el RIF para guardar los cambios.",
+                    "text": "Complete el nombre, la dirección y el RIF del edificio para guardar los cambios.",
                     "type": "error",
                 }
             )
-            request.session["_bld_msg"] = bld_msgs
+            if not nombre: form_errors["nombreEdificio"] = "Este campo es obligatorio."
+            if not rif: form_errors["rif"] = "Este campo es obligatorio."
+            if not parroquia: form_errors["direccion"] = "Este campo es obligatorio."
         else:
-            errores_bld = _validaciones_formulario_edificio(
+            form_errors = _validaciones_formulario_edificio(
                 {
                     "nombreEdificio": nombre,
                     "direccion": parroquia,
@@ -664,19 +750,11 @@ def editar_edificio_view(request, edificio_id):
                 },
                 exclude_edificio_id=edificio_id,
             )
-            if errores_bld:
-                for err in errores_bld.values():
-                    bld_msgs.append({"text": err, "type": "error"})
-                request.session["_bld_msg"] = bld_msgs
+            if form_errors:
+                bld_msgs.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
             else:
-                edificio.nb_edificio = nombre
-                edificio.direccion = parroquia
-                edificio.rif = rif
                 edificio.save()
-                bld_msgs.append(
-                    {"text": "Edificio actualizado correctamente.", "type": "success"}
-                )
-                request.session["_bld_msg"] = bld_msgs
+                request.session["_bld_msg"] = [{"text": "Edificio actualizado correctamente.", "type": "success"}]
                 return redirect("lista_edificios")
     return render(
         request,
@@ -685,6 +763,7 @@ def editar_edificio_view(request, edificio_id):
             "editing": True,
             "edificio": edificio,
             "page_messages": bld_msgs,
+            "form_errors": form_errors,
         },
     )
 
@@ -887,6 +966,7 @@ def configuracion_view(request):
     usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
     persona = usuario.id_persona
     page_messages = request.session.pop("_cfg_msg", [])
+    form_errors = {}
 
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
@@ -904,56 +984,71 @@ def configuracion_view(request):
             page_messages.append(
                 {"text": "La contraseña actual no es correcta.", "type": "error"}
             )
-            request.session["_cfg_msg"] = page_messages
-            return redirect("configuracion")
-
-        errores_cfg = {}
-        if email:
-            err_email = _validar_email(email)
-            if err_email:
-                errores_cfg["email"] = err_email
-            else:
-                err_email_unico = _validar_unico_email(
-                    email, exclude_persona_id=persona.id_persona
+            form_errors["current_password"] = "La contraseña actual no es correcta."
+        else:
+            if email:
+                err_email = _validar_email(email)
+                if err_email:
+                    form_errors["email"] = err_email
+                else:
+                    err_email_unico = _validar_unico_email(
+                        email, exclude_persona_id=persona.id_persona
+                    )
+                    if err_email_unico:
+                        form_errors["email_unico"] = err_email_unico
+            if username:
+                err_user = _validar_campo(
+                    username,
+                    REGEX_USERNAME,
+                    "El nombre de usuario solo acepta letras y números, sin espacios.",
                 )
-                if err_email_unico:
-                    errores_cfg["email_unico"] = err_email_unico
-        if username:
-            err_user = _validar_campo(
-                username,
-                REGEX_USERNAME,
-                "El nombre de usuario solo acepta letras y números, sin espacios.",
-            )
-            if err_user:
-                errores_cfg["username"] = err_user
-        if new_password:
-            if len(new_password) < 6:
-                errores_cfg["new_password"] = (
-                    "La contraseña debe tener al menos 6 caracteres."
-                )
-            elif new_password != confirm_password:
-                errores_cfg["confirm_password"] = "Las contraseñas nuevas no coinciden."
+                if err_user:
+                    form_errors["username"] = err_user
+                else:
+                    err_user_min = _validar_longitud_min(username, 4, "El nombre de usuario")
+                    if err_user_min:
+                        form_errors["username"] = err_user_min
+                    else:
+                        err_user_max = _validar_longitud_max(username, 20, "El nombre de usuario")
+                        if err_user_max:
+                            form_errors["username"] = err_user_max
+            if new_password:
+                if len(new_password) < 6:
+                    form_errors["new_password"] = (
+                        "La contraseña debe tener al menos 6 caracteres."
+                    )
+                elif new_password != confirm_password:
+                    form_errors["confirm_password"] = "Las contraseñas nuevas no coinciden."
 
-        if errores_cfg:
-            for err in errores_cfg.values():
-                page_messages.append({"text": err, "type": "error"})
-            request.session["_cfg_msg"] = page_messages
-            return redirect("configuracion")
+            if not form_errors:
+                if email:
+                    persona.email = email
+                if username:
+                    usuario.username = username
+                if new_password:
+                    usuario.password = make_password(new_password)
+                persona.save()
+                usuario.save()
+                request.session["usuario_username"] = usuario.username
+                request.session["_cfg_msg"] = [
+                    {"text": "Configuración actualizada correctamente.", "type": "success"}
+                ]
+                return redirect("configuracion")
 
-        if email:
-            persona.email = email
-        if username:
-            usuario.username = username
-        if new_password:
-            usuario.password = make_password(new_password)
-        persona.save()
-        usuario.save()
-        request.session["usuario_username"] = usuario.username
-        page_messages.append(
-            {"text": "Configuración actualizada correctamente.", "type": "success"}
+        # In case of validation error, re-render values typed
+        usuario_data = {"username": username}
+        persona_data = {"email": email}
+        page_messages.append({"text": "Por favor, corrige los errores en el formulario.", "type": "error"})
+        return render(
+            request,
+            "pages/configuracion.html",
+            {
+                "usuario": usuario_data,
+                "persona": persona_data,
+                "page_messages": page_messages,
+                "form_errors": form_errors,
+            },
         )
-        request.session["_cfg_msg"] = page_messages
-        return redirect("configuracion")
 
     return render(
         request,
@@ -962,6 +1057,7 @@ def configuracion_view(request):
             "usuario": usuario,
             "persona": persona,
             "page_messages": page_messages,
+            "form_errors": form_errors,
         },
     )
 

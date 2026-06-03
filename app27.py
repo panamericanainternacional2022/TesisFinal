@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 # Integración con Django para persistir alertas en la base de datos
 # ----------------------------------------------------------------------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "api"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
 DJANGO_CONNECTED = False
 try:
@@ -56,7 +57,7 @@ try:
 
     django.setup()
     from django.utils import timezone
-    from core.models import Notificacion, EquipoMonitoreo
+    from core.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio, Persona
 
     DJANGO_CONNECTED = True
     logger.info("Django integrado correctamente en app27.py")
@@ -154,28 +155,39 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
 # ----------------------------------------------------------------------
-# Suscriptores (persistencia)
+# Obtener destinatarios de email desde la BD Django por edificio
 # ----------------------------------------------------------------------
-SUBSCRIBERS_FILE = "subscribers.json"
+def get_building_emails(edificio_id=None):
+    if not DJANGO_CONNECTED:
+        return ["simulado@ejemplo.com"]
+    try:
+        if not edificio_id:
+            # Buscar el edificio del primer equipo de monitoreo disponible
+            equipo = EquipoMonitoreo.objects.first()
+            if equipo and equipo.id_edificio:
+                edificio_id = equipo.id_edificio.id_edificio
+            else:
+                # Si no hay equipo, obtener el primer edificio
+                first_edf = Edificio.objects.first()
+                if first_edf:
+                    edificio_id = first_edf.id_edificio
+                else:
+                    return ["simulado@ejemplo.com"]
+        
+        users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
+        emails = []
+        for u in users:
+            if u.id_usuario and u.id_usuario.id_persona and u.id_usuario.id_persona.email:
+                email = u.id_usuario.id_persona.email.strip()
+                if email and email not in emails:
+                    emails.append(email)
+        return emails if emails else ["simulado@ejemplo.com"]
+    except Exception as e:
+        logger.error(f"Error al obtener correos del edificio {edificio_id}: {e}")
+        return ["simulado@ejemplo.com"]
 
 
-def load_subscribers():
-    if os.path.exists(SUBSCRIBERS_FILE):
-        with open(SUBSCRIBERS_FILE, "r") as f:
-            return json.load(f)
-    else:
-        return {
-            "email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
-            "telegram": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
-        }
-
-
-def save_subscribers(data):
-    with open(SUBSCRIBERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
-subscribers = load_subscribers()
+subscribers = {"email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []}}
 
 # ----------------------------------------------------------------------
 # Umbrales de riesgo (configurables)
@@ -200,6 +212,7 @@ MAX_HISTORY_SIZE = 500
 thresholds = DEFAULT_THRESHOLDS.copy()
 alert_enabled = True
 alert_log = []
+last_email_sent_time = 0
 pending_notifications = deque()
 MAX_LOG_ENTRIES = 100
 PROTECTION_HOLD_SECONDS = 8
@@ -383,9 +396,10 @@ def reset_critical_values(targets):
 # Envío de alertas (reales si hay credenciales)
 # ----------------------------------------------------------------------
 def send_email_alert(
-    risk_level, subject, body, attachment_pdf=None, attachment_name="reporte.pdf"
+    risk_level, subject, body, attachment_pdf=None, attachment_name="reporte.pdf", recipients=None
 ):
-    recipients = subscribers["email"].get(risk_level, [])
+    if recipients is None:
+        recipients = get_building_emails()
     if not recipients:
         logger.info(f"No hay suscriptores para nivel {risk_level} en email")
         return
@@ -412,37 +426,14 @@ def send_email_alert(
         server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         for rec in recipients:
+            if "To" in msg:
+                del msg["To"]
             msg["To"] = rec
             server.send_message(msg)
             logger.info(f"✅ Email REAL enviado a {rec} (riesgo {risk_level})")
         server.quit()
     except Exception as e:
         logger.error(f"Error enviando email: {e}")
-
-
-def send_telegram_alert(risk_level, message):
-    recipients = subscribers["telegram"].get(risk_level, [])
-    if not recipients:
-        logger.info(f"No hay suscriptores para nivel {risk_level} en Telegram")
-        return
-    if not TELEGRAM_BOT_TOKEN:
-        logger.warning(
-            "⚠️ TELEGRAM_BOT_TOKEN no configurado. No se enviará mensaje real."
-        )
-        return
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        for chat_id in recipients:
-            payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
-            resp = requests.post(url, data=payload, timeout=5)
-            if resp.status_code == 200:
-                logger.info(
-                    f"✅ Telegram REAL enviado a {chat_id} (riesgo {risk_level})"
-                )
-            else:
-                logger.error(f"Error Telegram: {resp.text}")
-    except Exception as e:
-        logger.error(f"Error Telegram: {e}")
 
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action):
@@ -554,8 +545,62 @@ def update_protection_state():
             pass
 
 
+def get_professional_action(variable, risk_level, value):
+    actions = {
+        "flow_rate": {
+            "Alto": "Flujo de agua elevado. Monitorear valvulas de alivio y posibles fugas.",
+            "Crítico": "Caudal critico (interrupcion total o exceso grave). Apagado preventivo de bomba activado. Inspeccionar tuberia principal."
+        },
+        "pressure": {
+            "Alto": "Presion superior al limite recomendado. Verificar regulador de presion y manometros.",
+            "Crítico": "Presion critica. Riesgo inminente de ruptura de tuberias. Apagar bomba y liberar presion."
+        },
+        "temperature": {
+            "Alto": "Temperatura elevada en el motor de la bomba. Incrementar ventilacion en sala de maquinas.",
+            "Crítico": "Temperatura del motor critica. Riesgo de sobrecalentamiento y fundicion. Apagado de emergencia y revision de refrigeracion."
+        },
+        "vibration": {
+            "Alto": "Nivel de vibracion por encima del estandar. Programar mantenimiento mecanico.",
+            "Crítico": "Vibracion mecanica severa. Desalineacion severa o falla de rodamientos. Apagar equipo inmediatamente."
+        },
+        "tank_level": {
+            "Alto": "Nivel de tanque elevado. Monitorear llenado automatico.",
+            "Medio": "Nivel de tanque bajo.",
+            "Crítico": "Nivel de tanque critico. Riesgo de cavitacion de la bomba. Detener succion y rellenar tanque urgentemente."
+        },
+        "speed": {
+            "Alto": "Velocidad de ascensor por encima del limite de viaje seguro. Programar revision de variador de frecuencia.",
+            "Crítico": "Exceso de velocidad critico. Frenado de emergencia activado. Inspeccion tecnica de seguridad obligatoria."
+        },
+        "load": {
+            "Alto": "Carga de cabina cercana al limite de diseno. Monitorear comportamiento de motor.",
+            "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operacion."
+        },
+        "energy": {
+            "Alto": "Consumo de energia inusualmente elevado. Monitorear eficiencia.",
+            "Crítico": "Pico de energia critico. Posible cortocircuito o sobreesfuerzo del motor. Revisar protecciones electricas."
+        },
+        "voltage": {
+            "Alto": "Inestabilidad en voltaje (fuera del rango 200V-240V). Riesgo para componentes electronicos.",
+            "Crítico": "Fluctuacion critica de tension electrica. Desconectar equipos para evitar danos."
+        },
+        "current": {
+            "Alto": "Corriente de motor alta. Monitorear temperatura del bobinado.",
+            "Crítico": "Amperaje critico (sobrecarga electrica). Apagado automatico de proteccion activo."
+        },
+        "motor_stuck": {
+            "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberacion de emergencia de pasajeros."
+        },
+        "Racionamiento": {
+            "Crítico": "Caudal por debajo del minimo admisible (racionamiento de agua activo). Restringir consumo general."
+        }
+    }
+    var_actions = actions.get(variable, {})
+    return var_actions.get(risk_level, f"Verificar sensor {variable} (Valor actual: {value}). Programar revision preventiva.")
+
+
 def send_alert(variable, value, risk_level, recommended_action):
-    global active_alerts
+    global active_alerts, last_email_sent_time
     if not alert_enabled:
         logger.info("Alertas desactivadas por el usuario")
         return
@@ -602,14 +647,32 @@ def send_alert(variable, value, risk_level, recommended_action):
                 f"Alerta crítica para {variable} sin mapeo a dispositivo; no se activará protección automática."
             )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[ALERTA {risk_level.upper()}] {variable} = {value}"
-    body = f"{timestamp}\nSensor: {variable}\nValor: {value}\nRiesgo: {risk_level}\nAcciÃ³n: {recommended_action}"
-    threading.Thread(
-        target=send_email_alert, args=(risk_level, subject, body), daemon=True
-    ).start()
-    threading.Thread(
-        target=send_telegram_alert, args=(risk_level, body), daemon=True
-    ).start()
+    subject = f"[INES - Alerta de Monitoreo] Estado {risk_level.upper()}: Anomalia en {variable.replace('_', ' ').title()}"
+    body = f"""SISTEMA INES — REPORTE AUTOMATICO DE ANOMALIA
+
+Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
+
+DETALLES DEL EVENTO:
+--------------------------------------------
+Fecha/Hora:   {timestamp}
+Parametro:    {variable.replace('_', ' ').upper()}
+Lectura:      {value} {get_unit(variable)}
+Nivel Riesgo: {risk_level.upper()}
+
+MEDIDAS CORRECTIVAS SUGERIDAS:
+--------------------------------------------
+Accion:       {recommended_action}
+
+Este es un mensaje de contingencia generado de forma automatica por el modulo de proteccion del Sistema INES. Por favor, proceda con la inspeccion tecnica correspondiente de los equipos implicados.
+"""
+
+    now = time.time()
+    if now - last_email_sent_time > 300:  # 5 minutes cooldown
+        last_email_sent_time = now
+        threading.Thread(
+            target=send_email_alert, args=(risk_level, subject, body), daemon=True
+        ).start()
+
     notification_payload = {
         "timestamp": timestamp,
         "variable": variable,
@@ -652,7 +715,7 @@ def update_sensor_data():
     # Generación de fallas aleatorias para bomba y ascensor (independientes)
     # Si un dispositivo está en protección, no cambiamos sus valores (se retiene la falla)
     # Inyectar falla de bomba aleatoria si no está protegida
-    if "pump" not in protection_ends and pump_on and random.random() < 0.02:
+    if "pump" not in protection_ends and pump_on and random.random() < 0.002:
         sensor_data["flow_rate"] = 0.0
         sensor_data["pressure"] = 0.0
         sensor_data["vibration"] = 12.0
@@ -681,7 +744,7 @@ def update_sensor_data():
                     f"[SIM] {time.strftime('%H:%M:%S')} INYECCION-SIMULT: elevator falla -> protection_ends={protection_ends}"
                 )
     # Inyectar falla de ascensor aleatoria si no está protegida
-    if "elevator" not in protection_ends and elevator_on and random.random() < 0.02:
+    if "elevator" not in protection_ends and elevator_on and random.random() < 0.002:
         sensor_data["speed"] = 0.0
         sensor_data["load"] = 950
         sensor_data["motor_stuck"] = True
@@ -878,16 +941,18 @@ def generate_data_and_emit():
         for var, value in sensor_data.items():
             if var == "motor_stuck":
                 if value:
+                    action = get_professional_action(var, "Crítico", value)
                     send_alert(
-                        var, value, "Crítico", "Motor pegado - Revisar inmediatamente"
+                        var, value, "Crítico", action
                     )
                 else:
                     active_alerts.pop(var, None)
                 continue
             risk, _ = classify_risk(var, value)
             if risk in ("Alto", "Crítico"):
+                action = get_professional_action(var, risk, value)
                 send_alert(
-                    var, value, risk, f"Revisar {var}. Valor {value} - Riesgo {risk}"
+                    var, value, risk, action
                 )
             else:
                 active_alerts.pop(var, None)
@@ -1471,75 +1536,88 @@ def clear_alerts():
     return jsonify({"status": "ok", "message": "Alertas limpiadas"})
 
 
-@app.route("/get_subscribers", methods=["GET"])
-def get_subscribers():
-    return jsonify(subscribers)
+@app.route("/api/edificios", methods=["GET"])
+def api_edificios():
+    if not DJANGO_CONNECTED:
+        return jsonify([{"id": 1, "nombre": "Edificio Simulado (Sin DB)"}])
+    try:
+        edificios = Edificio.objects.all().order_by("nb_edificio")
+        return jsonify([{"id": e.id_edificio, "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}"} for e in edificios])
+    except Exception as e:
+        logger.error(f"Error cargando edificios: {e}")
+        return jsonify([{"id": 1, "nombre": "Edificio Simulado (Error)"}])
 
 
-@app.route("/add_subscriber", methods=["POST"])
-def add_subscriber():
+@app.route("/api/usuarios_edificio/<int:edificio_id>", methods=["GET"])
+def api_usuarios_edificio(edificio_id):
+    if not DJANGO_CONNECTED:
+        return jsonify([{"nombre": "Usuario", "apellido": "Simulado", "email": "simulado@ejemplo.com"}])
+    try:
+        users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
+        payload = []
+        for u in users:
+            if u.id_usuario and u.id_usuario.id_persona:
+                p = u.id_usuario.id_persona
+                if p.email:
+                    payload.append({
+                        "nombre": p.name or "",
+                        "apellido": p.apellido or "",
+                        "email": p.email.strip()
+                    })
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f"Error cargando usuarios de edificio: {e}")
+        return jsonify([])
+
+
+@app.route("/api/send_test_email", methods=["POST"])
+def api_send_test_email():
     data = request.json
-    channel = data.get("channel")
-    risk_level = data.get("risk_level")
-    contact = data.get("contact")
-    if channel not in subscribers or risk_level not in subscribers[channel]:
-        return jsonify({"status": "error", "message": "Canal o nivel inválido"}), 400
-    if contact in subscribers[channel][risk_level]:
-        return jsonify({"status": "error", "message": "El contacto ya existe"}), 400
-    subscribers[channel][risk_level].append(contact)
-    save_subscribers(subscribers)
-    return jsonify({"status": "ok", "subscribers": subscribers})
+    email = data.get("email")
+    risk_level = data.get("risk_level", "Bajo")
+    message = "Este es tu reporte del edificio generado por el sistema de monitoreo."
+    try:
+        pdf_io = generate_pdf_report("hour")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio - PCLogo", message, pdf_io, "reporte.pdf", [email]),
+            daemon=True
+        ).start()
+    except Exception as e:
+        logger.error(f"Error generando o enviando PDF a {email}: {e}")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
+            daemon=True
+        ).start()
+    return jsonify({"status": "ok", "message": f"Prueba enviada a {email}"})
 
 
-@app.route("/remove_subscriber", methods=["POST"])
-def remove_subscriber():
+@app.route("/api/send_all_subscribers", methods=["POST"])
+def api_send_all_subscribers():
     data = request.json
-    channel = data.get("channel")
-    risk_level = data.get("risk_level")
-    contact = data.get("contact")
-    if channel in subscribers and risk_level in subscribers[channel]:
-        if contact in subscribers[channel][risk_level]:
-            subscribers[channel][risk_level].remove(contact)
-            save_subscribers(subscribers)
-            return jsonify({"status": "ok"})
-    return jsonify({"status": "error", "message": "No encontrado"}), 400
-
-
-@app.route("/test_alert/<channel>/<risk_level>/<contact>")
-def test_alert(channel, risk_level, contact):
-    if channel not in ["email", "telegram"]:
-        return "Canal inválido", 400
-    original = subscribers[channel].get(risk_level, [])
-    if contact not in original:
-        subscribers[channel][risk_level].append(contact)
-
-    if channel == "email":
-        message = (
-            "Este es tu reporte del edificio generado por el sistema de monitoreo."
-        )
-        try:
-            pdf_io = generate_pdf_report("hour")  # O el periodo que desees
-            send_email_alert(
-                risk_level,
-                "Reporte de Edificio - PCLogo",
-                message,
-                attachment_pdf=pdf_io,
-            )
-        except Exception as e:
-            logger.error(f"Error generando o enviando PDF: {e}")
-            send_email_alert(
-                risk_level,
-                "Reporte de Edificio - PCLogo",
-                message + f"\n\n(No se pudo adjuntar el reporte: {e})",
-            )
-    elif channel == "telegram":
-        message = "Este es tu reporte del edificio (El PDF fue enviado al correo) - PCLogo."
-        send_telegram_alert(risk_level, message)
-
-    if contact not in original:
-        subscribers[channel][risk_level] = original
-        save_subscribers(subscribers)
-    return f"Reporte enviado a {contact} (riesgo {risk_level}) - Revisa logs y tu dispositivo."
+    edificio_id = data.get("edificio_id")
+    risk_level = data.get("risk_level", "Bajo")
+    emails = get_building_emails(edificio_id)
+    if not emails:
+        return jsonify({"status": "error", "message": "No hay correos registrados para este edificio"}), 400
+    
+    message = "Este es el reporte del edificio enviado a todos los suscriptores."
+    try:
+        pdf_io = generate_pdf_report("hour")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message, pdf_io, "reporte.pdf", emails),
+            daemon=True
+        ).start()
+    except Exception as e:
+        logger.error(f"Error generando o enviando PDF masivo: {e}")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
+            daemon=True
+        ).start()
+    return jsonify({"status": "ok", "message": f"Prueba enviada a {len(emails)} destinatarios"})
 
 
 @app.route("/manual_update", methods=["POST"])
@@ -1570,11 +1648,12 @@ def manual_update():
         else ("Crítico" if sensor_data[variable] else "Bajo")
     )
     if risk in ("Alto", "Crítico") and alert_enabled:
+        action = get_professional_action(variable, risk, sensor_data[variable])
         send_alert(
             variable,
             sensor_data[variable],
             risk,
-            f"Valor manual: {sensor_data[variable]} - Riesgo {risk}",
+            f"Valor manual ({sensor_data[variable]}): {action}",
         )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     sensor_type = (
@@ -2220,44 +2299,33 @@ HTML_TEMPLATE = """
 
         <!-- Suscriptores -->
         <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-bullhorn"></i> Suscriptores de alertas</h2>
-            <div class="grid-4" style="margin-bottom: var(--sp-2);">
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Canal</label>
-                        <select id="subChannel">
-                            <option value="email">Correo</option>
-                            <option value="telegram">Telegram</option>
-                        </select>
-                    </div>
+            <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de Alertas por Correo</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
+                <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <label class="form-label">Edificio (edf)</label>
+                    <select id="subBuildingSelect">
+                        <option value="">Cargando edificios...</option>
+                    </select>
                 </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Nivel de riesgo</label>
-                        <select id="subRiskLevel">
-                            <option value="Bajo">Bajo</option>
-                            <option value="Medio">Medio</option>
-                            <option value="Alto">Alto</option>
-                            <option value="Crítico">Crítico</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="width: 150px;">
+                    <label class="form-label">Nivel de riesgo prueba</label>
+                    <select id="subRiskLevel">
+                        <option value="Bajo">Bajo</option>
+                        <option value="Medio">Medio</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Crítico">Crítico</option>
+                    </select>
                 </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Contacto</label>
-                        <input type="text" id="subContact" placeholder="email / chat_id">
-                    </div>
-                </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1); display:flex; align-items:flex-end;">
-                    <button id="addSubscriberBtn" class="btn" style="width:100%; justify-content:center;">
-                        <i class="fas fa-plus"></i> Agregar
+                <div>
+                    <button id="sendAllSubscribersBtn" class="btn btn-ok">
+                        <i class="fas fa-paper-plane"></i> Enviar a todos
                     </button>
                 </div>
             </div>
             <div class="subs-container">
-                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando usuarios...</div>
             </div>
-            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* Botón "Probar" envía una alerta real de prueba.</p>
+            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* El botón "Enviar a todos" envía el reporte en PDF por correo a todas las personas del edificio seleccionado. El botón "Enviar prueba" en la lista envía de manera individual.</p>
         </div>
 
         <!-- Control manual -->
@@ -2718,55 +2786,125 @@ HTML_TEMPLATE = """
             finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF';}
         }
 
-        function updateSubscribersList(){
-            let container=document.getElementById('subscribersList');
-            if(!subscribers){ return; }
-            let rows='';
-            for(let ch of ['email','telegram']){
-                if(!subscribers[ch]) continue;
-                for(let lv of ['Bajo','Medio','Alto','Crítico']){
-                    (subscribers[ch][lv]||[]).forEach(ct=>{
-                        rows+=`<tr>
-                            <td>${ch}</td><td>${lv}</td><td>${ct}</td>
-                            <td><button class="btn-test-sub test-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Probar</button></td>
-                            <td><button class="btn-rm-sub remove-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Eliminar</button></td>
-                        </tr>`;
-                    });
-                }
-            }
-            if(rows){
-                container.innerHTML=`<table class="subs-table"><thead><tr><th>Canal</th><th>Nivel</th><th>Contacto</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
-            } else {
-                container.innerHTML='<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay suscriptores.</p>';
-            }
-            document.querySelectorAll('.remove-subscriber').forEach(btn=>{
-                btn.addEventListener('click', async ()=>{
-                    let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
-                    let resp=await fetch('/remove_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
-                    if(resp.ok){let s=await fetch('/get_subscribers'); subscribers=await s.json(); updateSubscribersList();}
-                    else await window.showAlert('Error al eliminar suscriptor.', 'error');
+        let activeUsers = [];
+
+        async function loadBuildings() {
+            try {
+                let resp = await fetch('/api/edificios');
+                let buildings = await resp.json();
+                let select = document.getElementById('subBuildingSelect');
+                select.innerHTML = '';
+                buildings.forEach(b => {
+                    let opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.nombre;
+                    select.appendChild(opt);
                 });
+                if (buildings.length > 0) {
+                    loadUsersForBuilding(buildings[0].id);
+                } else {
+                    document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
+                }
+            } catch (e) {
+                console.error("Error al cargar edificios:", e);
+            }
+        }
+
+        async function loadUsersForBuilding(edificioId) {
+            if (!edificioId) return;
+            let container = document.getElementById('subscribersList');
+            container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">Cargando usuarios...</p>';
+            try {
+                let resp = await fetch(`/api/usuarios_edificio/${edificioId}`);
+                activeUsers = await resp.json();
+                updateSubscribersList();
+            } catch (e) {
+                console.error("Error al cargar usuarios:", e);
+                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--state-critical);font-size:var(--text-sm);">Error al cargar usuarios.</p>';
+            }
+        }
+
+        function updateSubscribersList() {
+            let container = document.getElementById('subscribersList');
+            if (!activeUsers || activeUsers.length === 0) {
+                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay usuarios asociados a este edificio.</p>';
+                return;
+            }
+            let rows = '';
+            activeUsers.forEach(u => {
+                rows += `<tr>
+                    <td>${u.nombre} ${u.apellido}</td>
+                    <td>${u.email}</td>
+                    <td><button class="btn-test-sub test-subscriber" data-email="${u.email}">Enviar prueba</button></td>
+                </tr>`;
             });
-            document.querySelectorAll('.test-subscriber').forEach(btn=>{
-                btn.addEventListener('click', async ()=>{
-                    let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
-                    let resp=await fetch(`/test_alert/${ch}/${lv}/${ct}`);
-                    let msg=await resp.text(); await window.showAlert(msg, resp.ok ? 'success' : 'error');
+            container.innerHTML = `<table class="subs-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo Electrónico</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>`;
+
+            document.querySelectorAll('.test-subscriber').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    let email = btn.dataset.email;
+                    let risk = document.getElementById('subRiskLevel').value;
+                    btn.disabled = true;
+                    btn.innerText = 'Enviando...';
+                    try {
+                        let resp = await fetch('/api/send_test_email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email, risk_level: risk })
+                        });
+                        let data = await resp.json();
+                        await window.showAlert(data.message, resp.ok ? 'success' : 'error');
+                    } catch (e) {
+                        await window.showAlert('Error al conectar con el servidor.', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'Enviar prueba';
+                    }
                 });
             });
         }
 
+        async function sendAllSubscribers() {
+            let select = document.getElementById('subBuildingSelect');
+            let edificioId = select.value;
+            if (!edificioId) {
+                await window.showAlert('Por favor seleccione un edificio.', 'warn');
+                return;
+            }
+            let risk = document.getElementById('subRiskLevel').value;
+            let btn = document.getElementById('sendAllSubscribersBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                let resp = await fetch('/api/send_all_subscribers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ edificio_id: edificioId, risk_level: risk })
+                });
+                let data = await resp.json();
+                await window.showAlert(data.message, resp.ok ? 'success' : 'error');
+            } catch (e) {
+                await window.showAlert('Error al conectar con el servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar a todos';
+            }
+        }
+
         // Eventos
-        document.getElementById('addSubscriberBtn').addEventListener('click', async ()=>{
-            let ch=document.getElementById('subChannel').value;
-            let lv=document.getElementById('subRiskLevel').value;
-            let ct=document.getElementById('subContact').value.trim();
-            if(!ct) return;
-            let resp=await fetch('/add_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
-            let data=await resp.json();
-            if(data.status==='ok'){subscribers=data.subscribers; updateSubscribersList(); document.getElementById('subContact').value='';}
-            else await window.showAlert(data.message, 'error');
-        });
+        document.getElementById('subBuildingSelect').addEventListener('change', (e) => loadUsersForBuilding(e.target.value));
+        document.getElementById('sendAllSubscribersBtn').addEventListener('click', sendAllSubscribers);
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
         document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
         document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
@@ -2802,7 +2940,7 @@ HTML_TEMPLATE = """
             applyPayload(data);
             populateManualSensorSelect();
             updateSensorTypeIndicator();
-            updateSubscribersList();
+            loadBuildings();
             const hasSMTP = !!(data.smtp_user);
             const hasTelegram = !!(data.telegram_token);
             if(!hasSMTP && !hasTelegram){
