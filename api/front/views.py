@@ -1,7 +1,12 @@
 import random
 import re
 import string
+import os
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
+from django.core import signing
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
@@ -328,6 +333,61 @@ def _build_random_username(primer_nombre, primer_apellido):
     return username
 
 
+def _send_activation_email(email, user_id, request):
+    token = signing.dumps({"user_id": user_id})
+    protocol = "https" if request.is_secure() else "http"
+    host = request.get_host()
+    link = f"{protocol}://{host}/completar_registro/?token={token}"
+    
+    # Cargar variables de entorno desde .env si existen (como en app27.py)
+    env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.strip() and not line.startswith("#"):
+                    if "=" in line:
+                        key, val = line.strip().split("=", 1)
+                        os.environ[key.strip()] = val.strip().strip("'\"")
+
+    smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = os.environ.get("SMTP_USER", "")
+    smtp_password = os.environ.get("SMTP_PASSWORD", "")
+
+    if not smtp_user or not smtp_password:
+        print(f"⚠️ Credenciales SMTP no configuradas. Link de registro: {link}")
+        return False, link
+
+    try:
+        msg = MIMEMultipart()
+        msg["From"] = smtp_user
+        msg["To"] = email
+        msg["Subject"] = "[INES] Activacion y Acceso al Sistema"
+        
+        body = f"""Hola,
+        
+Se ha registrado su usuario en el Sistema de Monitoreo INES.
+Para completar su registro y poder acceder al sistema, por favor haga clic en el siguiente enlace y defina su nombre de usuario y contraseña:
+
+{link}
+
+Este enlace es valido por 24 horas.
+Si usted no solicito este registro, por favor ignore este correo.
+"""
+        msg.attach(MIMEText(body, "plain", "utf-8"))
+        
+        server = smtplib.SMTP(smtp_server, smtp_port)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        return True, link
+    except Exception as e:
+        print(f"Error enviando email de activacion: {e}")
+        return False, link
+
+
+
 ADMIN_ROLES = ("SA", "ADMIN")
 
 
@@ -521,19 +581,24 @@ def registro_beneficiario_view(request):
                                 id_usuario=usuario,
                                 id_edificio_id=id_edificio,
                             )
+                        email_sent, activation_link = _send_activation_email(email, usuario.id_usuario, request)
 
     edificios = Edificio.objects.all()
+    context = {
+        "user": user_data,
+        "edificios": edificios,
+        "form_error": form_error,
+        "form_errors": form_errors,
+    }
+    if 'email_sent' in locals():
+        context["email_sent"] = email_sent
+        context["activation_link"] = activation_link
+        context["sent_to"] = email
+
     return render(
         request,
         "pages/usuario.html",
-        {
-            "user": user_data,
-            "edificios": edificios,
-            "generated_username": generated_username,
-            "generated_password": generated_password,
-            "form_error": form_error,
-            "form_errors": form_errors,
-        },
+        context,
     )
 
 
@@ -873,6 +938,27 @@ def notificaciones_view(request):
     )
 
 
+@_login_required
+def limpiar_notificaciones_view(request):
+    from django.http import JsonResponse
+    if request.method == "POST":
+        usuario_id = request.session["usuario_id"]
+        rol = request.session.get("usuario_rol", "US")
+        if _is_admin_role(rol):
+            Notificacion.objects.all().delete()
+        else:
+            usuario_edificios = UsuarioEdificio.objects.filter(
+                id_usuario_id=usuario_id
+            ).values_list("id_edificio", flat=True)
+            equipos = EquipoMonitoreo.objects.filter(
+                id_edificio_id__in=list(usuario_edificios)
+            ).values_list("id_equipo_monitoreo", flat=True)
+            Notificacion.objects.filter(id_usuario_id=usuario_id).delete()
+            Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos)).delete()
+        return JsonResponse({"status": "ok", "message": "Notificaciones eliminadas correctamente"})
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
+
+
 # ─── MONITOREO ──────────────────────────────────────────────────
 
 
@@ -1208,3 +1294,68 @@ def descargar_pdf_view(request):
                 ]
             )
         return response
+
+
+def completar_registro_view(request):
+    token = request.GET.get("token") or request.POST.get("token")
+    if not token:
+        return render(request, "pages/completar_registro.html", {"error": "Token de registro faltante o inválido."})
+
+    try:
+        data = signing.loads(token, max_age=86400)  # 24 horas de validez
+        user_id = data["user_id"]
+        usuario = Usuario.objects.get(id_usuario=user_id)
+    except (signing.BadSignature, signing.SignatureExpired, Usuario.DoesNotExist):
+        return render(request, "pages/completar_registro.html", {"error": "El enlace de registro ha expirado o es inválido."})
+
+    form_error = None
+    form_errors = {}
+    
+    # Pre-cargar datos del formulario si es necesario
+    username_val = request.POST.get("username", "").strip()
+
+    if request.method == "POST":
+        password = request.POST.get("password", "").strip()
+        confirm_password = request.POST.get("confirm_password", "").strip()
+
+        if not username_val or not password or not confirm_password:
+            form_error = "Todos los campos son obligatorios."
+            if not username_val:
+                form_errors["username"] = "Este campo es obligatorio."
+            if not password:
+                form_errors["password"] = "Este campo es obligatorio."
+            if not confirm_password:
+                form_errors["confirm_password"] = "Este campo es obligatorio."
+        elif password != confirm_password:
+            form_error = "Las contraseñas no coinciden."
+            form_errors["confirm_password"] = "Las contraseñas no coinciden."
+        elif len(password) < 6:
+            form_error = "La contraseña debe tener al menos 6 caracteres."
+            form_errors["password"] = "La contraseña debe tener al menos 6 caracteres."
+        elif not REGEX_USERNAME.match(username_val):
+            form_error = "El nombre de usuario solo acepta letras y números."
+            form_errors["username"] = "El nombre de usuario solo acepta letras y números."
+        else:
+            # Validar que el username no esté en uso por OTRO usuario
+            if Usuario.objects.filter(username=username_val).exclude(id_usuario=usuario.id_usuario).exists():
+                form_error = "El nombre de usuario ya está registrado."
+                form_errors["username"] = "El nombre de usuario ya está registrado."
+            else:
+                usuario.username = username_val
+                usuario.password = make_password(password)
+                usuario.save()
+                messages.success(request, "Registro completado con éxito. Ahora puede iniciar sesión.")
+                return redirect("login")
+
+    return render(
+        request,
+        "pages/completar_registro.html",
+        {
+            "usuario": usuario,
+            "token": token,
+            "username_val": username_val,
+            "form_error": form_error,
+            "form_errors": form_errors,
+        },
+    )
+

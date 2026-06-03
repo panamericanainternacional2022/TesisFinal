@@ -12,10 +12,15 @@ class AuthMiddleware:
         path = request.path_info
         login_url = reverse("login")
 
-        public_paths = [login_url, "/static/", "/admin/"]
+        public_paths = [login_url, "/static/", "/admin/", "/completar_registro/"]
 
         is_public = any(path.startswith(p) for p in public_paths if p)
         is_logged_in = request.session.get("usuario_id") is not None
+        if is_logged_in:
+            from core.models import Usuario
+            if not Usuario.objects.filter(id_usuario=request.session.get("usuario_id")).exists():
+                request.session.flush()
+                is_logged_in = False
 
         if not is_public and not is_logged_in:
             return redirect(login_url)

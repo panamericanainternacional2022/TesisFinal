@@ -1040,7 +1040,8 @@ class PDFReport(FPDF):
             self.set_text_color(95, 95, 95)
             self.cell(0, 10, "SISTEMA PCLogo - Reporte de Monitoreo", 0, 0, "L")
             self.cell(0, 10, f"Página {self.page_no()}", 0, 1, "R")
-            self.set_draw_color(224, 224, 224)
+            self.set_draw_color(10, 10, 10)
+            self.set_line_width(0.6)
             self.line(10, 18, 200, 18)
             self.ln(2)
 
@@ -1113,6 +1114,7 @@ def generate_pdf_report(period):
         if datetime.strptime(a["timestamp"], "%Y-%m-%d %H:%M:%S") >= start_time
     ]
     pdf = PDFReport()
+    pdf.set_line_width(0.6)
     pdf.add_page()
     
     # Título principal minimalista
@@ -1137,7 +1139,7 @@ def generate_pdf_report(period):
     )
     pdf.ln(8)
     
-    # Leyenda de riesgos estilizada con la paleta de la web
+    # Leyenda de riesgos estilizada con la paleta de la web y bordes gruesos negros
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(10, 10, 10)
     pdf.cell(0, 8, "LEYENDA DE RIESGOS", ln=1)
@@ -1146,37 +1148,37 @@ def generate_pdf_report(period):
     # Bajo (Verde)
     pdf.set_fill_color(240, 253, 244)
     pdf.set_text_color(22, 101, 52)
-    pdf.set_draw_color(187, 247, 208)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(30, 8, "  Bajo", 1, 0, "L", True)
     pdf.set_text_color(95, 95, 95)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(160, 8, " Valores normales de funcionamiento", 1, 1, "L")
     
     # Medio (Amarillo/Ámbar)
     pdf.set_fill_color(255, 251, 235)
     pdf.set_text_color(146, 64, 14)
-    pdf.set_draw_color(253, 230, 138)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(30, 8, "  Medio", 1, 0, "L", True)
     pdf.set_text_color(95, 95, 95)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(160, 8, " Cerca del limite sugerido, requiere observacion", 1, 1, "L")
     
     # Alto (Naranja)
     pdf.set_fill_color(255, 247, 237)
     pdf.set_text_color(194, 65, 12)
-    pdf.set_draw_color(254, 215, 170)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(30, 8, "  Alto", 1, 0, "L", True)
     pdf.set_text_color(95, 95, 95)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(160, 8, " Fuera de rango seguro, requiere revision preventiva", 1, 1, "L")
     
     # Crítico (Rojo)
     pdf.set_fill_color(254, 242, 242)
     pdf.set_text_color(153, 27, 27)
-    pdf.set_draw_color(254, 202, 202)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(30, 8, "  Critico", 1, 0, "L", True)
     pdf.set_text_color(95, 95, 95)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     pdf.cell(160, 8, " Estado de peligro, requiere accion correctiva inmediata", 1, 1, "L")
     pdf.ln(10)
     
@@ -1226,9 +1228,9 @@ def generate_pdf_report(period):
             if x + bar_width > 200:
                 break
             height = (val / max_avg) * max_bar_height if max_avg > 0 else 10
-            # Usar color carbón/azul oscuro para las barras (#1E293B)
+            # Usar color carbón/azul oscuro para las barras (#1E293B) y borde negro grueso
             pdf.set_fill_color(30, 41, 59)
-            pdf.set_draw_color(15, 23, 42)
+            pdf.set_draw_color(10, 10, 10)
             pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "FD")
             
             # Valor encima de la barra
@@ -1259,45 +1261,40 @@ def generate_pdf_report(period):
     pdf.cell(60, 8, "Riesgo / Estado", 1, 1, "C", True)
     
     pdf.set_font("Helvetica", "", 9)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     for var, val in sensor_data.items():
         risk, color = classify_risk(var, val)
         if color == "green":
             fill = (240, 253, 244)
             text_c = (22, 101, 52)
-            border_c = (187, 247, 208)
         elif color == "yellow":
             fill = (255, 251, 235)
             text_c = (146, 64, 14)
-            border_c = (253, 230, 138)
         elif color == "orange":
             fill = (255, 247, 237)
             text_c = (194, 65, 12)
-            border_c = (254, 215, 170)
         elif color == "red":
             fill = (254, 242, 242)
             text_c = (153, 27, 27)
-            border_c = (254, 202, 202)
         else:
             fill = (249, 250, 251)
             text_c = (55, 65, 81)
-            border_c = (229, 231, 235)
             
         if isinstance(val, bool):
             val_str = "Sí" if val else "No"
         else:
             val_str = f"{val} {get_unit(var)}"
             
-        # Dibujar fila
+        # Dibujar fila con bordes negros
         pdf.set_text_color(26, 26, 26)
-        pdf.set_draw_color(224, 224, 224)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(80, 8, f"  {var.replace('_', ' ').title()}", 1, 0, "L")
         pdf.cell(50, 8, f"  {val_str}", 1, 0, "L")
         
-        # Celda tipo Badge para riesgo
+        # Celda tipo Badge para riesgo con borde negro
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
-        pdf.set_draw_color(*border_c)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(60, 8, risk, 1, 1, "C", True)
     pdf.ln(8)
     
@@ -1322,7 +1319,7 @@ def generate_pdf_report(period):
     pdf.cell(35, 7, "Lecturas", 1, 1, "C", True)
     
     pdf.set_font("Helvetica", "", 8)
-    pdf.set_draw_color(224, 224, 224)
+    pdf.set_draw_color(10, 10, 10)
     pdf.set_text_color(26, 26, 26)
     for var in numeric_vars:
         s = stats[var]
@@ -1374,14 +1371,14 @@ def generate_pdf_report(period):
         pdf.set_font("Helvetica", "B", 8)
         pdf.set_fill_color(254, 242, 242)
         pdf.set_text_color(153, 27, 27)
-        pdf.set_draw_color(254, 202, 202)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(50, 7, "  Fecha/Hora", 1, 0, "L", True)
         pdf.cell(50, 7, "  Variable", 1, 0, "L", True)
         pdf.cell(40, 7, "Valor", 1, 0, "C", True)
         pdf.cell(50, 7, "Riesgo", 1, 1, "C", True)
         
         pdf.set_font("Helvetica", "", 8)
-        pdf.set_draw_color(224, 224, 224)
+        pdf.set_draw_color(10, 10, 10)
         pdf.set_text_color(26, 26, 26)
         for a in alerts_in_period[:15]:
             pdf.cell(50, 6, f"  {a['timestamp']}", 1)
@@ -1403,12 +1400,12 @@ def generate_pdf_report(period):
     if sensor_data["flow_rate"] < RATIONING_THRESHOLD:
         pdf.set_fill_color(254, 242, 242)
         pdf.set_text_color(153, 27, 27)
-        pdf.set_draw_color(254, 202, 202)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(0, 10, "  RACIONAMIENTO ACTIVO - Caudal por debajo del minimo admisible", 1, 1, "L", True)
     else:
         pdf.set_fill_color(240, 253, 244)
         pdf.set_text_color(22, 101, 52)
-        pdf.set_draw_color(187, 247, 208)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(0, 10, "  Racionamiento inactivo. Flujo hidraulico normal.", 1, 1, "L", True)
         
     pdf_output = pdf.output(dest="S")
@@ -1844,9 +1841,11 @@ HTML_TEMPLATE = """
         /* ── Paneles / Tarjetas ── */
         .panel {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .panel-title {
@@ -1856,19 +1855,19 @@ HTML_TEMPLATE = """
             color: var(--color-ink);
             margin-bottom: var(--sp-2);
             padding-bottom: var(--sp-1);
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .panel-title i { color: var(--color-text-secondary); font-size: 0.9rem; }
+        .panel-title i { color: var(--color-ink); font-size: 0.9rem; }
 
         /* ── Grids ── */
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--color-border); }
-        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--color-border); }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
+        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
         .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 
         .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
@@ -1882,7 +1881,9 @@ HTML_TEMPLATE = """
             margin-bottom: var(--sp-3);
             padding: var(--sp-2) var(--sp-3);
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
         }
 
         .controls-row .spacer { flex: 1; }
@@ -1891,36 +1892,60 @@ HTML_TEMPLATE = """
         .btn {
             font-family: var(--font);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             cursor: pointer;
-            border: 1px solid var(--color-ink);
+            border: 2px solid var(--color-ink);
             background: var(--color-ink);
             color: var(--color-surface);
             padding: 8px var(--sp-2);
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: opacity var(--transition-fast);
-            border-radius: var(--radius);
+            transition: all var(--transition-fast);
+            border-radius: 0px;
+            box-shadow: 3px 3px 0px var(--color-ink);
         }
 
-        .btn:hover { opacity: 0.8; }
+        .btn:hover {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+            opacity: 1;
+        }
         .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
         .btn-ghost {
-            background: none;
+            background: var(--color-surface);
             color: var(--color-ink);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 3px 3px 0px var(--color-ink);
         }
 
         .btn-danger {
             background: var(--state-critical);
             border-color: var(--state-critical);
+            box-shadow: 3px 3px 0px var(--state-critical);
+        }
+
+        .btn-danger:hover {
+            background: var(--color-surface);
+            color: var(--state-critical);
+            border-color: var(--state-critical);
+            box-shadow: 4px 4px 0px rgba(153, 27, 27, 0.25);
         }
 
         .btn-ok {
             background: var(--state-ok);
             border-color: var(--state-ok);
+            box-shadow: 3px 3px 0px var(--state-ok);
+        }
+
+        .btn-ok:hover {
+            background: var(--color-surface);
+            color: var(--state-ok);
+            border-color: var(--state-ok);
+            box-shadow: 4px 4px 0px rgba(22, 101, 52, 0.25);
         }
 
         /* ── Inputs y Selects ── */
@@ -1928,10 +1953,10 @@ HTML_TEMPLATE = """
 
         .form-label {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
         }
 
         input[type="text"],
@@ -1942,21 +1967,28 @@ HTML_TEMPLATE = """
             font-size: var(--text-base);
             color: var(--color-text-primary);
             background: var(--color-bg);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
             padding: 9px var(--sp-1);
             width: 100%;
             outline: none;
-            border-radius: var(--radius);
-            transition: border-color var(--transition-base);
+            border-radius: 0px;
+            transition: all var(--transition-base);
         }
 
-        input:focus, select:focus { border-color: var(--color-ink); background: var(--color-surface); }
+        input:focus, select:focus {
+            border-color: var(--color-ink);
+            background: var(--color-surface);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+        }
 
         /* ── Sensor Cards ── */
         .sensor-card {
-            padding: var(--sp-2);
+            padding: var(--sp-3);
             background: var(--color-surface);
-            border-left: 3px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            border-left: 6px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
         }
 
         .sensor-card.risk-low   { border-left-color: var(--state-ok); }
@@ -1966,10 +1998,10 @@ HTML_TEMPLATE = """
 
         .sensor-card-name {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: 4px;
         }
 
@@ -1993,39 +2025,44 @@ HTML_TEMPLATE = """
             align-items: center;
             padding: 2px 8px;
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: 0.03em;
-            border: 1px solid;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
         }
 
-        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok);       border-color: var(--state-ok-border); }
-        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn);     border-color: var(--state-warn-border); }
-        .badge-high   { background: #fff7ed;                  color: #c2410c;               border-color: #fed7aa; }
-        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); border-color: var(--state-critical-border); }
-        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); border-color: var(--state-inactive-border); }
+        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok); }
+        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn); }
+        .badge-high   { background: #fff7ed;                  color: #c2410c; }
+        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); }
+        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); }
 
         /* ── Estado Sistema ── */
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1px;
-            background: var(--color-border);
-            border: 1px solid var(--color-border);
-            margin-bottom: var(--sp-2);
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--sp-2);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .status-cell {
             background: var(--color-surface);
-            padding: var(--sp-1) var(--sp-2);
+            padding: var(--sp-2) var(--sp-3);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
         }
 
         .status-cell-label {
             font-size: var(--text-xs);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
-            font-weight: var(--weight-medium);
+            color: var(--color-ink);
+            font-weight: var(--weight-bold);
             margin-bottom: 2px;
         }
 
@@ -2042,13 +2079,13 @@ HTML_TEMPLATE = """
 
         .sensor-section-title {
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: var(--sp-1);
             padding-bottom: var(--sp-1);
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -2057,16 +2094,21 @@ HTML_TEMPLATE = """
         .sensor-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1px;
-            background: var(--color-border);
-            border: 1px solid var(--color-border);
+            gap: var(--sp-3);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0px;
         }
 
         /* ── Tabla ── */
         .table-wrapper {
-            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             overflow: hidden;
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .scroll-table {
@@ -2082,9 +2124,9 @@ HTML_TEMPLATE = """
 
         thead th {
             background: var(--color-bg);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             padding: 8px var(--sp-2);
@@ -2096,7 +2138,7 @@ HTML_TEMPLATE = """
 
         tbody td {
             padding: 10px var(--sp-2);
-            border-top: 1px solid var(--color-border);
+            border-top: 1px solid var(--color-ink);
             color: var(--color-text-primary);
         }
 
@@ -2108,19 +2150,21 @@ HTML_TEMPLATE = """
         /* ── Chart Container ── */
         .chart-panel {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-2);
+            border-radius: 0px;
         }
 
         .chart-panel-title {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: var(--sp-1);
             padding-bottom: 6px;
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -2133,23 +2177,25 @@ HTML_TEMPLATE = """
             padding: var(--sp-1) var(--sp-2);
             margin-bottom: var(--sp-2);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             display: flex;
             align-items: center;
             gap: var(--sp-1);
-            border-left: 3px solid;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
         }
 
         .sys-alert-warn {
             background: var(--state-warn-bg);
             color: var(--state-warn);
-            border-left-color: var(--state-warn);
+            border-color: var(--state-warn);
         }
 
         .sys-alert-crit {
             background: var(--state-critical-bg);
             color: var(--state-critical);
-            border-left-color: var(--state-critical);
+            border-color: var(--state-critical);
         }
 
         /* ── Racionamiento ── */
@@ -2162,20 +2208,44 @@ HTML_TEMPLATE = """
             font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
+            border: 2px solid var(--color-ink);
         }
 
-        #rationingIndicator.visible { display: inline-flex; align-items: center; gap: 6px; }
+        #rationingIndicator.visible { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 var(--sp-2); }
 
         /* ── Suscriptores ── */
         .subs-table { font-size: var(--text-sm); width: 100%; border-collapse: collapse; }
-        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-medium); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
-        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-border); }
-        .subs-table button { background: none; border: none; cursor: pointer; font-family: var(--font); font-size: var(--text-xs); font-weight: var(--weight-medium); padding: 2px 0; border-bottom: 1px solid; transition: opacity var(--transition-fast); }
-        .subs-table button:hover { opacity: 0.55; }
-        .btn-test-sub { color: var(--color-ink); border-bottom-color: var(--color-ink); margin-right: var(--sp-1); }
-        .btn-rm-sub   { color: var(--state-critical); border-bottom-color: var(--state-critical); }
+        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
+        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-ink); }
+        .subs-table button {
+            background: var(--color-surface) !important;
+            border: 2px solid var(--color-ink) !important;
+            color: var(--color-ink) !important;
+            border-radius: 0px !important;
+            font-family: var(--font);
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            padding: 4px 8px !important;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all var(--transition-fast);
+            letter-spacing: 0.01em;
+            box-shadow: 2px 2px 0px var(--color-ink);
+        }
+        .subs-table button:hover {
+            background: var(--color-ink) !important;
+            color: var(--color-surface) !important;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px rgba(10, 10, 10, 0.25);
+            opacity: 1 !important;
+        }
+        .btn-test-sub { color: var(--color-ink); margin-right: var(--sp-1); }
+        .btn-rm-sub   { color: var(--state-critical); }
 
-        .subs-container { max-height: 220px; overflow-y: auto; border: 1px solid var(--color-border); }
+        .subs-container { max-height: 220px; overflow-y: auto; border: 2px solid var(--color-ink); border-radius: 0px; }
 
         /* ── Responsive ── */
         @media (max-width: 1024px) {
@@ -2217,6 +2287,7 @@ HTML_TEMPLATE = """
             transform: scale(0.92);
             transition: transform 150ms ease;
             box-sizing: border-box;
+            border-radius: 0px !important;
         }
         .custom-modal-backdrop.active .custom-modal-container {
             transform: scale(1);
@@ -2233,19 +2304,19 @@ HTML_TEMPLATE = """
         </header>
 
         <!-- Barra de controles -->
-        <div class="controls-row">
-            <button id="toggleAlertsBtn" class="btn">
+        <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2);">
+            <button id="toggleAlertsBtn" class="btn" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-bell"></i> Desactivar Alertas
             </button>
-            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> RACIONAMIENTO ACTIVO</div>
-            <button id="clearHistoryBtn" class="btn btn-ghost">
+            <button id="clearHistoryBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-trash-alt"></i> Limpiar Historial
             </button>
-            <button id="clearAlertsBtn" class="btn btn-ghost">
+            <button id="clearAlertsBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-bell-slash"></i> Limpiar Alertas
             </button>
+            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
             <div class="spacer"></div>
-            <select id="reportPeriodSelect" style="width:auto;">
+            <select id="reportPeriodSelect" style="width:auto; height: 44px; display:inline-flex; align-items:center;">
                 <option value="minute">Último minuto</option>
                 <option value="ten_minutes">Últimos 10 min</option>
                 <option value="hour" selected>Última hora</option>
@@ -2253,7 +2324,7 @@ HTML_TEMPLATE = """
                 <option value="week">Última semana</option>
                 <option value="month">Último mes</option>
             </select>
-            <button id="generateReportBtn" class="btn btn-ok">
+            <button id="generateReportBtn" class="btn btn-ok" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-file-pdf"></i> Generar PDF
             </button>
         </div>
@@ -2303,13 +2374,13 @@ HTML_TEMPLATE = """
             <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
                 <div class="form-group" style="flex: 1; min-width: 200px;">
                     <label class="form-label">Edificio (edf)</label>
-                    <select id="subBuildingSelect">
+                    <select id="subBuildingSelect" style="height: 44px;">
                         <option value="">Cargando edificios...</option>
                     </select>
                 </div>
                 <div class="form-group" style="width: 150px;">
                     <label class="form-label">Nivel de riesgo prueba</label>
-                    <select id="subRiskLevel">
+                    <select id="subRiskLevel" style="height: 44px;">
                         <option value="Bajo">Bajo</option>
                         <option value="Medio">Medio</option>
                         <option value="Alto">Alto</option>
@@ -2317,7 +2388,7 @@ HTML_TEMPLATE = """
                     </select>
                 </div>
                 <div>
-                    <button id="sendAllSubscribersBtn" class="btn btn-ok">
+                    <button id="sendAllSubscribersBtn" class="btn btn-ok" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fas fa-paper-plane"></i> Enviar a todos
                     </button>
                 </div>
@@ -2336,17 +2407,17 @@ HTML_TEMPLATE = """
                     <label class="form-label">Sensor</label>
                     <select id="manualSensorSelect"></select>
                 </div>
-                <div class="form-group" style="flex:1; min-width:180px;">
+                <div class="form-group" style="flex:1; min-width:180px; position:relative;">
                     <label class="form-label">Valor</label>
                     <input type="text" id="manualValueInput" placeholder="Ingrese valor">
-                    <div style="font-size:var(--text-xs); margin-top:4px;" id="manualRiskPreview"></div>
                 </div>
                 <div>
-                    <button id="sendManualBtn" class="btn">
+                    <button id="sendManualBtn" class="btn" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
             </div>
+            <div style="font-size:var(--text-xs); margin-top:8px; height:18px;" id="manualRiskPreview"></div>
             <div id="manualMessage" style="margin-top:8px; font-size:var(--text-sm);"></div>
             <div id="sensorTypeIndicator" style="margin-top:6px; font-size:var(--text-sm); font-weight:var(--weight-medium); color:var(--color-text-secondary);"></div>
         </div>
@@ -2369,24 +2440,16 @@ HTML_TEMPLATE = """
 
         <!-- Gráficos -->
         <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
-            <i class="fa-solid fa-chart-line"></i> Evolución — últimas 20 lecturas
+            <i class="fa-solid fa-chart-bar"></i> Lecturas en tiempo real
         </h2>
         <div class="grid-charts">
             <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-temperature-half"></i> Temperatura · Presión · Vibración</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de Bomba / Eléctricas</div>
                 <canvas id="chart1"></canvas>
             </div>
             <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-droplet"></i> Caudal · Carga · Velocidad</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
                 <canvas id="chart2"></canvas>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-percent"></i> Nivel de Tanque · Energía</div>
-                <canvas id="chart3"></canvas>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-bolt-lightning"></i> Voltaje · Corriente</div>
-                <canvas id="chart4"></canvas>
             </div>
         </div>
 
@@ -2395,7 +2458,7 @@ HTML_TEMPLATE = """
             <i class="fa-solid fa-list-ul"></i> Historial completo
         </h2>
         <div class="table-wrapper">
-            <div class="scroll-table">
+            <div class="scroll-table" style="max-height: 500px;">
                 <table>
                     <thead><tr><th>Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
                     <tbody id="historyBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">Cargando...</td></tr></tbody>
@@ -2408,7 +2471,7 @@ HTML_TEMPLATE = """
             <i class="fa-solid fa-bell"></i> Alertas recientes
         </h2>
         <div class="table-wrapper">
-            <div class="scroll-table">
+            <div class="scroll-table" style="max-height: 500px;">
                 <table>
                     <thead><tr><th>Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
                     <tbody id="alertTableBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">No hay alertas</td></tr></tbody>
@@ -2584,38 +2647,66 @@ HTML_TEMPLATE = """
         function initCharts(){
             const chartDefaults = {
                 responsive:true,
-                plugins:{ legend:{ position:'bottom', labels:{ font:{ family:"'DM Sans', system-ui", size:11 }, boxWidth:10 } }, tooltip:{ callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.raw}` } } },
-                scales:{ x:{ ticks:{ font:{ size:10 } } }, y:{ ticks:{ font:{ size:10 } } } }
+                plugins:{ 
+                    legend:{ display: false },
+                    tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+                },
+                scales:{ 
+                    x:{ ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } }, 
+                    y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } } 
+                }
             };
-            const colors = ['#0a0a0a','#5f5f5f','#b0b0b0','#e0e0e0'];
-            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Temperatura (°C)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Presión (bar)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Vibración (mm/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Caudal (L/s)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Carga (kg)',   borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Velocidad (m/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart3 = new Chart(document.getElementById('chart3').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Nivel tanque (%)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Energía (kW)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart4 = new Chart(document.getElementById('chart4').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Voltaje (V)',   borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Corriente (A)',borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
+            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ 
+                type:'bar', 
+                data:{ 
+                    labels:['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'], 
+                    datasets:[{
+                        backgroundColor: '#0a0a0a',
+                        borderColor: '#0a0a0a',
+                        borderWidth: 1,
+                        data: [0, 0, 0, 0, 0, 0, 0]
+                    }]
+                }, 
+                options: chartDefaults 
+            });
+            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ 
+                type:'bar', 
+                data:{ 
+                    labels:['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'], 
+                    datasets:[{
+                        backgroundColor: '#0a0a0a',
+                        borderColor: '#0a0a0a',
+                        borderWidth: 1,
+                        data: [0, 0, 0]
+                    }]
+                }, 
+                options: chartDefaults 
+            });
         }
 
         function updateCharts(hist){
-            let last20=hist.slice(-20);
-            let labels=last20.filter(r=>r.variable==='temperature').map((_,i)=>i+1);
-            let set = v => last20.filter(r=>r.variable===v).map(r=>r.value);
-            chart1.data.labels=labels; chart1.data.datasets[0].data=set('temperature'); chart1.data.datasets[1].data=set('pressure'); chart1.data.datasets[2].data=set('vibration'); chart1.update();
-            chart2.data.labels=labels; chart2.data.datasets[0].data=set('flow_rate');   chart2.data.datasets[1].data=set('load');     chart2.data.datasets[2].data=set('speed');       chart2.update();
-            chart3.data.labels=labels; chart3.data.datasets[0].data=set('tank_level');  chart3.data.datasets[1].data=set('energy');   chart3.update();
-            chart4.data.labels=labels; chart4.data.datasets[0].data=set('voltage');     chart4.data.datasets[1].data=set('current');  chart4.update();
+            if(!hist||hist.length===0) return;
+            let getLatest = (v) => {
+                let r = hist.filter(item => item.variable === v).pop();
+                return r ? r.value : 0;
+            };
+            chart1.data.datasets[0].data = [
+                getLatest('flow_rate'),
+                getLatest('pressure'),
+                getLatest('temperature'),
+                getLatest('vibration'),
+                getLatest('tank_level'),
+                getLatest('voltage'),
+                getLatest('current')
+            ];
+            chart1.update();
+            
+            chart2.data.datasets[0].data = [
+                getLatest('speed'),
+                getLatest('load'),
+                getLatest('energy')
+            ];
+            chart2.update();
         }
 
         function updateStatsAndRecs(stats, recs, attempts){
@@ -2916,6 +3007,7 @@ HTML_TEMPLATE = """
 
         // Socket
         socket.on('connect', ()=>console.log('[INES] Socket conectado'));
+        socket.on('init_data', (data)=>{ applyPayload(data); });
 
         function applyPayload(data){
             if(data.thresholds) currentThresholds=data.thresholds;
@@ -2936,23 +3028,13 @@ HTML_TEMPLATE = """
             document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ON' : 'OFF';
         }
 
-        socket.on('init_data', (data)=>{
-            applyPayload(data);
-            populateManualSensorSelect();
-            updateSensorTypeIndicator();
-            loadBuildings();
-            const hasSMTP = !!(data.smtp_user);
-            const hasTelegram = !!(data.telegram_token);
-            if(!hasSMTP && !hasTelegram){
-                let w=document.getElementById('credsWarning');
-                document.getElementById('credsMsg').innerText='No se configuraron credenciales SMTP o Telegram. Los mensajes solo se simularán en consola.';
-                w.style.display='flex';
-            }
-        });
 
         socket.on('sensor_update', (data)=>{ applyPayload(data); });
 
         initCharts();
+        populateManualSensorSelect();
+        updateSensorTypeIndicator();
+        loadBuildings();
     </script>
 </body>
 </html>

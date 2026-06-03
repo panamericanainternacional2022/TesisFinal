@@ -48,3 +48,9 @@
 
 ### SE ELIMINÓ TELEGRAM Y SE INTEGRÓ LA SELECCIÓN DINÁMICA DE USUARIOS POR EDIFICIO
 * Se eliminaron por completo las referencias y el servicio de Telegram para dejar únicamente el envío de alertas por correo electrónico. Además, se reemplazó el formulario manual de correos por un selector dinámico de edificios que extrae en tiempo real los nombres y correos de los usuarios registrados en la base de datos de Django para el edificio seleccionado, incluyendo un nuevo botón para realizar envíos de prueba masivos de manera instantánea.
+
+### SE CULMINÓ LA SEGUNDA PARTE DEL FRONTEND, Y SE CORRIGIERON ERRORES DE UX/UI
+
+### SE LE DIÓ ESTILOS A LOS CORREOS (COHERENTES AL DISEÑO ACTUAL DE NUSTRO PROYECTO)
+
+### SE TRADUJO AL ESPAÑOL TODO ELEMENTO EN INGLÉS PRESENTE EN LA UI DEL USUARIO

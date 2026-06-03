@@ -18,8 +18,9 @@
 /* ── Tarjeta / Formulario Principal ──────────────────────────────────────── */
 .perfil-card {
     background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border: 2px solid var(--color-ink);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    border-radius: 0px;
     padding: var(--sp-4);
     max-width: 720px;
     margin: 0 auto;
@@ -30,7 +31,7 @@
     text-align: left;
     margin-bottom: var(--sp-3);
     padding-bottom: var(--sp-2);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 2px solid var(--color-ink);
 }
 
 .profile-title {
@@ -55,8 +56,8 @@
 }
 
 .form-group label {
-    font-weight: var(--weight-medium);
-    color: var(--color-text-secondary);
+    font-weight: var(--weight-bold);
+    color: var(--color-ink);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
@@ -75,13 +76,13 @@
 .input-with-icon select {
     width: 100%;
     padding: 11px var(--sp-2);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
+    border: 2px solid var(--color-ink);
+    border-radius: 0px;
     font-size: var(--text-base);
     font-family: var(--font);
     color: var(--color-text-primary);
     background: var(--color-bg);
-    transition: border-color var(--transition-base), background var(--transition-base);
+    transition: all var(--transition-base);
     box-sizing: border-box;
     height: 46px;
     outline: none;
@@ -96,6 +97,7 @@
 .input-with-icon select:focus {
     border-color: var(--color-ink);
     background: var(--color-surface);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
 }
 
 /* Icono de edición */
@@ -124,22 +126,25 @@
     background: var(--color-ink);
     color: var(--color-surface) !important;
     padding: 12px var(--sp-4);
-    border-radius: var(--radius);
-    border: 1px solid var(--color-ink);
+    border-radius: 0px;
+    border: 2px solid var(--color-ink);
     font-family: var(--font);
     font-weight: var(--weight-bold);
     font-size: var(--text-base);
     letter-spacing: 0.03em;
     cursor: pointer;
-    transition: background var(--transition-base), border-color var(--transition-base);
+    transition: all var(--transition-base);
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    box-shadow: 3px 3px 0px var(--color-ink);
 }
 
 .save-button:hover {
-    background: var(--color-ink-soft);
-    border-color: var(--color-ink-soft);
+    background: var(--color-surface);
+    color: var(--color-ink) !important;
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
 }
 
 .save-button:disabled,
@@ -176,27 +181,28 @@
     display: flex;
     align-items: center;
     gap: var(--sp-1);
-    border-left: 3px solid;
-    border-radius: var(--radius);
+    border: 2px solid var(--color-ink);
+    border-radius: 0px;
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
 }
 
 .alert.alert-error {
     background: var(--state-critical-bg);
     color: var(--state-critical);
-    border-left-color: var(--state-critical);
+    border-color: var(--state-critical);
 }
 
 .alert.alert-success {
     background: var(--state-ok-bg);
     color: var(--state-ok);
-    border-left-color: var(--state-ok);
+    border-color: var(--state-ok);
 }
 
 /* ── Sección de Contraseña (configuracion.html) ───────────────────────────── */
 .password-section {
     margin-top: var(--sp-3);
     padding-top: var(--sp-3);
-    border-top: 1px solid var(--color-border);
+    border-top: 2px solid var(--color-ink);
 }
 
 .password-section h3 {
@@ -210,7 +216,7 @@
 /* ── Caja de Edificio Actual ──────────────────────────────────────────────── */
 .edificio-info-box {
     background: var(--color-bg);
-    border: 1px solid var(--color-border);
+    border: 2px solid var(--color-ink);
     padding: var(--sp-2) var(--sp-2);
     font-size: var(--text-sm);
     line-height: var(--leading-loose);
@@ -219,8 +225,9 @@
 /* ── Caja de Credenciales Generadas ──────────────────────────────────────── */
 .credentials-box {
     background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-left: 3px solid var(--color-ink);
+    border: 2px solid var(--color-ink);
+    border-left: 6px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
     padding: var(--sp-2) var(--sp-3);
     margin-bottom: var(--sp-3);
     font-size: var(--text-base);
@@ -229,10 +236,10 @@
 .credentials-box h3 {
     margin: 0 0 var(--sp-1);
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
+    font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-wide);
     text-transform: uppercase;
-    color: var(--color-text-secondary);
+    color: var(--color-ink);
 }
 
 /* ── Responsive ────────────────────────────────────────────────────────────── */

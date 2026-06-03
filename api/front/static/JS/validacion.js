@@ -279,14 +279,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Validar select elements en cambios e inputs para limpiar errores
     document.querySelectorAll('select').forEach(function (select) {
-        select.addEventListener('change', function () {
+        const handler = function () {
             if (select.value) {
                 limpiarError(select);
             } else if (select.required) {
                 mostrarError(select, 'Este campo es obligatorio.');
             }
             toggleSubmit(select.form);
-        });
+        };
+        select.addEventListener('change', handler);
+        select.addEventListener('input', handler);
     });
 
     // ─── VALIDACIÓN INICIAL ─────────────────────────────────────
@@ -294,9 +296,10 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('form').forEach(function (form) {
         form.querySelectorAll('input[data-validate], select').forEach(function (input) {
             if (input.value) {
-                input.dispatchEvent(new Event('input'));
                 if (input.tagName === 'SELECT') {
                     input.dispatchEvent(new Event('change'));
+                } else {
+                    input.dispatchEvent(new Event('input'));
                 }
             }
         });

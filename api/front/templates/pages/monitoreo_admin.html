@@ -9,22 +9,23 @@
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
-    <style>
-        /* ── Contenedor principal de esta vista ── */
+    <style>        /* ── Contenedor principal de esta vista ── */
         .admin-frame-card {
             max-width: 1520px;
             margin: 0 auto;
         }
-
+ 
         /* ── Cabecera informativa ── */
         .admin-info {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-left: 3px solid var(--color-ink);
+            border: 2px solid var(--color-ink);
+            border-left: 6px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
-
+ 
         .admin-info h1 {
             font-size: var(--text-xl);
             font-weight: var(--weight-bold);
@@ -33,27 +34,29 @@
             margin-bottom: var(--sp-1);
             line-height: var(--leading-tight);
         }
-
+ 
         .admin-info p {
             font-size: var(--text-sm);
             color: var(--color-text-secondary);
             margin-top: 4px;
             line-height: var(--leading-normal);
         }
-
+ 
         .admin-warning {
             display: inline-flex;
             align-items: center;
             gap: 8px;
             background: var(--state-warn-bg);
             color: var(--state-warn);
-            border: 1px solid var(--state-warn-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
             padding: 8px var(--sp-2);
             margin-top: var(--sp-2);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
+            border-radius: 0px;
         }
-
+ 
         /* ── Grid: lista de edificios + iframe ── */
         .admin-body {
             display: grid;
@@ -61,14 +64,16 @@
             gap: var(--sp-3);
             align-items: start;
         }
-
+ 
         /* ── Panel de lista de edificios ── */
         .building-list-card {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-2);
+            border-radius: 0px;
         }
-
+ 
         .building-list-card h2 {
             font-size: var(--text-base);
             font-weight: var(--weight-bold);
@@ -78,17 +83,18 @@
             padding-bottom: var(--sp-1);
             border-bottom: 2px solid var(--color-ink);
         }
-
+ 
         .building-list {
             list-style: none;
             padding: 0;
             margin: 0;
             display: flex;
             flex-direction: column;
-            gap: 1px;
-            background: var(--color-border);
+            gap: 2px;
+            background: var(--color-ink);
+            border: 2px solid var(--color-ink);
         }
-
+ 
         .building-item {
             display: block;
             width: 100%;
@@ -100,37 +106,38 @@
             font-size: var(--text-sm);
             border: none;
             cursor: pointer;
-            transition: background var(--transition-fast);
+            transition: all var(--transition-fast);
+            border-left: 4px solid transparent;
         }
-
+ 
         .building-item:hover,
         .building-item.active {
             background: var(--color-bg);
         }
-
+ 
         .building-item.active {
-            border-left: 3px solid var(--color-ink);
+            border-left-color: var(--color-ink);
         }
-
+ 
         .building-item-title {
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             color: var(--color-ink);
             margin-bottom: 2px;
         }
-
+ 
         .building-item-subtitle {
             font-size: var(--text-xs);
             color: var(--color-text-secondary);
         }
-
+ 
         .building-selected {
             font-size: var(--text-sm);
             color: var(--color-text-secondary);
             margin-top: var(--sp-2);
             padding-top: var(--sp-1);
-            border-top: 1px solid var(--color-border);
+            border-top: 2px solid var(--color-ink);
         }
-
+ 
         .building-action-row {
             margin-top: var(--sp-1);
             display: flex;
@@ -138,47 +145,55 @@
             gap: var(--sp-1);
             align-items: center;
         }
-
+ 
         .building-url {
             font-size: var(--text-xs);
             color: var(--color-text-secondary);
             word-break: break-all;
         }
-
+ 
         .open-monitor-button {
             font-family: var(--font-sans);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             background: var(--color-ink);
             color: var(--color-surface);
-            border: 1px solid var(--color-ink);
+            border: 2px solid var(--color-ink);
             padding: 8px var(--sp-2);
             cursor: pointer;
-            transition: opacity var(--transition-fast);
+            transition: all var(--transition-fast);
+            border-radius: 0px;
         }
-
-        .open-monitor-button:hover  { opacity: 0.75; }
+ 
+        .open-monitor-button:hover {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
+        }
         .open-monitor-button:disabled { opacity: 0.3; cursor: not-allowed; }
-
+ 
         /* ── Iframe container ── */
         .iframe-wrapper {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             height: calc(100vh - 220px);
             overflow: hidden;
+            border-radius: 0px;
         }
-
+ 
         .iframe-wrapper iframe {
             width: 100%;
             height: 100%;
             border: 0;
             display: block;
         }
-
+ 
         /* ── Responsive ── */
         @media (max-width: 900px) {
             .admin-body { grid-template-columns: 1fr; }
             .iframe-wrapper { height: 60vh; }
+        }      .iframe-wrapper { height: 60vh; }
         }
     </style>
 </head>
