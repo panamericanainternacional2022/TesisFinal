@@ -293,6 +293,18 @@ function renderLiveMonitor(data) {
     const totalAlerts = (data.alert_log || []).length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
+
+    const toggleBtn = document.getElementById('toggleAlertsBtn');
+    if (toggleBtn) {
+        toggleBtn.dataset.enabled = data.alert_enabled;
+        if (data.alert_enabled) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+            toggleBtn.className = 'btn-alerts-toggle enabled';
+        } else {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+            toggleBtn.className = 'btn-alerts-toggle disabled';
+        }
+    }
 }
 
 function renderNotificationList(alerts) {
@@ -352,6 +364,13 @@ function renderConnectionStatus(isConnected, message) {
     if (badge) {
         badge.textContent = message || (isConnected ? 'Backend de monitoreo conectado' : 'No se pudo conectar al backend de monitoreo.');
         badge.className = isConnected ? 'sensor-active' : 'sensor-critical';
+    }
+
+    const toggleBtn = document.getElementById('toggleAlertsBtn');
+    if (toggleBtn) {
+        toggleBtn.disabled = !isConnected;
+        toggleBtn.style.opacity = isConnected ? '1' : '0.5';
+        toggleBtn.style.cursor = isConnected ? 'pointer' : 'not-allowed';
     }
 
     const activeContent = document.getElementById('monitoringActiveContent');
@@ -435,6 +454,38 @@ function initLiveNotifications() {
     // fetchLiveNotifications();
     // setInterval(fetchLiveNotifications, 5000);
 
+    const toggleBtn = document.getElementById('toggleAlertsBtn');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', async () => {
+            const isCurrentlyEnabled = toggleBtn.dataset.enabled !== undefined
+                ? toggleBtn.dataset.enabled === 'true'
+                : toggleBtn.classList.contains('enabled');
+            const targetState = !isCurrentlyEnabled;
+            try {
+                const resp = await fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled: targetState })
+                });
+                const res = await resp.json();
+                if (res.status === 'ok') {
+                    toggleBtn.dataset.enabled = res.alert_enabled;
+                    if (res.alert_enabled) {
+                        toggleBtn.className = 'btn-alerts-toggle enabled';
+                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+                    } else {
+                        toggleBtn.className = 'btn-alerts-toggle disabled';
+                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+                    }
+                    await window.showAlert(res.alert_enabled ? 'Alertas activadas con éxito.' : 'Alertas desactivadas con éxito.', 'success');
+                }
+            } catch (error) {
+                console.error('Error toggling alerts:', error);
+                await window.showAlert('No se pudo comunicar con el simulador para cambiar el estado de las alertas.', 'error');
+            }
+        });
+    }
+
     const clearBtn = document.getElementById('clearDbNotificationsBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
@@ -483,6 +534,12 @@ function fetchInitialData() {
 window.addEventListener('DOMContentLoaded', async () => {
     setNotificationBadge(0);
     initCharts();
+
+    const toggleBtn = document.getElementById('toggleAlertsBtn');
+    if (toggleBtn) {
+        toggleBtn.style.display = 'inline-flex';
+    }
+
     await resolveMonitorBackendOrigin();
     initLiveMonitoring();
     initLiveNotifications();

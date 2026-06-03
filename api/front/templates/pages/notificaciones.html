@@ -48,9 +48,14 @@
                             <div></div>
                             {% endif %}
                             
-                            <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
-                                <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
-                            </button>
+                            <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
+                                <button id="toggleAlertsBtn" class="btn-alerts-toggle enabled" data-enabled="true">
+                                    <i class="fa-solid fa-bell"></i> Desactivar Alertas
+                                </button>
+                                <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
+                                    <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
+                                </button>
+                            </div>
                         </div>
                     </div>
 
@@ -210,6 +215,51 @@
             color: var(--color-ink);
             padding: 8px var(--sp-2);
             border: 2px solid transparent;
+        }
+
+        /* ── Botón toggle de alertas custom (para no heredar btn-action !important) ── */
+        .btn-alerts-toggle {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            border-radius: 0px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            padding: 6px 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition-fast);
+            letter-spacing: 0.01em;
+            box-shadow: 3px 3px 0px var(--color-ink);
+            margin-top: 0;
+        }
+        .btn-alerts-toggle:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+        }
+        .btn-alerts-toggle.enabled {
+            background: var(--state-ok-bg);
+            color: var(--state-ok);
+            border-color: var(--state-ok);
+            box-shadow: 3px 3px 0px var(--state-ok);
+        }
+        .btn-alerts-toggle.enabled:hover {
+            background: var(--state-ok);
+            color: var(--color-surface);
+        }
+        .btn-alerts-toggle.disabled {
+            background: var(--state-warn-bg);
+            color: var(--state-warn);
+            border-color: var(--state-warn);
+            box-shadow: 3px 3px 0px var(--state-warn);
+        }
+        .btn-alerts-toggle.disabled:hover {
+            background: var(--state-warn);
+            color: var(--color-surface);
         }
 
         /* ── Modal Custom (Estilo Suizo sin bordes redondeados) ── */

@@ -710,7 +710,7 @@ def get_professional_action(variable, risk_level, value):
             "Crítico": "Exceso de velocidad critico. Frenado de emergencia activado. Inspeccion tecnica de seguridad obligatoria."
         },
         "load": {
-            "Alto": "Carga de cabina cercana al limite de diseno. Monitorear comportamiento de motor.",
+            "Alto": "Carga de cabina cercana al limite de diseño. Monitorear comportamiento de motor.",
             "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operacion."
         },
         "energy": {
@@ -2469,14 +2469,8 @@ HTML_TEMPLATE = """
 
         <!-- Barra de controles -->
         <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2);">
-            <button id="toggleAlertsBtn" class="btn" style="height: 44px; display:inline-flex; align-items:center;">
-                <i class="fas fa-bell"></i> Desactivar Alertas
-            </button>
             <button id="clearHistoryBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-trash-alt"></i> Limpiar Historial
-            </button>
-            <button id="clearAlertsBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
-                <i class="fas fa-bell-slash"></i> Limpiar Alertas
             </button>
             <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
             <div class="spacer"></div>
@@ -2630,18 +2624,7 @@ HTML_TEMPLATE = """
             </div>
         </div>
 
-        <!-- Alertas -->
-        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
-            <i class="fa-solid fa-bell"></i> Alertas recientes
-        </h2>
-        <div class="table-wrapper">
-            <div class="scroll-table" style="max-height: 500px;">
-                <table>
-                    <thead><tr><th>Fecha y hora</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
-                    <tbody id="alertTableBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">No hay alertas</td></tr></tbody>
-                </table>
-            </div>
-        </div>
+
 
         <!-- Umbrales -->
         <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
@@ -2820,19 +2803,7 @@ HTML_TEMPLATE = """
             }
         }
 
-        function updateAlertTable(alerts){
-            let tbody=document.getElementById('alertTableBody'); tbody.innerHTML='';
-            if(!alerts||alerts.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay alertas</td></tr>'; return; }
-            for(let a of alerts){
-                let cls = a.risk==='Crítico'?'row-crit':a.risk==='Alto'?'row-high':'';
-                let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[a.risk]||'badge-info';
-                let tr=document.createElement('tr'); tr.className=cls;
-                let varName = getVariableName(a.variable);
-                let valDisplay = a.variable.includes('door_status') ? (a.value === 'open' ? 'Abierta' : (a.value === 'closed' ? 'Cerrada' : a.value)) : a.value;
-                tr.innerHTML=`<td>${a.timestamp}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
-                tbody.appendChild(tr);
-            }
-        }
+
 
         function initCharts(){
             const chartDefaults = {
@@ -2969,15 +2940,6 @@ HTML_TEMPLATE = """
             }
         }
 
-        async function toggleAlerts(){
-            let btn=document.getElementById('toggleAlertsBtn');
-            let isCurrentlyEnabled=btn.innerText.includes('Desactivar');
-            let targetState=!isCurrentlyEnabled;
-            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:targetState})});
-            let data=await resp.json();
-            if(data.status==='ok') btn.innerHTML=data.alert_enabled?'<i class="fas fa-bell"></i> Desactivar Alertas':'<i class="fas fa-bell-slash"></i> Activar Alertas';
-        }
-
         async function clearHistory(){
             if(await window.showConfirm('¿Limpiar historial de lecturas?')){
                 let resp=await fetch('/clear_history',{method:'POST'});
@@ -2987,18 +2949,6 @@ HTML_TEMPLATE = """
                     updateCharts([]);
                 } else {
                     await window.showAlert('Error al limpiar.', 'error');
-                }
-            }
-        }
-
-        async function clearAlerts(){
-            if(await window.showConfirm('¿Limpiar historial de alertas y notificaciones?')){
-                let resp=await fetch('/clear_alerts',{method:'POST'});
-                if(resp.ok) {
-                    await window.showAlert('Alertas limpiadas.', 'success');
-                    updateAlertTable([]);
-                } else {
-                    await window.showAlert('Error al limpiar alertas.', 'error');
                 }
             }
         }
@@ -3187,9 +3137,7 @@ HTML_TEMPLATE = """
         document.getElementById('subBuildingSelect').addEventListener('change', (e) => loadUsersForBuilding(e.target.value));
         document.getElementById('sendAllSubscribersBtn').addEventListener('click', sendAllSubscribers);
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
-        document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
         document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
-        document.getElementById('clearAlertsBtn').addEventListener('click', clearAlerts);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
@@ -3205,12 +3153,8 @@ HTML_TEMPLATE = """
             if(data.thresholds) renderThresholdsPanel(data.thresholds);
             if(data.current) updateCards(data.current);
             if(data.history){ updateHistoryTable(data.history); updateCharts(data.history); }
-            if(data.alert_log) updateAlertTable(data.alert_log);
             updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
             document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-            document.getElementById('toggleAlertsBtn').innerHTML = data.alert_enabled ?
-                '<i class="fas fa-bell"></i> Desactivar Alertas' :
-                '<i class="fas fa-bell-slash"></i> Activar Alertas';
             let ri = document.getElementById('rationingIndicator');
             if(data.rationing) ri.classList.add('visible'); else ri.classList.remove('visible');
             document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'INACTIVA';
