@@ -180,6 +180,7 @@ class Usuario(models.Model):
         Persona, models.DO_NOTHING, db_column="id_persona", blank=True, null=True
     )
     rol = models.TextField(blank=True, null=True, default="US")
+    registrado = models.BooleanField(default=False)
 
     class Meta:
         managed = False

@@ -24,10 +24,18 @@
                         </div>
                     </header>
 
-                    <form class="search-container" method="get" action="">
-                        <div class="input-with-icon">
+                    <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
+                        <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
                             <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
                             <input type="text" name="q" placeholder="Buscar" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                        </div>
+                        <div class="select-container" style="min-width: 220px;">
+                            <select name="edificio" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                <option value="">Todos los edificios</option>
+                                {% for edf in edificios %}
+                                    <option value="{{ edf.id_edificio }}" {% if edf.id_edificio == selected_edificio_id %}selected{% endif %}>{{ edf.nb_edificio }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </form>
 
@@ -46,6 +54,7 @@
                                         <th>Edificio</th>
                                         <th>RIF</th>
                                         <th>Dir. Edificio</th>
+                                        <th>Estado</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -59,11 +68,18 @@
                                                 <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
                                                 <td title="{{ beneficiario.edificio_rif }}">{{ beneficiario.edificio_rif }}</td>
                                                 <td title="{{ beneficiario.edificio_direccion }}">{{ beneficiario.edificio_direccion }}</td>
+                                                <td>
+                                                    {% if beneficiario.registrado %}
+                                                        <span class="sensor-badge sensor-active">Registrado</span>
+                                                    {% else %}
+                                                        <span class="sensor-badge sensor-warning">Por registrar</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="7" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="8" style="text-align: center; padding: 24px 0;">
                                                 No hay beneficiarios registrados.
                                             </td>
                                         </tr>

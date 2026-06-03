@@ -29,6 +29,24 @@ from core.models import (  # noqa: E402
 
 
 def populate():
+    print("Iniciando limpieza de la base de datos...")
+    
+    # Eliminar en orden inverso de dependencias para evitar errores de llave foránea
+    HistoricoFalla.objects.all().delete()
+    Notificacion.objects.all().delete()
+    AccionPrev.objects.all().delete()
+    StatusEquipoMonitoreo.objects.all().delete()
+    EquipoSensor.objects.all().delete()
+    UsuarioEdificio.objects.all().delete()
+    Status.objects.all().delete()
+    DisposSensor.objects.all().delete()
+    EquipoMonitoreo.objects.all().delete()
+    Edificio.objects.all().delete()
+    Usuario.objects.all().delete()
+    Persona.objects.all().delete()
+    
+    print("Base de datos limpia.")
+
     print("Iniciando población de base de datos...")
 
     print("Creando Personas...")
@@ -52,15 +70,57 @@ def populate():
             "direccion": "Av Secundaria",
         },
     )
+    p3, _ = Persona.objects.get_or_create(
+        ci=11223344,
+        defaults={
+            "name": "Tommy",
+            "apellido": "Tupiza",
+            "email": "tjta3105@gmail.com",
+            "telefono": "04241234567",
+            "direccion": "Av Oeste",
+        },
+    )
+    p4, _ = Persona.objects.get_or_create(
+        ci=44332211,
+        defaults={
+            "name": "Admin",
+            "apellido": "Sistema",
+            "email": "admin@example.com",
+            "telefono": "04161234567",
+            "direccion": "Oficina Central",
+        },
+    )
+    p5, _ = Persona.objects.get_or_create(
+        ci=55667788,
+        defaults={
+            "name": "Carlos",
+            "apellido": "Rodriguez",
+            "email": "carlos@example.com",
+            "telefono": "04149876543",
+            "direccion": "Av Bolivar",
+        },
+    )
 
     print("Creando Usuarios...")
     u1, _ = Usuario.objects.get_or_create(
         username="juanp",
-        defaults={"password": "password123", "id_persona": p1, "rol": "SA"},
+        defaults={"password": "password123", "id_persona": p1, "rol": "US", "registrado": True},
     )
     u2, _ = Usuario.objects.get_or_create(
         username="mariag",
-        defaults={"password": "password123", "id_persona": p2, "rol": "US"},
+        defaults={"password": "password123", "id_persona": p2, "rol": "US", "registrado": True},
+    )
+    u3, _ = Usuario.objects.get_or_create(
+        username="tommyt",
+        defaults={"password": "password123", "id_persona": p3, "rol": "US", "registrado": True},
+    )
+    u4, _ = Usuario.objects.get_or_create(
+        username="admin",
+        defaults={"password": "password123", "id_persona": p4, "rol": "SA", "registrado": True},
+    )
+    u5, _ = Usuario.objects.get_or_create(
+        username="carlosr",
+        defaults={"password": "password123", "id_persona": p5, "rol": "US", "registrado": True},
     )
 
     print("Creando Edificios...")
@@ -79,6 +139,8 @@ def populate():
     print("Asignando Usuarios a Edificios...")
     UsuarioEdificio.objects.get_or_create(id_usuario=u1, id_edificio=e1)
     UsuarioEdificio.objects.get_or_create(id_usuario=u2, id_edificio=e2)
+    UsuarioEdificio.objects.get_or_create(id_usuario=u3, id_edificio=e1)
+    UsuarioEdificio.objects.get_or_create(id_usuario=u5, id_edificio=e2)
 
     print("Creando Equipos de Monitoreo...")
     em1, _ = EquipoMonitoreo.objects.get_or_create(

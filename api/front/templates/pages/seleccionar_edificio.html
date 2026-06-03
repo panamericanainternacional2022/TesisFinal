@@ -10,25 +10,52 @@
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
     <style>
+        .select-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
         .select-list { list-style: none; padding: 0; margin: 0; }
-        .select-list li { border-bottom: 1px solid var(--color-border); }
+        .select-list li { border-bottom: 2px solid var(--color-ink); }
+        .select-list li:last-child { border-bottom: none; }
         .select-list li a {
             display: flex; justify-content: space-between; align-items: center;
-            text-decoration: none; color: inherit; padding: 13px var(--sp-3); width: 100%;
-            transition: background var(--transition-fast);
+            text-decoration: none; color: inherit; padding: 16px var(--sp-3); width: 100%;
+            transition: all var(--transition-fast);
+            box-sizing: border-box;
         }
-        .select-list li a:hover { background: var(--color-bg); }
-        .item-name { font-weight: var(--weight-medium); color: var(--color-text-primary); font-size: var(--text-base); }
-        .item-id { color: var(--color-text-secondary); font-size: var(--text-sm); }
+        .select-list li a:hover {
+            background: var(--color-bg);
+        }
+        .item-name { font-weight: var(--weight-bold); color: var(--color-text-primary); font-size: var(--text-base); }
+        .item-id { color: var(--color-text-secondary); font-size: var(--text-sm); font-family: monospace; }
         .back-link {
-            display: inline-block; margin-top: var(--sp-3);
-            color: var(--color-ink); text-decoration: none;
-            font-weight: var(--weight-medium); font-size: var(--text-sm);
-            border-bottom: 1px solid var(--color-border);
-            padding-bottom: 2px;
-            transition: border-color var(--transition-fast);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: var(--sp-4);
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            border-radius: 0px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            padding: 10px 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            box-shadow: 4px 4px 0px var(--color-ink);
         }
-        .back-link:hover { border-color: var(--color-ink); }
+        .back-link:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(10, 10, 10, 0.25);
+        }
     </style>
 </head>
 <body>
@@ -36,7 +63,7 @@
         {% include 'pages/components/sidebar.html' %}
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card">
+                <div class="reportes-card" style="max-width: 800px;">
                     <header class="report-header">
                         <div class="report-header-text">
                             <h1 class="profile-title">{% if accion == 'editar' %}Editar Edificio{% else %}Eliminar Edificio{% endif %}</h1>
@@ -45,25 +72,41 @@
                     </header>
 
                     {% if items %}
-                    <ul class="select-list">
-                        {% for item in items %}
-                        <li>
-                            {% if accion == 'editar' %}
-                            <a href="{% url 'editar_edificio' item.id %}">
-                            {% else %}
-                            <a href="{% url 'eliminar_edificio' item.id %}" class="btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?">
-                            {% endif %}
-                                <span class="item-name">{{ item.nombre }}</span>
-                                <span class="item-id">{{ item.rif }}</span>
-                            </a>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                    <div class="select-card">
+                        <ul class="select-list">
+                            {% for item in items %}
+                            <li>
+                                {% if accion == 'editar' %}
+                                <a href="{% url 'editar_edificio' item.id %}">
+                                    <div style="display: flex; align-items: center; gap: 12px;">
+                                        <i class="fa-solid fa-building" style="color: var(--color-ink); font-size: 1.1rem;"></i>
+                                        <span class="item-name">{{ item.nombre }}</span>
+                                    </div>
+                                    <span class="item-id"><i class="fa-solid fa-id-card" style="margin-right: 6px;"></i>{{ item.rif }}</span>
+                                </a>
+                                {% else %}
+                                <a href="{% url 'eliminar_edificio' item.id %}" class="btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?">
+                                    <div style="display: flex; align-items: center; gap: 12px; color: var(--state-critical);">
+                                        <i class="fa-solid fa-trash-can" style="font-size: 1.1rem;"></i>
+                                        <span class="item-name" style="color: var(--state-critical);">{{ item.nombre }}</span>
+                                    </div>
+                                    <span class="item-id" style="color: var(--state-critical);"><i class="fa-solid fa-id-card" style="margin-right: 6px;"></i>{{ item.rif }}</span>
+                                </a>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% else %}
-                    <p style="text-align:center;padding:var(--sp-5) 0;color:var(--color-text-secondary);">No hay edificios registrados.</p>
+                    <div class="no-data">
+                        <i class="fa-regular fa-folder-open"></i>
+                        <p>No hay edificios registrados.</p>
+                    </div>
                     {% endif %}
 
-                    <a href="{% url 'lista_edificios' %}" class="back-link">← Volver a lista de edificios</a>
+                    <a href="{% url 'lista_edificios' %}" class="back-link">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a lista de edificios
+                    </a>
                 </div>
             </div>
         </main>

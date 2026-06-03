@@ -1,6 +1,6 @@
 # RESUMEN DE CAMBIOS Y MEJORAS EN EL SISTEMA INES
 
-### (02-06-2026)
+### (01-06-2026)
 
 ### SE ELIMINÓ WHATSAPP Y SE CONFIGURÓ EL ENVÍO AUTOMÁTICO DE REPORTES POR CORREO ELECTRÓNICO
 * Se retiró la función inactiva de WhatsApp y se configuró el sistema para que envíe de forma automática un correo electrónico con el reporte del edificio (en formato PDF adjunto) cada vez que ocurre un evento de prueba o alerta.
@@ -29,7 +29,7 @@
 ### SE CORRIGIÓ EL CONTADOR DE ALERTAS Y NOTIFICACIONES
 * Se reparó un error visual que hacía que el círculo de notificaciones flotara fuera de su lugar o se encimara con los iconos del menú. Ahora se alinea automáticamente con el texto de forma limpia y responsiva.
 
-### (03-06-2026)
+### (02-06-2026)
 
 ### SE ELIMINÓ LA URL Y EL ESTADO DEL IFRAME DE MONITOREO EN LA VISTA DE ADMINISTRADOR
 * Se quitaron los campos de texto e información redundante sobre el enlace de monitoreo que se mostraban en la interfaz del administrador para evitar confusiones de uso.
@@ -58,3 +58,14 @@
 ### SE ELIMINÓ LA LÓGICA DE CREACIÓN DE USUARIO Y CONTRASEÑA AUTOMATICA, SE CREÓ `completar_registro.html` Y CORREOS ESTANDARIZADOS PARA LA CREACIÓN DE DICHO USUARIO.
 
 ### SE REDISEÑARON LAS VALIDACIONES DE TODOS LOS FORMULARIOS (EDIFICIO, USUARIO, CONFIGURACIÓN), AHORA MUESTRA EL CAMPO ERRONEO GRACIAS A LA IMPLEMENTACIÓN DE DJANGO ERROR EN CADA INPUT
+
+### (03-06-2026)
+
+### SE ACTUALIZO EL SCRIPT PARA QUE LIMPIE LA BASE DE DATOS ANTES DE AGREGAR LOS DATOS DE PRUEBA.
+
+
+### SE MODIFICÓ LA CONSULTA EN `api/front/views.py` PARA QUE MUESTRE SOLO LOS USUARIOS DE ROL USER.
+
+### SE AGREGÓ COLUMA "REGISTRADO" PARA TENER EN CUENTA A LOS USUARIOS QUE FALTAN POR ACCEDER AL SISTEMA, CUANDO EL USUARIO ACCEDE AL SISTEMA SE CAMBIA A TRUE.
+
+### SE IMPLEMENTÓ UN SISTEMA DE FILTRADO POR EDIFICIO EN `api/front/views.py` PARA QUE MUESTRE SOLO LOS USUARIOS QUE PERTENECEN AL EDIFICIO SELECCIONADO.

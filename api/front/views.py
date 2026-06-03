@@ -309,6 +309,7 @@ def _build_beneficiario_data(usuario):
         "edificio_nombre": edificio.nb_edificio if edificio else "",
         "edificio_rif": edificio.rif if edificio else "",
         "edificio_direccion": edificio.direccion if edificio else "",
+        "registrado": usuario.registrado,
     }
 
 
@@ -544,11 +545,17 @@ def usuario_view(request):
 @_admin_required
 def lista_usuario_view(request):
     query = request.GET.get("q", "").strip()
+    edificio_id = request.GET.get("edificio", "").strip()
+    
     usuarios = (
         Usuario.objects.select_related("id_persona")
         .prefetch_related("usuarioedificio_set__id_edificio")
-        .all()
+        .exclude(rol__in=ADMIN_ROLES)
     )
+    
+    if edificio_id:
+        usuarios = usuarios.filter(usuarioedificio__id_edificio_id=edificio_id)
+        
     if query:
         usuarios = usuarios.filter(
             Q(id_persona__ci__icontains=query)
@@ -558,12 +565,17 @@ def lista_usuario_view(request):
             | Q(username__icontains=query)
             | Q(usuarioedificio__id_edificio__nb_edificio__icontains=query)
         ).distinct()
+        
     beneficiarios = [_build_beneficiario_data(usuario) for usuario in usuarios]
+    edificios = Edificio.objects.all()
+    
     return render(
         request,
         "pages/lista_usuario.html",
         {
             "beneficiarios": beneficiarios,
+            "edificios": edificios,
+            "selected_edificio_id": int(edificio_id) if edificio_id.isdigit() else None,
             "request": request,
         },
     )
@@ -1502,6 +1514,7 @@ def completar_registro_view(request):
             else:
                 usuario.username = username_val
                 usuario.password = make_password(password)
+                usuario.registrado = True
                 usuario.save()
                 messages.success(
                     request,
