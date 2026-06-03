@@ -22,6 +22,10 @@ from .views import (
     seleccionar_usuario_view,
     seleccionar_edificio_view,
     completar_registro_view,
+    simulador_status_view,
+    simulador_start_view,
+    simulador_stop_view,
+    simulador_restart_view,
 )
 
 urlpatterns = [
@@ -82,5 +86,25 @@ urlpatterns = [
         "seleccionar/edificio/<str:accion>/",
         seleccionar_edificio_view,
         name="seleccionar_edificio",
+    ),
+    path(
+        "monitoreo/simulador/status/",
+        simulador_status_view,
+        name="simulador_status",
+    ),
+    path(
+        "monitoreo/simulador/start/",
+        simulador_start_view,
+        name="simulador_start",
+    ),
+    path(
+        "monitoreo/simulador/stop/",
+        simulador_stop_view,
+        name="simulador_stop",
+    ),
+    path(
+        "monitoreo/simulador/restart/",
+        simulador_restart_view,
+        name="simulador_restart",
     ),
 ]

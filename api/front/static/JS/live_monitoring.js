@@ -343,7 +343,7 @@ function initLiveMonitoring() {
     };
 
     source.onerror = (err) => {
-        renderConnectionStatus(false, `Error: no se encontró app27.py en ${MONITOR_BACKEND_ORIGIN}`);
+        renderConnectionStatus(false, 'El simulador de monitoreo (app27.py) está apagado. Comuníquese con el administrador para encenderlo.');
         console.error('Error de conexión SSE:', err);
     };
 
@@ -429,7 +429,7 @@ function fetchInitialData() {
         .then((r) => r.ok ? r.json() : Promise.reject(r.statusText))
         .then((data) => renderLiveMonitor(data))
         .catch((error) => {
-            renderConnectionStatus(false, 'No se pudo obtener estado inicial de app27.py.');
+            renderConnectionStatus(false, 'El simulador de monitoreo (app27.py) está apagado. Comuníquese con el administrador para encenderlo.');
             console.warn('No se pudo obtener el estado inicial desde el backend de monitoreo.', error);
         });
 }

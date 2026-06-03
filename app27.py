@@ -3204,5 +3204,5 @@ HTML_TEMPLATE = """
 if __name__ == "__main__":
     # Para diagnóstico en el frontend, pasamos información de credenciales
     socketio.start_background_task(generate_data_and_emit)
-    webbrowser.open("http://localhost:5000")
+    # webbrowser.open("http://localhost:5000")
     socketio.run(app, host="0.0.0.0", port=5000, debug=False)

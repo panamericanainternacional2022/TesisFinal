@@ -171,6 +171,22 @@
             box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
         }
         .open-monitor-button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* ── Badge / Status Simulador ── */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
+        }
+        .badge-active { background: #bbf7d0; color: #16a34a; }
+        .badge-inactive { background: #fecaca; color: #dc2626; }
+        .badge-loading { background: #e0e0e0; color: #6b6b6b; }
  
         /* ── Iframe container ── */
         .iframe-wrapper {
@@ -193,7 +209,6 @@
         @media (max-width: 900px) {
             .admin-body { grid-template-columns: 1fr; }
             .iframe-wrapper { height: 60vh; }
-        }      .iframe-wrapper { height: 60vh; }
         }
     </style>
 </head>
@@ -212,26 +227,40 @@
                     </div>
                 </div>
                 <div class="admin-body">
-                    <div class="building-list-card">
-                        <h2>Edificios registrados</h2>
-                        {% if edificios %}
-                        <ul class="building-list" id="buildingList">
-                            {% for edificio in edificios %}
-                            <li>
-                                <button type="button" class="building-item" data-id="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}" onclick="selectBuilding(this)">
-                                    <div class="building-item-title">{{ edificio.nb_edificio }}</div>
-                                    <div class="building-item-subtitle">RIF: {{ edificio.rif }}</div>
-                                </button>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                        <div class="building-selected" id="selectedBuildingText">Haz clic en un edificio para ver su monitoreo.</div>
-                        <div class="building-action-row">
-                            <button type="button" class="open-monitor-button" id="openMonitorButton" onclick="openMonitorNewTab()" disabled>Abrir en nueva pestaña</button>
+                    <div style="display: flex; flex-direction: column; gap: var(--sp-3);">
+                        <div class="building-list-card">
+                            <h2>Control del Simulador</h2>
+                            <div style="margin-bottom: var(--sp-2); display: flex; align-items: center; justify-content: space-between;">
+                                <span style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; color: var(--color-text-secondary);">Estado del Simulador:</span>
+                                <span class="badge badge-loading" id="simulatorStatusBadge">Verificando...</span>
+                            </div>
+                            <div style="display: flex; gap: var(--sp-1);">
+                                <button type="button" class="open-monitor-button" id="btnToggleSimulator" onclick="toggleSimulator()" style="flex: 1;">Encender</button>
+                                <button type="button" class="open-monitor-button" id="btnRestartSimulator" onclick="restartSimulator()" style="background: var(--color-surface); color: var(--color-ink); flex: 1;">Reiniciar</button>
+                            </div>
                         </div>
-                        {% else %}
-                        <p>No hay edificios registrados.</p>
-                        {% endif %}
+
+                        <div class="building-list-card">
+                            <h2>Edificios registrados</h2>
+                            {% if edificios %}
+                            <ul class="building-list" id="buildingList">
+                                {% for edificio in edificios %}
+                                <li>
+                                    <button type="button" class="building-item" data-id="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}" onclick="selectBuilding(this)">
+                                        <div class="building-item-title">{{ edificio.nb_edificio }}</div>
+                                        <div class="building-item-subtitle">RIF: {{ edificio.rif }}</div>
+                                    </button>
+                                </li>
+                                {% endfor %}
+                            </ul>
+                            <div class="building-selected" id="selectedBuildingText">Haz clic en un edificio para ver su monitoreo.</div>
+                            <div class="building-action-row">
+                                <button type="button" class="open-monitor-button" id="openMonitorButton" onclick="openMonitorNewTab()" disabled>Abrir en nueva pestaña</button>
+                            </div>
+                            {% else %}
+                            <p>No hay edificios registrados.</p>
+                            {% endif %}
+                        </div>
                     </div>
                     <div class="iframe-wrapper">
                         <iframe id="adminMonitorFrame" src="{% if edificios %}http://127.0.0.1:5000/?edificio={{ edificios.0.id_edificio }}{% endif %}" title="Dashboard Administrativo PCLogo"></iframe>
@@ -245,6 +274,7 @@
         const selectedText = document.getElementById('selectedBuildingText');
         const openMonitorButton = document.getElementById('openMonitorButton');
         let currentMonitorUrl = null;
+        let isSimulatorOnline = false;
 
         function selectBuilding(button){
             if (!button) return;
@@ -270,11 +300,102 @@
             }
         }
 
+        async function checkSimulatorStatus() {
+            const badge = document.getElementById('simulatorStatusBadge');
+            const btnToggle = document.getElementById('btnToggleSimulator');
+            try {
+                const response = await fetch('/monitoreo/simulador/status/');
+                const data = await response.json();
+                isSimulatorOnline = data.running;
+                if (isSimulatorOnline) {
+                    badge.textContent = 'ENCENDIDO';
+                    badge.className = 'badge badge-active';
+                    btnToggle.textContent = 'Apagar';
+                    btnToggle.style.background = '#dc2626';
+                    btnToggle.style.color = '#ffffff';
+                    btnToggle.style.borderColor = '#0a0a0a';
+                } else {
+                    badge.textContent = 'APAGADO';
+                    badge.className = 'badge badge-inactive';
+                    btnToggle.textContent = 'Encender';
+                    btnToggle.style.background = 'var(--color-ink)';
+                    btnToggle.style.color = 'var(--color-surface)';
+                    btnToggle.style.borderColor = 'var(--color-ink)';
+                }
+            } catch (error) {
+                console.error('Error checking simulator status:', error);
+            }
+        }
+
+        async function pollStatusUntil(targetState, maxAttempts = 20) {
+            for (let i = 0; i < maxAttempts; i++) {
+                try {
+                    const response = await fetch('/monitoreo/simulador/status/');
+                    const data = await response.json();
+                    if (data.running === targetState) {
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Error polling status:', e);
+                }
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+            return false;
+        }
+
+        async function toggleSimulator() {
+            const btnToggle = document.getElementById('btnToggleSimulator');
+            const badge = document.getElementById('simulatorStatusBadge');
+            const targetState = !isSimulatorOnline;
+            const action = isSimulatorOnline ? 'stop' : 'start';
+            
+            badge.textContent = 'PROCESANDO...';
+            badge.className = 'badge badge-loading';
+            btnToggle.disabled = true;
+            
+            try {
+                const response = await fetch(`/monitoreo/simulador/${action}/`);
+                const data = await response.json();
+                // Wait until the target state (Online or Offline) is verified
+                await pollStatusUntil(targetState);
+                window.location.reload();
+            } catch (error) {
+                console.error('Error toggling simulator:', error);
+                await checkSimulatorStatus();
+            } finally {
+                btnToggle.disabled = false;
+            }
+        }
+
+        async function restartSimulator() {
+            const btnRestart = document.getElementById('btnRestartSimulator');
+            const badge = document.getElementById('simulatorStatusBadge');
+            
+            badge.textContent = 'REINICIANDO...';
+            badge.className = 'badge badge-loading';
+            btnRestart.disabled = true;
+            
+            try {
+                const response = await fetch('/monitoreo/simulador/restart/');
+                const data = await response.json();
+                // Wait until it is confirmed to be online again
+                await pollStatusUntil(true);
+                window.location.reload();
+            } catch (error) {
+                console.error('Error restarting simulator:', error);
+                await checkSimulatorStatus();
+            } finally {
+                btnRestart.disabled = false;
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', ()=>{
             const firstButton = document.querySelector('.building-item');
             if(firstButton){
                 selectBuilding(firstButton);
             }
+            checkSimulatorStatus();
+            setInterval(checkSimulatorStatus, 5000);
         });
     </script>
 </body>

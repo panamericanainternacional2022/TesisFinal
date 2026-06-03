@@ -1533,3 +1533,160 @@ def completar_registro_view(request):
             "form_errors": form_errors,
         },
     )
+
+
+# ─── CONTROL DEL SIMULADOR ──────────────────────────────────────
+
+
+@_login_required
+def simulador_status_view(request):
+    import socket
+    from django.http import JsonResponse
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            s.connect(("127.0.0.1", 5000))
+            return JsonResponse({"running": True})
+    except Exception:
+        return JsonResponse({"running": False})
+
+
+@_login_required
+@_admin_required
+def simulador_start_view(request):
+    import subprocess
+    import sys
+    from django.http import JsonResponse
+    
+    # Check if already running
+    import socket
+    is_running = False
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            s.connect(("127.0.0.1", 5000))
+            is_running = True
+    except Exception:
+        pass
+
+    if is_running:
+        return JsonResponse({"status": "ok", "message": "El simulador ya está encendido."})
+
+    # Get absolute path to app27.py
+    api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    parent_dir = os.path.dirname(api_dir)
+    app27_path = os.path.join(parent_dir, "app27.py")
+
+    if not os.path.exists(app27_path):
+        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
+
+    try:
+        python_exe = sys.executable
+        if python_exe.lower().endswith("python.exe"):
+            python_exe = python_exe[:-10] + "pythonw.exe"
+        # DETACHED_PROCESS = 0x00000008
+        env = os.environ.copy()
+        # CREATE_NO_WINDOW = 0x08000000, DETACHED_PROCESS = 0x00000008
+        # Combined = 0x08000008
+        subprocess.Popen(
+            [python_exe, app27_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            close_fds=True,
+            creationflags=0x08000008,
+            env=env
+        )
+        return JsonResponse({"status": "ok", "message": "Simulador encendido correctamente."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Error al encender el simulador: {str(e)}"})
+
+
+@_login_required
+@_admin_required
+def simulador_stop_view(request):
+    import subprocess
+    from django.http import JsonResponse
+    import socket
+    
+    is_running = False
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(0.5)
+            s.connect(("127.0.0.1", 5000))
+            is_running = True
+    except Exception:
+        pass
+
+    if not is_running:
+        return JsonResponse({"status": "ok", "message": "El simulador ya está apagado."})
+
+    try:
+        # Find process ID listening on port 5000 (CREATE_NO_WINDOW = 0x08000000)
+        output = subprocess.check_output("netstat -ano", shell=True, creationflags=0x08000000).decode("utf-8", errors="ignore")
+        pid = None
+        for line in output.splitlines():
+            if ":5000" in line and "LISTENING" in line:
+                parts = line.strip().split()
+                if len(parts) >= 5:
+                    pid = parts[-1]
+                    break
+        
+        if pid:
+            subprocess.check_call(f"taskkill /F /PID {pid}", shell=True, creationflags=0x08000000)
+            return JsonResponse({"status": "ok", "message": "Simulador apagado correctamente."})
+        else:
+            return JsonResponse({"status": "error", "message": "No se pudo determinar el PID del simulador en el puerto 5000."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Error al apagar el simulador: {str(e)}"})
+
+
+@_login_required
+@_admin_required
+def simulador_restart_view(request):
+    import time
+    from django.http import JsonResponse
+    
+    # 1. Stop
+    import subprocess
+    try:
+        output = subprocess.check_output("netstat -ano", shell=True, creationflags=0x08000000).decode("utf-8", errors="ignore")
+        pid = None
+        for line in output.splitlines():
+            if ":5000" in line and "LISTENING" in line:
+                parts = line.strip().split()
+                if len(parts) >= 5:
+                    pid = parts[-1]
+                    break
+        if pid:
+            subprocess.check_call(f"taskkill /F /PID {pid}", shell=True, creationflags=0x08000000)
+            time.sleep(1.5)
+    except Exception:
+        pass
+        
+    # 2. Start
+    import sys
+    api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    parent_dir = os.path.dirname(api_dir)
+    app27_path = os.path.join(parent_dir, "app27.py")
+
+    if not os.path.exists(app27_path):
+        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
+
+    try:
+        python_exe = sys.executable
+        if python_exe.lower().endswith("python.exe"):
+            python_exe = python_exe[:-10] + "pythonw.exe"
+        env = os.environ.copy()
+        env["NO_BROWSER"] = "1"
+        subprocess.Popen(
+            [python_exe, app27_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            close_fds=True,
+            creationflags=0x08000008,
+            env=env
+        )
+        return JsonResponse({"status": "ok", "message": "Simulador reiniciado correctamente."})
+    except Exception as e:
+        return JsonResponse({"status": "error", "message": f"Error al iniciar tras apagar: {str(e)}"})
+
