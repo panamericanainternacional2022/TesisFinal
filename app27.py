@@ -1890,7 +1890,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>INES — Panel de Monitoreo</title>
+    <title>Panel de Control de Telemetría — INES</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2459,7 +2459,7 @@ HTML_TEMPLATE = """
 
         <!-- Encabezado -->
         <header class="admin-info">
-            <h1><i class="fa-solid fa-chart-line"></i> Panel de Control de Telemetría — INES</h1>
+            <h1>Panel de Control de Telemetría — INES</h1>
             <p>Monitoreo continuo y en tiempo real de sensores hidráulicos, eléctricos, mecánicos y de temperatura. Actualización en vivo mediante WebSocket.</p>
         </header>
 
