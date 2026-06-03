@@ -263,6 +263,12 @@
                         </div>
                     </div>
                     <div class="iframe-wrapper">
+                        <!-- Loading message during state transitions -->
+                        <div id="iframeLoading" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--color-ink); margin-bottom: var(--sp-2);"></i>
+                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Conectando al servicio...</h3>
+                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Iniciando el simulador de monitoreo y cargando la interfaz gráfica de telemetría.</p>
+                        </div>
                         <div id="iframeFallback" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
                             <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
@@ -322,6 +328,7 @@
                     btnToggle.style.color = '#ffffff';
                     btnToggle.style.borderColor = '#0a0a0a';
                     
+                    document.getElementById('iframeLoading').style.display = 'none';
                     document.getElementById('iframeFallback').style.display = 'none';
                     buildingFrame.style.display = 'block';
                     if ((!buildingFrame.src || !buildingFrame.src.includes(':5000')) && currentMonitorUrl) {
@@ -335,6 +342,7 @@
                     btnToggle.style.color = 'var(--color-surface)';
                     btnToggle.style.borderColor = 'var(--color-ink)';
                     
+                    document.getElementById('iframeLoading').style.display = 'none';
                     document.getElementById('iframeFallback').style.display = 'flex';
                     buildingFrame.style.display = 'none';
                     buildingFrame.removeAttribute('src');
@@ -370,6 +378,22 @@
             badge.className = 'badge badge-loading';
             btnToggle.disabled = true;
             
+            // Customize loading texts based on action
+            const loadingTitle = document.getElementById('iframeLoadingTitle');
+            const loadingDesc = document.getElementById('iframeLoadingDesc');
+            if (action === 'start') {
+                loadingTitle.textContent = 'Encendiendo el servicio...';
+                loadingDesc.textContent = 'Iniciando el simulador de monitoreo y cargando la interfaz gráfica de telemetría.';
+            } else {
+                loadingTitle.textContent = 'Apagando el servicio...';
+                loadingDesc.textContent = 'Deteniendo el simulador de monitoreo y liberando los recursos del sistema.';
+            }
+            
+            // Show loading placeholder inside iframe container
+            document.getElementById('iframeLoading').style.display = 'flex';
+            document.getElementById('iframeFallback').style.display = 'none';
+            buildingFrame.style.display = 'none';
+            
             try {
                 const response = await fetch(`/monitoreo/simulador/${action}/`);
                 const data = await response.json();
@@ -391,6 +415,17 @@
             badge.textContent = 'REINICIANDO...';
             badge.className = 'badge badge-loading';
             btnRestart.disabled = true;
+            
+            // Customize loading texts for restart
+            const loadingTitle = document.getElementById('iframeLoadingTitle');
+            const loadingDesc = document.getElementById('iframeLoadingDesc');
+            loadingTitle.textContent = 'Reiniciando el servicio...';
+            loadingDesc.textContent = 'Reiniciando el simulador de monitoreo y restableciendo la telemetría.';
+            
+            // Show loading placeholder inside iframe container
+            document.getElementById('iframeLoading').style.display = 'flex';
+            document.getElementById('iframeFallback').style.display = 'none';
+            buildingFrame.style.display = 'none';
             
             try {
                 const response = await fetch('/monitoreo/simulador/restart/');
