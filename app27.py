@@ -49,6 +49,7 @@ logger = logging.getLogger(__name__)
 # Integración con Django para persistir alertas en la base de datos
 # ----------------------------------------------------------------------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "api"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
 DJANGO_CONNECTED = False
 try:
@@ -56,7 +57,7 @@ try:
 
     django.setup()
     from django.utils import timezone
-    from core.models import Notificacion, EquipoMonitoreo
+    from core.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio, Persona
 
     DJANGO_CONNECTED = True
     logger.info("Django integrado correctamente en app27.py")
@@ -154,28 +155,39 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
 # ----------------------------------------------------------------------
-# Suscriptores (persistencia)
+# Obtener destinatarios de email desde la BD Django por edificio
 # ----------------------------------------------------------------------
-SUBSCRIBERS_FILE = "subscribers.json"
+def get_building_emails(edificio_id=None):
+    if not DJANGO_CONNECTED:
+        return []
+    try:
+        if not edificio_id:
+            # Buscar el edificio del primer equipo de monitoreo disponible
+            equipo = EquipoMonitoreo.objects.first()
+            if equipo and equipo.id_edificio:
+                edificio_id = equipo.id_edificio.id_edificio
+            else:
+                # Si no hay equipo, obtener el primer edificio
+                first_edf = Edificio.objects.first()
+                if first_edf:
+                    edificio_id = first_edf.id_edificio
+                else:
+                    return []
+        
+        users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
+        emails = []
+        for u in users:
+            if u.id_usuario and u.id_usuario.id_persona and u.id_usuario.id_persona.email:
+                email = u.id_usuario.id_persona.email.strip()
+                if email and email not in emails:
+                    emails.append(email)
+        return emails
+    except Exception as e:
+        logger.error(f"Error al obtener correos del edificio {edificio_id}: {e}")
+        return []
 
 
-def load_subscribers():
-    if os.path.exists(SUBSCRIBERS_FILE):
-        with open(SUBSCRIBERS_FILE, "r") as f:
-            return json.load(f)
-    else:
-        return {
-            "email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
-            "telegram": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []},
-        }
-
-
-def save_subscribers(data):
-    with open(SUBSCRIBERS_FILE, "w") as f:
-        json.dump(data, f, indent=2)
-
-
-subscribers = load_subscribers()
+subscribers = {"email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []}}
 
 # ----------------------------------------------------------------------
 # Umbrales de riesgo (configurables)
@@ -200,6 +212,7 @@ MAX_HISTORY_SIZE = 500
 thresholds = DEFAULT_THRESHOLDS.copy()
 alert_enabled = True
 alert_log = []
+last_email_sent_time = 0
 pending_notifications = deque()
 MAX_LOG_ENTRIES = 100
 PROTECTION_HOLD_SECONDS = 8
@@ -383,9 +396,10 @@ def reset_critical_values(targets):
 # Envío de alertas (reales si hay credenciales)
 # ----------------------------------------------------------------------
 def send_email_alert(
-    risk_level, subject, body, attachment_pdf=None, attachment_name="reporte.pdf"
+    risk_level, subject, body, attachment_pdf=None, attachment_name="reporte.pdf", recipients=None
 ):
-    recipients = subscribers["email"].get(risk_level, [])
+    if recipients is None:
+        recipients = get_building_emails()
     if not recipients:
         logger.info(f"No hay suscriptores para nivel {risk_level} en email")
         return
@@ -395,10 +409,143 @@ def send_email_alert(
         )
         return
     try:
-        msg = MIMEMultipart()
+        # Definir colores según riesgo al estilo Swiss (design-tokens.css)
+        if risk_level == "Bajo":
+            bg_color = "#f0fdf4"
+            border_color = "#bbf7d0"
+            text_color = "#16a34a"
+        elif risk_level == "Medio":
+            bg_color = "#fffbeb"
+            border_color = "#fde68a"
+            text_color = "#b45309"
+        elif risk_level in ("Alto", "Crítico"):
+            bg_color = "#fef2f2"
+            border_color = "#fecaca"
+            text_color = "#dc2626"
+        else:
+            bg_color = "#f5f5f5"
+            border_color = "#e0e0e0"
+            text_color = "#6b6b6b"
+
+        # Formatear el cuerpo de texto plano a HTML estructurado
+        lines = body.strip().split('\n')
+        html_paragraphs = []
+        in_details = False
+        in_actions = False
+        details_rows = []
+        action_text = ""
+        
+        for line in lines:
+            line_strip = line.strip()
+            if not line_strip:
+                continue
+            if "DETALLES DEL EVENTO:" in line_strip:
+                in_details = True
+                in_actions = False
+                continue
+            elif "MEDIDAS CORRECTIVAS SUGERIDAS:" in line_strip:
+                in_details = False
+                in_actions = True
+                continue
+            elif line_strip.startswith("---") or line_strip.startswith("==="):
+                continue
+                
+            if in_details:
+                if ":" in line_strip:
+                    parts = line_strip.split(":", 1)
+                    key = parts[0].strip()
+                    val = parts[1].strip()
+                    details_rows.append(f"""
+                      <tr>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0; font-weight: 700; width: 35%; color: #0a0a0a;">{key}</td>
+                        <td style="padding: 10px 0; border-bottom: 1px solid #e0e0e0; color: #2e2e2e;">{val}</td>
+                      </tr>
+                    """)
+                else:
+                    if details_rows:
+                        html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
+            elif in_actions:
+                if line_strip.startswith("Accion:") or line_strip.startswith("Acción:"):
+                    action_text = line_strip.split(":", 1)[1].strip()
+                else:
+                    action_text += " " + line_strip
+            else:
+                if "SISTEMA INES" in line_strip and "REPORTE" in line_strip:
+                    html_paragraphs.append(f"<h2 style='margin: 0 0 16px 0; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid #0a0a0a; padding-bottom: 8px;'>{line_strip}</h2>")
+                else:
+                    html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
+
+        formatted_content = "".join(html_paragraphs)
+        if details_rows:
+            formatted_content += f"""
+            <h3 style="margin: 20px 0 10px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a;">Detalles del Evento</h3>
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; margin-bottom: 24px; font-size: 13px;">
+              {"".join(details_rows)}
+            </table>
+            """
+        if action_text:
+            formatted_content += f"""
+            <div style="margin: 24px 0; padding: 16px; background-color: {bg_color}; border: 1px solid {border_color}; border-left: 4px solid {text_color};">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 6px;">Medida Correctiva Recomendada</span>
+              <p style="margin: 0; font-size: 13px; font-weight: 500; color: #0a0a0a; line-height: 1.4;">{action_text}</p>
+            </div>
+            """
+
+        html_content = f"""<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{subject}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; color: #0a0a0a;">
+  <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5; padding: 24px 0;">
+    <tr>
+      <td align="center">
+        <!-- Contenedor Principal (Retícula Suiza - Bordes Rectos) -->
+        <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border: 1px solid #0a0a0a; border-collapse: collapse;">
+          <!-- Cabecera -->
+          <tr>
+            <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">SISTEMA INES</span>
+            </td>
+          </tr>
+          <!-- Estado / Banner de Riesgo -->
+          <tr>
+            <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: {bg_color}; border-left: 6px solid {text_color};">
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 4px;">NIVEL DE RIESGO: {risk_level.upper()}</span>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo</h1>
+            </td>
+          </tr>
+          <!-- Contenido -->
+          <tr>
+            <td style="padding: 24px; font-size: 14px; line-height: 1.55; color: #2e2e2e;">
+              {formatted_content}
+            </td>
+          </tr>
+          <!-- Pie de página -->
+          <tr>
+            <td style="padding: 16px 24px; border-top: 1px solid #e0e0e0; background-color: #f5f5f5; font-size: 11px; color: #6b6b6b; text-align: center;">
+              Este es un mensaje generado de forma automática por el Sistema de Monitoreo INES.<br>
+              Por favor, no responda a este correo electrónico.
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+        msg = MIMEMultipart('mixed')
         msg["From"] = SMTP_USER
         msg["Subject"] = subject
-        msg.attach(MIMEText(body, "plain"))
+
+        # Agregar alternativas text/plain y text/html
+        alt_part = MIMEMultipart('alternative')
+        alt_part.attach(MIMEText(body, "plain", "utf-8"))
+        alt_part.attach(MIMEText(html_content, "html", "utf-8"))
+        msg.attach(alt_part)
 
         if attachment_pdf:
             attachment_pdf.seek(0)
@@ -412,37 +559,14 @@ def send_email_alert(
         server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         for rec in recipients:
+            if "To" in msg:
+                del msg["To"]
             msg["To"] = rec
             server.send_message(msg)
             logger.info(f"✅ Email REAL enviado a {rec} (riesgo {risk_level})")
         server.quit()
     except Exception as e:
         logger.error(f"Error enviando email: {e}")
-
-
-def send_telegram_alert(risk_level, message):
-    recipients = subscribers["telegram"].get(risk_level, [])
-    if not recipients:
-        logger.info(f"No hay suscriptores para nivel {risk_level} en Telegram")
-        return
-    if not TELEGRAM_BOT_TOKEN:
-        logger.warning(
-            "⚠️ TELEGRAM_BOT_TOKEN no configurado. No se enviará mensaje real."
-        )
-        return
-    try:
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        for chat_id in recipients:
-            payload = {"chat_id": chat_id, "text": message, "parse_mode": "HTML"}
-            resp = requests.post(url, data=payload, timeout=5)
-            if resp.status_code == 200:
-                logger.info(
-                    f"✅ Telegram REAL enviado a {chat_id} (riesgo {risk_level})"
-                )
-            else:
-                logger.error(f"Error Telegram: {resp.text}")
-    except Exception as e:
-        logger.error(f"Error Telegram: {e}")
 
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action):
@@ -554,8 +678,62 @@ def update_protection_state():
             pass
 
 
+def get_professional_action(variable, risk_level, value):
+    actions = {
+        "flow_rate": {
+            "Alto": "Flujo de agua elevado. Monitorear valvulas de alivio y posibles fugas.",
+            "Crítico": "Caudal critico (interrupcion total o exceso grave). Apagado preventivo de bomba activado. Inspeccionar tuberia principal."
+        },
+        "pressure": {
+            "Alto": "Presion superior al limite recomendado. Verificar regulador de presion y manometros.",
+            "Crítico": "Presion critica. Riesgo inminente de ruptura de tuberias. Apagar bomba y liberar presion."
+        },
+        "temperature": {
+            "Alto": "Temperatura elevada en el motor de la bomba. Incrementar ventilacion en sala de maquinas.",
+            "Crítico": "Temperatura del motor critica. Riesgo de sobrecalentamiento y fundicion. Apagado de emergencia y revision de refrigeracion."
+        },
+        "vibration": {
+            "Alto": "Nivel de vibracion por encima del estandar. Programar mantenimiento mecanico.",
+            "Crítico": "Vibracion mecanica severa. Desalineacion severa o falla de rodamientos. Apagar equipo inmediatamente."
+        },
+        "tank_level": {
+            "Alto": "Nivel de tanque elevado. Monitorear llenado automatico.",
+            "Medio": "Nivel de tanque bajo.",
+            "Crítico": "Nivel de tanque critico. Riesgo de cavitacion de la bomba. Detener succion y rellenar tanque urgentemente."
+        },
+        "speed": {
+            "Alto": "Velocidad de ascensor por encima del limite de viaje seguro. Programar revision de variador de frecuencia.",
+            "Crítico": "Exceso de velocidad critico. Frenado de emergencia activado. Inspeccion tecnica de seguridad obligatoria."
+        },
+        "load": {
+            "Alto": "Carga de cabina cercana al limite de diseno. Monitorear comportamiento de motor.",
+            "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operacion."
+        },
+        "energy": {
+            "Alto": "Consumo de energia inusualmente elevado. Monitorear eficiencia.",
+            "Crítico": "Pico de energia critico. Posible cortocircuito o sobreesfuerzo del motor. Revisar protecciones electricas."
+        },
+        "voltage": {
+            "Alto": "Inestabilidad en voltaje (fuera del rango 200V-240V). Riesgo para componentes electronicos.",
+            "Crítico": "Fluctuacion critica de tension electrica. Desconectar equipos para evitar danos."
+        },
+        "current": {
+            "Alto": "Corriente de motor alta. Monitorear temperatura del bobinado.",
+            "Crítico": "Amperaje critico (sobrecarga electrica). Apagado automatico de proteccion activo."
+        },
+        "motor_stuck": {
+            "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberacion de emergencia de pasajeros."
+        },
+        "Racionamiento": {
+            "Crítico": "Caudal por debajo del minimo admisible (racionamiento de agua activo). Restringir consumo general."
+        }
+    }
+    var_actions = actions.get(variable, {})
+    return var_actions.get(risk_level, f"Verificar sensor {variable} (Valor actual: {value}). Programar revision preventiva.")
+
+
 def send_alert(variable, value, risk_level, recommended_action):
-    global active_alerts
+    global active_alerts, last_email_sent_time
     if not alert_enabled:
         logger.info("Alertas desactivadas por el usuario")
         return
@@ -602,14 +780,32 @@ def send_alert(variable, value, risk_level, recommended_action):
                 f"Alerta crítica para {variable} sin mapeo a dispositivo; no se activará protección automática."
             )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[ALERTA {risk_level.upper()}] {variable} = {value}"
-    body = f"{timestamp}\nSensor: {variable}\nValor: {value}\nRiesgo: {risk_level}\nAcciÃ³n: {recommended_action}"
-    threading.Thread(
-        target=send_email_alert, args=(risk_level, subject, body), daemon=True
-    ).start()
-    threading.Thread(
-        target=send_telegram_alert, args=(risk_level, body), daemon=True
-    ).start()
+    subject = f"[INES - Alerta de Monitoreo] Estado {risk_level.upper()}: Anomalia en {variable.replace('_', ' ').title()}"
+    body = f"""SISTEMA INES — REPORTE AUTOMATICO DE ANOMALIA
+
+Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
+
+DETALLES DEL EVENTO:
+--------------------------------------------
+Fecha/Hora:   {timestamp}
+Parametro:    {variable.replace('_', ' ').upper()}
+Lectura:      {value} {get_unit(variable)}
+Nivel Riesgo: {risk_level.upper()}
+
+MEDIDAS CORRECTIVAS SUGERIDAS:
+--------------------------------------------
+Accion:       {recommended_action}
+
+Este es un mensaje de contingencia generado de forma automatica por el modulo de proteccion del Sistema INES. Por favor, proceda con la inspeccion tecnica correspondiente de los equipos implicados.
+"""
+
+    now = time.time()
+    if now - last_email_sent_time > 300:  # 5 minutes cooldown
+        last_email_sent_time = now
+        threading.Thread(
+            target=send_email_alert, args=(risk_level, subject, body), daemon=True
+        ).start()
+
     notification_payload = {
         "timestamp": timestamp,
         "variable": variable,
@@ -652,7 +848,7 @@ def update_sensor_data():
     # Generación de fallas aleatorias para bomba y ascensor (independientes)
     # Si un dispositivo está en protección, no cambiamos sus valores (se retiene la falla)
     # Inyectar falla de bomba aleatoria si no está protegida
-    if "pump" not in protection_ends and pump_on and random.random() < 0.15:
+    if "pump" not in protection_ends and pump_on and random.random() < 0.002:
         sensor_data["flow_rate"] = 0.0
         sensor_data["pressure"] = 0.0
         sensor_data["vibration"] = 12.0
@@ -681,7 +877,7 @@ def update_sensor_data():
                     f"[SIM] {time.strftime('%H:%M:%S')} INYECCION-SIMULT: elevator falla -> protection_ends={protection_ends}"
                 )
     # Inyectar falla de ascensor aleatoria si no está protegida
-    if "elevator" not in protection_ends and elevator_on and random.random() < 0.12:
+    if "elevator" not in protection_ends and elevator_on and random.random() < 0.002:
         sensor_data["speed"] = 0.0
         sensor_data["load"] = 950
         sensor_data["motor_stuck"] = True
@@ -872,22 +1068,24 @@ def update_sensor_data():
 
 def generate_data_and_emit():
     while True:
-        eventlet.sleep(2)
+        eventlet.sleep(5)
         update_protection_state()
         update_sensor_data()
         for var, value in sensor_data.items():
             if var == "motor_stuck":
                 if value:
+                    action = get_professional_action(var, "Crítico", value)
                     send_alert(
-                        var, value, "Crítico", "Motor pegado - Revisar inmediatamente"
+                        var, value, "Crítico", action
                     )
                 else:
                     active_alerts.pop(var, None)
                 continue
             risk, _ = classify_risk(var, value)
             if risk in ("Alto", "Crítico"):
+                action = get_professional_action(var, risk, value)
                 send_alert(
-                    var, value, risk, f"Revisar {var}. Valor {value} - Riesgo {risk}"
+                    var, value, risk, action
                 )
             else:
                 active_alerts.pop(var, None)
@@ -959,18 +1157,32 @@ def generate_data_and_emit():
 
 
 # ----------------------------------------------------------------------
-# Reporte PDF mejorado (con gráfico de barras)
+# Reporte PDF mejorado (con diseño coherente con la web)
 # ----------------------------------------------------------------------
 class PDFReport(FPDF):
     def header(self):
-        if self.page_no() > 1:
-            self.set_font("Arial", "I", 8)
-            self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "R")
+        # Cabecera principal solo en la primera página o cabecera reducida en páginas posteriores
+        if self.page_no() == 1:
+            # Dibujar una línea negra gruesa superior (estilo minimalista de la web)
+            self.set_fill_color(10, 10, 10)
+            self.rect(10, 10, 190, 2, "F")
+            self.ln(5)
+        else:
+            # Cabecera secundaria para páginas siguientes
+            self.set_font("Helvetica", "I", 8)
+            self.set_text_color(95, 95, 95)
+            self.cell(0, 10, "SISTEMA PCLogo - Reporte de Monitoreo", 0, 0, "L")
+            self.cell(0, 10, f"Página {self.page_no()}", 0, 1, "R")
+            self.set_draw_color(10, 10, 10)
+            self.set_line_width(0.6)
+            self.line(10, 18, 200, 18)
+            self.ln(2)
 
     def footer(self):
         self.set_y(-15)
-        self.set_font("Arial", "I", 8)
-        self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
+        self.set_font("Helvetica", "I", 8)
+        self.set_text_color(95, 95, 95)
+        self.cell(0, 10, f"Generado por INES - Página {self.page_no()}", 0, 0, "C")
 
 
 def generate_pdf_report(period):
@@ -1035,42 +1247,79 @@ def generate_pdf_report(period):
         if datetime.strptime(a["timestamp"], "%Y-%m-%d %H:%M:%S") >= start_time
     ]
     pdf = PDFReport()
+    pdf.set_line_width(0.6)
     pdf.add_page()
-    pdf.set_font("Arial", "B", 20)
-    pdf.cell(0, 20, "SISTEMA PCLogo", ln=1, align="C")
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "Reporte de Monitoreo", ln=1, align="C")
-    pdf.ln(10)
-    pdf.set_font("Arial", "", 12)
-    pdf.cell(0, 8, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1, align="C")
+    
+    # Título principal minimalista
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 12, "INES", ln=1, align="L")
+    pdf.set_font("Helvetica", "B", 13)
+    pdf.set_text_color(95, 95, 95)
+    pdf.cell(0, 8, "REPORTE DE MONITOREO AUTOMATIZADO", ln=1, align="L")
+    pdf.ln(5)
+    
+    # Metadata del reporte
+    pdf.set_font("Helvetica", "", 10)
+    pdf.set_text_color(26, 26, 26)
+    pdf.cell(0, 6, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1, align="L")
     pdf.cell(
         0,
-        8,
-        f"Período: {period_name} (desde {start_time.strftime('%d/%m/%Y %H:%M:%S')})",
+        6,
+        f"Periodo de Análisis: {period_name} (desde {start_time.strftime('%d/%m/%Y %H:%M:%S')})",
         ln=1,
-        align="C",
+        align="L",
     )
-    pdf.ln(10)
-    # Leyenda de riesgos
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Leyenda de Riesgos", ln=1)
-    pdf.set_font("Arial", "", 10)
-    pdf.set_fill_color(34, 197, 94)
-    pdf.cell(30, 8, " Bajo", 1, 0, "L", True)
-    pdf.cell(160, 8, "Valores normales", 1, 1, "L")
-    pdf.set_fill_color(234, 179, 8)
-    pdf.cell(30, 8, " Medio", 1, 0, "L", True)
-    pdf.cell(160, 8, "Cerca del límite, monitorear", 1, 1, "L")
-    pdf.set_fill_color(249, 115, 22)
-    pdf.cell(30, 8, " Alto", 1, 0, "L", True)
-    pdf.cell(160, 8, "Fuera de rango peligroso", 1, 1, "L")
-    pdf.set_fill_color(239, 68, 68)
-    pdf.cell(30, 8, " Crítico", 1, 0, "L", True)
-    pdf.cell(160, 8, "Acción inmediata", 1, 1, "L")
     pdf.ln(8)
-    # Gráfico de barras
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Gráfico de Barras: Valores Promedio", ln=1)
+    
+    # Leyenda de riesgos estilizada con la paleta de la web y bordes gruesos negros
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "LEYENDA DE RIESGOS", ln=1)
+    pdf.ln(2)
+    
+    # Bajo (Verde)
+    pdf.set_fill_color(240, 253, 244)
+    pdf.set_text_color(22, 101, 52)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(30, 8, "  Bajo", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(160, 8, " Valores normales de funcionamiento", 1, 1, "L")
+    
+    # Medio (Amarillo/Ámbar)
+    pdf.set_fill_color(255, 251, 235)
+    pdf.set_text_color(146, 64, 14)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(30, 8, "  Medio", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(160, 8, " Cerca del limite sugerido, requiere observacion", 1, 1, "L")
+    
+    # Alto (Naranja)
+    pdf.set_fill_color(255, 247, 237)
+    pdf.set_text_color(194, 65, 12)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(30, 8, "  Alto", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(160, 8, " Fuera de rango seguro, requiere revision preventiva", 1, 1, "L")
+    
+    # Crítico (Rojo)
+    pdf.set_fill_color(254, 242, 242)
+    pdf.set_text_color(153, 27, 27)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(30, 8, "  Critico", 1, 0, "L", True)
+    pdf.set_text_color(95, 95, 95)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(160, 8, " Estado de peligro, requiere accion correctiva inmediata", 1, 1, "L")
+    pdf.ln(10)
+    
+    # Gráfico de barras estilizado
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "VALORES PROMEDIO DEL PERIODO", ln=1)
+    pdf.ln(2)
     bar_vars = [
         "temperature",
         "pressure",
@@ -1083,13 +1332,13 @@ def generate_pdf_report(period):
         "current",
     ]
     display_names = {
-        "temperature": "Temp. (°C)",
-        "pressure": "Presión (bar)",
+        "temperature": "Temp. (C)",
+        "pressure": "Presion (bar)",
         "flow_rate": "Caudal (L/s)",
-        "vibration": "Vibración (mm/s)",
-        "tank_level": "Nivel tanque (%)",
+        "vibration": "Vibracion (mm/s)",
+        "tank_level": "Tanque (%)",
         "load": "Carga (kg)",
-        "energy": "Energía (kW)",
+        "energy": "Energia (kW)",
         "voltage": "Voltaje (V)",
         "current": "Corriente (A)",
     }
@@ -1101,129 +1350,197 @@ def generate_pdf_report(period):
             avgs.append(stats[v]["avg"])
     if avgs:
         max_avg = max(avgs)
-        x0 = 30
+        x0 = 15
         y0 = pdf.get_y()
-        bar_width = 30
-        spacing = 12
-        max_bar_height = 80
-        pdf.set_font("Arial", "", 7)
+        bar_width = 16
+        spacing = 4
+        max_bar_height = 50
+        pdf.set_font("Helvetica", "", 7)
         for i, (lab, val) in enumerate(zip(labels, avgs)):
             x = x0 + i * (bar_width + spacing)
-            if x + bar_width > 190:
+            if x + bar_width > 200:
                 break
             height = (val / max_avg) * max_bar_height if max_avg > 0 else 10
-            pdf.set_fill_color(70, 130, 200)
-            pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "F")
+            # Usar color carbón/azul oscuro para las barras (#1E293B) y borde negro grueso
+            pdf.set_fill_color(30, 41, 59)
+            pdf.set_draw_color(10, 10, 10)
+            pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "FD")
+            
+            # Valor encima de la barra
+            pdf.set_text_color(30, 41, 59)
             pdf.set_xy(x, y0 + max_bar_height - height - 4)
             pdf.cell(bar_width, 4, f"{val:.1f}", 0, 0, "C")
+            
+            # Label debajo de la barra
+            pdf.set_text_color(95, 95, 95)
             pdf.set_xy(x, y0 + max_bar_height + 2)
-            pdf.cell(bar_width, 5, lab, 0, 0, "C")
-        pdf.set_y(y0 + max_bar_height + 15)
-    pdf.ln(5)
+            pdf.cell(bar_width, 4, lab, 0, 0, "C")
+        pdf.set_y(y0 + max_bar_height + 12)
+    pdf.ln(6)
+    
     # Tabla valores actuales
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Valores Actuales", ln=1)
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(80, 8, "Variable", 1, 0, "C", 1)
-    pdf.cell(50, 8, "Valor", 1, 0, "C", 1)
-    pdf.cell(60, 8, "Riesgo", 1, 1, "C", 1)
-    pdf.set_font("Arial", "", 9)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "VALORES ACTUALES DE SENSORES", ln=1)
+    pdf.ln(2)
+    
+    # Cabecera de la tabla
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(10, 10, 10) # Cabecera oscura
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(80, 8, "  Variable", 1, 0, "L", True)
+    pdf.cell(50, 8, "  Valor Actual", 1, 0, "L", True)
+    pdf.cell(60, 8, "Riesgo / Estado", 1, 1, "C", True)
+    
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_draw_color(10, 10, 10)
     for var, val in sensor_data.items():
         risk, color = classify_risk(var, val)
         if color == "green":
-            fill = (34, 197, 94)
+            fill = (240, 253, 244)
+            text_c = (22, 101, 52)
         elif color == "yellow":
-            fill = (234, 179, 8)
+            fill = (255, 251, 235)
+            text_c = (146, 64, 14)
         elif color == "orange":
-            fill = (249, 115, 22)
+            fill = (255, 247, 237)
+            text_c = (194, 65, 12)
         elif color == "red":
-            fill = (239, 68, 68)
+            fill = (254, 242, 242)
+            text_c = (153, 27, 27)
         else:
-            fill = (200, 200, 200)
-        pdf.set_fill_color(*fill)
+            fill = (249, 250, 251)
+            text_c = (55, 65, 81)
+            
         if isinstance(val, bool):
             val_str = "Sí" if val else "No"
         else:
             val_str = f"{val} {get_unit(var)}"
-        pdf.cell(80, 8, var.replace("_", " ").title(), 1, 0, "L", True)
-        pdf.cell(50, 8, val_str, 1, 0, "L", True)
+            
+        # Dibujar fila con bordes negros
+        pdf.set_text_color(26, 26, 26)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.cell(80, 8, f"  {var.replace('_', ' ').title()}", 1, 0, "L")
+        pdf.cell(50, 8, f"  {val_str}", 1, 0, "L")
+        
+        # Celda tipo Badge para riesgo con borde negro
+        pdf.set_fill_color(*fill)
+        pdf.set_text_color(*text_c)
+        pdf.set_draw_color(10, 10, 10)
         pdf.cell(60, 8, risk, 1, 1, "C", True)
-    pdf.ln(5)
+    pdf.ln(8)
+    
+    # Forzar salto de página si queda poco espacio
+    if pdf.get_y() > 220:
+        pdf.add_page()
+        
     # Estadísticas
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, f"Estadísticas - {period_name}", ln=1)
-    pdf.set_font("Arial", "B", 9)
-    pdf.set_fill_color(240, 240, 240)
-    pdf.cell(50, 7, "Variable", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Mínimo", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Máximo", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Promedio", 1, 0, "C", 1)
-    pdf.cell(35, 7, "Lecturas", 1, 1, "C", 1)
-    pdf.set_font("Arial", "", 8)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, f"ESTADISTICAS DE VARIABLES ({period_name.upper()})", ln=1)
+    pdf.ln(2)
+    
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_fill_color(10, 10, 10)
+    pdf.set_text_color(255, 255, 255)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.cell(55, 7, "  Variable", 1, 0, "L", True)
+    pdf.cell(32, 7, "Minimo", 1, 0, "C", True)
+    pdf.cell(32, 7, "Maximo", 1, 0, "C", True)
+    pdf.cell(36, 7, "Promedio", 1, 0, "C", True)
+    pdf.cell(35, 7, "Lecturas", 1, 1, "C", True)
+    
+    pdf.set_font("Helvetica", "", 8)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.set_text_color(26, 26, 26)
     for var in numeric_vars:
         s = stats[var]
-        pdf.cell(50, 6, var.replace("_", " ").title(), 1)
-        pdf.cell(35, 6, str(s["min"]), 1)
-        pdf.cell(35, 6, str(s["max"]), 1)
+        pdf.cell(55, 6, f"  {var.replace('_', ' ').title()}", 1)
+        pdf.cell(32, 6, str(s["min"]), 1, 0, "C")
+        pdf.cell(32, 6, str(s["max"]), 1, 0, "C")
         avg_val = f"{s['avg']:.2f}" if isinstance(s["avg"], float) else "N/A"
-        pdf.cell(35, 6, avg_val, 1)
-        pdf.cell(35, 6, str(s["count"]), 1, 1)
-    pdf.ln(5)
+        pdf.cell(36, 6, avg_val, 1, 0, "C")
+        pdf.cell(35, 6, str(s["count"]), 1, 1, "C")
+    pdf.ln(8)
+    
+    # Recomendaciones y Alertas
+    if pdf.get_y() > 210:
+        pdf.add_page()
+        
     # Recomendaciones
     recs = []
     if "temperature" in stats and isinstance(stats["temperature"]["avg"], float):
         if stats["temperature"]["avg"] > 85:
-            recs.append("Temperatura promedio elevada. Mejorar ventilación.")
+            recs.append("Temperatura promedio elevada. Mejorar ventilación de sala.")
     if "flow_rate" in stats and isinstance(stats["flow_rate"]["avg"], float):
         if stats["flow_rate"]["avg"] < 10:
-            recs.append("Caudal promedio bajo. Revisar bomba y filtros.")
+            recs.append("Caudal promedio bajo. Revisar bomba hidráulica y filtros.")
     if "pressure" in stats and isinstance(stats["pressure"]["avg"], float):
         if stats["pressure"]["avg"] > 7:
-            recs.append("Presión media alta. Verificar reguladores.")
+            recs.append("Presion media alta. Verificar reguladores de presion.")
     if "tank_level" in stats and isinstance(stats["tank_level"]["avg"], float):
         if stats["tank_level"]["avg"] < 25:
             recs.append("Nivel de tanque bajo. Aumentar frecuencia de recarga.")
     if not recs:
-        recs.append("Parámetros dentro de rangos normales.")
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Recomendaciones", ln=1)
-    pdf.set_font("Arial", "", 10)
+        recs.append("Todos los parámetros promedio se encuentran estables.")
+        
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "DIAGNOSTICO Y RECOMENDACIONES", ln=1)
+    pdf.ln(2)
+    pdf.set_font("Helvetica", "", 9)
+    pdf.set_text_color(55, 65, 81)
     for rec in recs[:5]:
         pdf.cell(0, 6, f"- {rec}", ln=1)
-    pdf.ln(5)
+    pdf.ln(8)
+    
     # Alertas
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, f"Alertas en el período: {len(alerts_in_period)}", ln=1)
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, f"ALERTAS DETECTADAS EN EL PERIODO: {len(alerts_in_period)}", ln=1)
+    pdf.ln(2)
     if alerts_in_period:
-        pdf.set_font("Arial", "B", 9)
-        pdf.set_fill_color(255, 220, 220)
-        pdf.cell(50, 7, "Fecha/Hora", 1, 0, "C", 1)
-        pdf.cell(50, 7, "Variable", 1, 0, "C", 1)
-        pdf.cell(40, 7, "Valor", 1, 0, "C", 1)
-        pdf.cell(50, 7, "Riesgo", 1, 1, "C", 1)
-        pdf.set_font("Arial", "", 8)
+        pdf.set_font("Helvetica", "B", 8)
+        pdf.set_fill_color(254, 242, 242)
+        pdf.set_text_color(153, 27, 27)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.cell(50, 7, "  Fecha/Hora", 1, 0, "L", True)
+        pdf.cell(50, 7, "  Variable", 1, 0, "L", True)
+        pdf.cell(40, 7, "Valor", 1, 0, "C", True)
+        pdf.cell(50, 7, "Riesgo", 1, 1, "C", True)
+        
+        pdf.set_font("Helvetica", "", 8)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.set_text_color(26, 26, 26)
         for a in alerts_in_period[:15]:
-            pdf.cell(50, 6, a["timestamp"], 1)
-            pdf.cell(50, 6, a["variable"], 1)
-            pdf.cell(40, 6, str(a["value"]), 1)
-            pdf.cell(50, 6, a["risk"], 1, 1)
+            pdf.cell(50, 6, f"  {a['timestamp']}", 1)
+            pdf.cell(50, 6, f"  {a['variable']}", 1)
+            pdf.cell(40, 6, str(a["value"]), 1, 0, "C")
+            pdf.cell(50, 6, a["risk"], 1, 1, "C")
     else:
-        pdf.cell(0, 8, "No hubo alertas en este período.", ln=1)
-    # Racionamiento
-    pdf.ln(5)
-    pdf.set_font("Arial", "B", 12)
+        pdf.set_font("Helvetica", "I", 9)
+        pdf.set_text_color(95, 95, 95)
+        pdf.cell(0, 8, "No se registraron alertas críticas durante este período.", ln=1)
+    pdf.ln(8)
+    
+    # Racionamiento de agua
+    pdf.set_font("Helvetica", "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "ESTADO GENERAL DE RACIONAMIENTO", ln=1)
+    pdf.ln(2)
+    
     if sensor_data["flow_rate"] < RATIONING_THRESHOLD:
-        pdf.set_text_color(255, 0, 0)
-        pdf.cell(
-            0,
-            10,
-            "RACIONAMIENTO ACTIVO - Caudal por debajo del mínimo",
-            ln=1,
-            align="C",
-        )
+        pdf.set_fill_color(254, 242, 242)
+        pdf.set_text_color(153, 27, 27)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.cell(0, 10, "  RACIONAMIENTO ACTIVO - Caudal por debajo del minimo admisible", 1, 1, "L", True)
     else:
-        pdf.set_text_color(0, 150, 0)
-        pdf.cell(0, 10, "Racionamiento inactivo. Caudal normal.", ln=1, align="C")
+        pdf.set_fill_color(240, 253, 244)
+        pdf.set_text_color(22, 101, 52)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.cell(0, 10, "  Racionamiento inactivo. Flujo hidraulico normal.", 1, 1, "L", True)
+        
     pdf_output = pdf.output(dest="S")
     if isinstance(pdf_output, str):
         pdf_output = pdf_output.encode("latin-1")
@@ -1261,7 +1578,7 @@ def api_status():
 def stream_monitoring():
     def event_stream():
         while True:
-            eventlet.sleep(2)
+            eventlet.sleep(5)
             monitoring_payload = build_live_payload()
             yield f"data: {json.dumps(monitoring_payload)}\n\n"
             while pending_notifications:
@@ -1328,79 +1645,109 @@ def get_alert_log():
 @app.route("/clear_history", methods=["POST"])
 def clear_history():
     global history
-    history = []
+    history.clear()
     return jsonify({"status": "ok", "message": "Historial limpiado"})
 
 
-@app.route("/get_subscribers", methods=["GET"])
-def get_subscribers():
-    return jsonify(subscribers)
-
-
-@app.route("/add_subscriber", methods=["POST"])
-def add_subscriber():
-    data = request.json
-    channel = data.get("channel")
-    risk_level = data.get("risk_level")
-    contact = data.get("contact")
-    if channel not in subscribers or risk_level not in subscribers[channel]:
-        return jsonify({"status": "error", "message": "Canal o nivel inválido"}), 400
-    if contact in subscribers[channel][risk_level]:
-        return jsonify({"status": "error", "message": "El contacto ya existe"}), 400
-    subscribers[channel][risk_level].append(contact)
-    save_subscribers(subscribers)
-    return jsonify({"status": "ok", "subscribers": subscribers})
-
-
-@app.route("/remove_subscriber", methods=["POST"])
-def remove_subscriber():
-    data = request.json
-    channel = data.get("channel")
-    risk_level = data.get("risk_level")
-    contact = data.get("contact")
-    if channel in subscribers and risk_level in subscribers[channel]:
-        if contact in subscribers[channel][risk_level]:
-            subscribers[channel][risk_level].remove(contact)
-            save_subscribers(subscribers)
-            return jsonify({"status": "ok"})
-    return jsonify({"status": "error", "message": "No encontrado"}), 400
-
-
-@app.route("/test_alert/<channel>/<risk_level>/<contact>")
-def test_alert(channel, risk_level, contact):
-    if channel not in ["email", "telegram"]:
-        return "Canal inválido", 400
-    original = subscribers[channel].get(risk_level, [])
-    if contact not in original:
-        subscribers[channel][risk_level].append(contact)
-
-    if channel == "email":
-        message = (
-            "Este es tu reporte del edificio generado por el sistema de monitoreo."
-        )
+@app.route("/clear_alerts", methods=["POST"])
+def clear_alerts():
+    global alert_log
+    alert_log = []
+    if DJANGO_CONNECTED:
         try:
-            pdf_io = generate_pdf_report("hour")  # O el periodo que desees
-            send_email_alert(
-                risk_level,
-                "Reporte de Edificio - PCLogo",
-                message,
-                attachment_pdf=pdf_io,
-            )
+            equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
+            if equipo:
+                Notificacion.objects.filter(id_equipo_monitoreo=equipo).delete()
+            else:
+                Notificacion.objects.all().delete()
+            logger.info("Notificaciones de Django eliminadas")
         except Exception as e:
-            logger.error(f"Error generando o enviando PDF: {e}")
-            send_email_alert(
-                risk_level,
-                "Reporte de Edificio - PCLogo",
-                message + f"\n\n(No se pudo adjuntar el reporte: {e})",
-            )
-    elif channel == "telegram":
-        message = "Este es tu reporte del edificio (El PDF fue enviado al correo) - PCLogo."
-        send_telegram_alert(risk_level, message)
+            logger.warning("Error al eliminar notificaciones en Django: %s", e)
+    return jsonify({"status": "ok", "message": "Alertas limpiadas"})
 
-    if contact not in original:
-        subscribers[channel][risk_level] = original
-        save_subscribers(subscribers)
-    return f"Reporte enviado a {contact} (riesgo {risk_level}) - Revisa logs y tu dispositivo."
+
+@app.route("/api/edificios", methods=["GET"])
+def api_edificios():
+    if not DJANGO_CONNECTED:
+        return jsonify([{"id": 1, "nombre": "Edificio Simulado (Sin DB)"}])
+    try:
+        edificios = Edificio.objects.all().order_by("nb_edificio")
+        return jsonify([{"id": e.id_edificio, "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}"} for e in edificios])
+    except Exception as e:
+        logger.error(f"Error cargando edificios: {e}")
+        return jsonify([{"id": 1, "nombre": "Edificio Simulado (Error)"}])
+
+
+@app.route("/api/usuarios_edificio/<int:edificio_id>", methods=["GET"])
+def api_usuarios_edificio(edificio_id):
+    if not DJANGO_CONNECTED:
+        return jsonify([])
+    try:
+        users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
+        payload = []
+        for u in users:
+            if u.id_usuario and u.id_usuario.id_persona:
+                p = u.id_usuario.id_persona
+                if p.email:
+                    payload.append({
+                        "nombre": p.name or "",
+                        "apellido": p.apellido or "",
+                        "email": p.email.strip()
+                    })
+        return jsonify(payload)
+    except Exception as e:
+        logger.error(f"Error cargando usuarios de edificio: {e}")
+        return jsonify([])
+
+
+@app.route("/api/send_test_email", methods=["POST"])
+def api_send_test_email():
+    data = request.json
+    email = data.get("email")
+    risk_level = data.get("risk_level", "Bajo")
+    message = "Este es tu reporte del edificio generado por el sistema de monitoreo."
+    try:
+        pdf_io = generate_pdf_report("hour")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio - PCLogo", message, pdf_io, "reporte.pdf", [email]),
+            daemon=True
+        ).start()
+    except Exception as e:
+        logger.error(f"Error generando o enviando PDF a {email}: {e}")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
+            daemon=True
+        ).start()
+    return jsonify({"status": "ok", "message": f"Prueba enviada a {email}"})
+
+
+@app.route("/api/send_all_subscribers", methods=["POST"])
+def api_send_all_subscribers():
+    data = request.json
+    edificio_id = data.get("edificio_id")
+    risk_level = data.get("risk_level", "Bajo")
+    emails = get_building_emails(edificio_id)
+    if not emails:
+        return jsonify({"status": "error", "message": "No hay correos registrados para este edificio"}), 400
+    
+    message = "Este es el reporte del edificio enviado a todos los suscriptores."
+    try:
+        pdf_io = generate_pdf_report("hour")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message, pdf_io, "reporte.pdf", emails),
+            daemon=True
+        ).start()
+    except Exception as e:
+        logger.error(f"Error generando o enviando PDF masivo: {e}")
+        threading.Thread(
+            target=send_email_alert,
+            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
+            daemon=True
+        ).start()
+    return jsonify({"status": "ok", "message": f"Prueba enviada a {len(emails)} destinatarios"})
 
 
 @app.route("/manual_update", methods=["POST"])
@@ -1431,11 +1778,12 @@ def manual_update():
         else ("Crítico" if sensor_data[variable] else "Bajo")
     )
     if risk in ("Alto", "Crítico") and alert_enabled:
+        action = get_professional_action(variable, risk, sensor_data[variable])
         send_alert(
             variable,
             sensor_data[variable],
             risk,
-            f"Valor manual: {sensor_data[variable]} - Riesgo {risk}",
+            f"Valor manual ({sensor_data[variable]}): {action}",
         )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     sensor_type = (
@@ -1626,9 +1974,11 @@ HTML_TEMPLATE = """
         /* ── Paneles / Tarjetas ── */
         .panel {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .panel-title {
@@ -1638,19 +1988,19 @@ HTML_TEMPLATE = """
             color: var(--color-ink);
             margin-bottom: var(--sp-2);
             padding-bottom: var(--sp-1);
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .panel-title i { color: var(--color-text-secondary); font-size: 0.9rem; }
+        .panel-title i { color: var(--color-ink); font-size: 0.9rem; }
 
         /* ── Grids ── */
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--color-border); }
-        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1px; background: var(--color-border); }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
+        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
         .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 
         .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
@@ -1664,7 +2014,9 @@ HTML_TEMPLATE = """
             margin-bottom: var(--sp-3);
             padding: var(--sp-2) var(--sp-3);
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
         }
 
         .controls-row .spacer { flex: 1; }
@@ -1673,36 +2025,60 @@ HTML_TEMPLATE = """
         .btn {
             font-family: var(--font);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             cursor: pointer;
-            border: 1px solid var(--color-ink);
+            border: 2px solid var(--color-ink);
             background: var(--color-ink);
             color: var(--color-surface);
             padding: 8px var(--sp-2);
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            transition: opacity var(--transition-fast);
-            border-radius: var(--radius);
+            transition: all var(--transition-fast);
+            border-radius: 0px;
+            box-shadow: 3px 3px 0px var(--color-ink);
         }
 
-        .btn:hover { opacity: 0.8; }
+        .btn:hover {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+            opacity: 1;
+        }
         .btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
         .btn-ghost {
-            background: none;
+            background: var(--color-surface);
             color: var(--color-ink);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 3px 3px 0px var(--color-ink);
         }
 
         .btn-danger {
             background: var(--state-critical);
             border-color: var(--state-critical);
+            box-shadow: 3px 3px 0px var(--state-critical);
+        }
+
+        .btn-danger:hover {
+            background: var(--color-surface);
+            color: var(--state-critical);
+            border-color: var(--state-critical);
+            box-shadow: 4px 4px 0px rgba(153, 27, 27, 0.25);
         }
 
         .btn-ok {
             background: var(--state-ok);
             border-color: var(--state-ok);
+            box-shadow: 3px 3px 0px var(--state-ok);
+        }
+
+        .btn-ok:hover {
+            background: var(--color-surface);
+            color: var(--state-ok);
+            border-color: var(--state-ok);
+            box-shadow: 4px 4px 0px rgba(22, 101, 52, 0.25);
         }
 
         /* ── Inputs y Selects ── */
@@ -1710,10 +2086,10 @@ HTML_TEMPLATE = """
 
         .form-label {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
         }
 
         input[type="text"],
@@ -1724,21 +2100,28 @@ HTML_TEMPLATE = """
             font-size: var(--text-base);
             color: var(--color-text-primary);
             background: var(--color-bg);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
             padding: 9px var(--sp-1);
             width: 100%;
             outline: none;
-            border-radius: var(--radius);
-            transition: border-color var(--transition-base);
+            border-radius: 0px;
+            transition: all var(--transition-base);
         }
 
-        input:focus, select:focus { border-color: var(--color-ink); background: var(--color-surface); }
+        input:focus, select:focus {
+            border-color: var(--color-ink);
+            background: var(--color-surface);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+        }
 
         /* ── Sensor Cards ── */
         .sensor-card {
-            padding: var(--sp-2);
+            padding: var(--sp-3);
             background: var(--color-surface);
-            border-left: 3px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            border-left: 6px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
         }
 
         .sensor-card.risk-low   { border-left-color: var(--state-ok); }
@@ -1748,10 +2131,10 @@ HTML_TEMPLATE = """
 
         .sensor-card-name {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: 4px;
         }
 
@@ -1775,39 +2158,44 @@ HTML_TEMPLATE = """
             align-items: center;
             padding: 2px 8px;
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: 0.03em;
-            border: 1px solid;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
         }
 
-        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok);       border-color: var(--state-ok-border); }
-        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn);     border-color: var(--state-warn-border); }
-        .badge-high   { background: #fff7ed;                  color: #c2410c;               border-color: #fed7aa; }
-        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); border-color: var(--state-critical-border); }
-        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); border-color: var(--state-inactive-border); }
+        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok); }
+        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn); }
+        .badge-high   { background: #fff7ed;                  color: #c2410c; }
+        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); }
+        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); }
 
         /* ── Estado Sistema ── */
         .status-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1px;
-            background: var(--color-border);
-            border: 1px solid var(--color-border);
-            margin-bottom: var(--sp-2);
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: var(--sp-2);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .status-cell {
             background: var(--color-surface);
-            padding: var(--sp-1) var(--sp-2);
+            padding: var(--sp-2) var(--sp-3);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
         }
 
         .status-cell-label {
             font-size: var(--text-xs);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
-            font-weight: var(--weight-medium);
+            color: var(--color-ink);
+            font-weight: var(--weight-bold);
             margin-bottom: 2px;
         }
 
@@ -1824,13 +2212,13 @@ HTML_TEMPLATE = """
 
         .sensor-section-title {
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: var(--sp-1);
             padding-bottom: var(--sp-1);
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -1839,16 +2227,21 @@ HTML_TEMPLATE = """
         .sensor-cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 1px;
-            background: var(--color-border);
-            border: 1px solid var(--color-border);
+            gap: var(--sp-3);
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0px;
         }
 
         /* ── Tabla ── */
         .table-wrapper {
-            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             overflow: hidden;
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
 
         .scroll-table {
@@ -1864,9 +2257,9 @@ HTML_TEMPLATE = """
 
         thead th {
             background: var(--color-bg);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             padding: 8px var(--sp-2);
@@ -1878,7 +2271,7 @@ HTML_TEMPLATE = """
 
         tbody td {
             padding: 10px var(--sp-2);
-            border-top: 1px solid var(--color-border);
+            border-top: 1px solid var(--color-ink);
             color: var(--color-text-primary);
         }
 
@@ -1890,19 +2283,21 @@ HTML_TEMPLATE = """
         /* ── Chart Container ── */
         .chart-panel {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-2);
+            border-radius: 0px;
         }
 
         .chart-panel-title {
             font-size: var(--text-xs);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
+            color: var(--color-ink);
             margin-bottom: var(--sp-1);
             padding-bottom: 6px;
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -1915,23 +2310,25 @@ HTML_TEMPLATE = """
             padding: var(--sp-1) var(--sp-2);
             margin-bottom: var(--sp-2);
             font-size: var(--text-sm);
-            font-weight: var(--weight-medium);
+            font-weight: var(--weight-bold);
             display: flex;
             align-items: center;
             gap: var(--sp-1);
-            border-left: 3px solid;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
         }
 
         .sys-alert-warn {
             background: var(--state-warn-bg);
             color: var(--state-warn);
-            border-left-color: var(--state-warn);
+            border-color: var(--state-warn);
         }
 
         .sys-alert-crit {
             background: var(--state-critical-bg);
             color: var(--state-critical);
-            border-left-color: var(--state-critical);
+            border-color: var(--state-critical);
         }
 
         /* ── Racionamiento ── */
@@ -1944,20 +2341,44 @@ HTML_TEMPLATE = """
             font-weight: var(--weight-bold);
             text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
+            border: 2px solid var(--color-ink);
         }
 
-        #rationingIndicator.visible { display: inline-flex; align-items: center; gap: 6px; }
+        #rationingIndicator.visible { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 var(--sp-2); }
 
         /* ── Suscriptores ── */
         .subs-table { font-size: var(--text-sm); width: 100%; border-collapse: collapse; }
-        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-medium); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
-        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-border); }
-        .subs-table button { background: none; border: none; cursor: pointer; font-family: var(--font); font-size: var(--text-xs); font-weight: var(--weight-medium); padding: 2px 0; border-bottom: 1px solid; transition: opacity var(--transition-fast); }
-        .subs-table button:hover { opacity: 0.55; }
-        .btn-test-sub { color: var(--color-ink); border-bottom-color: var(--color-ink); margin-right: var(--sp-1); }
-        .btn-rm-sub   { color: var(--state-critical); border-bottom-color: var(--state-critical); }
+        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
+        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-ink); }
+        .subs-table button {
+            background: var(--color-surface) !important;
+            border: 2px solid var(--color-ink) !important;
+            color: var(--color-ink) !important;
+            border-radius: 0px !important;
+            font-family: var(--font);
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            padding: 4px 8px !important;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            transition: all var(--transition-fast);
+            letter-spacing: 0.01em;
+            box-shadow: 2px 2px 0px var(--color-ink);
+        }
+        .subs-table button:hover {
+            background: var(--color-ink) !important;
+            color: var(--color-surface) !important;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px rgba(10, 10, 10, 0.25);
+            opacity: 1 !important;
+        }
+        .btn-test-sub { color: var(--color-ink); margin-right: var(--sp-1); }
+        .btn-rm-sub   { color: var(--state-critical); }
 
-        .subs-container { max-height: 220px; overflow-y: auto; border: 1px solid var(--color-border); }
+        .subs-container { max-height: 220px; overflow-y: auto; border: 2px solid var(--color-ink); border-radius: 0px; }
 
         /* ── Responsive ── */
         @media (max-width: 1024px) {
@@ -1968,6 +2389,41 @@ HTML_TEMPLATE = """
         @media (max-width: 640px) {
             .page-wrapper { padding: var(--sp-2); }
             .controls-row { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* ── Modal Custom ── */
+        .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 150ms ease;
+        }
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+        .custom-modal-container {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-3);
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            transform: scale(0.92);
+            transition: transform 150ms ease;
+            box-sizing: border-box;
+            border-radius: 0px !important;
+        }
+        .custom-modal-backdrop.active .custom-modal-container {
+            transform: scale(1);
         }
     </style>
 </head>
@@ -1981,16 +2437,19 @@ HTML_TEMPLATE = """
         </header>
 
         <!-- Barra de controles -->
-        <div class="controls-row">
-            <button id="toggleAlertsBtn" class="btn">
+        <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2);">
+            <button id="toggleAlertsBtn" class="btn" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-bell"></i> Desactivar Alertas
             </button>
-            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> RACIONAMIENTO ACTIVO</div>
-            <button id="clearHistoryBtn" class="btn btn-ghost">
+            <button id="clearHistoryBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-trash-alt"></i> Limpiar Historial
             </button>
+            <button id="clearAlertsBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
+                <i class="fas fa-bell-slash"></i> Limpiar Alertas
+            </button>
+            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
             <div class="spacer"></div>
-            <select id="reportPeriodSelect" style="width:auto;">
+            <select id="reportPeriodSelect" style="width:auto; height: 44px; display:inline-flex; align-items:center;">
                 <option value="minute">Último minuto</option>
                 <option value="ten_minutes">Últimos 10 min</option>
                 <option value="hour" selected>Última hora</option>
@@ -1998,7 +2457,7 @@ HTML_TEMPLATE = """
                 <option value="week">Última semana</option>
                 <option value="month">Último mes</option>
             </select>
-            <button id="generateReportBtn" class="btn btn-ok">
+            <button id="generateReportBtn" class="btn btn-ok" style="height: 44px; display:inline-flex; align-items:center;">
                 <i class="fas fa-file-pdf"></i> Generar PDF
             </button>
         </div>
@@ -2013,15 +2472,15 @@ HTML_TEMPLATE = """
         <div class="status-grid" id="statusGrid">
             <div class="status-cell">
                 <div class="status-cell-label">Protección</div>
-                <div class="status-cell-value" id="protectionStatus">OFF</div>
+                <div class="status-cell-value" id="protectionStatus">INACTIVA</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Bomba</div>
-                <div class="status-cell-value" id="pumpStatus">ON</div>
+                <div class="status-cell-value" id="pumpStatus">ENCENDIDA</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Ascensor</div>
-                <div class="status-cell-value" id="elevatorStatus">ON</div>
+                <div class="status-cell-value" id="elevatorStatus">ENCENDIDO</div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Última actualización</div>
@@ -2044,44 +2503,33 @@ HTML_TEMPLATE = """
 
         <!-- Suscriptores -->
         <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-bullhorn"></i> Suscriptores de alertas</h2>
-            <div class="grid-4" style="margin-bottom: var(--sp-2);">
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Canal</label>
-                        <select id="subChannel">
-                            <option value="email">Correo</option>
-                            <option value="telegram">Telegram</option>
-                        </select>
-                    </div>
+            <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de Alertas por Correo</h2>
+            <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
+                <div class="form-group" style="flex: 1; min-width: 200px;">
+                    <label class="form-label">Edificio (edf)</label>
+                    <select id="subBuildingSelect" style="height: 44px;">
+                        <option value="">Cargando edificios...</option>
+                    </select>
                 </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Nivel de riesgo</label>
-                        <select id="subRiskLevel">
-                            <option value="Bajo">Bajo</option>
-                            <option value="Medio">Medio</option>
-                            <option value="Alto">Alto</option>
-                            <option value="Crítico">Crítico</option>
-                        </select>
-                    </div>
+                <div class="form-group" style="width: 150px;">
+                    <label class="form-label">Nivel de riesgo prueba</label>
+                    <select id="subRiskLevel" style="height: 44px;">
+                        <option value="Bajo">Bajo</option>
+                        <option value="Medio">Medio</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Crítico">Crítico</option>
+                    </select>
                 </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1);">
-                    <div class="form-group">
-                        <label class="form-label">Contacto</label>
-                        <input type="text" id="subContact" placeholder="email / chat_id">
-                    </div>
-                </div>
-                <div style="background:var(--color-surface); padding: var(--sp-1); display:flex; align-items:flex-end;">
-                    <button id="addSubscriberBtn" class="btn" style="width:100%; justify-content:center;">
-                        <i class="fas fa-plus"></i> Agregar
+                <div>
+                    <button id="sendAllSubscribersBtn" class="btn btn-ok" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-paper-plane"></i> Enviar a todos
                     </button>
                 </div>
             </div>
             <div class="subs-container">
-                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando usuarios...</div>
             </div>
-            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* Botón "Probar" envía una alerta real de prueba.</p>
+            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* El botón "Enviar a todos" envía el reporte en PDF por correo a todas las personas del edificio seleccionado. El botón "Enviar prueba" en la lista envía de manera individual.</p>
         </div>
 
         <!-- Control manual -->
@@ -2092,17 +2540,17 @@ HTML_TEMPLATE = """
                     <label class="form-label">Sensor</label>
                     <select id="manualSensorSelect"></select>
                 </div>
-                <div class="form-group" style="flex:1; min-width:180px;">
+                <div class="form-group" style="flex:1; min-width:180px; position:relative;">
                     <label class="form-label">Valor</label>
                     <input type="text" id="manualValueInput" placeholder="Ingrese valor">
-                    <div style="font-size:var(--text-xs); margin-top:4px;" id="manualRiskPreview"></div>
                 </div>
                 <div>
-                    <button id="sendManualBtn" class="btn">
+                    <button id="sendManualBtn" class="btn" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
             </div>
+            <div style="font-size:var(--text-xs); margin-top:8px; height:18px;" id="manualRiskPreview"></div>
             <div id="manualMessage" style="margin-top:8px; font-size:var(--text-sm);"></div>
             <div id="sensorTypeIndicator" style="margin-top:6px; font-size:var(--text-sm); font-weight:var(--weight-medium); color:var(--color-text-secondary);"></div>
         </div>
@@ -2125,24 +2573,16 @@ HTML_TEMPLATE = """
 
         <!-- Gráficos -->
         <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
-            <i class="fa-solid fa-chart-line"></i> Evolución — últimas 20 lecturas
+            <i class="fa-solid fa-chart-bar"></i> Lecturas en tiempo real
         </h2>
         <div class="grid-charts">
             <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-temperature-half"></i> Temperatura · Presión · Vibración</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de Bomba / Eléctricas</div>
                 <canvas id="chart1"></canvas>
             </div>
             <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-droplet"></i> Caudal · Carga · Velocidad</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
                 <canvas id="chart2"></canvas>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-percent"></i> Nivel de Tanque · Energía</div>
-                <canvas id="chart3"></canvas>
-            </div>
-            <div class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-bolt-lightning"></i> Voltaje · Corriente</div>
-                <canvas id="chart4"></canvas>
             </div>
         </div>
 
@@ -2151,9 +2591,9 @@ HTML_TEMPLATE = """
             <i class="fa-solid fa-list-ul"></i> Historial completo
         </h2>
         <div class="table-wrapper">
-            <div class="scroll-table">
+            <div class="scroll-table" style="max-height: 500px;">
                 <table>
-                    <thead><tr><th>Timestamp</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
+                    <thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
                     <tbody id="historyBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">Cargando...</td></tr></tbody>
                 </table>
             </div>
@@ -2164,9 +2604,9 @@ HTML_TEMPLATE = """
             <i class="fa-solid fa-bell"></i> Alertas recientes
         </h2>
         <div class="table-wrapper">
-            <div class="scroll-table">
+            <div class="scroll-table" style="max-height: 500px;">
                 <table>
-                    <thead><tr><th>Timestamp</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
+                    <thead><tr><th>Fecha y hora</th><th>Variable</th><th>Valor</th><th>Riesgo</th><th>Mensaje</th></tr></thead>
                     <tbody id="alertTableBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">No hay alertas</td></tr></tbody>
                 </table>
             </div>
@@ -2191,9 +2631,98 @@ HTML_TEMPLATE = """
         let chart1, chart2, chart3, chart4;
         let currentThresholds = {};
         let subscribers = {};
+
+        // ── Helper de Modales Personalizados ──
+        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'custom-modal-backdrop';
+
+                const container = document.createElement('div');
+                container.className = 'custom-modal-container';
+
+                let iconHtml = '';
+                if (type === 'success') {
+                    iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--state-ok); font-size: var(--text-xl);"></i>';
+                } else if (type === 'error') {
+                    iconHtml = '<i class="fa-solid fa-circle-xmark" style="color: var(--state-critical); font-size: var(--text-xl);"></i>';
+                } else if (type === 'warn' || type === 'confirm') {
+                    iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+                } else {
+                    iconHtml = '<i class="fa-solid fa-circle-info" style="color: var(--color-ink); font-size: var(--text-xl);"></i>';
+                }
+
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
+                        ${iconHtml}
+                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
+                        ${showCancel ? `<button id="customModalCancelBtn" class="btn btn-ghost" style="border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer;">Cancelar</button>` : ''}
+                        <button id="customModalConfirmBtn" class="btn btn-ok" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer;">Aceptar</button>
+                    </div>
+                `;
+
+                backdrop.appendChild(container);
+                document.body.appendChild(backdrop);
+
+                // Forzar reflujo y activar clase de animación
+                setTimeout(() => {
+                    backdrop.classList.add('active');
+                }, 10);
+
+                const cleanUp = (value) => {
+                    backdrop.classList.remove('active');
+                    setTimeout(() => {
+                        backdrop.remove();
+                        resolve(value);
+                    }, 150);
+                };
+
+                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
+                if (showCancel) {
+                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
+                }
+            });
+        }
+
+        window.showAlert = function(message, type = 'info') {
+            let title = 'Notificación';
+            if (type === 'error') title = 'Error';
+            else if (type === 'success') title = 'Éxito';
+            else if (type === 'warn') title = 'Advertencia';
+            return showCustomModal({ title, message, type, showCancel: false });
+        };
+
+        window.showConfirm = function(message) {
+            return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
+        };
         const NO_RISK_VARS = ['position','door_status','motor_stuck'];
         const BOMBA_VARS = ['flow_rate','pressure','temperature','vibration','tank_level','voltage','current'];
         const ASCENSOR_VARS = ['position','speed','load','trip_count','door_status','energy','motor_stuck'];
+
+        function getVariableName(variable) {
+            const names = {
+                flow_rate: 'Caudal',
+                pressure: 'Presión',
+                temperature: 'Temperatura',
+                vibration: 'Vibración',
+                tank_level: 'Nivel de tanque',
+                voltage: 'Voltaje',
+                current: 'Corriente',
+                position: 'Posición',
+                speed: 'Velocidad',
+                load: 'Carga',
+                trip_count: 'Viajes',
+                door_status: 'Estado de puerta',
+                energy: 'Energía',
+                motor_stuck: 'Motor pegado'
+            };
+            return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+        }
 
         function getUnit(v){ return {flow_rate:'L/s',pressure:'bar',temperature:'°C',vibration:'mm/s',tank_level:'%',position:'piso',speed:'m/s',load:'kg',trip_count:'viajes',door_status:'',energy:'kW',voltage:'V',current:'A'}[v]||''; }
 
@@ -2227,8 +2756,10 @@ HTML_TEMPLATE = """
             b.innerHTML=''; a.innerHTML='';
             for(let [k,v] of Object.entries(data)){
                 let ri = getRiskClass(k,v);
-                let dn = (k==='motor_stuck') ? 'MOTOR PEGADO' : k.replace(/_/g,' ').toUpperCase();
-                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : `${v} ${getUnit(k)}`;
+                let dn = getVariableName(k).toUpperCase();
+                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : 
+                             (k === 'door_status' ? (v === 'open' ? 'Abierta' : (v === 'closed' ? 'Cerrada' : v)) :
+                             `${v} ${getUnit(k)}`);
                 let card = document.createElement('div');
                 card.className = `sensor-card ${ri.card}`;
                 card.innerHTML = `
@@ -2245,12 +2776,15 @@ HTML_TEMPLATE = """
         function updateHistoryTable(hist){
             let tbody=document.getElementById('historyBody'); tbody.innerHTML='';
             if(!hist||hist.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay registros</td></tr>'; return; }
-            for(let i=hist.length-1;i>=0;i--){
-                let r=hist[i];
+            let lastRecords = hist.slice(-30);
+            for(let i=lastRecords.length-1;i>=0;i--){
+                let r=lastRecords[i];
                 let cls = r.risk==='Crítico'?'row-crit':r.risk==='Alto'?'row-high':'';
                 let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[r.risk]||'badge-info';
                 let tr=document.createElement('tr'); tr.className=cls;
-                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${r.variable}</td><td>${r.value}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
+                let varName = r.variable.includes(' (manual)') ? getVariableName(r.variable.replace(' (manual)', '')) + ' (manual)' : getVariableName(r.variable);
+                let valDisplay = r.variable.includes('door_status') ? (r.value === 'open' ? 'Abierta' : (r.value === 'closed' ? 'Cerrada' : r.value)) : r.value;
+                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
                 tbody.appendChild(tr);
             }
         }
@@ -2262,7 +2796,9 @@ HTML_TEMPLATE = """
                 let cls = a.risk==='Crítico'?'row-crit':a.risk==='Alto'?'row-high':'';
                 let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[a.risk]||'badge-info';
                 let tr=document.createElement('tr'); tr.className=cls;
-                tr.innerHTML=`<td>${a.timestamp}</td><td>${a.variable}</td><td>${a.value}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
+                let varName = getVariableName(a.variable);
+                let valDisplay = a.variable.includes('door_status') ? (a.value === 'open' ? 'Abierta' : (a.value === 'closed' ? 'Cerrada' : a.value)) : a.value;
+                tr.innerHTML=`<td>${a.timestamp}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${a.risk}</span></td><td>${a.message}</td>`;
                 tbody.appendChild(tr);
             }
         }
@@ -2270,45 +2806,73 @@ HTML_TEMPLATE = """
         function initCharts(){
             const chartDefaults = {
                 responsive:true,
-                plugins:{ legend:{ position:'bottom', labels:{ font:{ family:"'DM Sans', system-ui", size:11 }, boxWidth:10 } }, tooltip:{ callbacks:{ label: ctx=>`${ctx.dataset.label}: ${ctx.raw}` } } },
-                scales:{ x:{ ticks:{ font:{ size:10 } } }, y:{ ticks:{ font:{ size:10 } } } }
+                plugins:{ 
+                    legend:{ display: false },
+                    tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+                },
+                scales:{ 
+                    x:{ ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } }, 
+                    y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } } 
+                }
             };
-            const colors = ['#0a0a0a','#5f5f5f','#b0b0b0','#e0e0e0'];
-            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Temperatura (°C)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Presión (bar)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Vibración (mm/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Caudal (L/s)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Carga (kg)',   borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Velocidad (m/s)', borderColor:colors[2], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart3 = new Chart(document.getElementById('chart3').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Nivel tanque (%)', borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Energía (kW)',     borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
-            chart4 = new Chart(document.getElementById('chart4').getContext('2d'),{ type:'line', data:{ labels:[], datasets:[
-                { label:'Voltaje (V)',   borderColor:colors[0], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 },
-                { label:'Corriente (A)',borderColor:colors[1], backgroundColor:'transparent', data:[], tension:0.3, pointRadius:2 }
-            ]}, options: chartDefaults });
+            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ 
+                type:'bar', 
+                data:{ 
+                    labels:['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'], 
+                    datasets:[{
+                        backgroundColor: '#0a0a0a',
+                        borderColor: '#0a0a0a',
+                        borderWidth: 1,
+                        data: [0, 0, 0, 0, 0, 0, 0]
+                    }]
+                }, 
+                options: chartDefaults 
+            });
+            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ 
+                type:'bar', 
+                data:{ 
+                    labels:['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'], 
+                    datasets:[{
+                        backgroundColor: '#0a0a0a',
+                        borderColor: '#0a0a0a',
+                        borderWidth: 1,
+                        data: [0, 0, 0]
+                    }]
+                }, 
+                options: chartDefaults 
+            });
         }
 
         function updateCharts(hist){
-            let last20=hist.slice(-20);
-            let labels=last20.filter(r=>r.variable==='temperature').map((_,i)=>i+1);
-            let set = v => last20.filter(r=>r.variable===v).map(r=>r.value);
-            chart1.data.labels=labels; chart1.data.datasets[0].data=set('temperature'); chart1.data.datasets[1].data=set('pressure'); chart1.data.datasets[2].data=set('vibration'); chart1.update();
-            chart2.data.labels=labels; chart2.data.datasets[0].data=set('flow_rate');   chart2.data.datasets[1].data=set('load');     chart2.data.datasets[2].data=set('speed');       chart2.update();
-            chart3.data.labels=labels; chart3.data.datasets[0].data=set('tank_level');  chart3.data.datasets[1].data=set('energy');   chart3.update();
-            chart4.data.labels=labels; chart4.data.datasets[0].data=set('voltage');     chart4.data.datasets[1].data=set('current');  chart4.update();
+            if(!hist||hist.length===0) return;
+            let getLatest = (v) => {
+                let r = hist.filter(item => item.variable === v).pop();
+                return r ? r.value : 0;
+            };
+            chart1.data.datasets[0].data = [
+                getLatest('flow_rate'),
+                getLatest('pressure'),
+                getLatest('temperature'),
+                getLatest('vibration'),
+                getLatest('tank_level'),
+                getLatest('voltage'),
+                getLatest('current')
+            ];
+            chart1.update();
+            
+            chart2.data.datasets[0].data = [
+                getLatest('speed'),
+                getLatest('load'),
+                getLatest('energy')
+            ];
+            chart2.update();
         }
 
         function updateStatsAndRecs(stats, recs, attempts){
             let statsDiv=document.getElementById('statsPanel');
             if(stats && Object.keys(stats).length){
                 let rows = Object.entries(stats).map(([k,v])=>
-                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${k.replace(/_/g,' ').toUpperCase()}</td>`+
+                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${getVariableName(k).toUpperCase()}</td>`+
                     `<td style="padding:4px 8px;">${v.avg.toFixed(1)}</td>`+
                     `<td style="padding:4px 8px;">${v.min}</td>`+
                     `<td style="padding:4px 8px;">${v.max}</td></tr>`).join('');
@@ -2341,13 +2905,13 @@ HTML_TEMPLATE = """
                 let div=document.createElement('div');
                 div.style.cssText='border:1px solid var(--color-border);padding:var(--sp-1);';
                 if(cfg.direction==='range'){
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')} (rango)</div>
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)} (rango)</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
                             <div class="form-group"><label class="form-label">Mín</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
                             <div class="form-group"><label class="form-label">Máx</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
                         </div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
                 } else {
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${k.replace(/_/g,' ')}</div>
+                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)}</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
                             <div class="form-group"><label class="form-label">Bajo</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
                             <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
@@ -2376,16 +2940,35 @@ HTML_TEMPLATE = """
 
         async function toggleAlerts(){
             let btn=document.getElementById('toggleAlertsBtn');
-            let enabled=!btn.innerText.includes('Desactivar');
-            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:!enabled})});
+            let isCurrentlyEnabled=btn.innerText.includes('Desactivar');
+            let targetState=!isCurrentlyEnabled;
+            let resp=await fetch('/toggle_alerts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({enabled:targetState})});
             let data=await resp.json();
             if(data.status==='ok') btn.innerHTML=data.alert_enabled?'<i class="fas fa-bell"></i> Desactivar Alertas':'<i class="fas fa-bell-slash"></i> Activar Alertas';
         }
 
         async function clearHistory(){
-            if(confirm('¿Limpiar historial de lecturas?')){
+            if(await window.showConfirm('¿Limpiar historial de lecturas?')){
                 let resp=await fetch('/clear_history',{method:'POST'});
-                if(resp.ok) alert('Historial limpiado.'); else alert('Error al limpiar.');
+                if(resp.ok) {
+                    await window.showAlert('Historial limpiado.', 'success');
+                    updateHistoryTable([]);
+                    updateCharts([]);
+                } else {
+                    await window.showAlert('Error al limpiar.', 'error');
+                }
+            }
+        }
+
+        async function clearAlerts(){
+            if(await window.showConfirm('¿Limpiar historial de alertas y notificaciones?')){
+                let resp=await fetch('/clear_alerts',{method:'POST'});
+                if(resp.ok) {
+                    await window.showAlert('Alertas limpiadas.', 'success');
+                    updateAlertTable([]);
+                } else {
+                    await window.showAlert('Error al limpiar alertas.', 'error');
+                }
             }
         }
 
@@ -2393,7 +2976,7 @@ HTML_TEMPLATE = """
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
             [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{
                 let opt=document.createElement('option'); opt.value=v;
-                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+v.replace(/_/g,' ').toUpperCase();
+                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+getVariableName(v).toUpperCase();
                 sel.appendChild(opt);
             });
         }
@@ -2447,64 +3030,135 @@ HTML_TEMPLATE = """
                     document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
                 }else{
                     let err=await resp.text();
-                    try{let e=JSON.parse(err);alert('Error: '+e.message);}catch(e){alert('Error: '+err);}
+                    try{let e=JSON.parse(err);await window.showAlert('Error: '+e.message, 'error');}catch(e){await window.showAlert('Error: '+err, 'error');}
                 }
-            }catch(e){alert('Error de conexión');}
+            }catch(e){await window.showAlert('Error de conexión', 'error');}
             finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF';}
         }
 
-        function updateSubscribersList(){
-            let container=document.getElementById('subscribersList');
-            if(!subscribers){ return; }
-            let rows='';
-            for(let ch of ['email','telegram']){
-                if(!subscribers[ch]) continue;
-                for(let lv of ['Bajo','Medio','Alto','Crítico']){
-                    (subscribers[ch][lv]||[]).forEach(ct=>{
-                        rows+=`<tr>
-                            <td>${ch}</td><td>${lv}</td><td>${ct}</td>
-                            <td><button class="btn-test-sub test-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Probar</button></td>
-                            <td><button class="btn-rm-sub remove-subscriber" data-channel="${ch}" data-level="${lv}" data-contact="${ct}">Eliminar</button></td>
-                        </tr>`;
-                    });
-                }
-            }
-            if(rows){
-                container.innerHTML=`<table class="subs-table"><thead><tr><th>Canal</th><th>Nivel</th><th>Contacto</th><th></th><th></th></tr></thead><tbody>${rows}</tbody></table>`;
-            } else {
-                container.innerHTML='<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay suscriptores.</p>';
-            }
-            document.querySelectorAll('.remove-subscriber').forEach(btn=>{
-                btn.addEventListener('click', async ()=>{
-                    let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
-                    let resp=await fetch('/remove_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
-                    if(resp.ok){let s=await fetch('/get_subscribers'); subscribers=await s.json(); updateSubscribersList();}
-                    else alert('Error');
+        let activeUsers = [];
+
+        async function loadBuildings() {
+            try {
+                let resp = await fetch('/api/edificios');
+                let buildings = await resp.json();
+                let select = document.getElementById('subBuildingSelect');
+                select.innerHTML = '';
+                buildings.forEach(b => {
+                    let opt = document.createElement('option');
+                    opt.value = b.id;
+                    opt.textContent = b.nombre;
+                    select.appendChild(opt);
                 });
+                if (buildings.length > 0) {
+                    loadUsersForBuilding(buildings[0].id);
+                } else {
+                    document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
+                }
+            } catch (e) {
+                console.error("Error al cargar edificios:", e);
+            }
+        }
+
+        async function loadUsersForBuilding(edificioId) {
+            if (!edificioId) return;
+            let container = document.getElementById('subscribersList');
+            container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">Cargando usuarios...</p>';
+            try {
+                let resp = await fetch(`/api/usuarios_edificio/${edificioId}`);
+                activeUsers = await resp.json();
+                updateSubscribersList();
+            } catch (e) {
+                console.error("Error al cargar usuarios:", e);
+                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--state-critical);font-size:var(--text-sm);">Error al cargar usuarios.</p>';
+            }
+        }
+
+        function updateSubscribersList() {
+            let container = document.getElementById('subscribersList');
+            if (!activeUsers || activeUsers.length === 0) {
+                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay usuarios asociados a este edificio.</p>';
+                return;
+            }
+            let rows = '';
+            activeUsers.forEach(u => {
+                rows += `<tr>
+                    <td>${u.nombre} ${u.apellido}</td>
+                    <td>${u.email}</td>
+                    <td><button class="btn-test-sub test-subscriber" data-email="${u.email}">Enviar prueba</button></td>
+                </tr>`;
             });
-            document.querySelectorAll('.test-subscriber').forEach(btn=>{
-                btn.addEventListener('click', async ()=>{
-                    let ch=btn.dataset.channel, lv=btn.dataset.level, ct=btn.dataset.contact;
-                    let resp=await fetch(`/test_alert/${ch}/${lv}/${ct}`);
-                    let msg=await resp.text(); alert(msg);
+            container.innerHTML = `<table class="subs-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Correo Electrónico</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>`;
+
+            document.querySelectorAll('.test-subscriber').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    let email = btn.dataset.email;
+                    let risk = document.getElementById('subRiskLevel').value;
+                    btn.disabled = true;
+                    btn.innerText = 'Enviando...';
+                    try {
+                        let resp = await fetch('/api/send_test_email', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email, risk_level: risk })
+                        });
+                        let data = await resp.json();
+                        await window.showAlert(data.message, resp.ok ? 'success' : 'error');
+                    } catch (e) {
+                        await window.showAlert('Error al conectar con el servidor.', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerText = 'Enviar prueba';
+                    }
                 });
             });
         }
 
+        async function sendAllSubscribers() {
+            let select = document.getElementById('subBuildingSelect');
+            let edificioId = select.value;
+            if (!edificioId) {
+                await window.showAlert('Por favor seleccione un edificio.', 'warn');
+                return;
+            }
+            let risk = document.getElementById('subRiskLevel').value;
+            let btn = document.getElementById('sendAllSubscribersBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
+            try {
+                let resp = await fetch('/api/send_all_subscribers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ edificio_id: edificioId, risk_level: risk })
+                });
+                let data = await resp.json();
+                await window.showAlert(data.message, resp.ok ? 'success' : 'error');
+            } catch (e) {
+                await window.showAlert('Error al conectar con el servidor.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar a todos';
+            }
+        }
+
         // Eventos
-        document.getElementById('addSubscriberBtn').addEventListener('click', async ()=>{
-            let ch=document.getElementById('subChannel').value;
-            let lv=document.getElementById('subRiskLevel').value;
-            let ct=document.getElementById('subContact').value.trim();
-            if(!ct) return;
-            let resp=await fetch('/add_subscriber',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({channel:ch,risk_level:lv,contact:ct})});
-            let data=await resp.json();
-            if(data.status==='ok'){subscribers=data.subscribers; updateSubscribersList(); document.getElementById('subContact').value='';}
-            else alert(data.message);
-        });
+        document.getElementById('subBuildingSelect').addEventListener('change', (e) => loadUsersForBuilding(e.target.value));
+        document.getElementById('sendAllSubscribersBtn').addEventListener('click', sendAllSubscribers);
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
         document.getElementById('toggleAlertsBtn').addEventListener('click', toggleAlerts);
         document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
+        document.getElementById('clearAlertsBtn').addEventListener('click', clearAlerts);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
@@ -2512,6 +3166,7 @@ HTML_TEMPLATE = """
 
         // Socket
         socket.on('connect', ()=>console.log('[INES] Socket conectado'));
+        socket.on('init_data', (data)=>{ applyPayload(data); });
 
         function applyPayload(data){
             if(data.thresholds) currentThresholds=data.thresholds;
@@ -2527,28 +3182,18 @@ HTML_TEMPLATE = """
                 '<i class="fas fa-bell-slash"></i> Activar Alertas';
             let ri = document.getElementById('rationingIndicator');
             if(data.rationing) ri.classList.add('visible'); else ri.classList.remove('visible');
-            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'OFF';
-            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ON' : 'OFF';
-            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ON' : 'OFF';
+            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'INACTIVA';
+            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
+            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
         }
 
-        socket.on('init_data', (data)=>{
-            applyPayload(data);
-            populateManualSensorSelect();
-            updateSensorTypeIndicator();
-            updateSubscribersList();
-            const hasSMTP = !!(data.smtp_user);
-            const hasTelegram = !!(data.telegram_token);
-            if(!hasSMTP && !hasTelegram){
-                let w=document.getElementById('credsWarning');
-                document.getElementById('credsMsg').innerText='No se configuraron credenciales SMTP o Telegram. Los mensajes solo se simularán en consola.';
-                w.style.display='flex';
-            }
-        });
 
         socket.on('sensor_update', (data)=>{ applyPayload(data); });
 
         initCharts();
+        populateManualSensorSelect();
+        updateSensorTypeIndicator();
+        loadBuildings();
     </script>
 </body>
 </html>

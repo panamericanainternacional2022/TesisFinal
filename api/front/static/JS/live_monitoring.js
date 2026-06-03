@@ -76,14 +76,23 @@ function getUnit(variable) {
 }
 
 function renderCard(variable, value, risk, label) {
-    const name = label || getVariableName(variable);
+    const name = getVariableName(variable).toUpperCase();
     const badgeClass = getRiskBadge(risk);
-    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : formatNumeric(value);
+    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') : 
+                         (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
+                         `${formatNumeric(value)} ${getUnit(variable)}`);
+    let riskCls = 'risk-low';
+    if (risk === 'Medio') riskCls = 'risk-med';
+    else if (risk === 'Alto') riskCls = 'risk-high';
+    else if (risk === 'Crítico') riskCls = 'risk-crit';
+    
     return `
-        <div class="monitor-card">
-            <div class="monitor-card-title">${name}</div>
-            <div class="monitor-card-value">${displayValue} ${getUnit(variable)}</div>
-            <div class="monitor-card-meta"><span class="monitor-card-badge ${badgeClass}">${risk}</span></div>
+        <div class="sensor-card ${riskCls}">
+            <div class="sensor-card-name">${name}</div>
+            <div class="sensor-card-value">${displayValue}</div>
+            <div class="sensor-card-footer">
+                <span class="badge ${badgeClass}">${risk}</span>
+            </div>
         </div>
     `;
 }
@@ -134,7 +143,7 @@ function addLiveNotificationEvent(notification) {
             <p>${safeText(notification.message)}</p>
             <div class="notif-meta">
                 <span><i class="fa-regular fa-clock"></i> ${new Date(notification.timestamp).toLocaleString()}</span>
-                <span><strong>Variable:</strong> ${safeText(notification.variable)}</span>
+                <span><strong>Variable:</strong> ${safeText(getVariableName(notification.variable))}</span>
                 <span><strong>Riesgo:</strong> ${safeText(notification.risk)}</span>
             </div>
         </div>
@@ -142,75 +151,75 @@ function addLiveNotificationEvent(notification) {
     container.prepend(item);
 }
 
-function buildChartHistory(history, variables) {
-    const timestamps = [...new Set(history.map(item => item.timestamp))].slice(-20);
-    return {
-        labels: timestamps,
-        datasets: variables.map(variable => {
-            return {
-                label: getVariableName(variable),
-                data: timestamps.map(ts => {
-                    const entry = history.filter(item => item.timestamp === ts).find(item => item.variable === variable);
-                    return entry ? entry.value : null;
-                }),
-                fill: false,
-                tension: 0.25,
-                borderWidth: 2,
-                pointRadius: 3,
-            };
-        })
-    };
-}
-
 function initCharts() {
+    const chartDefaults = {
+        responsive: true,
+        plugins: { 
+            legend: { display: false }, 
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+        },
+        scales: { 
+            x: { ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } }, 
+            y: { beginAtZero: true, ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } } 
+        }
+    };
+
     chart1 = createChart('chart1', {
         type: 'bar',
-        data: { labels: [], datasets: [
-            { label: 'Caudal', backgroundColor: '#2563eb', borderColor: '#1d4ed8', borderWidth: 1, borderRadius: 6 },
-            { label: 'Presión', backgroundColor: '#ef4444', borderColor: '#dc2626', borderWidth: 1, borderRadius: 6 },
-            { label: 'Temperatura', backgroundColor: '#f59e0b', borderColor: '#d97706', borderWidth: 1, borderRadius: 6 }
-        ] },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { title: { display: true, text: 'Timestamp' } }, y: { beginAtZero: true } }, datasets: { bar: { barPercentage: 0.7, categoryPercentage: 0.8 } } }
+        data: { 
+            labels: ['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'], 
+            datasets: [{
+                backgroundColor: '#0a0a0a',
+                borderColor: '#0a0a0a',
+                borderWidth: 1,
+                data: [0, 0, 0, 0, 0, 0, 0]
+            }] 
+        },
+        options: chartDefaults
     });
+
     chart2 = createChart('chart2', {
         type: 'bar',
-        data: { labels: [], datasets: [
-            { label: 'Vibración', backgroundColor: '#8b5cf6', borderColor: '#7c3aed', borderWidth: 1, borderRadius: 6 },
-            { label: 'Nivel de tanque', backgroundColor: '#10b981', borderColor: '#059669', borderWidth: 1, borderRadius: 6 }
-        ] },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { title: { display: true, text: 'Timestamp' } }, y: { beginAtZero: true } }, datasets: { bar: { barPercentage: 0.7, categoryPercentage: 0.8 } } }
-    });
-    chart3 = createChart('chart3', {
-        type: 'bar',
-        data: { labels: [], datasets: [
-            { label: 'Velocidad', backgroundColor: '#0ea5e9', borderColor: '#0284c7', borderWidth: 1, borderRadius: 6 },
-            { label: 'Carga', backgroundColor: '#e11d48', borderColor: '#be123c', borderWidth: 1, borderRadius: 6 },
-            { label: 'Energía', backgroundColor: '#f97316', borderColor: '#ea580c', borderWidth: 1, borderRadius: 6 }
-        ] },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { title: { display: true, text: 'Timestamp' } }, y: { beginAtZero: true } }, datasets: { bar: { barPercentage: 0.7, categoryPercentage: 0.8 } } }
-    });
-    chart4 = createChart('chart4', {
-        type: 'bar',
-        data: { labels: [], datasets: [
-            { label: 'Voltaje', backgroundColor: '#0f766e', borderColor: '#0f766e', borderWidth: 1, borderRadius: 6 },
-            { label: 'Corriente', backgroundColor: '#7c3aed', borderColor: '#6d28d9', borderWidth: 1, borderRadius: 6 }
-        ] },
-        options: { responsive: true, plugins: { legend: { position: 'top' } }, scales: { x: { title: { display: true, text: 'Timestamp' } }, y: { beginAtZero: true } }, datasets: { bar: { barPercentage: 0.7, categoryPercentage: 0.8 } } }
+        data: { 
+            labels: ['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'], 
+            datasets: [{
+                backgroundColor: '#0a0a0a',
+                borderColor: '#0a0a0a',
+                borderWidth: 1,
+                data: [0, 0, 0]
+            }] 
+        },
+        options: chartDefaults
     });
 }
 
 function updateCharts(history) {
     if (!history || !history.length) return;
-    const h = history.slice(-20);
-    const chart1Data = buildChartHistory(h, ['flow_rate', 'pressure', 'temperature']);
-    const chart2Data = buildChartHistory(h, ['vibration', 'tank_level']);
-    const chart3Data = buildChartHistory(h, ['speed', 'load', 'energy']);
-    const chart4Data = buildChartHistory(h, ['voltage', 'current']);
+    const getLatest = (v) => {
+        const r = history.filter(item => item.variable === v).pop();
+        return r ? r.value : 0;
+    };
 
-    if (chart1) { chart1.data.labels = chart1Data.labels; chart1.data.datasets.forEach((ds, idx) => ds.data = chart1Data.datasets[idx].data); chart1.update(); }
-    if (chart2) { chart2.data.labels = chart2Data.labels; chart2.data.datasets.forEach((ds, idx) => ds.data = chart2Data.datasets[idx].data); chart2.update(); }
-    if (chart3) { chart3.data.labels = chart3Data.labels; chart3.data.datasets.forEach((ds, idx) => ds.data = chart3Data.datasets[idx].data); chart3.update(); }
-    if (chart4) { chart4.data.labels = chart4Data.labels; chart4.data.datasets.forEach((ds, idx) => ds.data = chart4Data.datasets[idx].data); chart4.update(); }
+    if (chart1) {
+        chart1.data.datasets[0].data = [
+            getLatest('flow_rate'),
+            getLatest('pressure'),
+            getLatest('temperature'),
+            getLatest('vibration'),
+            getLatest('tank_level'),
+            getLatest('voltage'),
+            getLatest('current')
+        ];
+        chart1.update();
+    }
+    if (chart2) {
+        chart2.data.datasets[0].data = [
+            getLatest('speed'),
+            getLatest('load'),
+            getLatest('energy')
+        ];
+        chart2.update();
+    }
 }
 
 function isBombaVariable(variable) {
@@ -231,11 +240,11 @@ function renderLiveMonitor(data) {
     document.getElementById('summaryCurrent').textContent = `${formatNumeric(current.current)} A`;
     document.getElementById('summaryAlertCount').textContent = alertCount;
     document.getElementById('summaryRationing').textContent = rationingText;
-    document.getElementById('summaryPumpStatus').textContent = data.pump_on ? 'ON' : 'OFF';
-    document.getElementById('summaryElevatorStatus').textContent = data.elevator_on ? 'ON' : 'OFF';
+    document.getElementById('summaryPumpStatus').textContent = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
+    document.getElementById('summaryElevatorStatus').textContent = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
     const protectionStatusEl = document.getElementById('summaryProtectionStatus');
     if (protectionStatusEl) {
-        protectionStatusEl.textContent = data.protection_active ? 'ON' : 'OFF';
+        protectionStatusEl.textContent = data.protection_active ? 'ACTIVA' : 'INACTIVA';
     }
 
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
@@ -289,7 +298,7 @@ function renderNotificationList(alerts) {
                 <p>${safeText(alert.message)}</p>
                 <div class="notif-meta">
                     <span><i class="fa-regular fa-clock"></i> ${new Date(alert.timestamp).toLocaleString()}</span>
-                    <span><strong>Variable:</strong> ${safeText(alert.variable)}</span>
+                    <span><strong>Variable:</strong> ${safeText(getVariableName(alert.variable))}</span>
                     <span><strong>Riesgo:</strong> ${safeText(alert.risk)}</span>
                 </div>
             </div>
@@ -359,11 +368,60 @@ function initLiveMonitoring() {
     fetchInitialData();
 }
 
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 function initLiveNotifications() {
     const notifContainer = document.getElementById('live-notifications-list');
     if (!notifContainer) return;
     fetchLiveNotifications();
     setInterval(fetchLiveNotifications, 5000);
+
+    const clearBtn = document.getElementById('clearDbNotificationsBtn');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', async () => {
+            const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las notificaciones?');
+                
+            if (shouldClear) {
+                try {
+                    const csrfToken = getCookie('csrftoken');
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (csrfToken) {
+                        headers['X-CSRFToken'] = csrfToken;
+                    }
+                    
+                    const respDjango = await fetch('/notificaciones/limpiar/', {
+                        method: 'POST',
+                        headers: headers
+                    });
+                    
+                    await fetch(`${MONITOR_BACKEND_ORIGIN}/clear_alerts`, { method: 'POST' }).catch(() => {});
+                    
+                    if (respDjango.ok) {
+                        await window.showAlert('Notificaciones limpiadas con éxito.', 'success');
+                        renderNotificationList([]);
+                    } else {
+                        throw new Error('Error al limpiar');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    await window.showAlert('No se pudieron limpiar las notificaciones.', 'error');
+                }
+            }
+        });
+    }
 }
 
 function fetchInitialData() {

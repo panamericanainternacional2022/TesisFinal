@@ -44,7 +44,7 @@
     <nav class="sidebar-nav">
         {% if request.session.usuario_rol == 'SA' or request.session.usuario_rol == 'ADMIN' %}
         <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
-            <i class="fa-solid fa-gauge-high"></i> Dashboard
+            <i class="fa-solid fa-gauge-high"></i> Panel de Control
         </a>
         <a href="{% url 'registro_beneficiario' %}" class="sidebar-link">
             <i class="fa-solid fa-user-plus"></i> Registrar Usuario
@@ -71,7 +71,7 @@
         </a>
         {% else %}
         <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
-            <i class="fa-solid fa-gauge-high"></i> Dashboard
+            <i class="fa-solid fa-gauge-high"></i> Panel de Control
         </a>
         <a href="{% url 'notificaciones' %}" class="sidebar-link">
             <i class="fa-solid fa-bell"></i>

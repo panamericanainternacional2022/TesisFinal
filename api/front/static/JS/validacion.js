@@ -54,12 +54,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
         const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/;
+        
+        let minimo = 2;
+        if (input.id === 'nombreEdificio') {
+            minimo = 3;
+        }
+
         if (valor && !soloLetras.test(valor)) {
             input.value = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
             mostrarError(input, 'Este campo solo acepta letras y espacios.');
         } else if (valor.length > maximo) {
             input.value = valor.slice(0, maximo);
             mostrarError(input, `Máximo ${maximo} caracteres.`);
+        } else if (valor.length > 0 && valor.length < minimo) {
+            mostrarError(input, `El campo debe tener al menos ${minimo} caracteres.`);
         } else if (valor.length > 0 && valor.trim().length === 0) {
             mostrarError(input, 'Completa este campo correctamente.');
         } else {
@@ -73,12 +81,20 @@ document.addEventListener('DOMContentLoaded', function () {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
         const soloDigitos = /^\d*$/;
+        
+        let minimo = 1;
+        if (input.id === 'cedula') {
+            minimo = 6;
+        }
+
         if (valor && !soloDigitos.test(valor)) {
             input.value = valor.replace(/\D/g, '');
             mostrarError(input, 'Este campo solo acepta números.');
         } else if (valor.length > maximo) {
             input.value = valor.slice(0, maximo);
             mostrarError(input, `Máximo ${maximo} dígitos.`);
+        } else if (valor.length > 0 && valor.length < minimo) {
+            mostrarError(input, `La cédula debe tener al menos ${minimo} dígitos.`);
         } else {
             limpiarError(input);
         }
@@ -93,8 +109,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (valor && !valido.test(valor)) {
             input.value = valor.replace(/[^\d\s\+\-]/g, '');
             mostrarError(input, 'Solo se permiten números, +, - y espacios.');
-        } else if (valor && valor.replace(/[\s\+\-]/g, '').length < 7) {
-            mostrarError(input, 'El teléfono debe tener al menos 7 dígitos.');
+        } else if (valor && valor.replace(/[\s\+\-]/g, '').length < 10) {
+            mostrarError(input, 'El teléfono debe tener al menos 10 dígitos reales.');
         } else if (valor && valor.replace(/[\s\+\-]/g, '').length > 20) {
             input.value = valor.slice(0, valor.length - 1);
             mostrarError(input, 'Máximo 20 dígitos.');
@@ -130,6 +146,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (valor && !valido.test(valor)) {
             input.value = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g, '');
             mostrarError(input, 'Solo se permiten letras y números, sin espacios.');
+        } else if (valor && valor.length < 4) {
+            mostrarError(input, 'El nombre de usuario debe tener al menos 4 caracteres.');
         } else {
             limpiarError(input);
         }
@@ -148,7 +166,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
         }
-        if (valor && !emailRegex.test(valor)) {
+        if (valor && valor.length < 6) {
+            mostrarError(input, 'El correo debe tener al menos 6 caracteres.');
+        } else if (valor && !emailRegex.test(valor)) {
             mostrarError(input, 'Ingresa un correo electrónico válido.');
         } else {
             limpiarError(input);
@@ -193,6 +213,8 @@ document.addEventListener('DOMContentLoaded', function () {
         } else if (valor.length > maximo) {
             input.value = valor.slice(0, maximo);
             mostrarError(input, `Máximo ${maximo} caracteres.`);
+        } else if (valor && valor.length < 8) {
+            mostrarError(input, 'La dirección debe tener al menos 8 caracteres.');
         } else {
             limpiarError(input);
         }
@@ -255,12 +277,30 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // Validar select elements en cambios e inputs para limpiar errores
+    document.querySelectorAll('select').forEach(function (select) {
+        const handler = function () {
+            if (select.value) {
+                limpiarError(select);
+            } else if (select.required) {
+                mostrarError(select, 'Este campo es obligatorio.');
+            }
+            toggleSubmit(select.form);
+        };
+        select.addEventListener('change', handler);
+        select.addEventListener('input', handler);
+    });
+
     // ─── VALIDACIÓN INICIAL ─────────────────────────────────────
 
     document.querySelectorAll('form').forEach(function (form) {
-        form.querySelectorAll('input[data-validate]').forEach(function (input) {
+        form.querySelectorAll('input[data-validate], select').forEach(function (input) {
             if (input.value) {
-                input.dispatchEvent(new Event('input'));
+                if (input.tagName === 'SELECT') {
+                    input.dispatchEvent(new Event('change'));
+                } else {
+                    input.dispatchEvent(new Event('input'));
+                }
             }
         });
         toggleSubmit(form);

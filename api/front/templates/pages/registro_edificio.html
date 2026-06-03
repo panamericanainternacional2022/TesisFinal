@@ -28,14 +28,15 @@
                         <h2 class="profile-title">{% if editing %}Editar Edificio{% else %}Registro de Edificio{% endif %}</h2>
                     </div>
 
-                    <div class="profile-form">
+                     <div class="profile-form">
                         <div class="form-row">
                             <div class="form-group full-width">
                                 <label for="nombreEdificio">Nombre del Edificio</label>
                                 <div class="input-with-icon">
-                                    <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ edificio.nb_edificio|default:'' }}" data-validate="solo-letras" maxlength="20" required />
+                                    <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ edificio.nb_edificio|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#127970;</span>
                                 </div>
+                                <div class="validation-error">{% if form_errors.nombreEdificio %}{{ form_errors.nombreEdificio }}{% elif form_errors.nombreEdificio_long %}{{ form_errors.nombreEdificio_long }}{% endif %}</div>
                             </div>
                         </div>
 
@@ -43,16 +44,18 @@
                             <div class="form-group half-width">
                                 <label for="parroquia">Dirección</label>
                                 <div class="input-with-icon">
-                                    <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="parroquia" name="parroquia" value="{{ edificio.direccion|default:'' }}" data-validate="direccion" maxlength="50" required />
+                                    <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="parroquia" name="parroquia" value="{{ edificio.direccion|default:'' }}" data-validate="direccion" maxlength="50" required class="{% if form_errors.direccion or form_errors.direccion_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#128205;</span>
                                 </div>
+                                <div class="validation-error">{% if form_errors.direccion %}{{ form_errors.direccion }}{% elif form_errors.direccion_long %}{{ form_errors.direccion_long }}{% endif %}</div>
                             </div>
                             <div class="form-group half-width">
                                 <label for="rif">RIF</label>
                                 <div class="input-with-icon">
-                                    <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ edificio.rif|default:'' }}" data-validate="rif" maxlength="12" required />
+                                    <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ edificio.rif|default:'' }}" data-validate="rif" maxlength="12" required class="{% if form_errors.rif or form_errors.rif_unico %}input-error{% endif %}" />
                                     <span class="edit-icon">&#128188;</span>
                                 </div>
+                                <div class="validation-error">{% if form_errors.rif %}{{ form_errors.rif }}{% elif form_errors.rif_unico %}{{ form_errors.rif_unico }}{% endif %}</div>
                             </div>
                         </div>
 

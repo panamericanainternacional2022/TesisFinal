@@ -18,50 +18,177 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width:800px;">
                     <header class="report-header">
-                        <div class="report-header-text">
-                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                                <h1 class="profile-title" style="margin:0;">Notificaciones</h1>
-                                <span id="notificationBadgeCount" class="notif-count-badge">0</span>
+                        <div class="report-header-text" style="width: 100%;">
+                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                    <h1 class="profile-title" style="margin:0;">Notificaciones</h1>
+                                    <span id="notificationBadgeCount" class="notif-count-badge">0</span>
+                                </div>
+                                <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-left:auto;">
+                                    <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
+                                </button>
                             </div>
                             <p class="profile-subtitle">Alertas y eventos del sistema</p>
-                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:0px; font-size:0.95rem; font-weight:600;">
+                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:0px; border:2px solid var(--color-ink); box-shadow:4px 4px 0px rgba(10, 10, 10, 0.1); font-size:0.95rem; font-weight:600;">
                                 Conectando al backend de monitoreo...
                             </div>
                         </div>
                     </header>
 
-                    <div id="live-notifications-list">
-                        {% if notificaciones %}
-                        <ul class="notif-list">
-                        {% for notif in notificaciones %}
-                        <li class="notif-item">
-                            <div class="notif-icon">
-                                <i class="fa-solid fa-bell"></i>
-                            </div>
-                            <div class="notif-body">
-                                <p>{{ notif.mensaje }}</p>
-                                <div class="notif-meta">
-                                    <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
-                                    <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.nb_equipo|default:"-" }}</span>
-                                    {% if notif.id_equipo_monitoreo.id_edificio %}
-                                    <span>{{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
-                                    {% endif %}
+                    <div class="notif-card">
+                        <div id="live-notifications-list">
+                            {% if notificaciones %}
+                            <ul class="notif-list">
+                            {% for notif in notificaciones %}
+                            <li class="notif-item">
+                                <div class="notif-icon">
+                                    <i class="fa-solid fa-bell"></i>
                                 </div>
+                                <div class="notif-body">
+                                    <p>{{ notif.mensaje }}</p>
+                                    <div class="notif-meta">
+                                        <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.nb_equipo|default:"-" }}</span>
+                                        {% if notif.id_equipo_monitoreo.id_edificio %}
+                                        <span>{{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="no-notif" id="live-no-notif">
+                                <i class="fa-regular fa-bell-slash"></i>
+                                <p>No hay notificaciones pendientes.</p>
                             </div>
-                        </li>
-                        {% endfor %}
-                        </ul>
-                        {% else %}
-                        <div class="no-notif" id="live-no-notif">
-                            <i class="fa-regular fa-bell-slash"></i>
-                            <p>No hay notificaciones pendientes.</p>
+                            {% endif %}
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </main>
     </div>
+
+    <style>
+        /* ── Tarjeta de Notificaciones ── */
+        .notif-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
+        .notif-card .notif-list {
+            border: none;
+            box-shadow: none;
+        }
+        .notif-card .no-notif {
+            border: none;
+            box-shadow: none;
+        }
+
+        /* ── Modal Custom (Estilo Suizo sin bordes redondeados) ── */
+        .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 150ms ease;
+        }
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+        .custom-modal-container {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-3);
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            transform: scale(0.92);
+            transition: transform 150ms ease;
+            box-sizing: border-box;
+            border-radius: 0px !important;
+        }
+        .custom-modal-backdrop.active .custom-modal-container {
+            transform: scale(1);
+        }
+    </style>
+
+    <script>
+        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'custom-modal-backdrop';
+
+                const container = document.createElement('div');
+                container.className = 'custom-modal-container';
+
+                let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+                if (type === 'success') {
+                    iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--state-ok); font-size: var(--text-xl);"></i>';
+                } else if (type === 'error') {
+                    iconHtml = '<i class="fa-solid fa-circle-xmark" style="color: var(--state-critical); font-size: var(--text-xl);"></i>';
+                }
+
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
+                        ${iconHtml}
+                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
+                        ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: 0px !important;">Cancelar</button>` : ''}
+                        <button id="customModalConfirmBtn" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: 0px !important;">Aceptar</button>
+                    </div>
+                `;
+
+                backdrop.appendChild(container);
+                document.body.appendChild(backdrop);
+
+                setTimeout(() => {
+                    backdrop.classList.add('active');
+                }, 10);
+
+                const cleanUp = (value) => {
+                    backdrop.classList.remove('active');
+                    setTimeout(() => {
+                        backdrop.remove();
+                        resolve(value);
+                    }, 150);
+                };
+
+                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
+                if (showCancel) {
+                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
+                }
+            });
+        }
+
+        window.showAlert = function(message, type = 'info') {
+            let title = 'Notificación';
+            if (type === 'error') title = 'Error';
+            else if (type === 'success') title = 'Éxito';
+            else if (type === 'warn') title = 'Advertencia';
+            return showCustomModal({ title, message, type, showCancel: false });
+        };
+
+        window.showConfirm = function(message) {
+            return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
+        };
+    </script>
     <script src="{% static 'JS/live_monitoring.js' %}" defer></script>
 </body>
 </html>

@@ -14,9 +14,11 @@
         /* ── Monitoreo: componentes locales (Swiss Typographic Grid) ── */
         .equipo-card {
             background: var(--color-surface);
-            border: 1px solid var(--color-border);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
+            border-radius: 0px;
         }
         .equipo-header {
             display: flex;
@@ -24,46 +26,88 @@
             align-items: center;
             margin-bottom: var(--sp-2);
             padding-bottom: var(--sp-2);
-            border-bottom: 1px solid var(--color-border);
+            border-bottom: 2px solid var(--color-ink);
         }
         .equipo-header h3 { margin: 0; color: var(--color-ink); font-size: var(--text-lg); font-weight: var(--weight-bold); }
         .equipo-edificio { color: var(--color-text-secondary); font-size: var(--text-sm); }
 
-        .live-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--color-border); margin-top: var(--sp-2); }
-        .live-grid div { padding: var(--sp-1) var(--sp-2); background: var(--color-surface); font-size: var(--text-sm); }
+        .live-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-2); }
+        .live-grid div { padding: var(--sp-2) var(--sp-3); background: var(--color-surface); font-size: var(--text-sm); border: 2px solid var(--color-ink); box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15); }
 
-        .sensor-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-2); margin-top: var(--sp-3); }
-        .sensor-card { background: var(--color-surface); border: 1px solid var(--color-border); padding: var(--sp-2); }
-        .sensor-card-header { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-1); margin-bottom: var(--sp-1); }
+        .sensor-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); margin-top: var(--sp-3); }
+        .sensor-card {
+            padding: var(--sp-3);
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            border-left: 6px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+        }
+        .sensor-card.risk-low   { border-left-color: var(--state-ok); }
+        .sensor-card.risk-med   { border-left-color: var(--state-warn); }
+        .sensor-card.risk-high  { border-left-color: #c2410c; }
+        .sensor-card.risk-crit  { border-left-color: var(--state-critical); }
 
-        .sensor-value { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 4px; }
-        .sensor-meta { font-size: var(--text-sm); color: var(--color-text-secondary); }
+        .sensor-card-name {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-ink);
+            margin-bottom: 4px;
+        }
 
-        .monitoring-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); margin-bottom: var(--sp-3); }
-        .monitoring-summary .summary-card { background: var(--color-surface); padding: var(--sp-2); }
-        .monitoring-summary .summary-card strong { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-medium); margin-bottom: 4px; }
+        .sensor-card-value {
+            font-size: var(--text-xl);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            line-height: var(--leading-tight);
+        }
 
-        .monitoring-sections { display: grid; gap: var(--sp-3); }
-        .monitoring-section { background: var(--color-surface); border: 1px solid var(--color-border); padding: var(--sp-3); }
-        .monitoring-section h2 { margin: 0 0 var(--sp-2); font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); letter-spacing: var(--tracking-tight); }
+        .sensor-card-footer {
+            margin-top: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-        .monitoring-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-2); }
-        .monitor-card { background: var(--color-bg); border: 1px solid var(--color-border); padding: var(--sp-2); }
-        .monitor-card-title { font-size: var(--text-xs); font-weight: var(--weight-medium); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); margin-bottom: 6px; }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 2px 8px;
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            border: 2px solid var(--color-ink);
+            border-radius: 0px;
+        }
+
+        .monitoring-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-2); background: transparent; border: none; box-shadow: none; margin-bottom: var(--sp-4); }
+        .monitoring-summary .summary-card { background: var(--color-surface); padding: var(--sp-3); border: 2px solid var(--color-ink); box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
+        .monitoring-summary .summary-card strong { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-bold); margin-bottom: 6px; }
+
+        .monitoring-sections { display: grid; gap: var(--sp-4); }
+        .monitoring-section { background: var(--color-surface); border: 2px solid var(--color-ink); padding: var(--sp-4); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
+        .monitoring-section h2 { margin: 0 0 var(--sp-3); font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); letter-spacing: var(--tracking-tight); }
+
+        .monitoring-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
+        .monitor-card { background: var(--color-bg); border: 2px solid var(--color-ink); padding: var(--sp-3); border-radius: 0px; box-shadow: 2px 2px 0px rgba(10, 10, 10, 0.05); }
+        .monitor-card-title { font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); margin-bottom: 8px; }
         .monitor-card-value { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--color-ink); }
-        .monitor-card-meta { margin-top: 6px; font-size: var(--text-xs); color: var(--color-text-secondary); }
+        .monitor-card-meta { margin-top: 8px; font-size: var(--text-xs); color: var(--color-text-secondary); }
 
-        .monitor-card-badge { display: inline-flex; align-items: center; justify-content: center; padding: 2px 8px; border-radius: var(--radius-badge); font-size: var(--text-xs); font-weight: var(--weight-medium); text-transform: uppercase; letter-spacing: 0.03em; }
-        .badge-green  { background: var(--state-ok-bg);       color: var(--state-ok);       border: 1px solid var(--state-ok-border); }
-        .badge-yellow { background: var(--state-warn-bg);     color: var(--state-warn);     border: 1px solid var(--state-warn-border); }
-        .badge-orange { background: var(--state-warn-bg);     color: var(--state-warn);     border: 1px solid var(--state-warn-border); }
-        .badge-red    { background: var(--state-critical-bg); color: var(--state-critical); border: 1px solid var(--state-critical-border); }
+        .monitor-card-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 10px; border-radius: 0px; border: 2px solid var(--color-ink); font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.03em; }
+        .badge-green  { background: var(--state-ok-bg);       color: var(--state-ok); }
+        .badge-yellow { background: var(--state-warn-bg);     color: var(--state-warn); }
+        .badge-orange { background: var(--state-warn-bg);     color: var(--state-warn); }
+        .badge-red    { background: var(--state-critical-bg); color: var(--state-critical); }
 
-        .section-title { display: flex; align-items: center; gap: var(--sp-1); margin-bottom: var(--sp-2); }
-        .section-title i { color: var(--color-text-secondary); font-size: 0.9rem; }
+        .section-title { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+        .section-title i { color: var(--color-text-secondary); font-size: 0.95rem; }
 
-        .sensor-item { background: var(--color-bg); padding: var(--sp-1) var(--sp-2); border: 1px solid var(--color-border); }
-        .sensor-name { font-weight: var(--weight-medium); font-size: var(--text-sm); color: var(--color-ink); }
+        .sensor-item { background: var(--color-bg); padding: var(--sp-2) var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; }
+        .sensor-name { font-weight: var(--weight-bold); font-size: var(--text-sm); color: var(--color-ink); }
         .sensor-time { font-size: var(--text-xs); color: var(--color-text-secondary); }
     </style>
 </head>
@@ -90,13 +134,13 @@
                                     Sensores instalados en tu edificio
                                 {% endif %}
                             </p>
-                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:12px; font-size:0.95rem; font-weight:600;">
+                            <div id="monitor-backend-status" class="sensor-warning" style="margin-top:12px; display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:0px; border:2px solid var(--color-ink); box-shadow:4px 4px 0px rgba(10, 10, 10, 0.1); font-size:0.95rem; font-weight:600;">
                                 Conectando al backend de monitoreo...
                             </div>
                         </div>
                     </header>
 
-                    <div id="live-monitoring-content" class="bg-white rounded-xl shadow p-5 mb-6">
+                    <div id="live-monitoring-content" class="equipo-card" style="padding: var(--sp-4);">
                         <div class="monitoring-summary" id="monitoringSummary">
                             <div class="summary-card"><strong>Última actualización</strong><div id="summaryLastUpdate">--:--:--</div></div>
                             <div class="summary-card"><strong>Caudal</strong><div id="summaryFlowRate">-- L/s</div></div>
@@ -104,9 +148,9 @@
                             <div class="summary-card"><strong>Temperatura</strong><div id="summaryTemperature">-- °C</div></div>
                             <div class="summary-card"><strong>Voltaje</strong><div id="summaryVoltage">-- V</div></div>
                             <div class="summary-card"><strong>Corriente</strong><div id="summaryCurrent">-- A</div></div>
-                            <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ON</div></div>
-                            <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ON</div></div>
-                            <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">OFF</div></div>
+                            <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ENCENDIDA</div></div>
+                            <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ENCENDIDO</div></div>
+                            <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">INACTIVA</div></div>
                             <div class="summary-card"><strong>Alertas recientes</strong><div id="summaryAlertCount">0</div></div>
                             <div class="summary-card"><strong>Estado</strong><div id="summaryRationing">Operación normal</div></div>
                         </div>
@@ -120,22 +164,14 @@
                                 <div id="ascensorCards" class="monitoring-cards-grid"></div>
                             </div>
                         </div>
-                        <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-top:24px;">
+                        <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:24px;">
                             <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-chart-line"></i><span>Caudal / Presión / Temperatura</span></div>
-                                <canvas id="chart1" height="200"></canvas>
+                                <div class="section-title"><i class="fa-solid fa-oil-can"></i><span>Variables de Bomba / Eléctricas</span></div>
+                                <canvas id="chart1" height="180"></canvas>
                             </div>
                             <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-chart-area"></i><span>Vibración / Nivel de tanque</span></div>
-                                <canvas id="chart2" height="200"></canvas>
-                            </div>
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-chart-column"></i><span>Velocidad / Carga / Energía</span></div>
-                                <canvas id="chart3" height="200"></canvas>
-                            </div>
-                            <div class="monitoring-section">
-                                <div class="section-title"><i class="fa-solid fa-bolt"></i><span>Voltaje / Corriente</span></div>
-                                <canvas id="chart4" height="200"></canvas>
+                                <div class="section-title"><i class="fa-solid fa-elevator"></i><span>Variables de Ascensor / Motor</span></div>
+                                <canvas id="chart2" height="180"></canvas>
                             </div>
                         </div>
                     </div>
