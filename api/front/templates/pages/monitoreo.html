@@ -118,24 +118,20 @@
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width:1200px;">
-                    <header class="report-header">
-                        <div class="report-header-text">
-                            <h1 class="profile-title">
-                                {% if rol == 'SA' or rol == 'ADMIN' %}Monitoreo Global{% else %}Monitoreo{% endif %}
-                            </h1>
-                            <p class="profile-subtitle">
-                                {% if rol == 'SA' or rol == 'ADMIN' %}
-                                    {% if selected_edificio %}
-                                        Estado de sensores en {{ selected_edificio.nb_edificio }}
-                                    {% else %}
-                                        Estado de todos los sensores desplegados
-                                    {% endif %}
+                    <div class="admin-info">
+                        <h1>{% if rol == 'SA' or rol == 'ADMIN' %}Panel de Monitoreo Global{% else %}Monitoreo de Infraestructura{% endif %} — INES</h1>
+                        <p>
+                            {% if rol == 'SA' or rol == 'ADMIN' %}
+                                {% if selected_edificio %}
+                                    Visualización en tiempo real del estado de los sensores, niveles hidráulicos y variables operativas del edificio <strong>{{ selected_edificio.nb_edificio }}</strong>.
                                 {% else %}
-                                    Sensores instalados en tu edificio
+                                    Visualización centralizada en tiempo real de todos los sensores, consumo de energía y variables mecánicas de los equipos desplegados en el sistema.
                                 {% endif %}
-                            </p>
-                        </div>
-                    </header>
+                            {% else %}
+                                Consulta y supervisión en tiempo real de las lecturas de los sensores de agua y el ascensor instalados en tu edificio de residencia.
+                            {% endif %}
+                        </p>
+                    </div>
 
                     <div id="live-monitoring-content" class="equipo-card" style="padding: var(--sp-4);">
                         <!-- Loading message for initial check -->

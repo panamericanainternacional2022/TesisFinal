@@ -507,14 +507,14 @@ def send_email_alert(
           <!-- Cabecera -->
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
-              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">SISTEMA INES</span>
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">Sistema de Telemetría — INES</span>
             </td>
           </tr>
           <!-- Estado / Banner de Riesgo -->
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: {bg_color}; border-left: 6px solid {text_color};">
               <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 4px;">NIVEL DE RIESGO: {risk_level.upper()}</span>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo</h1>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo — INES</h1>
             </td>
           </tr>
           <!-- Contenido -->
@@ -526,7 +526,7 @@ def send_email_alert(
           <!-- Pie de página -->
           <tr>
             <td style="padding: 16px 24px; border-top: 1px solid #e0e0e0; background-color: #f5f5f5; font-size: 11px; color: #6b6b6b; text-align: center;">
-              Este es un mensaje generado de forma automática por el Sistema de Monitoreo INES.<br>
+              Este es un mensaje generado de forma automática por el Panel de Control — INES.<br>
               Por favor, no responda a este correo electrónico.
             </td>
           </tr>
@@ -780,8 +780,8 @@ def send_alert(variable, value, risk_level, recommended_action):
                 f"Alerta crítica para {variable} sin mapeo a dispositivo; no se activará protección automática."
             )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[INES - Alerta de Monitoreo] Estado {risk_level.upper()}: Anomalia en {variable.replace('_', ' ').title()}"
-    body = f"""SISTEMA INES — REPORTE AUTOMATICO DE ANOMALIA
+    subject = f"[Alerta de Monitoreo] Estado {risk_level.upper()}: Anomalía en {variable.replace('_', ' ').title()} — INES"
+    body = f"""REPORTE AUTOMÁTICO DE ANOMALÍA — INES
 
 Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
 
@@ -1251,12 +1251,12 @@ def generate_pdf_report(period):
     pdf.add_page()
     
     # Título principal minimalista
-    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, "INES", ln=1, align="L")
-    pdf.set_font("Helvetica", "B", 13)
+    pdf.cell(0, 12, "Reporte de Monitoreo Automatizado — INES", ln=1, align="L")
+    pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 8, "REPORTE DE MONITOREO AUTOMATIZADO", ln=1, align="L")
+    pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
     pdf.ln(5)
     
     # Metadata del reporte
@@ -1710,14 +1710,14 @@ def api_send_test_email():
         pdf_io = generate_pdf_report("hour")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio - PCLogo", message, pdf_io, "reporte.pdf", [email]),
+            args=(risk_level, "Reporte de Edificio — INES", message, pdf_io, "reporte.pdf", [email]),
             daemon=True
         ).start()
     except Exception as e:
         logger.error(f"Error generando o enviando PDF a {email}: {e}")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
+            args=(risk_level, "Reporte de Edificio — INES", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
             daemon=True
         ).start()
     return jsonify({"status": "ok", "message": f"Prueba enviada a {email}"})
@@ -1737,14 +1737,14 @@ def api_send_all_subscribers():
         pdf_io = generate_pdf_report("hour")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message, pdf_io, "reporte.pdf", emails),
+            args=(risk_level, "Reporte de Edificio (Masivo) — INES", message, pdf_io, "reporte.pdf", emails),
             daemon=True
         ).start()
     except Exception as e:
         logger.error(f"Error generando o enviando PDF masivo: {e}")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio (Masivo) - PCLogo", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
+            args=(risk_level, "Reporte de Edificio (Masivo) — INES", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
             daemon=True
         ).start()
     return jsonify({"status": "ok", "message": f"Prueba enviada a {len(emails)} destinatarios"})
@@ -1934,6 +1934,33 @@ HTML_TEMPLATE = """
             --leading-tight: 1.2; --leading-normal: 1.5;
             --transition-base: 0.15s ease;
             --transition-fast: 0.1s ease;
+        }
+
+        /* ── Cabecera informativa unificada ── */
+        .admin-info {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            border-left: 6px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            padding: var(--sp-3);
+            margin-bottom: var(--sp-3);
+            border-radius: 0px;
+        }
+
+        .admin-info h1 {
+            font-size: var(--text-xl);
+            font-weight: var(--weight-bold);
+            letter-spacing: var(--tracking-tight);
+            color: var(--color-ink);
+            margin-bottom: var(--sp-1);
+            line-height: var(--leading-tight);
+        }
+
+        .admin-info p {
+            font-size: var(--text-sm);
+            color: var(--color-text-secondary);
+            margin-top: 4px;
+            line-height: var(--leading-normal);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -2431,9 +2458,9 @@ HTML_TEMPLATE = """
     <div class="page-wrapper">
 
         <!-- Encabezado -->
-        <header class="page-header">
-            <h1 class="page-title"><i class="fa-solid fa-chart-line"></i> INES — Panel de Monitoreo</h1>
-            <p class="page-subtitle">Sensores de bomba, ascensor, eléctricos y motor · Actualización en vivo</p>
+        <header class="admin-info">
+            <h1><i class="fa-solid fa-chart-line"></i> Panel de Control de Telemetría — INES</h1>
+            <p>Monitoreo continuo y en tiempo real de sensores hidráulicos, eléctricos, mecánicos y de temperatura. Actualización en vivo mediante WebSocket.</p>
         </header>
 
         <!-- Barra de controles -->

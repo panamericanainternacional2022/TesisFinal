@@ -64,12 +64,10 @@
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width: 800px;">
-                    <header class="report-header">
-                        <div class="report-header-text">
-                            <h1 class="profile-title">{% if accion == 'editar' %}Editar Edificio{% else %}Eliminar Edificio{% endif %}</h1>
-                            <p class="profile-subtitle">Selecciona un edificio de la lista</p>
-                        </div>
-                    </header>
+                    <div class="admin-info">
+                        <h1>{% if accion == 'editar' %}Seleccionar Edificio para Editar{% else %}Seleccionar Edificio para Eliminar{% endif %} — INES</h1>
+                        <p>Selecciona una de las edificaciones de la lista de registros activos para proceder a actualizar sus datos o removerla permanentemente de la base de datos.</p>
+                    </div>
 
                     {% if items %}
                     <div class="select-card">

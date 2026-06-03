@@ -17,20 +17,18 @@
         <main class="main-content">
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width:800px;">
-                    <header class="report-header">
-                        <div class="report-header-text" style="width: 100%;">
-                            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
-                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                                    <h1 class="profile-title" style="margin:0;">Notificaciones</h1>
-                                    <span id="notificationBadgeCount" class="notif-count-badge">0</span>
-                                </div>
-                                <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-left:auto;">
-                                    <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
-                                </button>
+                    <div class="admin-info">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <h1 style="margin:0;">Notificaciones — INES</h1>
+                                <span id="notificationBadgeCount" class="notif-count-badge">0</span>
                             </div>
-                            <p class="profile-subtitle">Alertas y eventos del sistema</p>
+                            <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-left:auto;">
+                                <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
+                            </button>
                         </div>
-                    </header>
+                        <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+                    </div>
 
                     <div class="notif-card">
                         <div id="live-notifications-list">

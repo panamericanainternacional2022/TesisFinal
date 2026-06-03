@@ -19,26 +19,28 @@
 
         <main class="main-content">
             <div class="menu-container">
-                <h1 class="menu-title">Panel de Control INES</h1>
-                <p class="menu-subtitle">Bienvenido, {{ request.session.usuario_username }}</p>
+                <div class="admin-info">
+                    <h1>Panel de Control Central — INES</h1>
+                    <p>Bienvenido al panel de administración, {{ request.session.usuario_username }}. Utiliza las tarjetas inferiores para gestionar la base de datos, configurar alertas o abrir el monitoreo en tiempo real.</p>
+                </div>
 
                 <div class="menu-grid">
                     {% if rol == 'SA' or rol == 'ADMIN' %}
                     <a href="{% url 'registro_beneficiario' %}" class="menu-card">
                         <i class="fa-solid fa-user-plus icon-card"></i>
-                        <span>Registro Usuario</span>
+                        <span>Registrar Usuario</span>
                     </a>
                     <a href="{% url 'lista_usuario' %}" class="menu-card">
                         <i class="fa-solid fa-users icon-card"></i>
-                        <span>Lista Usuarios</span>
+                        <span>Administrar Usuarios</span>
                     </a>
                     <a href="{% url 'registro_edificio' %}" class="menu-card">
                         <i class="fa-solid fa-city icon-card"></i>
-                        <span>Registro Edificio</span>
+                        <span>Registrar Edificio</span>
                     </a>
                     <a href="{% url 'lista_edificios' %}" class="menu-card">
                         <i class="fa-solid fa-building icon-card"></i>
-                        <span>Lista Edificios</span>
+                        <span>Administrar Edificios</span>
                     </a>
                     <a href="{% url 'monitoreo' %}" class="menu-card">
                         <i class="fa-solid fa-gauge-high icon-card"></i>

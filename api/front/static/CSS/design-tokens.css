@@ -107,3 +107,31 @@ body {
 
 a { color: inherit; }
 button { font-family: var(--font); }
+
+/* ── Cabecera informativa unificada ── */
+.admin-info {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    border-left: 6px solid var(--color-ink);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    padding: var(--sp-3);
+    margin-bottom: var(--sp-3);
+    border-radius: 0px;
+}
+
+.admin-info h1 {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin-bottom: var(--sp-1);
+    line-height: var(--leading-tight);
+}
+
+.admin-info p {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    line-height: var(--leading-normal);
+}
+
