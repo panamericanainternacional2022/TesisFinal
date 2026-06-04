@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Avanzado de Monitoreo — INES</title>
+    <title>Panel avanzado de monitoreo — INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -218,16 +218,16 @@
         <main class="main-content">
             <div class="admin-frame-card">
                 <div class="admin-info">
-                    <h1>Panel Avanzado de Monitoreo — INES</h1>
+                    <h1>Panel avanzado de monitoreo — INES</h1>
                     <p>Selecciona un edificio registrado para desplegar su ventana de telemetría y supervisar el funcionamiento de los sensores hidráulicos y mecánicos en tiempo real.</p>
                     <p>Este panel permite encender, apagar o reiniciar el simulador central de telemetría, así como auditar las lecturas de los dispositivos instalados.</p>
                 </div>
                 <div class="admin-body">
                     <div style="display: flex; flex-direction: column; gap: var(--sp-3);">
                         <div class="building-list-card">
-                            <h2>Control del Simulador</h2>
+                            <h2>Control del simulador</h2>
                             <div style="margin-bottom: var(--sp-2); display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; color: var(--color-text-secondary);">Estado del Simulador:</span>
+                                <span style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; color: var(--color-text-secondary);">Estado del simulador:</span>
                                 <span class="badge badge-loading" id="simulatorStatusBadge">Verificando...</span>
                             </div>
                             <div style="display: flex; gap: var(--sp-1);">
@@ -263,7 +263,7 @@
                         <div id="iframeFallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
                             <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
-                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento. Presione "Encender" en el panel izquierdo para iniciarlo.</p>
+                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento.</p>
                         </div>
                         <iframe id="adminMonitorFrame" src="" style="display: none;" title="Dashboard Administrativo PCLogo"></iframe>
                     </div>

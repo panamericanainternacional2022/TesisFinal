@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if editing %}Modificar Datos de Usuario{% else %}Registro de Nuevo Usuario{% endif %} — INES</title>
+    <title>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} — INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -19,7 +19,7 @@
             <div class="perfil-page" style="padding-top: 0 !important;">
                 <div style="max-width: 720px; margin: 0 auto;">
                     <div class="admin-info">
-                        <h1>{% if editing %}Modificar Datos de Usuario{% else %}Registro de Nuevo Usuario{% endif %} — INES</h1>
+                        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} — INES</h1>
                         <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
                     </div>
 
@@ -49,7 +49,7 @@
                      <div class="profile-form">
                         <div class="form-row">
                             <div class="form-group half-width">
-                                <label for="primerNombre">Primer Nombre</label>
+                                <label for="primerNombre">Primer nombre</label>
                                 <div class="input-with-icon">
                                     <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerNombre or form_errors.primerNombre_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#9998;</span>
@@ -57,7 +57,7 @@
                                 <div class="validation-error">{% if form_errors.primerNombre %}{{ form_errors.primerNombre }}{% elif form_errors.primerNombre_long %}{{ form_errors.primerNombre_long }}{% endif %}</div>
                             </div>
                             <div class="form-group half-width">
-                                <label for="segundoNombre">Segundo Nombre</label>
+                                <label for="segundoNombre">Segundo nombre</label>
                                 <div class="input-with-icon">
                                     <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoNombre or form_errors.segundoNombre_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#9998;</span>
@@ -68,7 +68,7 @@
 
                         <div class="form-row">
                             <div class="form-group half-width">
-                                <label for="primerApellido">Primer Apellido</label>
+                                <label for="primerApellido">Primer apellido</label>
                                 <div class="input-with-icon">
                                     <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerApellido or form_errors.primerApellido_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#9998;</span>
@@ -76,7 +76,7 @@
                                 <div class="validation-error">{% if form_errors.primerApellido %}{{ form_errors.primerApellido }}{% elif form_errors.primerApellido_long %}{{ form_errors.primerApellido_long }}{% endif %}</div>
                             </div>
                             <div class="form-group half-width">
-                                <label for="segundoApellido">Segundo Apellido</label>
+                                <label for="segundoApellido">Segundo apellido</label>
                                 <div class="input-with-icon">
                                     <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoApellido or form_errors.segundoApellido_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#9998;</span>
@@ -87,7 +87,7 @@
 
                         <div class="form-row">
                             <div class="form-group half-width">
-                                <label for="email">Email</label>
+                                <label for="email">Correo electrónico</label>
                                 <div class="input-with-icon">
                                     <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
                                     <span class="edit-icon">&#9998;</span>
@@ -149,9 +149,9 @@
 
                         <div class="actions-row">
                             {% if editing %}
-                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
                             {% else %}
-                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar Beneficiario' %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar usuario' %}
                             {% endif %}
                         </div>
                     </div>

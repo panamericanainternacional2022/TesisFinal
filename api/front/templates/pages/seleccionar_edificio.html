@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if accion == 'editar' %}Seleccionar Edificio para Editar{% else %}Seleccionar Edificio para Eliminar{% endif %} — INES</title>
+    <title>{% if accion == 'editar' %}Seleccionar edificio para editar{% else %}Seleccionar edificio para eliminar{% endif %} — INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -65,14 +65,14 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width: 800px;">
                     <div class="admin-info">
-                        <h1>{% if accion == 'editar' %}Seleccionar Edificio para Editar{% else %}Seleccionar Edificio para Eliminar{% endif %} — INES</h1>
+                        <h1>{% if accion == 'editar' %}Seleccionar edificio para Editar{% else %}Seleccionar edificio para eliminar{% endif %} — INES</h1>
                         <p>Selecciona una de las edificaciones de la lista de registros activos para proceder a actualizar sus datos o removerla permanentemente de la base de datos.</p>
                     </div>
 
                     {% if items %}
                     <div class="table-wrapper">
                         <div class="table-title-bar">
-                            Edificios Registrados
+                            Edificios registrados
                         </div>
                         <div class="table-responsive">
                             <table class="report-table centered-table">

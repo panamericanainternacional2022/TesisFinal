@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if editing %}Modificar Edificio{% else %}Registro de Nuevo Edificio{% endif %} — INES</title>
+    <title>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %} — INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -19,7 +19,7 @@
             <div class="perfil-page" style="padding-top: 0 !important;">
                 <div style="max-width: 720px; margin: 0 auto;">
                     <div class="admin-info">
-                        <h1>{% if editing %}Modificar Edificio{% else %}Registro de Nuevo Edificio{% endif %} — INES</h1>
+                        <h1>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %} — INES</h1>
                         <p>{% if editing %}Actualiza los datos de infraestructura, RIF y dirección física del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la información básica para registrar una nueva edificación y permitir la asignación posterior de sensores.{% endif %}</p>
                     </div>
 
@@ -34,7 +34,7 @@
                      <div class="profile-form">
                         <div class="form-row">
                             <div class="form-group full-width">
-                                <label for="nombreEdificio">Nombre del Edificio</label>
+                                <label for="nombreEdificio">Nombre del edificio</label>
                                 <div class="input-with-icon">
                                     <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ edificio.nb_edificio|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
                                     <span class="edit-icon">&#127970;</span>
@@ -64,9 +64,9 @@
 
                         <div class="actions-row">
                             {% if editing %}
-                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
                             {% else %}
-                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar Edificio' %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar edificio' %}
                             {% endif %}
                         </div>
                     </div>

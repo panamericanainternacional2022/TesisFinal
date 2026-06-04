@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monitoreo de Infraestructura — INES</title>
+    <title>Monitoreo de infraestructura — INES</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -160,18 +160,8 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width:1200px;">
                     <div class="admin-info">
-                        <h1>{% if rol == 'SA' or rol == 'ADMIN' %}Panel de Monitoreo Global{% else %}Monitoreo de Infraestructura{% endif %} — INES</h1>
-                        <p>
-                            {% if rol == 'SA' or rol == 'ADMIN' %}
-                                {% if selected_edificio %}
-                                    Visualización en tiempo real del estado de los sensores, niveles hidráulicos y variables operativas del edificio <strong>{{ selected_edificio.nb_edificio }}</strong>.
-                                {% else %}
-                                    Visualización centralizada en tiempo real de todos los sensores, consumo de energía y variables mecánicas de los equipos desplegados en el sistema.
-                                {% endif %}
-                            {% else %}
-                                Consulta y supervisión en tiempo real de las lecturas de los sensores de agua y el ascensor instalados en tu edificio de residencia.
-                            {% endif %}
-                        </p>
+                        <h1>Monitoreo de infraestructura — INES</h1>
+                        <p>Consulta y supervisión en tiempo real de las lecturas de los sensores de agua y el ascensor instalados en tu edificio de residencia.</p>
                     </div>
 
                     <div id="live-monitoring-content" class="equipo-card" style="padding: var(--sp-4);">
@@ -211,11 +201,11 @@
                             </div>
                             <div class="monitoring-sections">
                                 <div class="monitoring-section">
-                                    <div class="sensor-section-title"><i class="fa-solid fa-oil-can"></i> Sensores de Bomba y Eléctricos</div>
+                                    <div class="sensor-section-title"><i class="fa-solid fa-oil-can"></i> Sensores de bomba y eléctricos</div>
                                     <div id="bombaCards" class="monitoring-cards-grid"></div>
                                 </div>
                                 <div class="monitoring-section">
-                                    <div class="sensor-section-title"><i class="fa-solid fa-elevator"></i> Sensores de Ascensor y Motor</div>
+                                    <div class="sensor-section-title"><i class="fa-solid fa-elevator"></i> Sensores de ascensor y motor</div>
                                     <div id="ascensorCards" class="monitoring-cards-grid"></div>
                                 </div>
                             </div>
@@ -224,11 +214,11 @@
                             </h2>
                             <div class="grid-charts">
                                 <div class="chart-panel">
-                                    <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de Bomba / Eléctricas</div>
+                                    <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de bomba y eléctricas</div>
                                     <canvas id="chart1"></canvas>
                                 </div>
                                 <div class="chart-panel">
-                                    <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
+                                    <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de ascensor y motor</div>
                                     <canvas id="chart2"></canvas>
                                 </div>
                             </div>

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Completar Registro — INES</title>
+    <title>Completar registro — INES</title>
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/login.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/navbar.css' %}">
@@ -92,7 +92,7 @@
         <section class="register-card">
             <div class="login-card__header">
                 <span class="login-card__brand">INES</span>
-                <p class="login-card__subtitle">Finalizar Registro de Usuario</p>
+                <p class="login-card__subtitle">Finalizar registro de usuario</p>
             </div>
 
             {% if error %}
@@ -100,7 +100,7 @@
                     {{ error }}
                 </div>
             {% else %}
-                <h1>Configurar Credenciales</h1>
+                <h1>Configurar credenciales</h1>
                 <p class="info-text">Hola <strong>{{ usuario.id_persona.name }}</strong>, por favor define tu nombre de usuario y contraseña para poder acceder al sistema.</p>
 
                 {% if form_error %}
@@ -114,7 +114,7 @@
                     <input type="hidden" name="token" value="{{ token }}">
                     
                     <div class="form-group">
-                        <label for="username">Nombre de Usuario</label>
+                        <label for="username">Nombre de usuario</label>
                         <input type="text" id="username" name="username" placeholder="Ej. jperez" value="{{ username_val|default:'' }}" required class="{% if form_errors.username %}input-error{% endif %}">
                         {% if form_errors.username %}
                             <div class="validation-error">{{ form_errors.username }}</div>
@@ -130,7 +130,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="confirm_password">Confirmar Contraseña</label>
+                        <label for="confirm_password">Confirmar contraseña</label>
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite tu contraseña" required class="{% if form_errors.confirm_password %}input-error{% endif %}">
                         {% if form_errors.confirm_password %}
                             <div class="validation-error">{{ form_errors.confirm_password }}</div>
@@ -138,7 +138,7 @@
                     </div>
 
                     <div class="submit-btn-container">
-                        <button type="submit" class="primary-button">Activar Cuenta y Acceder</button>
+                        <button type="submit" class="primary-button">Activar cuenta y acceder</button>
                     </div>
                 </form>
             {% endif %}
