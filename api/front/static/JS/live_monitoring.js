@@ -282,17 +282,7 @@ function renderLiveMonitor(data) {
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
 
-    const toggleBtn = document.getElementById('toggleAlertsBtn');
-    if (toggleBtn) {
-        toggleBtn.dataset.enabled = data.alert_enabled;
-        if (data.alert_enabled) {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
-            toggleBtn.className = 'btn-alerts-toggle enabled';
-        } else {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
-            toggleBtn.className = 'btn-alerts-toggle disabled';
-        }
-    }
+    // Toggle button state is driven by Django session; simulator state is not authoritative.
 }
 
 function renderNotificationList(alerts) {
@@ -362,26 +352,8 @@ function renderConnectionStatus(isConnected, message) {
         monitorConnectionTimeout = null;
     }
 
-    const toggleBtn = document.getElementById('toggleAlertsBtn');
-    if (toggleBtn) {
-        toggleBtn.disabled = !isConnected;
-        toggleBtn.style.opacity = isConnected ? '1' : '0.5';
-        toggleBtn.style.cursor = isConnected ? 'pointer' : 'not-allowed';
-
-        if (isConnected) {
-            const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
-            if (isCurrentlyEnabled) {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
-                toggleBtn.className = 'btn-alerts-toggle enabled';
-            } else {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
-                toggleBtn.className = 'btn-alerts-toggle disabled';
-            }
-        } else {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sistema fuera de línea';
-            toggleBtn.className = 'btn-alerts-toggle disabled';
-        }
-    }
+    // Toggle button state is driven by Django session, not simulator connectivity.
+    // No changes to toggleBtn here.
 
     const activeContent = document.getElementById('monitoringActiveContent');
     const fallback = document.getElementById('userOfflineFallback');
@@ -418,6 +390,17 @@ function initLiveMonitoring() {
         }
         renderConnectionStatus(true, 'Backend de monitoreo conectado');
         console.info('Conectado al backend de monitoreo SSE en', SSE_URL);
+
+        // Push the session-stored alert state to the simulator now that it's online.
+        const toggleBtn = document.getElementById('toggleAlertsBtn');
+        if (toggleBtn) {
+            const sessionEnabled = toggleBtn.dataset.enabled === 'true';
+            fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: sessionEnabled })
+            }).catch(() => { });
+        }
     };
 
     source.onerror = (err) => {
@@ -476,45 +459,45 @@ function initLiveNotifications() {
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
         toggleBtn.addEventListener('click', async () => {
-            const isCurrentlyEnabled = toggleBtn.dataset.enabled !== undefined
-                ? toggleBtn.dataset.enabled === 'true'
-                : toggleBtn.classList.contains('enabled');
+            const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
             const targetState = !isCurrentlyEnabled;
+
+            // 1. Update UI immediately — optimistic update
+            toggleBtn.dataset.enabled = targetState;
+            if (targetState) {
+                toggleBtn.className = 'btn-alerts-toggle enabled';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
+            } else {
+                toggleBtn.className = 'btn-alerts-toggle disabled';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
+            }
+
+            // 2. Always persist to Django session (works even if simulator is offline)
+            const csrfToken = getCookie('csrftoken');
+            const djangoHeaders = { 'Content-Type': 'application/json' };
+            if (csrfToken) djangoHeaders['X-CSRFToken'] = csrfToken;
+
             try {
-                const resp = await fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
+                await fetch('/notificaciones/toggle_alerts/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: djangoHeaders,
                     body: JSON.stringify({ enabled: targetState })
                 });
-                const res = await resp.json();
-                if (res.status === 'ok') {
-                    toggleBtn.dataset.enabled = res.alert_enabled;
-                    if (res.alert_enabled) {
-                        toggleBtn.className = 'btn-alerts-toggle enabled';
-                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
-                    } else {
-                        toggleBtn.className = 'btn-alerts-toggle disabled';
-                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
-                    }
-
-                    // Sync with Django session state
-                    const csrfToken = getCookie('csrftoken');
-                    const djangoHeaders = { 'Content-Type': 'application/json' };
-                    if (csrfToken) {
-                        djangoHeaders['X-CSRFToken'] = csrfToken;
-                    }
-                    fetch('/notificaciones/toggle_alerts/', {
-                        method: 'POST',
-                        headers: djangoHeaders,
-                        body: JSON.stringify({ enabled: res.alert_enabled })
-                    }).catch(err => console.error('Error al guardar estado de alertas en la sesión:', err));
-
-                    await window.showAlert(res.alert_enabled ? 'Alertas activadas con éxito.' : 'Alertas desactivadas con éxito.', 'success');
-                }
-            } catch (error) {
-                console.error('Error toggling alerts:', error);
-                await window.showAlert('No se pudo comunicar con el simulador para cambiar el estado de las alertas.', 'error');
+            } catch (err) {
+                console.error('Error al guardar estado en sesión Django:', err);
             }
+
+            // 3. Fire-and-forget to simulator — if offline, SSE onopen will sync later
+            fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ enabled: targetState })
+            }).catch(() => { });
+
+            await window.showAlert(
+                targetState ? 'Alertas activadas con éxito.' : 'Alertas desactivadas con éxito.',
+                'success'
+            );
         });
     }
 
@@ -540,7 +523,7 @@ function initLiveNotifications() {
 
                     if (respDjango.ok) {
                         await window.showAlert('Notificaciones limpiadas con éxito.', 'success');
-                        renderNotificationList([]);
+                        window.location.href = window.location.pathname;
                     } else {
                         throw new Error('Error al limpiar');
                     }
@@ -566,9 +549,21 @@ window.addEventListener('DOMContentLoaded', async () => {
     setNotificationBadge(0);
     initCharts();
 
+    // Render toggle button from Django session state immediately (always enabled, no spinner)
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
+        toggleBtn.disabled = false;
+        toggleBtn.style.opacity = '1';
+        toggleBtn.style.cursor = 'pointer';
         toggleBtn.style.display = 'inline-flex';
+        const sessionEnabled = toggleBtn.dataset.enabled === 'true';
+        if (sessionEnabled) {
+            toggleBtn.className = 'btn-alerts-toggle enabled';
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
+        } else {
+            toggleBtn.className = 'btn-alerts-toggle disabled';
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
+        }
     }
 
     // Start 3.5-second connection fallback timer
@@ -578,15 +573,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     }, 3500);
 
     await resolveMonitorBackendOrigin();
-
-    // Sync simulator backend with local Django session state on load
-    if (toggleBtn && toggleBtn.dataset.enabled === 'false') {
-        fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ enabled: false })
-        }).catch(() => { });
-    }
 
     initLiveMonitoring();
     initLiveNotifications();

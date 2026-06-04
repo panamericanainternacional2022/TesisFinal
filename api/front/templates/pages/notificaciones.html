@@ -46,8 +46,8 @@
                             {% endif %}
                             
                             <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
-                                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alertas_desactivadas %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alertas_desactivadas %}false{% else %}true{% endif %}" disabled style="opacity: 0.5; cursor: not-allowed;">
-                                    <i class="fa-solid fa-spinner fa-spin"></i> Conectando al servicio...
+                                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alertas_desactivadas %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alertas_desactivadas %}false{% else %}true{% endif %}" style="display:none;">
+                                    <!-- Rendered by JS on DOMContentLoaded -->
                                 </button>
                                 <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
                                     <i class="fa-solid fa-trash-can"></i> Limpiar alertas
