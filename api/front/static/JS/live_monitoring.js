@@ -335,12 +335,14 @@ function renderLiveMonitor(data) {
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
         toggleBtn.dataset.enabled = data.alert_enabled;
-        if (data.alert_enabled) {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
-            toggleBtn.className = 'btn-alerts-toggle enabled';
-        } else {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
-            toggleBtn.className = 'btn-alerts-toggle disabled';
+        if (!toggleBtn.disabled) {
+            if (data.alert_enabled) {
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+                toggleBtn.className = 'btn-alerts-toggle enabled';
+            } else {
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+                toggleBtn.className = 'btn-alerts-toggle disabled';
+            }
         }
     }
 }
@@ -409,6 +411,20 @@ function renderConnectionStatus(isConnected, message) {
         toggleBtn.disabled = !isConnected;
         toggleBtn.style.opacity = isConnected ? '1' : '0.5';
         toggleBtn.style.cursor = isConnected ? 'pointer' : 'not-allowed';
+
+        if (isConnected) {
+            const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
+            if (isCurrentlyEnabled) {
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+                toggleBtn.className = 'btn-alerts-toggle enabled';
+            } else {
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+                toggleBtn.className = 'btn-alerts-toggle disabled';
+            }
+        } else {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> Sistema fuera de línea';
+            toggleBtn.className = 'btn-alerts-toggle disabled';
+        }
     }
 
     const activeContent = document.getElementById('monitoringActiveContent');

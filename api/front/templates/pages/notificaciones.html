@@ -50,11 +50,7 @@
                             
                             <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
                                 <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alertas_desactivadas %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alertas_desactivadas %}false{% else %}true{% endif %}" disabled style="opacity: 0.5; cursor: not-allowed;">
-                                    {% if alertas_desactivadas %}
-                                        <i class="fa-solid fa-bell-slash"></i> Activar Alertas
-                                    {% else %}
-                                        <i class="fa-solid fa-bell"></i> Desactivar Alertas
-                                    {% endif %}
+                                    <i class="fa-solid fa-spinner fa-spin"></i> Conectando al servicio...
                                 </button>
                                 <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
                                     <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
