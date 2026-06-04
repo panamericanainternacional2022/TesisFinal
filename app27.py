@@ -2412,8 +2412,8 @@ HTML_TEMPLATE = """
 
         /* ── Suscriptores ── */
         .subs-table { font-size: var(--text-sm); width: 100%; border-collapse: collapse; }
-        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); padding: 6px var(--sp-1); border-bottom: 2px solid var(--color-ink); text-align: left; }
-        .subs-table td { padding: 8px var(--sp-1); border-top: 1px solid var(--color-ink); }
+        .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); padding: 8px var(--sp-2); border-bottom: 2px solid var(--color-ink); text-align: left; }
+        .subs-table td { padding: 10px var(--sp-2); border-top: 1px solid var(--color-ink); }
         .subs-table button {
             background: var(--color-surface) !important;
             border: 2px solid var(--color-ink) !important;
@@ -2563,18 +2563,20 @@ HTML_TEMPLATE = """
         <div class="panel">
             <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de Alertas por Correo</h2>
             <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
-                <div id="activeBuildingNameContainer" style="flex: 1; min-width: 200px; display: flex; flex-direction: column; justify-content: center; height: 44px;">
-                    <span class="form-label" style="margin-bottom: 4px;">Edificio Activo</span>
-                    <span id="activeBuildingName" style="font-weight: var(--weight-bold); font-size: var(--text-base); color: var(--color-ink);">Cargando...</span>
+                <div id="activeBuildingNameContainer" class="form-group" style="flex: 1; min-width: 250px;">
+                    <span class="form-label">Edificio activo</span>
+                    <div style="height: 44px; border: 2px solid var(--color-ink); padding: 9px var(--sp-1); background: var(--color-bg); font-weight: var(--weight-bold); display: flex; align-items: center; color: var(--color-ink); font-size: var(--text-sm);">
+                        <span id="activeBuildingName">Cargando...</span>
+                    </div>
                 </div>
-                <div class="form-group" id="subBuildingSelectContainer" style="flex: 1; min-width: 200px; display: none;">
+                <div class="form-group" id="subBuildingSelectContainer" style="flex: 1; min-width: 250px; display: none;">
                     <label class="form-label">Edificio (edf)</label>
                     <select id="subBuildingSelect" style="height: 44px;">
                         <option value="">Cargando edificios...</option>
                     </select>
                 </div>
-                <div class="form-group" style="width: 150px;">
-                    <label class="form-label">Nivel de riesgo prueba</label>
+                <div class="form-group" style="flex: 1; min-width: 150px; max-width: 200px;">
+                    <label class="form-label">Nivel de riesgo (pruebas)</label>
                     <select id="subRiskLevel" style="height: 44px;">
                         <option value="Bajo">Bajo</option>
                         <option value="Medio">Medio</option>
@@ -2589,7 +2591,7 @@ HTML_TEMPLATE = """
                 </div>
             </div>
             <div class="subs-container">
-                <div id="subscribersList" style="padding: var(--sp-1); font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando usuarios...</div>
+                <div id="subscribersList" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando usuarios...</div>
             </div>
             <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* El botón "Enviar a todos" envía el reporte en PDF por correo a todas las personas del edificio seleccionado. El botón "Enviar prueba" en la lista envía de manera individual.</p>
         </div>

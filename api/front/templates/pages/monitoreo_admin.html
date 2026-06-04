@@ -244,15 +244,10 @@
                                 <li>
                                     <button type="button" class="building-item" data-id="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}" onclick="selectBuilding(this)">
                                         <div class="building-item-title">{{ edificio.nb_edificio }}</div>
-                                        <div class="building-item-subtitle">RIF: {{ edificio.rif }}</div>
                                     </button>
                                 </li>
                                 {% endfor %}
                             </ul>
-                            <div class="building-selected" id="selectedBuildingText">Haz clic en un edificio para ver su monitoreo.</div>
-                            <div class="building-action-row">
-                                <button type="button" class="open-monitor-button" id="openMonitorButton" onclick="openMonitorNewTab()" disabled>Abrir en nueva pestaña</button>
-                            </div>
                             {% else %}
                             <p>No hay edificios registrados.</p>
                             {% endif %}

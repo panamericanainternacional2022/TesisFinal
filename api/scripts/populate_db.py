@@ -127,13 +127,13 @@ def populate():
     e1, _ = Edificio.objects.get_or_create(
         rif="J-12345678-9",
         defaults={
-            "nb_edificio": "Edificio Central",
+            "nb_edificio": "Conjunto Junin",
             "direccion": "Centro de la ciudad",
         },
     )
     e2, _ = Edificio.objects.get_or_create(
         rif="J-98765432-1",
-        defaults={"nb_edificio": "Edificio Norte", "direccion": "Norte de la ciudad"},
+        defaults={"nb_edificio": "Residencia La Campiña", "direccion": "Norte de la ciudad"},
     )
 
     print("Asignando Usuarios a Edificios...")
