@@ -1,6 +1,7 @@
 const BACKEND_ORIGINS = ['http://localhost:5000', 'http://127.0.0.1:5000'];
 let MONITOR_BACKEND_ORIGIN = BACKEND_ORIGINS[0];
 let SSE_URL = `${MONITOR_BACKEND_ORIGIN}/stream/monitoreo`;
+let monitorConnectionTimeout = null;
 
 async function resolveMonitorBackendOrigin() {
     for (const origin of BACKEND_ORIGINS) {
@@ -335,14 +336,12 @@ function renderLiveMonitor(data) {
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
         toggleBtn.dataset.enabled = data.alert_enabled;
-        if (!toggleBtn.disabled) {
-            if (data.alert_enabled) {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
-                toggleBtn.className = 'btn-alerts-toggle enabled';
-            } else {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
-                toggleBtn.className = 'btn-alerts-toggle disabled';
-            }
+        if (data.alert_enabled) {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+            toggleBtn.className = 'btn-alerts-toggle enabled';
+        } else {
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+            toggleBtn.className = 'btn-alerts-toggle disabled';
         }
     }
 }
@@ -406,6 +405,11 @@ function renderConnectionStatus(isConnected, message) {
         badge.className = isConnected ? 'sensor-active' : 'sensor-critical';
     }
 
+    if (isConnected && monitorConnectionTimeout) {
+        clearTimeout(monitorConnectionTimeout);
+        monitorConnectionTimeout = null;
+    }
+
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
         toggleBtn.disabled = !isConnected;
@@ -456,17 +460,22 @@ function initLiveMonitoring() {
     const source = new EventSource(SSE_URL);
 
     source.onopen = () => {
+        if (monitorConnectionTimeout) {
+            clearTimeout(monitorConnectionTimeout);
+            monitorConnectionTimeout = null;
+        }
         renderConnectionStatus(true, 'Backend de monitoreo conectado');
         console.info('Conectado al backend de monitoreo SSE en', SSE_URL);
     };
 
     source.onerror = (err) => {
-        if (source.readyState === EventSource.CONNECTING) {
-            console.warn('Intentando conectar al canal de monitoreo SSE...');
-            return;
-        }
-        renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
         console.error('Error de conexión SSE:', err);
+        if (!monitorConnectionTimeout) {
+            monitorConnectionTimeout = setTimeout(() => {
+                renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
+                monitorConnectionTimeout = null;
+            }, 3500);
+        }
     };
 
     source.onmessage = (event) => {
@@ -609,6 +618,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (toggleBtn) {
         toggleBtn.style.display = 'inline-flex';
     }
+
+    // Start 3.5-second connection fallback timer
+    monitorConnectionTimeout = setTimeout(() => {
+        renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
+        monitorConnectionTimeout = null;
+    }, 3500);
 
     await resolveMonitorBackendOrigin();
 
