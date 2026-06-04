@@ -3257,39 +3257,24 @@ HTML_TEMPLATE = """
         loadBuildings();
 
         window.addEventListener('message', function(event) {
-            console.log("Iframe received message event:", event);
             if (event.data && event.data.type === 'CHANGE_BUILDING') {
                 const buildingId = event.data.buildingId;
                 const buildingName = event.data.buildingName;
-                console.log("Changing building to:", buildingId, buildingName);
                 
                 let select = document.getElementById('subBuildingSelect');
-                if (select) {
-                    select.value = buildingId;
-                    console.log("Updated subBuildingSelect value to:", select.value);
-                }
+                if (select) select.value = buildingId;
                 
                 fetch(`/api/set_active_building/${buildingId}`, { method: 'POST' })
-                    .then(res => res.json())
-                    .then(data => console.log("Server active building set response:", data))
                     .catch(err => console.error("Error setting active building:", err));
 
                 loadUsersForBuilding(buildingId);
 
                 const activeNameEl = document.getElementById('activeBuildingName');
-                if (activeNameEl) {
-                    activeNameEl.textContent = buildingName;
-                    console.log("Updated activeBuildingName display text");
-                }
+                if (activeNameEl) activeNameEl.textContent = buildingName;
                 
-                try {
-                    const url = new URL(window.location);
-                    url.searchParams.set('edificio', buildingId);
-                    window.history.replaceState({}, '', url);
-                    console.log("Updated history URL query param to:", url.toString());
-                } catch(e) {
-                    console.error("Error updating state URL:", e);
-                }
+                const url = new URL(window.location);
+                url.searchParams.set('edificio', buildingId);
+                window.history.replaceState({}, '', url);
             }
         });
     </script>
