@@ -216,22 +216,27 @@ MAX_HISTORY_SIZE = 500
 
 thresholds = DEFAULT_THRESHOLDS.copy()
 alert_enabled = True
-alert_log = []
-last_email_sent_time = 0
-pending_notifications = deque()
 MAX_LOG_ENTRIES = 100
 PROTECTION_HOLD_SECONDS = 8
 PROTECTION_TOGGLE_INTERVAL = 8
 SIMULATION_NORMAL_DURATION = 10
 protection_active = False
-pump_on = True
-elevator_on = True
 last_protection_toggle = time.time()
 protection_end = 0
 protection_targets = set()
-active_alerts = {}
-# No usamos fallas agendadas: las fallas se generan aleatoriamente y cada dispositivo es independiente
-sensor_data = {
+# Flag para activar logs de simulación
+LOG_SIM = True
+# Probabilidad de que la otra unidad falle simultáneamente (0-1)
+SIMULTANEOUS_FAIL_PROB = 0.3
+# Probabilidad de que un intento de cierre de puerta tenga éxito en un piso detenido
+DOOR_CLOSE_SUCCESS_PROB = 0.25
+# Probabilidad de que la puerta se abra por inactividad en piso detenido
+DOOR_OPEN_PROB = 0.4
+# Intentos máximos de cierre de puerta en piso sin ascenso/descenso
+MAX_DOOR_CLOSE_ATTEMPTS = 2
+
+# Valores por defecto de sensores para inicializar cada simulador
+DEFAULT_SENSOR_DATA = {
     "flow_rate": 15.0,
     "pressure": 4.0,
     "temperature": 50.0,
@@ -247,22 +252,60 @@ sensor_data = {
     "current": 20.0,
     "motor_stuck": False,
 }
-history = []
 
-# Protección por dispositivo: mapping device -> protection_end_timestamp
-protection_ends = {}
-# Flag para activar logs de simulación
-LOG_SIM = True
-# Probabilidad de que la otra unidad falle simultáneamente (0-1)
-SIMULTANEOUS_FAIL_PROB = 0.3
-# Probabilidad de que un intento de cierre de puerta tenga éxito en un piso detenido
-DOOR_CLOSE_SUCCESS_PROB = 0.25
-# Probabilidad de que la puerta se abra por inactividad en piso detenido
-DOOR_OPEN_PROB = 0.4
-# Intentos máximos de cierre de puerta en piso sin ascenso/descenso
-MAX_DOOR_CLOSE_ATTEMPTS = 2
-# Contador de intentos fallidos de cierre de puerta
+# ----------------------------------------------------------------------
+# Simulador por edificio: cada BuildingSimulator tiene su propio estado
+# independiente de sensores, bomba, ascensor, protecciones y alertas.
+# El patrón "state-swap" permite reutilizar las funciones globales
+# existentes sin modificarlas: antes de cada tick se redirigen los
+# globales al simulador correcto y se restauran al terminar.
+# ----------------------------------------------------------------------
+class BuildingSimulator:
+    """Contenedor de estado independiente por edificio."""
+    def __init__(self, edificio_id: int, equipo_id: int, nombre: str):
+        self.edificio_id = edificio_id
+        self.equipo_id   = equipo_id
+        self.nombre      = nombre
+        # Estado de sensores (dict mutable — modificado in-place por update_sensor_data)
+        self.sensor_data = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
+        # Estado de dispositivos
+        self.pump_on     = True
+        self.elevator_on = True
+        # Protección por dispositivo: device -> timestamp_fin
+        self.protection_ends: dict = {}
+        # Alertas activas: variable -> nivel
+        self.active_alerts: dict = {}
+        # Contador de intentos de cierre de puerta
+        self.door_close_attempts: int = 0
+        # Historial de lecturas
+        self.history: list = []
+        # Log de alertas
+        self.alert_log: list = []
+        # Cola de notificaciones pendientes (para SSE)
+        self.pending_notifications: deque = deque()
+        # Control de emails (timestamp del último envío)
+        self.last_email_sent_time: float = 0.0
+
+    def __repr__(self):
+        return f"<BuildingSimulator edificio_id={self.edificio_id} nombre={self.nombre!r}>"
+
+
+# Diccionario global de simuladores: edificio_id -> BuildingSimulator
+# Se puebla en el bloque __main__ desde la BD.
+simulators: dict = {}
+
+# Variables globales de estado que apuntan al simulador activo.
+# Son intercambiadas por _run_sim_tick() en cada ciclo.
+sensor_data      = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
+pump_on          = True
+elevator_on      = True
+protection_ends  = {}
+active_alerts    = {}
 door_close_attempts = 0
+history          = []
+alert_log        = []
+pending_notifications = deque()
+last_email_sent_time  = 0.0
 
 
 # ----------------------------------------------------------------------
@@ -588,10 +631,13 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
     try:
         import json as _json
 
-        # Usar el edificio activo para asociar al equipo correcto
-        eid = active_edificio_id
-        if eid:
-            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=eid).first()
+        # Obtener el equipo desde el simulador activo (garantiza el edificio correcto
+        # incluso cuando varios simuladores corren en paralelo via _run_sim_tick).
+        _sim = simulators.get(active_edificio_id)
+        if _sim and _sim.equipo_id:
+            equipo = EquipoMonitoreo.objects.filter(id_equipo_monitoreo=_sim.equipo_id).first()
+        elif active_edificio_id:
+            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id).first()
         else:
             equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
 
@@ -1129,92 +1175,122 @@ def update_sensor_data():
     sensor_data["motor_stuck"] = stuck
 
 
+def _run_sim_tick(sim: BuildingSimulator):
+    """Ejecuta un ciclo de simulación completo para un edificio.
+
+    Intercambia los globales de Python para que apunten al estado
+    del simulador dado, ejecuta las funciones existentes sin modificarlas,
+    y restaura los escalares mutados de vuelta al objeto sim.
+    Los dicts (sensor_data, protection_ends, active_alerts) son mutados
+    in-place por las funciones, por lo que no necesitan copia de vuelta.
+    """
+    global sensor_data, pump_on, elevator_on, protection_ends, active_alerts
+    global door_close_attempts, history, alert_log, pending_notifications
+    global last_email_sent_time, active_edificio_id
+
+    # Guardar active_edificio_id original
+    _saved_active = active_edificio_id
+
+    # Apuntar globales al estado de este simulador
+    active_edificio_id       = sim.edificio_id
+    sensor_data              = sim.sensor_data
+    pump_on                  = sim.pump_on
+    elevator_on              = sim.elevator_on
+    protection_ends          = sim.protection_ends
+    active_alerts            = sim.active_alerts
+    door_close_attempts      = sim.door_close_attempts
+    history                  = sim.history
+    alert_log                = sim.alert_log
+    pending_notifications    = sim.pending_notifications
+    last_email_sent_time     = sim.last_email_sent_time
+
+    # Ejecutar lógica de simulación (usan los globales)
+    update_protection_state()
+    update_sensor_data()
+
+    # Verificar alertas
+    for var, value in sensor_data.items():
+        if var == "motor_stuck":
+            if value:
+                action = get_professional_action(var, "Crítico", value)
+                send_alert(var, value, "Crítico", action)
+            else:
+                active_alerts.pop(var, None)
+            continue
+        risk, _ = classify_risk(var, value)
+        if risk in ("Alto", "Crítico"):
+            action = get_professional_action(var, risk, value)
+            send_alert(var, value, risk, action)
+        else:
+            active_alerts.pop(var, None)
+    check_rationing(sensor_data["flow_rate"])
+
+    # Agregar lecturas al historial del simulador
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    new_readings = []
+    for var, value in sensor_data.items():
+        risk, color = (
+            classify_risk(var, value) if var != "motor_stuck"
+            else ("Crítico" if value else "Bajo", "red" if value else "green")
+        )
+        sensor_type = (
+            "Bomba" if var in ["flow_rate", "pressure", "temperature", "vibration", "tank_level", "voltage", "current"]
+            else "Ascensor"
+        )
+        new_readings.append({"timestamp": timestamp, "type": sensor_type, "variable": var, "value": value, "risk": risk, "color": color})
+    history.extend(new_readings)
+    if len(history) > MAX_HISTORY_SIZE:
+        sim.history = history[-MAX_HISTORY_SIZE:]
+        history = sim.history
+
+    # Copiar de vuelta los escalares que pudieron cambiar
+    sim.pump_on               = pump_on
+    sim.elevator_on           = elevator_on
+    sim.door_close_attempts   = door_close_attempts
+    sim.last_email_sent_time  = last_email_sent_time
+
+    # Restaurar active_edificio_id al valor original
+    active_edificio_id = _saved_active
+
+
+def _sync_globals_to_sim(sim: BuildingSimulator):
+    """Apunta todos los globales de estado al simulador activo.
+    Llamar cada vez que active_edificio_id cambie o al final del loop.
+    """
+    global sensor_data, pump_on, elevator_on, protection_ends, active_alerts
+    global door_close_attempts, history, alert_log, pending_notifications, last_email_sent_time
+    sensor_data           = sim.sensor_data
+    pump_on               = sim.pump_on
+    elevator_on           = sim.elevator_on
+    protection_ends       = sim.protection_ends
+    active_alerts         = sim.active_alerts
+    door_close_attempts   = sim.door_close_attempts
+    history               = sim.history
+    alert_log             = sim.alert_log
+    pending_notifications = sim.pending_notifications
+    last_email_sent_time  = sim.last_email_sent_time
+
+
 def generate_data_and_emit():
     while True:
         eventlet.sleep(5)
-        update_protection_state()
-        update_sensor_data()
-        for var, value in sensor_data.items():
-            if var == "motor_stuck":
-                if value:
-                    action = get_professional_action(var, "Crítico", value)
-                    send_alert(
-                        var, value, "Crítico", action
-                    )
-                else:
-                    active_alerts.pop(var, None)
-                continue
-            risk, _ = classify_risk(var, value)
-            if risk in ("Alto", "Crítico"):
-                action = get_professional_action(var, risk, value)
-                send_alert(
-                    var, value, risk, action
-                )
-            else:
-                active_alerts.pop(var, None)
-        check_rationing(sensor_data["flow_rate"])
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        new_readings = []
-        for var, value in sensor_data.items():
-            risk, color = (
-                classify_risk(var, value)
-                if var != "motor_stuck"
-                else ("Crítico" if value else "Bajo", "red" if value else "green")
-            )
-            sensor_type = (
-                "Bomba"
-                if var
-                in [
-                    "flow_rate",
-                    "pressure",
-                    "temperature",
-                    "vibration",
-                    "tank_level",
-                    "voltage",
-                    "current",
-                ]
-                else "Ascensor"
-            )
-            new_readings.append(
-                {
-                    "timestamp": timestamp,
-                    "type": sensor_type,
-                    "variable": var,
-                    "value": value,
-                    "risk": risk,
-                    "color": color,
-                }
-            )
-        global history
-        history.extend(new_readings)
-        if len(history) > MAX_HISTORY_SIZE:
-            history = history[-MAX_HISTORY_SIZE:]
-        stats = {}
-        for var in [
-            "temperature",
-            "flow_rate",
-            "pressure",
-            "vibration",
-            "tank_level",
-            "load",
-            "voltage",
-            "current",
-        ]:
-            vals = [
-                r["value"]
-                for r in history
-                if r["variable"] == var and isinstance(r["value"], (int, float))
-            ]
-            if vals:
-                stats[var] = {
-                    "avg": sum(vals) / len(vals),
-                    "min": min(vals),
-                    "max": max(vals),
-                }
+
+        # Tickear TODOS los simuladores (independientemente del edificio visible)
+        for sim in list(simulators.values()):
+            _run_sim_tick(sim)
+
+        # Restaurar globales al simulador activo para que build_live_payload()
+        # y las rutas Flask vean los datos del edificio seleccionado
+        active_sim = simulators.get(active_edificio_id)
+        if active_sim:
+            _sync_globals_to_sim(active_sim)
+
         payload = build_live_payload()
         if LOG_SIM:
             print(
-                f"[SIM] {time.strftime('%H:%M:%S')} LOOP: pump_on={pump_on} elevator_on={elevator_on} protection_ends={protection_ends}"
+                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{active_edificio_id}]: "
+                f"pump_on={pump_on} elevator_on={elevator_on} protection_ends={protection_ends} "
+                f"edificios_activos={list(simulators.keys())}"
             )
         socketio.emit("sensor_update", payload)
 
@@ -1749,7 +1825,15 @@ def api_set_active_building(edificio_id):
     global active_edificio_id
     active_edificio_id = edificio_id
     logger.info(f"Edificio activo cambiado a: {active_edificio_id}")
-    return jsonify({"status": "ok", "active_edificio_id": active_edificio_id})
+    # Sincronizar globales al nuevo simulador activo de inmediato
+    # para que las rutas Flask reflejen el edificio correcto
+    new_sim = simulators.get(edificio_id)
+    if new_sim:
+        _sync_globals_to_sim(new_sim)
+        logger.info(f"Globales sincronizados al simulador: {new_sim}")
+    else:
+        logger.warning(f"No existe simulador para edificio_id={edificio_id}. Se creará en el próximo ciclo si existe en la BD.")
+    return jsonify({"status": "ok", "active_edificio_id": active_edificio_id, "simuladores": list(simulators.keys())})
 
 
 @app.route("/api/edificios", methods=["GET"])
@@ -3345,18 +3429,40 @@ HTML_TEMPLATE = """
 # Inicio del servidor
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
-    # Inicializar active_edificio_id con el primer edificio disponible en la BD
-    # para que persist_notification_in_django no siempre use .first() del ORM.
+    # --------------------------------------------------------------
+    # Crear un BuildingSimulator por cada EquipoMonitoreo en la BD.
+    # Si no hay conexión Django, se crea un simulador dummy.
+    # --------------------------------------------------------------
     if DJANGO_CONNECTED:
         try:
-            _first_edif = Edificio.objects.order_by("id_edificio").first()
-            if _first_edif:
-                active_edificio_id = _first_edif.id_edificio
-                logger.info(f"active_edificio_id inicializado a: {active_edificio_id} ({_first_edif.nb_edificio})")
+            _equipos = EquipoMonitoreo.objects.select_related("id_edificio").all()
+            for _eq in _equipos:
+                if _eq.id_edificio:
+                    _eid  = _eq.id_edificio.id_edificio
+                    _eqid = _eq.id_equipo_monitoreo
+                    _enombre = _eq.id_edificio.nb_edificio or f"Edificio #{_eid}"
+                    if _eid not in simulators:
+                        simulators[_eid] = BuildingSimulator(_eid, _eqid, _enombre)
+                        logger.info(f"Simulador creado: {simulators[_eid]}")
+            if simulators:
+                # Establecer active_edificio_id al primer edificio en orden
+                active_edificio_id = min(simulators.keys())
+                _sync_globals_to_sim(simulators[active_edificio_id])
+                logger.info(f"Edificio activo inicial: {active_edificio_id} | Todos los simuladores: {list(simulators.keys())}")
+            else:
+                logger.warning("No se encontraron EquipoMonitoreo en la BD. Se usará simulador dummy.")
         except Exception as _e:
-            logger.warning(f"No se pudo inicializar active_edificio_id: {_e}")
+            logger.warning(f"No se pudieron crear simuladores desde la BD: {_e}")
 
-    # Para diagnóstico en el frontend, pasamos información de credenciales
+    # Si no hay simuladores (sin BD o BD vacía), crear uno dummy para no romper el loop
+    if not simulators:
+        _dummy = BuildingSimulator(1, None, "Edificio Simulado")
+        simulators[1] = _dummy
+        active_edificio_id = 1
+        _sync_globals_to_sim(_dummy)
+        logger.info("Simulador dummy creado (sin conexión a BD).")
+
+    # Lanzar el loop de simulación en background
     socketio.start_background_task(generate_data_and_emit)
     # webbrowser.open("http://localhost:5000")
     socketio.run(app, host="0.0.0.0", port=5000, debug=False)

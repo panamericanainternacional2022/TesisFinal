@@ -1073,6 +1073,8 @@ def notificaciones_view(request):
 
     notificaciones = (
         notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
+        .exclude(mensaje__contains='"risk": "Info"')
+        .exclude(mensaje__contains='"risk":"Info"')
         .distinct()
         .order_by("-fecha")
     )

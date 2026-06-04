@@ -278,7 +278,7 @@ function renderLiveMonitor(data) {
 
     updateCharts(data.history || []);
 
-    const totalAlerts = (data.alert_log || []).length;
+    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== 'Info').length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
 
@@ -286,10 +286,10 @@ function renderLiveMonitor(data) {
     if (toggleBtn) {
         toggleBtn.dataset.enabled = data.alert_enabled;
         if (data.alert_enabled) {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
             toggleBtn.className = 'btn-alerts-toggle enabled';
         } else {
-            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+            toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
             toggleBtn.className = 'btn-alerts-toggle disabled';
         }
     }
@@ -303,7 +303,10 @@ function renderNotificationList(alerts) {
         placeholder.remove();
     }
 
-    if (!alerts || alerts.length === 0) {
+    // Filtrar alertas de nivel Info — solo mostrar Crítico, Alto, Medio, Bajo
+    const filtered = (alerts || []).filter(a => a.risk !== 'Info');
+
+    if (filtered.length === 0) {
         unreadNotificationCount = 0;
         setNotificationBadge(0);
         container.innerHTML = `
@@ -315,9 +318,9 @@ function renderNotificationList(alerts) {
         return;
     }
 
-    unreadNotificationCount = alerts.length;
+    unreadNotificationCount = filtered.length;
     setNotificationBadge(unreadNotificationCount);
-    const items = alerts.map(alert => `
+    const items = filtered.map(alert => `
         <div class="notif-item live-notif-item">
             <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
             <div class="notif-body">
@@ -368,10 +371,10 @@ function renderConnectionStatus(isConnected, message) {
         if (isConnected) {
             const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
             if (isCurrentlyEnabled) {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
                 toggleBtn.className = 'btn-alerts-toggle enabled';
             } else {
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
                 toggleBtn.className = 'btn-alerts-toggle disabled';
             }
         } else {
@@ -488,10 +491,10 @@ function initLiveNotifications() {
                     toggleBtn.dataset.enabled = res.alert_enabled;
                     if (res.alert_enabled) {
                         toggleBtn.className = 'btn-alerts-toggle enabled';
-                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar Alertas';
+                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
                     } else {
                         toggleBtn.className = 'btn-alerts-toggle disabled';
-                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
+                        toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
                     }
 
                     // Sync with Django session state
