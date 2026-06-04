@@ -859,7 +859,7 @@ def update_sensor_data():
     # Generación de fallas aleatorias para bomba y ascensor (independientes)
     # Si un dispositivo está en protección, no cambiamos sus valores (se retiene la falla)
     # Inyectar falla de bomba aleatoria si no está protegida
-    if "pump" not in protection_ends and pump_on and random.random() < 0.002:
+    if "pump" not in protection_ends and pump_on and random.random() < 0.001:
         sensor_data["flow_rate"] = 0.0
         sensor_data["pressure"] = 0.0
         sensor_data["vibration"] = 12.0
@@ -888,7 +888,7 @@ def update_sensor_data():
                     f"[SIM] {time.strftime('%H:%M:%S')} INYECCION-SIMULT: elevator falla -> protection_ends={protection_ends}"
                 )
     # Inyectar falla de ascensor aleatoria si no está protegida
-    if "elevator" not in protection_ends and elevator_on and random.random() < 0.002:
+    if "elevator" not in protection_ends and elevator_on and random.random() < 0.001:
         sensor_data["speed"] = 0.0
         sensor_data["load"] = 950
         sensor_data["motor_stuck"] = True

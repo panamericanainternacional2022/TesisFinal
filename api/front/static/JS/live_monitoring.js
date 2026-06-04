@@ -130,57 +130,6 @@ function setNotificationBadge(count) {
     });
 }
 
-function addLiveNotificationEvent(notification) {
-    if (notification.risk === 'Info') return;
-    unreadNotificationCount += 1;
-    setNotificationBadge(unreadNotificationCount);
-    const container = document.getElementById('live-notifications-list');
-    if (!container) return;
-    const placeholder = document.getElementById('live-no-notif');
-    if (placeholder) {
-        placeholder.remove();
-    }
-    
-    const risk = safeText(notification.risk);
-    const variable = getVariableName(notification.variable);
-    const value = notification.value !== null && notification.value !== undefined ? notification.value : '';
-    const unit = getUnit(notification.variable);
-    
-    let badgeClass = 'sensor-active';
-    if (risk === 'Crítico') badgeClass = 'sensor-critical';
-    else if (risk === 'Alto' || risk === 'Medio') badgeClass = 'sensor-warning';
-    
-    const isBoolean = value === true || value === false || String(value).toLowerCase() === 'true' || String(value).toLowerCase() === 'false';
-    const displayVal = value !== '' && !isBoolean ? `${value}${unit ? ' ' + unit : ''}` : '';
-    const valueBadge = displayVal !== '' ? `<span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">${displayVal}</span>` : '';
-
-    const item = document.createElement('li');
-    item.className = 'notif-item live-notif-item';
-    item.innerHTML = `
-        <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
-        <div class="notif-body">
-            <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
-                <span class="sensor-badge ${badgeClass}">${risk}</span>
-                <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">${variable}</span>
-                ${valueBadge}
-            </div>
-            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">${safeText(notification.message)}</p>
-            <div class="notif-meta" style="margin-top: 8px;">
-                <span><i class="fa-regular fa-clock"></i> ${new Date(notification.timestamp).toLocaleString()}</span>
-                <span><i class="fa-solid fa-building"></i> Telemetría en vivo</span>
-            </div>
-        </div>
-    `;
-    
-    let list = container.querySelector('.notif-list');
-    if (!list) {
-        list = document.createElement('ul');
-        list.className = 'notif-list';
-        container.appendChild(list);
-    }
-    list.prepend(item);
-}
-
 function initCharts() {
     const chartDefaults = {
         responsive: true,
@@ -225,7 +174,7 @@ function initCharts() {
 
 function updateCharts(history) {
     if (!history || !history.length) return;
-    
+
     const getLatestReading = (v) => {
         return history.filter(item => item.variable === v).pop();
     };
@@ -434,11 +383,11 @@ function renderConnectionStatus(isConnected, message) {
     const activeContent = document.getElementById('monitoringActiveContent');
     const fallback = document.getElementById('userOfflineFallback');
     const loading = document.getElementById('userLoadingFallback');
-    
+
     if (loading) {
         loading.style.display = 'none';
     }
-    
+
     if (activeContent && fallback) {
         if (isConnected) {
             activeContent.style.display = 'block';
@@ -633,7 +582,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ enabled: false })
-        }).catch(() => {});
+        }).catch(() => { });
     }
 
     initLiveMonitoring();
