@@ -461,6 +461,10 @@ function initLiveMonitoring() {
     };
 
     source.onerror = (err) => {
+        if (source.readyState === EventSource.CONNECTING) {
+            console.warn('Intentando conectar al canal de monitoreo SSE...');
+            return;
+        }
         renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
         console.error('Error de conexión SSE:', err);
     };
@@ -593,7 +597,6 @@ function fetchInitialData() {
         .then((r) => r.ok ? r.json() : Promise.reject(r.statusText))
         .then((data) => renderLiveMonitor(data))
         .catch((error) => {
-            renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
             console.warn('No se pudo obtener el estado inicial desde el backend de monitoreo.', error);
         });
 }
