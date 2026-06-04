@@ -154,6 +154,8 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
+active_edificio_id = None
+
 # ----------------------------------------------------------------------
 # Obtener destinatarios de email desde la BD Django por edificio
 # ----------------------------------------------------------------------
@@ -162,17 +164,20 @@ def get_building_emails(edificio_id=None):
         return []
     try:
         if not edificio_id:
-            # Buscar el edificio del primer equipo de monitoreo disponible
-            equipo = EquipoMonitoreo.objects.first()
-            if equipo and equipo.id_edificio:
-                edificio_id = equipo.id_edificio.id_edificio
+            if active_edificio_id:
+                edificio_id = active_edificio_id
             else:
-                # Si no hay equipo, obtener el primer edificio
-                first_edf = Edificio.objects.first()
-                if first_edf:
-                    edificio_id = first_edf.id_edificio
+                # Buscar el edificio del primer equipo de monitoreo disponible
+                equipo = EquipoMonitoreo.objects.first()
+                if equipo and equipo.id_edificio:
+                    edificio_id = equipo.id_edificio.id_edificio
                 else:
-                    return []
+                    # Si no hay equipo, obtener el primer edificio
+                    first_edf = Edificio.objects.first()
+                    if first_edf:
+                        edificio_id = first_edf.id_edificio
+                    else:
+                        return []
         
         users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related('id_usuario__id_persona')
         emails = []
@@ -1685,6 +1690,14 @@ def clear_alerts():
     return jsonify({"status": "ok", "message": "Alertas limpiadas"})
 
 
+@app.route("/api/set_active_building/<int:edificio_id>", methods=["POST"])
+def api_set_active_building(edificio_id):
+    global active_edificio_id
+    active_edificio_id = edificio_id
+    logger.info(f"Edificio activo cambiado a: {active_edificio_id}")
+    return jsonify({"status": "ok", "active_edificio_id": active_edificio_id})
+
+
 @app.route("/api/edificios", methods=["GET"])
 def api_edificios():
     if not DJANGO_CONNECTED:
@@ -2550,7 +2563,11 @@ HTML_TEMPLATE = """
         <div class="panel">
             <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de Alertas por Correo</h2>
             <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
-                <div class="form-group" style="flex: 1; min-width: 200px;">
+                <div id="activeBuildingNameContainer" style="flex: 1; min-width: 200px; display: flex; flex-direction: column; justify-content: center; height: 44px;">
+                    <span class="form-label" style="margin-bottom: 4px;">Edificio Activo</span>
+                    <span id="activeBuildingName" style="font-weight: var(--weight-bold); font-size: var(--text-base); color: var(--color-ink);">Cargando...</span>
+                </div>
+                <div class="form-group" id="subBuildingSelectContainer" style="flex: 1; min-width: 200px; display: none;">
                     <label class="form-label">Edificio (edf)</label>
                     <select id="subBuildingSelect" style="height: 44px;">
                         <option value="">Cargando edificios...</option>
@@ -3079,10 +3096,31 @@ HTML_TEMPLATE = """
                     opt.textContent = b.nombre;
                     select.appendChild(opt);
                 });
-                if (buildings.length > 0) {
-                    loadUsersForBuilding(buildings[0].id);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const urlEdificioId = urlParams.get('edificio');
+
+                if (urlEdificioId) {
+                    select.value = urlEdificioId;
+                    fetch(`/api/set_active_building/${urlEdificioId}`, { method: 'POST' })
+                        .catch(err => console.error("Error setting active building:", err));
+
+                    loadUsersForBuilding(urlEdificioId);
+
+                    const activeB = buildings.find(b => b.id == urlEdificioId);
+                    if (activeB) {
+                        document.getElementById('activeBuildingName').textContent = activeB.nombre;
+                        document.getElementById('activeBuildingNameContainer').style.display = 'flex';
+                        document.getElementById('subBuildingSelectContainer').style.display = 'none';
+                    }
                 } else {
-                    document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
+                    document.getElementById('activeBuildingNameContainer').style.display = 'none';
+                    document.getElementById('subBuildingSelectContainer').style.display = 'block';
+                    if (buildings.length > 0) {
+                        loadUsersForBuilding(buildings[0].id);
+                    } else {
+                        document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
+                    }
                 }
             } catch (e) {
                 console.error("Error al cargar edificios:", e);
@@ -3217,6 +3255,43 @@ HTML_TEMPLATE = """
         populateManualSensorSelect();
         updateSensorTypeIndicator();
         loadBuildings();
+
+        window.addEventListener('message', function(event) {
+            console.log("Iframe received message event:", event);
+            if (event.data && event.data.type === 'CHANGE_BUILDING') {
+                const buildingId = event.data.buildingId;
+                const buildingName = event.data.buildingName;
+                console.log("Changing building to:", buildingId, buildingName);
+                
+                let select = document.getElementById('subBuildingSelect');
+                if (select) {
+                    select.value = buildingId;
+                    console.log("Updated subBuildingSelect value to:", select.value);
+                }
+                
+                fetch(`/api/set_active_building/${buildingId}`, { method: 'POST' })
+                    .then(res => res.json())
+                    .then(data => console.log("Server active building set response:", data))
+                    .catch(err => console.error("Error setting active building:", err));
+
+                loadUsersForBuilding(buildingId);
+
+                const activeNameEl = document.getElementById('activeBuildingName');
+                if (activeNameEl) {
+                    activeNameEl.textContent = buildingName;
+                    console.log("Updated activeBuildingName display text");
+                }
+                
+                try {
+                    const url = new URL(window.location);
+                    url.searchParams.set('edificio', buildingId);
+                    window.history.replaceState({}, '', url);
+                    console.log("Updated history URL query param to:", url.toString());
+                } catch(e) {
+                    console.error("Error updating state URL:", e);
+                }
+            }
+        });
     </script>
 </body>
 </html>

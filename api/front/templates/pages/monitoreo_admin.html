@@ -288,10 +288,23 @@
             if (!button) return;
             const targetUrl = button.dataset.url;
             const name = button.dataset.name;
+            const buildingId = button.dataset.id;
+            console.log("Parent selectBuilding clicked:", {targetUrl, name, buildingId, isSimulatorOnline});
             if (targetUrl) {
                 currentMonitorUrl = targetUrl;
                 if (isSimulatorOnline) {
-                    buildingFrame.src = targetUrl;
+                    console.log("Simulator online. Current iframe src:", buildingFrame.src);
+                    if (buildingFrame.src && (buildingFrame.src.includes(':5000') || buildingFrame.src.includes('edificio='))) {
+                        console.log("Sending postMessage to iframe...");
+                        buildingFrame.contentWindow.postMessage({
+                            type: 'CHANGE_BUILDING',
+                            buildingId: buildingId,
+                            buildingName: name
+                        }, '*');
+                    } else {
+                        console.log("Setting iframe src directly:", targetUrl);
+                        buildingFrame.src = targetUrl;
+                    }
                 }
             }
             if (selectedText) {
