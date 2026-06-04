@@ -515,6 +515,19 @@ function initLiveNotifications() {
                         toggleBtn.className = 'btn-alerts-toggle disabled';
                         toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar Alertas';
                     }
+
+                    // Sync with Django session state
+                    const csrfToken = getCookie('csrftoken');
+                    const djangoHeaders = { 'Content-Type': 'application/json' };
+                    if (csrfToken) {
+                        djangoHeaders['X-CSRFToken'] = csrfToken;
+                    }
+                    fetch('/notificaciones/toggle_alerts/', {
+                        method: 'POST',
+                        headers: djangoHeaders,
+                        body: JSON.stringify({ enabled: res.alert_enabled })
+                    }).catch(err => console.error('Error al guardar estado de alertas en la sesión:', err));
+
                     await window.showAlert(res.alert_enabled ? 'Alertas activadas con éxito.' : 'Alertas desactivadas con éxito.', 'success');
                 }
             } catch (error) {
@@ -579,6 +592,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     await resolveMonitorBackendOrigin();
+
+    // Sync simulator backend with local Django session state on load
+    if (toggleBtn && toggleBtn.dataset.enabled === 'false') {
+        fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ enabled: false })
+        }).catch(() => {});
+    }
+
     initLiveMonitoring();
     initLiveNotifications();
 });

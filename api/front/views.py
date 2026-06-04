@@ -1140,6 +1140,8 @@ def notificaciones_view(request):
                 "parsed": False
             }
 
+    alertas_desactivadas = request.session.get("alerts_disabled", False)
+
     return render(
         request,
         "pages/notificaciones.html",
@@ -1148,9 +1150,25 @@ def notificaciones_view(request):
             "edificios": edificios,
             "selected_edificio_id": int(edificio_id) if edificio_id.isdigit() else None,
             "rol": rol,
+            "alertas_desactivadas": alertas_desactivadas,
         },
     )
 
+
+@_login_required
+def toggle_alerts_session_view(request):
+    from django.http import JsonResponse
+    import json
+
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            enabled = data.get("enabled", True)
+            request.session["alerts_disabled"] = not enabled
+            return JsonResponse({"status": "ok", "alerts_disabled": not enabled})
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+    return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)
 
 
 @_login_required
