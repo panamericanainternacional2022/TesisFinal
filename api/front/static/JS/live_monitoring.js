@@ -57,7 +57,7 @@ function getVariableName(variable) {
         trip_count: 'Viajes',
         door_status: 'Puerta',
         energy: 'Energía',
-        motor_stuck: 'Motor pegado'
+        motor_stuck: 'Motor atascado'
     };
     return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }

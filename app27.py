@@ -575,23 +575,41 @@ def send_email_alert(
 
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action):
+    """Guarda la notificación en la BD de Django como JSON estructurado.
+
+    Formato del campo `mensaje`:
+        {"risk": "Alto", "variable": "vibration", "value": "8.5", "action": "..."}
+
+    Registros viejos (formato string con corchetes) siguen siendo parseados por
+    el fallback de regex en views.py.
+    """
     if not DJANGO_CONNECTED:
         return
     try:
-        equipo = (
-            EquipoMonitoreo.objects.first()
-            if EquipoMonitoreo.objects.exists()
-            else None
-        )
+        import json as _json
+
+        # Usar el edificio activo para asociar al equipo correcto
+        eid = active_edificio_id
+        if eid:
+            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=eid).first()
+        else:
+            equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
+
         usuario = (
             Usuario.objects.filter(rol="SA").first()
             or Usuario.objects.first()
         )
+        mensaje_json = _json.dumps({
+            "risk": risk_level,
+            "variable": variable,
+            "value": str(value) if value is not None else None,
+            "action": recommended_action,
+        }, ensure_ascii=False)
         Notificacion.objects.create(
             id_usuario=usuario,
             id_equipo_monitoreo=equipo,
             fecha=timezone.now(),
-            mensaje=f"[{risk_level}] {variable} = {value} - {recommended_action}",
+            mensaje=mensaje_json,
         )
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)
@@ -614,7 +632,7 @@ def enter_protection_mode(reason=None, targets=None):
     reason_text = f" ({reason})" if reason else ""
     targets_text = " y ".join(sorted(targets_set))
     logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text}.")
-    action_msg = f"Protección automática activada{reason_text}. Dispositivos apagados: {targets_text}."
+    action_msg = f"Protección automática activada {reason_text}. Dispositivos apagados: {targets_text}."
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "Protección automática",
@@ -625,6 +643,33 @@ def enter_protection_mode(reason=None, targets=None):
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
     persist_notification_in_django("Protección automática", targets_text, "Crítico", action_msg)
+    # Enviar email de alerta crítica (protección automática es el evento más grave)
+    global last_email_sent_time
+    now_ts = time.time()
+    if now_ts - last_email_sent_time > 300:
+        last_email_sent_time = now_ts
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+        subject = f"[⚠️ PROTECCIÓN ACTIVADA] Dispositivos apagados: {targets_text} — INES"
+        body = f"""REPORTE AUTOMÁTICO DE PROTECCIÓN — INES
+
+El sistema de protección automática ha detectado una condición crítica y ha apagado los siguientes dispositivos para prevenir daños mayores.
+
+DETALLES DEL EVENTO:
+--------------------------------------------
+Fecha/Hora:       {timestamp}
+Dispositivos:     {targets_text}
+Motivo:           {reason or 'Condición crítica detectada'}
+Estado:           PROTECCIÓN ACTIVADA
+
+MEDIDAS CORRECTIVAS SUGERIDAS:
+--------------------------------------------
+Acción: Inspeccionar los dispositivos indicados antes de reanudar operación. Los dispositivos se restaurarán automáticamente tras el período de protección.
+
+Este es un mensaje de contingencia generado de forma automática por el módulo de protección del Sistema INES.
+"""
+        threading.Thread(
+            target=send_email_alert, args=("Crítico", subject, body), daemon=True
+        ).start()
     try:
         socketio.emit("notification", notification_payload, broadcast=True)
     except Exception:
@@ -674,6 +719,13 @@ def update_protection_state():
             pass
         del protection_ends[device]
         logger.info("✅ Protección finalizada para %s. Dispositivo restaurado.", device)
+        # Guardar restauración en BD para historial completo
+        persist_notification_in_django(
+            f"Protección {device}",
+            None,
+            "Info",
+            f"Protección finalizada para {device}. Operación normal restaurada."
+        )
         notification_payload = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "variable": f"Protección {device}",
@@ -692,55 +744,55 @@ def update_protection_state():
 def get_professional_action(variable, risk_level, value):
     actions = {
         "flow_rate": {
-            "Alto": "Flujo de agua elevado. Monitorear valvulas de alivio y posibles fugas.",
-            "Crítico": "Caudal critico (interrupcion total o exceso grave). Apagado preventivo de bomba activado. Inspeccionar tuberia principal."
+            "Alto": "Flujo de agua elevado. Monitorear válvulas de alivio y posibles fugas.",
+            "Crítico": "Caudal crítico (interrupción total o exceso grave). Apagado preventivo de bomba activado. Inspeccionar tubería principal."
         },
         "pressure": {
-            "Alto": "Presion superior al limite recomendado. Verificar regulador de presion y manometros.",
-            "Crítico": "Presion critica. Riesgo inminente de ruptura de tuberias. Apagar bomba y liberar presion."
+            "Alto": "Presión superior al límite recomendado. Verificar regulador de presión y manómetros.",
+            "Crítico": "Presión crítica. Riesgo inminente de ruptura de tuberías. Apagar bomba y liberar presión."
         },
         "temperature": {
-            "Alto": "Temperatura elevada en el motor de la bomba. Incrementar ventilacion en sala de maquinas.",
-            "Crítico": "Temperatura del motor critica. Riesgo de sobrecalentamiento y fundicion. Apagado de emergencia y revision de refrigeracion."
+            "Alto": "Temperatura elevada en el motor de la bomba. Incrementar ventilación en sala de máquinas.",
+            "Crítico": "Temperatura del motor crítica. Riesgo de sobrecalentamiento y fundición. Apagado de emergencia y revisión de refrigeración."
         },
         "vibration": {
-            "Alto": "Nivel de vibracion por encima del estandar. Programar mantenimiento mecanico.",
-            "Crítico": "Vibracion mecanica severa. Desalineacion severa o falla de rodamientos. Apagar equipo inmediatamente."
+            "Alto": "Nivel de vibración por encima del estándar. Programar mantenimiento mecánico.",
+            "Crítico": "Vibración mecánica severa. Desalineación severa o falla de rodamientos. Apagar equipo inmediatamente."
         },
         "tank_level": {
-            "Alto": "Nivel de tanque elevado. Monitorear llenado automatico.",
+            "Alto": "Nivel de tanque elevado. Monitorear llenado automático.",
             "Medio": "Nivel de tanque bajo.",
-            "Crítico": "Nivel de tanque critico. Riesgo de cavitacion de la bomba. Detener succion y rellenar tanque urgentemente."
+            "Crítico": "Nivel de tanque crítico. Riesgo de cavitación de la bomba. Detener succión y rellenar tanque urgentemente."
         },
         "speed": {
-            "Alto": "Velocidad de ascensor por encima del limite de viaje seguro. Programar revision de variador de frecuencia.",
-            "Crítico": "Exceso de velocidad critico. Frenado de emergencia activado. Inspeccion tecnica de seguridad obligatoria."
+            "Alto": "Velocidad de ascensor por encima del límite de viaje seguro. Programar revisión de variador de frecuencia.",
+            "Crítico": "Exceso de velocidad crítico. Frenado de emergencia activado. Inspección técnica de seguridad obligatoria."
         },
         "load": {
-            "Alto": "Carga de cabina cercana al limite de diseño. Monitorear comportamiento de motor.",
-            "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operacion."
+            "Alto": "Carga de cabina cercana al límite de diseño. Monitorear comportamiento de motor.",
+            "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operación."
         },
         "energy": {
-            "Alto": "Consumo de energia inusualmente elevado. Monitorear eficiencia.",
-            "Crítico": "Pico de energia critico. Posible cortocircuito o sobreesfuerzo del motor. Revisar protecciones electricas."
+            "Alto": "Consumo de energía inusualmente elevado. Monitorear eficiencia.",
+            "Crítico": "Pico de energía crítico. Posible cortocircuito o sobreesfuerzo del motor. Revisar protecciones eléctricas."
         },
         "voltage": {
-            "Alto": "Inestabilidad en voltaje (fuera del rango 200V-240V). Riesgo para componentes electronicos.",
-            "Crítico": "Fluctuacion critica de tension electrica. Desconectar equipos para evitar danos."
+            "Alto": "Inestabilidad en voltaje (fuera del rango 200 V – 240 V). Riesgo para componentes electrónicos.",
+            "Crítico": "Fluctuación crítica de tensión eléctrica. Desconectar equipos para evitar daños."
         },
         "current": {
             "Alto": "Corriente de motor alta. Monitorear temperatura del bobinado.",
-            "Crítico": "Amperaje critico (sobrecarga electrica). Apagado automatico de proteccion activo."
+            "Crítico": "Amperaje crítico (sobrecarga eléctrica). Apagado automático de protección activo."
         },
         "motor_stuck": {
-            "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberacion de emergencia de pasajeros."
+            "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberación de emergencia de pasajeros."
         },
         "Racionamiento": {
-            "Crítico": "Caudal por debajo del minimo admisible (racionamiento de agua activo). Restringir consumo general."
+            "Crítico": "Caudal por debajo del mínimo admisible (racionamiento de agua activo). Restringir consumo general."
         }
     }
     var_actions = actions.get(variable, {})
-    return var_actions.get(risk_level, f"Verificar sensor {variable} (Valor actual: {value}). Programar revision preventiva.")
+    return var_actions.get(risk_level, f"Verificar sensor {variable} (Valor actual: {value}). Programar revisión preventiva.")
 
 
 def send_alert(variable, value, risk_level, recommended_action):
@@ -3121,6 +3173,10 @@ HTML_TEMPLATE = """
                     document.getElementById('activeBuildingNameContainer').style.display = 'none';
                     document.getElementById('subBuildingSelectContainer').style.display = 'block';
                     if (buildings.length > 0) {
+                        // Seleccionar el primer edificio en el selector y notificar al backend
+                        select.value = buildings[0].id;
+                        fetch(`/api/set_active_building/${buildings[0].id}`, { method: 'POST' })
+                            .catch(err => console.error("Error setting default active building:", err));
                         loadUsersForBuilding(buildings[0].id);
                     } else {
                         document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
@@ -3289,6 +3345,17 @@ HTML_TEMPLATE = """
 # Inicio del servidor
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
+    # Inicializar active_edificio_id con el primer edificio disponible en la BD
+    # para que persist_notification_in_django no siempre use .first() del ORM.
+    if DJANGO_CONNECTED:
+        try:
+            _first_edif = Edificio.objects.order_by("id_edificio").first()
+            if _first_edif:
+                active_edificio_id = _first_edif.id_edificio
+                logger.info(f"active_edificio_id inicializado a: {active_edificio_id} ({_first_edif.nb_edificio})")
+        except Exception as _e:
+            logger.warning(f"No se pudo inicializar active_edificio_id: {_e}")
+
     # Para diagnóstico en el frontend, pasamos información de credenciales
     socketio.start_background_task(generate_data_and_emit)
     # webbrowser.open("http://localhost:5000")

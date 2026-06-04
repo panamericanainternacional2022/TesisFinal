@@ -40,9 +40,6 @@
                                         {% endfor %}
                                     </select>
                                 </div>
-                                {% if selected_edificio_id %}
-                                <a href="?" class="btn-action" style="box-shadow: 2px 2px 0px var(--color-ink); padding: 5px 10px !important; font-size: var(--text-xs);"><i class="fa-solid fa-xmark"></i> Quitar Filtro</a>
-                                {% endif %}
                             </form>
                             {% else %}
                             <div></div>
@@ -53,7 +50,7 @@
                                     <i class="fa-solid fa-spinner fa-spin"></i> Conectando al servicio...
                                 </button>
                                 <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
-                                    <i class="fa-solid fa-trash-can"></i> Limpiar Notificaciones
+                                    <i class="fa-solid fa-trash-can"></i> Limpiar notificaciones
                                 </button>
                             </div>
                         </div>
