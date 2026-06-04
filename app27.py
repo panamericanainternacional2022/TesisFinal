@@ -614,15 +614,17 @@ def enter_protection_mode(reason=None, targets=None):
     reason_text = f" ({reason})" if reason else ""
     targets_text = " y ".join(sorted(targets_set))
     logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text}.")
+    action_msg = f"Protección automática activada{reason_text}. Dispositivos apagados: {targets_text}."
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "Protección automática",
-        "value": None,
+        "value": targets_text,
         "risk": "Crítico",
-        "message": f"Protección automática activada{reason_text}. Targets: {targets_text}.",
+        "message": action_msg,
     }
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
+    persist_notification_in_django("Protección automática", targets_text, "Crítico", action_msg)
     try:
         socketio.emit("notification", notification_payload, broadcast=True)
     except Exception:

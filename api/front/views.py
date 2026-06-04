@@ -1071,10 +1071,6 @@ def notificaciones_view(request):
                 id_usuario_id=usuario_id
             ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
 
-    import re
-    # Exclude Info alerts
-    notificaciones = notificaciones.exclude(mensaje__icontains="[Info]")
-
     notificaciones = (
         notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
         .distinct()
@@ -1086,7 +1082,7 @@ def notificaciones_view(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    # Parse notifications message for beautiful UI rendering
+    import re
     var_names = {
         "flow_rate": "Caudal (flujo)",
         "pressure": "Presión",
@@ -1099,7 +1095,8 @@ def notificaciones_view(request):
         "load": "Carga",
         "energy": "Consumo eléctrico",
         "motor_stuck": "Motor atascado",
-        "Racionamiento": "Caudal (racionamiento)"
+        "Racionamiento": "Caudal (racionamiento)",
+        "Protección automática": "Protección automática",
     }
     
     for notif in page_obj:
