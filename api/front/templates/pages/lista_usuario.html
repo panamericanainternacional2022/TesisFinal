@@ -50,8 +50,6 @@
                                         <th>Apellido</th>
                                         <th>Dirección</th>
                                         <th>Edificio</th>
-                                        <th>RIF</th>
-                                        <th>Dir. Edificio</th>
                                         <th>Estado</th>
                                     </tr>
                                 </thead>
@@ -64,20 +62,18 @@
                                                 <td>{{ beneficiario.apellido }}</td>
                                                 <td title="{{ beneficiario.direccion }}">{{ beneficiario.direccion }}</td>
                                                 <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
-                                                <td title="{{ beneficiario.edificio_rif }}">{{ beneficiario.edificio_rif }}</td>
-                                                <td title="{{ beneficiario.edificio_direccion }}">{{ beneficiario.edificio_direccion }}</td>
                                                 <td>
                                                     {% if beneficiario.registrado %}
                                                         <span class="sensor-badge sensor-active">Registrado</span>
-                                                    {% else %}
-                                                        <span class="sensor-badge sensor-warning">Por registrar</span>
-                                                    {% endif %}
+                                                     {% else %}
+                                                         <span class="sensor-badge sensor-warning">Por registrar</span>
+                                                     {% endif %}
                                                 </td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="8" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="6" style="text-align: center; padding: 24px 0;">
                                                 No hay beneficiarios registrados.
                                             </td>
                                         </tr>

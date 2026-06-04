@@ -1393,7 +1393,7 @@ def seleccionar_usuario_view(request, accion):
     usuarios = (
         Usuario.objects.select_related("id_persona")
         .prefetch_related("usuarioedificio_set__id_edificio")
-        .all()
+        .exclude(rol__in=ADMIN_ROLES)
     )
     items = []
     for u in usuarios:

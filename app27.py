@@ -1257,7 +1257,7 @@ def generate_pdf_report(period):
     # Título principal minimalista
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, "Reporte de Monitoreo Automatizado — INES", ln=1, align="L")
+    pdf.cell(0, 12, "Reporte de Monitoreo Automatizado - INES", ln=1, align="L")
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(95, 95, 95)
     pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
@@ -1346,10 +1346,12 @@ def generate_pdf_report(period):
         "voltage": "Voltaje (V)",
         "current": "Corriente (A)",
     }
+    present_vars = []
     labels = []
     avgs = []
     for v in bar_vars:
         if v in stats and isinstance(stats[v]["avg"], float):
+            present_vars.append(v)
             labels.append(display_names.get(v, v))
             avgs.append(stats[v]["avg"])
     if avgs:
@@ -1360,18 +1362,31 @@ def generate_pdf_report(period):
         spacing = 4
         max_bar_height = 50
         pdf.set_font("Helvetica", "", 7)
-        for i, (lab, val) in enumerate(zip(labels, avgs)):
+        for i, (var_name, lab, val) in enumerate(zip(present_vars, labels, avgs)):
             x = x0 + i * (bar_width + spacing)
             if x + bar_width > 200:
                 break
             height = (val / max_avg) * max_bar_height if max_avg > 0 else 10
-            # Usar color carbón/azul oscuro para las barras (#1E293B) y borde negro grueso
-            pdf.set_fill_color(30, 41, 59)
+            
+            # Clasificar riesgo del promedio para determinar el color de la barra
+            risk, color_name = classify_risk(var_name, val)
+            if color_name == "green":
+                fill_color = (22, 101, 52)
+            elif color_name == "yellow":
+                fill_color = (146, 64, 14)
+            elif color_name == "orange":
+                fill_color = (194, 65, 12)
+            elif color_name == "red":
+                fill_color = (153, 27, 27)
+            else:
+                fill_color = (30, 41, 59)
+                
+            pdf.set_fill_color(*fill_color)
             pdf.set_draw_color(10, 10, 10)
             pdf.rect(x, y0 + max_bar_height - height, bar_width, height, "FD")
             
-            # Valor encima de la barra
-            pdf.set_text_color(30, 41, 59)
+            # Valor encima de la barra (usar color de la barra para legibilidad)
+            pdf.set_text_color(*fill_color)
             pdf.set_xy(x, y0 + max_bar_height - height - 4)
             pdf.cell(bar_width, 4, f"{val:.1f}", 0, 0, "C")
             
@@ -2238,6 +2253,11 @@ HTML_TEMPLATE = """
 
         /* ── Secciones de Sensores ── */
         .sensor-section {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-4);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
             margin-bottom: var(--sp-3);
         }
 
@@ -2847,10 +2867,22 @@ HTML_TEMPLATE = """
 
         function updateCharts(hist){
             if(!hist||hist.length===0) return;
+            let getLatestReading = (v) => {
+                return hist.filter(item => item.variable === v).pop();
+            };
             let getLatest = (v) => {
-                let r = hist.filter(item => item.variable === v).pop();
+                let r = getLatestReading(v);
                 return r ? r.value : 0;
             };
+            let getSensorColor = (v) => {
+                let r = getLatestReading(v);
+                if (!r) return '#0a0a0a';
+                if (r.risk === 'Crítico') return '#991b1b'; // Red
+                if (r.risk === 'Alto') return '#c2410c'; // Orange
+                if (r.risk === 'Medio') return '#b45309'; // Amber/Yellow
+                return '#166534'; // Green / Low
+            };
+
             chart1.data.datasets[0].data = [
                 getLatest('flow_rate'),
                 getLatest('pressure'),
@@ -2860,6 +2892,16 @@ HTML_TEMPLATE = """
                 getLatest('voltage'),
                 getLatest('current')
             ];
+            chart1.data.datasets[0].backgroundColor = [
+                getSensorColor('flow_rate'),
+                getSensorColor('pressure'),
+                getSensorColor('temperature'),
+                getSensorColor('vibration'),
+                getSensorColor('tank_level'),
+                getSensorColor('voltage'),
+                getSensorColor('current')
+            ];
+            chart1.data.datasets[0].borderColor = chart1.data.datasets[0].backgroundColor;
             chart1.update();
             
             chart2.data.datasets[0].data = [
@@ -2867,6 +2909,12 @@ HTML_TEMPLATE = """
                 getLatest('load'),
                 getLatest('energy')
             ];
+            chart2.data.datasets[0].backgroundColor = [
+                getSensorColor('speed'),
+                getSensorColor('load'),
+                getSensorColor('energy')
+            ];
+            chart2.data.datasets[0].borderColor = chart2.data.datasets[0].backgroundColor;
             chart2.update();
         }
 

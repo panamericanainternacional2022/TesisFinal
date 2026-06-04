@@ -83,15 +83,16 @@
             border-radius: 0px;
         }
 
-        .monitoring-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-2); background: transparent; border: none; box-shadow: none; margin-bottom: var(--sp-4); }
-        .monitoring-summary .summary-card { background: var(--color-surface); padding: var(--sp-3); border: 2px solid var(--color-ink); box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
-        .monitoring-summary .summary-card strong { display: block; font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); font-weight: var(--weight-bold); margin-bottom: 6px; }
+        .status-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--sp-2); background: transparent; border: none; box-shadow: none; margin-bottom: var(--sp-3); border-radius: 0px; }
+        .status-cell { background: var(--color-surface); padding: var(--sp-2) var(--sp-3); border: 2px solid var(--color-ink); box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15); }
+        .status-cell-label { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); margin-bottom: 2px; }
+        .status-cell-value { font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); }
 
         .monitoring-sections { display: grid; gap: var(--sp-4); }
         .monitoring-section { background: var(--color-surface); border: 2px solid var(--color-ink); padding: var(--sp-4); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
         .monitoring-section h2 { margin: 0 0 var(--sp-3); font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); letter-spacing: var(--tracking-tight); }
 
-        .monitoring-cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--sp-3); }
+        .monitoring-cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: var(--sp-3); }
         .monitor-card { background: var(--color-bg); border: 2px solid var(--color-ink); padding: var(--sp-3); border-radius: 0px; box-shadow: 2px 2px 0px rgba(10, 10, 10, 0.05); }
         .monitor-card-title { font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-text-secondary); margin-bottom: 8px; }
         .monitor-card-value { font-size: var(--text-xl); font-weight: var(--weight-bold); color: var(--color-ink); }
@@ -100,8 +101,48 @@
         .monitor-card-badge { display: inline-flex; align-items: center; justify-content: center; padding: 3px 10px; border-radius: 0px; border: 2px solid var(--color-ink); font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.03em; }
         .badge-green  { background: var(--state-ok-bg);       color: var(--state-ok); }
         .badge-yellow { background: var(--state-warn-bg);     color: var(--state-warn); }
-        .badge-orange { background: var(--state-warn-bg);     color: var(--state-warn); }
+        .badge-orange { background: #fff7ed;                  color: #c2410c; }
         .badge-red    { background: var(--state-critical-bg); color: var(--state-critical); }
+
+        /* ── Chart Container ── */
+        .chart-panel {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            padding: var(--sp-2);
+            border-radius: 0px;
+        }
+
+        .chart-panel-title {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-ink);
+            margin-bottom: var(--sp-1);
+            padding-bottom: 6px;
+            border-bottom: 2px solid var(--color-ink);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        canvas { max-height: 220px; width: 100%; }
+        .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
+
+        .sensor-section-title {
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-ink);
+            margin-bottom: var(--sp-2);
+            padding-bottom: var(--sp-1);
+            border-bottom: 2px solid var(--color-ink);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
         .section-title { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-3); }
         .section-title i { color: var(--color-text-secondary); font-size: 0.95rem; }
@@ -150,37 +191,45 @@
 
                         <!-- Active monitoring telemetry block -->
                         <div id="monitoringActiveContent" style="display: none;">
-                            <div class="monitoring-summary" id="monitoringSummary">
-                                <div class="summary-card"><strong>Última actualización</strong><div id="summaryLastUpdate">--:--:--</div></div>
-                                <div class="summary-card"><strong>Caudal</strong><div id="summaryFlowRate">-- L/s</div></div>
-                                <div class="summary-card"><strong>Presión</strong><div id="summaryPressure">-- bar</div></div>
-                                <div class="summary-card"><strong>Temperatura</strong><div id="summaryTemperature">-- °C</div></div>
-                                <div class="summary-card"><strong>Voltaje</strong><div id="summaryVoltage">-- V</div></div>
-                                <div class="summary-card"><strong>Corriente</strong><div id="summaryCurrent">-- A</div></div>
-                                <div class="summary-card"><strong>Estado de bomba</strong><div id="summaryPumpStatus">ENCENDIDA</div></div>
-                                <div class="summary-card"><strong>Estado de ascensor</strong><div id="summaryElevatorStatus">ENCENDIDO</div></div>
-                                <div class="summary-card"><strong>Protección</strong><div id="summaryProtectionStatus">INACTIVA</div></div>
-                                <div class="summary-card"><strong>Alertas recientes</strong><div id="summaryAlertCount">0</div></div>
-                                <div class="summary-card"><strong>Estado</strong><div id="summaryRationing">Operación normal</div></div>
+                            <div class="status-grid" id="monitoringSummary">
+                                <div class="status-cell">
+                                    <div class="status-cell-label">Protección</div>
+                                    <div class="status-cell-value" id="summaryProtectionStatus">INACTIVA</div>
+                                </div>
+                                <div class="status-cell">
+                                    <div class="status-cell-label">Bomba</div>
+                                    <div class="status-cell-value" id="summaryPumpStatus">ENCENDIDA</div>
+                                </div>
+                                <div class="status-cell">
+                                    <div class="status-cell-label">Ascensor</div>
+                                    <div class="status-cell-value" id="summaryElevatorStatus">ENCENDIDO</div>
+                                </div>
+                                <div class="status-cell">
+                                    <div class="status-cell-label">Última actualización</div>
+                                    <div class="status-cell-value" id="summaryLastUpdate">--:--:--</div>
+                                </div>
                             </div>
                             <div class="monitoring-sections">
                                 <div class="monitoring-section">
-                                    <div class="section-title"><i class="fa-solid fa-oil-can"></i><h2>Sensores de Bomba y Eléctricos</h2></div>
+                                    <div class="sensor-section-title"><i class="fa-solid fa-oil-can"></i> Sensores de Bomba y Eléctricos</div>
                                     <div id="bombaCards" class="monitoring-cards-grid"></div>
                                 </div>
                                 <div class="monitoring-section">
-                                    <div class="section-title"><i class="fa-solid fa-arrow-up"></i><h2>Sensores de Ascensor y Motor</h2></div>
+                                    <div class="sensor-section-title"><i class="fa-solid fa-elevator"></i> Sensores de Ascensor y Motor</div>
                                     <div id="ascensorCards" class="monitoring-cards-grid"></div>
                                 </div>
                             </div>
-                            <div class="chart-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:24px;margin-top:24px;">
-                                <div class="monitoring-section">
-                                    <div class="section-title"><i class="fa-solid fa-oil-can"></i><span>Variables de Bomba / Eléctricas</span></div>
-                                    <canvas id="chart1" height="180"></canvas>
+                            <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1); margin-top:var(--sp-3);">
+                                <i class="fa-solid fa-chart-bar"></i> Lecturas en tiempo real
+                            </h2>
+                            <div class="grid-charts">
+                                <div class="chart-panel">
+                                    <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de Bomba / Eléctricas</div>
+                                    <canvas id="chart1"></canvas>
                                 </div>
-                                <div class="monitoring-section">
-                                    <div class="section-title"><i class="fa-solid fa-elevator"></i><span>Variables de Ascensor / Motor</span></div>
-                                    <canvas id="chart2" height="180"></canvas>
+                                <div class="chart-panel">
+                                    <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
+                                    <canvas id="chart2"></canvas>
                                 </div>
                             </div>
                         </div>

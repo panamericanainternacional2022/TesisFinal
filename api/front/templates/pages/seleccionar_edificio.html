@@ -70,30 +70,36 @@
                     </div>
 
                     {% if items %}
-                    <div class="select-card">
-                        <ul class="select-list">
-                            {% for item in items %}
-                            <li>
-                                {% if accion == 'editar' %}
-                                <a href="{% url 'editar_edificio' item.id %}">
-                                    <div style="display: flex; align-items: center; gap: 12px;">
-                                        <i class="fa-solid fa-building" style="color: var(--color-ink); font-size: 1.3rem;"></i>
-                                        <span class="item-name">{{ item.nombre }}</span>
-                                    </div>
-                                    <span class="item-id"><i class="fa-solid fa-id-card" style="margin-right: 6px;"></i>{{ item.rif }}</span>
-                                </a>
-                                {% else %}
-                                <a href="{% url 'eliminar_edificio' item.id %}" class="btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?">
-                                    <div style="display: flex; align-items: center; gap: 12px; color: var(--state-critical);">
-                                        <i class="fa-solid fa-trash-can" style="font-size: 1.3rem;"></i>
-                                        <span class="item-name" style="color: var(--state-critical);">{{ item.nombre }}</span>
-                                    </div>
-                                    <span class="item-id" style="color: var(--state-critical);"><i class="fa-solid fa-id-card" style="margin-right: 6px;"></i>{{ item.rif }}</span>
-                                </a>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
+                    <div class="table-wrapper">
+                        <div class="table-title-bar">
+                            Edificios Registrados
+                        </div>
+                        <div class="table-responsive">
+                            <table class="report-table centered-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>RIF</th>
+                                        <th style="text-align: right; padding-right: var(--sp-4);">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.nombre }}</td>
+                                        <td>{{ item.rif }}</td>
+                                        <td style="text-align: right; padding-right: var(--sp-4);">
+                                            {% if accion == 'editar' %}
+                                            <a href="{% url 'editar_edificio' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                                            {% else %}
+                                            <a href="{% url 'eliminar_edificio' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                     {% else %}
                     <div class="no-data">

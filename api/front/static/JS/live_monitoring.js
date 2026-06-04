@@ -24,8 +24,11 @@ function safeText(value) {
     return value === null || value === undefined ? '-' : String(value);
 }
 
-function formatNumeric(value) {
+function formatNumeric(value, variable) {
     if (typeof value === 'number') {
+        if (variable === 'trip_count' || variable === 'load') {
+            return Math.round(value).toString();
+        }
         return value.toFixed(1);
     }
     return safeText(value);
@@ -80,7 +83,7 @@ function renderCard(variable, value, risk, label) {
     const badgeClass = getRiskBadge(risk);
     const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') :
         (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
-            `${formatNumeric(value)} ${getUnit(variable)}`);
+            `${formatNumeric(value, variable)} ${getUnit(variable)}`);
     let riskCls = 'risk-low';
     if (risk === 'Medio') riskCls = 'risk-med';
     else if (risk === 'Alto') riskCls = 'risk-high';
@@ -221,9 +224,23 @@ function initCharts() {
 
 function updateCharts(history) {
     if (!history || !history.length) return;
+    
+    const getLatestReading = (v) => {
+        return history.filter(item => item.variable === v).pop();
+    };
+
     const getLatest = (v) => {
-        const r = history.filter(item => item.variable === v).pop();
+        const r = getLatestReading(v);
         return r ? r.value : 0;
+    };
+
+    const getSensorColor = (v) => {
+        const r = getLatestReading(v);
+        if (!r) return '#0a0a0a';
+        if (r.risk === 'Crítico') return '#991b1b'; // Red
+        if (r.risk === 'Alto') return '#c2410c'; // Orange
+        if (r.risk === 'Medio') return '#b45309'; // Amber/Yellow
+        return '#166534'; // Green / Low
     };
 
     if (chart1) {
@@ -236,6 +253,16 @@ function updateCharts(history) {
             getLatest('voltage'),
             getLatest('current')
         ];
+        chart1.data.datasets[0].backgroundColor = [
+            getSensorColor('flow_rate'),
+            getSensorColor('pressure'),
+            getSensorColor('temperature'),
+            getSensorColor('vibration'),
+            getSensorColor('tank_level'),
+            getSensorColor('voltage'),
+            getSensorColor('current')
+        ];
+        chart1.data.datasets[0].borderColor = chart1.data.datasets[0].backgroundColor;
         chart1.update();
     }
     if (chart2) {
@@ -244,6 +271,12 @@ function updateCharts(history) {
             getLatest('load'),
             getLatest('energy')
         ];
+        chart2.data.datasets[0].backgroundColor = [
+            getSensorColor('speed'),
+            getSensorColor('load'),
+            getSensorColor('energy')
+        ];
+        chart2.data.datasets[0].borderColor = chart2.data.datasets[0].backgroundColor;
         chart2.update();
     }
 }
@@ -258,16 +291,21 @@ function renderLiveMonitor(data) {
     const rationingText = data.rationing ? 'Racionamiento activo' : 'Operación normal';
     const sensors = data.sensors || [];
 
-    document.getElementById('summaryLastUpdate').textContent = new Date().toLocaleTimeString();
-    document.getElementById('summaryFlowRate').textContent = `${formatNumeric(current.flow_rate)} L/s`;
-    document.getElementById('summaryPressure').textContent = `${formatNumeric(current.pressure)} bar`;
-    document.getElementById('summaryTemperature').textContent = `${formatNumeric(current.temperature)} °C`;
-    document.getElementById('summaryVoltage').textContent = `${formatNumeric(current.voltage)} V`;
-    document.getElementById('summaryCurrent').textContent = `${formatNumeric(current.current)} A`;
-    document.getElementById('summaryAlertCount').textContent = alertCount;
-    document.getElementById('summaryRationing').textContent = rationingText;
-    document.getElementById('summaryPumpStatus').textContent = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
-    document.getElementById('summaryElevatorStatus').textContent = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
+    const setElementText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    setElementText('summaryLastUpdate', new Date().toLocaleTimeString());
+    setElementText('summaryFlowRate', `${formatNumeric(current.flow_rate)} L/s`);
+    setElementText('summaryPressure', `${formatNumeric(current.pressure)} bar`);
+    setElementText('summaryTemperature', `${formatNumeric(current.temperature)} °C`);
+    setElementText('summaryVoltage', `${formatNumeric(current.voltage)} V`);
+    setElementText('summaryCurrent', `${formatNumeric(current.current)} A`);
+    setElementText('summaryAlertCount', alertCount);
+    setElementText('summaryRationing', rationingText);
+    setElementText('summaryPumpStatus', data.pump_on ? 'ENCENDIDA' : 'APAGADA');
+    setElementText('summaryElevatorStatus', data.elevator_on ? 'ENCENDIDO' : 'APAGADO');
     const protectionStatusEl = document.getElementById('summaryProtectionStatus');
     if (protectionStatusEl) {
         protectionStatusEl.textContent = data.protection_active ? 'ACTIVA' : 'INACTIVA';
