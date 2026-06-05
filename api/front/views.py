@@ -1875,34 +1875,11 @@ def historial_pdf_view(request):
     fecha_hasta = request.GET.get("fecha_hasta", "").strip()
     hora_hasta = request.GET.get("hora_hasta", "").strip()
 
-    var_names = {
-        "flow_rate": "Caudal (flujo)",
-        "pressure": "Presión",
-        "temperature": "Temperatura",
-        "vibration": "Vibración",
-        "tank_level": "Nivel de tanque",
-        "voltage": "Voltaje (tensión)",
-        "current": "Corriente (amperaje)",
-        "speed": "Velocidad",
-        "load": "Carga",
-        "energy": "Consumo eléctrico",
-        "motor_stuck": "Motor atascado",
-        "trip_count": "Conteo de viajes",
-        "position": "Posición",
-        "door_status": "Estado de puerta",
-        "Racionamiento": "Caudal (racionamiento)",
-        "Protección automática": "Protección automática",
-        "Protección para la bomba de agua": "Protección para la bomba de agua",
-        "Protección para el elevador": "Protección para el elevador",
-    }
-    units = {
-        "flow_rate": "L/s", "pressure": "bar", "temperature": "°C",
-        "vibration": "mm/s", "tank_level": "%", "speed": "m/s",
-        "load": "kg", "energy": "kW", "voltage": "V", "current": "A",
-        "trip_count": "viajes", "Racionamiento": "L/s",
-    }
-    risk_names_es = {"Crítico": "crítica", "Alto": "alta", "Medio": "media", "Bajo": "baja", "Normal": "normal", "Info": "informativa"}
-    device_names_es = {"pump": "bomba de agua", "elevator": "ascensor", "motor": "motor"}
+    var_names = VAR_NAMES
+    units = UNITS
+    risk_names_es = RISK_NAMES_ES
+    device_names_es = DEVICE_NAMES_ES
+
 
     # ── Construir queryset base ─────────────────────────────────
     if _is_admin_role(rol):
@@ -1967,7 +1944,7 @@ def historial_pdf_view(request):
 
     parsed_list = []
     for notif in notificaciones:
-        notif = _parse_notif_for_historial(notif, var_names, units, risk_names_es, device_names_es)
+        notif = _parse_notif_for_historial(notif)
         parsed_list.append(notif)
 
     if variable_filter:
