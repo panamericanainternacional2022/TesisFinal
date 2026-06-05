@@ -728,23 +728,23 @@ def enter_protection_mode(reason=None, targets=None):
     if now_ts - last_email_sent_time > 300:
         last_email_sent_time = now_ts
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        subject = f"[⚠️ PROTECCIÓN ACTIVADA] Dispositivos apagados: {targets_text_es} "
-        body = f"""REPORTE AUTOMÁTICO DE PROTECCIÓN 
+        subject = f"[Proteccion activada] Dispositivos apagados: {targets_text_es}"
+        body = f"""REPORTE AUTOMATICO DE PROTECCION
 
-El sistema de protección automática ha detectado una condición crítica y ha apagado los siguientes dispositivos para prevenir daños mayores.
+El sistema de proteccion automatica ha detectado una condicion critica y ha apagado los siguientes dispositivos para prevenir danos mayores.
 
 DETALLES DEL EVENTO:
 --------------------------------------------
-Fecha/Hora:       {timestamp}
-Dispositivos:     {targets_text_es}
-Motivo:           {reason or 'Condición crítica detectada'}
-Estado:           PROTECCIÓN ACTIVADA
+Fecha/Hora:      {timestamp}
+Dispositivos:    {targets_text_es}
+Motivo:          {reason or 'condicion critica detectada'}
+Estado:          proteccion activada
 
 MEDIDAS CORRECTIVAS SUGERIDAS:
 --------------------------------------------
-Acción: Inspeccionar los dispositivos indicados antes de reanudar operación. Los dispositivos se restaurarán automáticamente tras el período de protección.
+Accion: Inspeccionar los dispositivos indicados antes de reanudar operacion. Los dispositivos se restauraran automaticamente tras el periodo de proteccion.
 
-Este es un mensaje de contingencia generado de forma automática por el módulo de protección del Sistema INES.
+Este es un mensaje de contingencia generado de forma automatica por el modulo de proteccion.
 """
         threading.Thread(
             target=send_email_alert, args=("Crítico", subject, body), daemon=True
@@ -843,7 +843,7 @@ def get_professional_action(variable, risk_level, value):
         "vibration": {
             "Bajo": "Vibración normal. Alineación mecánica correcta.",
             "Medio": "Vibración moderada. Revisar fijaciones mecánicas y estado de rodamientos.",
-            "Alto": "Nivel de vibración por encima del estándar. Programar mantenimiento mecánico.",
+            "Alto": "Vibración por encima del estándar. Programar mantenimiento mecánico.",
             "Crítico": "Vibración mecánica severa. Desalineación severa o falla de rodamientos. Apagar equipo inmediatamente."
         },
         "tank_level": {
@@ -877,20 +877,39 @@ def get_professional_action(variable, risk_level, value):
             "Crítico": "Fluctuación crítica de tensión eléctrica. Desconectar equipos para evitar daños."
         },
         "current": {
-            "Bajo": "Corriente de motor dentro del rango operativo.",
-            "Medio": "Corriente de motor moderadamente alta. Monitorear temperatura del bobinado.",
-            "Alto": "Corriente de motor alta. Monitorear temperatura del bobinado.",
+            "Bajo": "Corriente del motor dentro del rango operativo.",
+            "Medio": "Corriente del motor moderadamente alta. Monitorear temperatura del bobinado.",
+            "Alto": "Corriente del motor por encima del límite recomendado. Revisar carga y estado del bobinado.",
             "Crítico": "Amperaje crítico (sobrecarga eléctrica). Apagado automático de protección activo."
         },
         "motor_stuck": {
             "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberación de emergencia de pasajeros."
         },
+        "trip_count": {
+            "Bajo": "Conteo de viajes dentro del rango normal.",
+            "Medio": "Conteo de viajes elevado. Programar inspección de sistema de tracción próximamente.",
+            "Alto": "Conteo de viajes alto. Revisar desgaste de componentes mecánicos del ascensor.",
+            "Crítico": "Conteo de viajes crítico. Inspección técnica obligatoria antes de continuar operación."
+        },
+        "position": {
+            "Bajo": "Posición del ascensor dentro del rango normal de operación.",
+            "Medio": "Posición del ascensor en zona de precaución. Monitorear desplazamiento.",
+            "Alto": "Posición del ascensor fuera del rango seguro. Revisar sistema de límites.",
+            "Crítico": "Posición crítica detectada. Detener ascensor y revisar sistema de guías."
+        },
+        "door_status": {
+            "Bajo": "Estado de puerta normal.",
+            "Medio": "Puerta con comportamiento irregular. Monitorear ciclos de apertura y cierre.",
+            "Alto": "Fallo en cierre de puerta. Revisar mecanismo de enclavamiento.",
+            "Crítico": "Puerta no responde. Detener operación e inspeccionar sistema de puertas."
+        },
         "Racionamiento": {
-            "Crítico": "Caudal por debajo del mínimo admisible (racionamiento de agua activo). Restringir consumo general."
+            "Crítico": "Caudal por debajo del mínimo admisible (racionamiento activo). Restringir consumo general."
         }
     }
     var_actions = actions.get(variable, {})
-    return var_actions.get(risk_level, f"Verificar sensor {variable} (Valor actual: {value}). Programar revisión preventiva.")
+    var_display = _VAR_ES.get(variable, variable.replace("_", " "))
+    return var_actions.get(risk_level, f"Verificar el sensor de {var_display.lower()}. Programar revisión preventiva.")
 
 
 def send_alert(variable, value, risk_level, recommended_action):
@@ -931,10 +950,12 @@ def send_alert(variable, value, risk_level, recommended_action):
         print(
             f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target}"
         )
+    _risk_adj = {"Crítico": "crítica", "Alto": "alta", "Medio": "media", "Bajo": "baja"}
     if risk_level in ("Alto", "Crítico"):
         if device_target:
             enter_protection_mode(
-                f"Alerta {risk_level} de {_es_var(variable)}", targets={device_target}
+                f"alerta {_risk_adj.get(risk_level, risk_level.lower())} de {_es_var(variable).lower()}",
+                targets={device_target}
             )
         else:
             logger.warning(
@@ -944,23 +965,23 @@ def send_alert(variable, value, risk_level, recommended_action):
     send_email = risk_level in ("Alto", "Crítico")
     var_display = _es_var(variable)
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[Alerta de Monitoreo] Nivel {risk_level.upper()}: Anomalía en {var_display} "
-    body = f"""REPORTE AUTOMÁTICO DE ANOMALÍA 
+    subject = f"[Alerta de monitoreo] Nivel {risk_level.lower()}: anomalía en {var_display.lower()}"
+    body = f"""REPORTE AUTOMATICO DE ANOMALIA
 
 Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
 
 DETALLES DEL EVENTO:
 --------------------------------------------
-Fecha/Hora:   {timestamp}
-Parámetro:    {var_display.upper()}
-Lectura:      {value} {get_unit(variable)}
-Nivel Riesgo: {risk_level.upper()}
+Fecha/Hora:      {timestamp}
+Parametro:       {var_display}
+Lectura:         {value} {get_unit(variable)}
+Nivel de riesgo: {risk_level.lower()}
 
 MEDIDAS CORRECTIVAS SUGERIDAS:
 --------------------------------------------
-Acción:       {recommended_action}
+Accion:          {recommended_action}
 
-Este es un mensaje de contingencia generado de forma automática por el módulo de protección del Sistema INES. Por favor, proceda con la inspección técnica correspondiente de los equipos implicados.
+Este es un mensaje de contingencia generado de forma automatica. Por favor, proceda con la inspeccion tecnica correspondiente.
 """
 
     now = time.time()
@@ -990,12 +1011,8 @@ Este es un mensaje de contingencia generado de forma automática por el módulo 
 
 def check_rationing(flow_rate):
     if flow_rate < RATIONING_THRESHOLD:
-        send_alert(
-            "Racionamiento",
-            flow_rate,
-            "Crítico",
-            f"Caudal muy bajo ({flow_rate} L/s). Reducir consumo.",
-        )
+        action = get_professional_action("Racionamiento", "Crítico", flow_rate)
+        send_alert("Racionamiento", flow_rate, "Crítico", action)
         return True
     return False
 
@@ -1383,6 +1400,13 @@ class PDFReport(FPDF):
         self.cell(0, 10, f"Generado por INES - Página {self.page_no()}", 0, 0, "C")
 
 
+def _pdf_safe(text):
+    """Normaliza el texto para compatibilidad con la fuente Helvetica de fpdf2
+    (latin-1). Elimina tildes y caracteres fuera del rango latin-1."""
+    import unicodedata
+    return unicodedata.normalize('NFKD', str(text)).encode('latin-1', 'ignore').decode('latin-1')
+
+
 def generate_pdf_report(period):
     if not PDF_AVAILABLE:
         raise ImportError("fpdf2 no instalado")
@@ -1634,14 +1658,14 @@ def generate_pdf_report(period):
         # Dibujar fila con bordes negros
         pdf.set_text_color(26, 26, 26)
         pdf.set_draw_color(10, 10, 10)
-        pdf.cell(80, 8, f"  {var.replace('_', ' ').title()}", 1, 0, "L")
-        pdf.cell(50, 8, f"  {val_str}", 1, 0, "L")
+        pdf.cell(80, 8, _pdf_safe(f"  {_es_var(var)}"), 1, 0, "L")
+        pdf.cell(50, 8, _pdf_safe(f"  {val_str}"), 1, 0, "L")
         
         # Celda tipo Badge para riesgo con borde negro
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
         pdf.set_draw_color(10, 10, 10)
-        pdf.cell(60, 8, risk, 1, 1, "C", True)
+        pdf.cell(60, 8, _pdf_safe(risk), 1, 1, "C", True)
     pdf.ln(8)
     
     # Forzar salto de página si queda poco espacio
@@ -1651,7 +1675,7 @@ def generate_pdf_report(period):
     # Estadísticas
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 8, f"ESTADISTICAS DE VARIABLES ({period_name.upper()})", ln=1)
+    pdf.cell(0, 8, _pdf_safe(f"ESTADISTICAS DE VARIABLES ({period_name.upper()})"), ln=1)
     pdf.ln(2)
     
     pdf.set_font("Helvetica", "B", 9)
@@ -1669,7 +1693,7 @@ def generate_pdf_report(period):
     pdf.set_text_color(26, 26, 26)
     for var in numeric_vars:
         s = stats[var]
-        pdf.cell(55, 6, f"  {var.replace('_', ' ').title()}", 1)
+        pdf.cell(55, 6, _pdf_safe(f"  {_es_var(var)}"), 1)
         pdf.cell(32, 6, str(s["min"]), 1, 0, "C")
         pdf.cell(32, 6, str(s["max"]), 1, 0, "C")
         avg_val = f"{s['avg']:.2f}" if isinstance(s["avg"], float) else "N/A"
@@ -1727,10 +1751,18 @@ def generate_pdf_report(period):
         pdf.set_draw_color(10, 10, 10)
         pdf.set_text_color(26, 26, 26)
         for a in alerts_in_period[:15]:
+            val_raw = a.get("value")
+            if val_raw is None:
+                val_str_pdf = "-"
+            elif isinstance(val_raw, bool):
+                val_str_pdf = "Si" if val_raw else "No"
+            else:
+                unit = get_unit(a.get("variable", ""))
+                val_str_pdf = f"{val_raw} {unit}".strip() if unit else str(val_raw)
             pdf.cell(50, 6, f"  {a['timestamp']}", 1)
-            pdf.cell(50, 6, f"  {a['variable']}", 1)
-            pdf.cell(40, 6, str(a["value"]), 1, 0, "C")
-            pdf.cell(50, 6, a["risk"], 1, 1, "C")
+            pdf.cell(50, 6, _pdf_safe(f"  {_es_var(a['variable'])}"), 1)
+            pdf.cell(40, 6, _pdf_safe(val_str_pdf), 1, 0, "C")
+            pdf.cell(50, 6, _pdf_safe(a["risk"]), 1, 1, "C")
     else:
         pdf.set_font("Helvetica", "I", 9)
         pdf.set_text_color(95, 95, 95)
