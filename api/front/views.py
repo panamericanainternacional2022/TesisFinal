@@ -510,6 +510,22 @@ def login_view(request):
                     if usuario_rol == "ADMIN":
                         usuario_rol = "SA"
                     request.session["usuario_rol"] = usuario_rol
+                    # Restore alert state from DB into session
+                    import time as _time
+                    _alerts_dis = usuario.alerts_disabled
+                    _alerts_until = usuario.alerts_disabled_until
+                    if _alerts_dis and _alerts_until and _time.time() > _alerts_until:
+                        # Timer expired while logged out — auto-clear
+                        usuario.alerts_disabled = False
+                        usuario.alerts_disabled_until = None
+                        usuario.save(update_fields=["alerts_disabled", "alerts_disabled_until"])
+                        _alerts_dis = False
+                        _alerts_until = None
+                    request.session["alerts_disabled"] = _alerts_dis
+                    if _alerts_until:
+                        request.session["alerts_disabled_until_ts"] = _alerts_until
+                    else:
+                        request.session.pop("alerts_disabled_until_ts", None)
                     return redirect("menu_seleccion")
             except Usuario.DoesNotExist:
                 error = "Usuario o contraseña incorrectos."
@@ -1245,7 +1261,33 @@ def notificaciones_view(request):
         # Resultado final
         notif.parsed_data = parsed_data or {"parsed": False}
 
-    alertas_desactivadas = request.session.get("alerts_disabled", False)
+    import time as _time
+    usuario_id = request.session["usuario_id"]
+    try:
+        _usuario_obj = Usuario.objects.get(pk=usuario_id)
+    except Exception:
+        _usuario_obj = None
+
+    if _usuario_obj:
+        alertas_desactivadas = _usuario_obj.alerts_disabled
+        alerts_disabled_until_ts = _usuario_obj.alerts_disabled_until
+    else:
+        alertas_desactivadas = request.session.get("alerts_disabled", False)
+        alerts_disabled_until_ts = request.session.get("alerts_disabled_until_ts", None)
+
+    # Auto-expire timed disables
+    if alertas_desactivadas and alerts_disabled_until_ts:
+        if _time.time() > alerts_disabled_until_ts:
+            alertas_desactivadas = False
+            alerts_disabled_until_ts = None
+            if _usuario_obj:
+                _usuario_obj.alerts_disabled = False
+                _usuario_obj.alerts_disabled_until = None
+                _usuario_obj.save(update_fields=["alerts_disabled", "alerts_disabled_until"])
+            request.session["alerts_disabled"] = False
+            request.session.pop("alerts_disabled_until_ts", None)
+
+    alerts_disabled_until_ms = int(alerts_disabled_until_ts * 1000) if alerts_disabled_until_ts else None
 
     return render(
         request,
@@ -1256,6 +1298,7 @@ def notificaciones_view(request):
             "selected_edificio_id": int(edificio_id) if edificio_id.isdigit() else None,
             "rol": rol,
             "alertas_desactivadas": alertas_desactivadas,
+            "alerts_disabled_until_ms": alerts_disabled_until_ms,
         },
     )
 
@@ -1264,13 +1307,43 @@ def notificaciones_view(request):
 def toggle_alerts_session_view(request):
     from django.http import JsonResponse
     import json
+    import time as _time
 
     if request.method == "POST":
         try:
             data = json.loads(request.body)
             enabled = data.get("enabled", True)
-            request.session["alerts_disabled"] = not enabled
-            return JsonResponse({"status": "ok", "alerts_disabled": not enabled})
+            duration_minutes = data.get("duration_minutes", None)  # None = indefinite
+
+            usuario_id = request.session.get("usuario_id")
+            try:
+                usuario_obj = Usuario.objects.get(pk=usuario_id)
+            except Exception:
+                usuario_obj = None
+
+            if enabled:
+                if usuario_obj:
+                    usuario_obj.alerts_disabled = False
+                    usuario_obj.alerts_disabled_until = None
+                    usuario_obj.save(update_fields=["alerts_disabled", "alerts_disabled_until"])
+                request.session["alerts_disabled"] = False
+                request.session.pop("alerts_disabled_until_ts", None)
+                return JsonResponse({"status": "ok", "alerts_disabled": False, "alerts_disabled_until_ms": None})
+            else:
+                until_ts = None
+                if duration_minutes is not None:
+                    until_ts = _time.time() + float(duration_minutes) * 60
+                if usuario_obj:
+                    usuario_obj.alerts_disabled = True
+                    usuario_obj.alerts_disabled_until = until_ts
+                    usuario_obj.save(update_fields=["alerts_disabled", "alerts_disabled_until"])
+                request.session["alerts_disabled"] = True
+                if until_ts:
+                    request.session["alerts_disabled_until_ts"] = until_ts
+                else:
+                    request.session.pop("alerts_disabled_until_ts", None)
+                until_ms = int(until_ts * 1000) if until_ts else None
+                return JsonResponse({"status": "ok", "alerts_disabled": True, "alerts_disabled_until_ms": until_ms})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=400)
     return JsonResponse({"status": "error", "message": "Método no permitido"}, status=405)

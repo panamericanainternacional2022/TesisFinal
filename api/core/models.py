@@ -181,6 +181,8 @@ class Usuario(models.Model):
     )
     rol = models.TextField(blank=True, null=True, default="US")
     registrado = models.BooleanField(default=False)
+    alerts_disabled = models.BooleanField(default=False)
+    alerts_disabled_until = models.FloatField(null=True, blank=True)  # Unix timestamp, None = indefinite
 
     class Meta:
         managed = False

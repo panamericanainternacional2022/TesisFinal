@@ -103,6 +103,7 @@ function renderCard(variable, value, risk, label) {
 
 let chart1, chart2, chart3, chart4;
 let unreadNotificationCount = 0;
+let alertCountdownInterval = null;
 
 function createChart(canvasId, config) {
     const ctx = document.getElementById(canvasId);
@@ -449,6 +450,130 @@ function getCookie(name) {
     return cookieValue;
 }
 
+// ── Duration picker modal ──────────────────────────────────────────
+function showDurationPicker() {
+    return new Promise((resolve) => {
+        const durations = [
+            { label: '5 min',    value: 5 },
+            { label: '10 min',   value: 10 },
+            { label: '30 min',   value: 30 },
+            { label: '1 hora',   value: 60 },
+            { label: '3 horas',  value: 180 },
+            { label: 'Siempre',  value: null },
+        ];
+
+        const backdrop = document.createElement('div');
+        backdrop.className = 'custom-modal-backdrop';
+
+        const container = document.createElement('div');
+        container.className = 'custom-modal-container';
+        container.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-2);">
+                <i class="fa-solid fa-clock" style="color:var(--state-warn);font-size:var(--text-xl);"></i>
+                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);text-transform:uppercase;letter-spacing:var(--tracking-wide);">Pausar alertas</span>
+            </div>
+            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);line-height:var(--leading-normal);">¿Por cuánto tiempo deseas pausar las alertas?</p>
+            <div id="durationGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-3);">
+                ${durations.map(d => `
+                    <button data-minutes="${d.value === null ? 'null' : d.value}" style="
+                        background:var(--color-surface);
+                        border:2px solid var(--color-ink);
+                        color:var(--color-ink);
+                        padding:12px 8px;
+                        font-family:var(--font);
+                        font-size:var(--text-sm);
+                        font-weight:var(--weight-bold);
+                        cursor:pointer;
+                        box-shadow:3px 3px 0px var(--color-ink);
+                        transition:all 120ms ease;
+                        border-radius:0 !important;
+                    ">${d.label}</button>
+                `).join('')}
+            </div>
+            <div style="display:flex;justify-content:flex-end;">
+                <button id="durationCancelBtn" style="background:none;border:1px solid var(--color-ink);padding:8px var(--sp-2);cursor:pointer;font-family:var(--font);font-size:var(--text-sm);font-weight:var(--weight-medium);border-radius:0px !important;">Cancelar</button>
+            </div>
+        `;
+
+        // Hover effect on duration buttons
+        container.querySelectorAll('#durationGrid button').forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                btn.style.background = 'var(--color-ink)';
+                btn.style.color = 'var(--color-surface)';
+                btn.style.transform = 'translate(-1px,-1px)';
+                btn.style.boxShadow = '4px 4px 0px rgba(10,10,10,0.2)';
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.background = 'var(--color-surface)';
+                btn.style.color = 'var(--color-ink)';
+                btn.style.transform = '';
+                btn.style.boxShadow = '3px 3px 0px var(--color-ink)';
+            });
+        });
+
+        backdrop.appendChild(container);
+        document.body.appendChild(backdrop);
+        setTimeout(() => backdrop.classList.add('active'), 10);
+
+        const cleanUp = (value) => {
+            backdrop.classList.remove('active');
+            setTimeout(() => { backdrop.remove(); resolve(value); }, 150);
+        };
+
+        container.querySelector('#durationCancelBtn').addEventListener('click', () => cleanUp(undefined));
+        container.querySelector('#durationGrid').addEventListener('click', (e) => {
+            const btn = e.target.closest('button[data-minutes]');
+            if (!btn) return;
+            const raw = btn.dataset.minutes;
+            cleanUp(raw === 'null' ? null : parseInt(raw, 10));
+        });
+    });
+}
+
+// ── Countdown helpers ───────────────────────────────────────────────
+function formatCountdown(remainingMs) {
+    const totalSecs = Math.ceil(remainingMs / 1000);
+    const h = Math.floor(totalSecs / 3600);
+    const m = Math.floor((totalSecs % 3600) / 60);
+    const s = totalSecs % 60;
+    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function startAlertCountdown(disabledUntilMs) {
+    if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
+    const btn = document.getElementById('toggleAlertsBtn');
+    if (!btn) return;
+
+    function tick() {
+        const remaining = disabledUntilMs - Date.now();
+        if (remaining <= 0) {
+            clearInterval(alertCountdownInterval);
+            alertCountdownInterval = null;
+            reEnableAlerts();
+            return;
+        }
+        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:0.8em;opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
+    }
+    tick();
+    alertCountdownInterval = setInterval(tick, 1000);
+}
+
+async function reEnableAlerts() {
+    const btn = document.getElementById('toggleAlertsBtn');
+    if (!btn) return;
+    btn.dataset.enabled = 'true';
+    btn.dataset.disabledUntilMs = '';
+    btn.className = 'btn-alerts-toggle enabled';
+    btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
+
+    const csrfToken = getCookie('csrftoken');
+    const headers = { 'Content-Type': 'application/json' };
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+    fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers, body: JSON.stringify({ enabled: true }) }).catch(() => {});
+    fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => {});
+}
+
 function initLiveNotifications() {
     const notifContainer = document.getElementById('live-notifications-list');
     if (!notifContainer) return;
@@ -460,44 +585,53 @@ function initLiveNotifications() {
     if (toggleBtn) {
         toggleBtn.addEventListener('click', async () => {
             const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
-            const targetState = !isCurrentlyEnabled;
 
-            // 1. Update UI immediately — optimistic update
-            toggleBtn.dataset.enabled = targetState;
-            if (targetState) {
+            if (!isCurrentlyEnabled) {
+                // ── Re-enable ─────────────────────────────────────────
+                if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
+                toggleBtn.dataset.enabled = 'true';
+                toggleBtn.dataset.disabledUntilMs = '';
                 toggleBtn.className = 'btn-alerts-toggle enabled';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
+
+                const csrfToken = getCookie('csrftoken');
+                const h = { 'Content-Type': 'application/json' };
+                if (csrfToken) h['X-CSRFToken'] = csrfToken;
+                try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: true }) }); }
+                catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
+                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => {});
+                await window.showAlert('Alertas activadas con éxito.', 'success');
+
             } else {
+                // ── Disable: ask for duration ──────────────────────────
+                const minutes = await showDurationPicker();
+                if (minutes === undefined) return; // cancelled
+
+                toggleBtn.dataset.enabled = 'false';
                 toggleBtn.className = 'btn-alerts-toggle disabled';
-                toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
+
+                if (minutes !== null) {
+                    const untilMs = Date.now() + minutes * 60 * 1000;
+                    toggleBtn.dataset.disabledUntilMs = untilMs;
+                    startAlertCountdown(untilMs);
+                } else {
+                    toggleBtn.dataset.disabledUntilMs = '';
+                    toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
+                }
+
+                const csrfToken = getCookie('csrftoken');
+                const h = { 'Content-Type': 'application/json' };
+                if (csrfToken) h['X-CSRFToken'] = csrfToken;
+                try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }); }
+                catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
+                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: false }) }).catch(() => {});
+
+                const label = minutes === null ? 'indefinidamente'
+                    : minutes < 60 ? `por ${minutes} min`
+                    : minutes === 60 ? 'por 1 hora'
+                    : `por ${minutes / 60} horas`;
+                await window.showAlert(`Alertas pausadas ${label}.`, 'success');
             }
-
-            // 2. Always persist to Django session (works even if simulator is offline)
-            const csrfToken = getCookie('csrftoken');
-            const djangoHeaders = { 'Content-Type': 'application/json' };
-            if (csrfToken) djangoHeaders['X-CSRFToken'] = csrfToken;
-
-            try {
-                await fetch('/notificaciones/toggle_alerts/', {
-                    method: 'POST',
-                    headers: djangoHeaders,
-                    body: JSON.stringify({ enabled: targetState })
-                });
-            } catch (err) {
-                console.error('Error al guardar estado en sesión Django:', err);
-            }
-
-            // 3. Fire-and-forget to simulator — if offline, SSE onopen will sync later
-            fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled: targetState })
-            }).catch(() => { });
-
-            await window.showAlert(
-                targetState ? 'Alertas activadas con éxito.' : 'Alertas desactivadas con éxito.',
-                'success'
-            );
         });
     }
 
@@ -557,9 +691,13 @@ window.addEventListener('DOMContentLoaded', async () => {
         toggleBtn.style.cursor = 'pointer';
         toggleBtn.style.display = 'inline-flex';
         const sessionEnabled = toggleBtn.dataset.enabled === 'true';
+        const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
         if (sessionEnabled) {
             toggleBtn.className = 'btn-alerts-toggle enabled';
             toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
+        } else if (disabledUntilMs && disabledUntilMs > Date.now()) {
+            toggleBtn.className = 'btn-alerts-toggle disabled';
+            startAlertCountdown(disabledUntilMs);
         } else {
             toggleBtn.className = 'btn-alerts-toggle disabled';
             toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';

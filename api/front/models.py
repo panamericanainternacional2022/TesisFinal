@@ -67,6 +67,8 @@ class Usuario(models.Model):
         Persona, on_delete=models.CASCADE, db_column="id_persona"
     )
     rol = models.CharField(max_length=2, default="US")
+    alerts_disabled = models.BooleanField(default=False)
+    alerts_disabled_until = models.FloatField(null=True, blank=True)  # Unix timestamp, None = indefinite
 
     class Meta:
         db_table = "usuario"
