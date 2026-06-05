@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} — INES</title>
+    <title>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
@@ -19,7 +19,7 @@
             <div class="perfil-page" style="padding-top: 0 !important;">
                 <div style="max-width: 720px; margin: 0 auto;">
                     <div class="admin-info">
-                        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} — INES</h1>
+                        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </h1>
                         <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
                     </div>
 

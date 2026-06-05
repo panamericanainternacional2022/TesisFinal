@@ -555,14 +555,14 @@ def send_email_alert(
           <!-- Cabecera -->
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
-              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">Sistema de Telemetría — INES</span>
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">Sistema de Telemetría </span>
             </td>
           </tr>
           <!-- Estado / Banner de Riesgo -->
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: {bg_color}; border-left: 6px solid {text_color};">
               <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: {text_color}; display: block; margin-bottom: 4px;">NIVEL DE RIESGO: {risk_level.upper()}</span>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo — INES</h1>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de Alerta y Monitoreo </h1>
             </td>
           </tr>
           <!-- Contenido -->
@@ -574,7 +574,7 @@ def send_email_alert(
           <!-- Pie de página -->
           <tr>
             <td style="padding: 16px 24px; border-top: 1px solid #e0e0e0; background-color: #f5f5f5; font-size: 11px; color: #6b6b6b; text-align: center;">
-              Este es un mensaje generado de forma automática por el Panel de Control — INES.<br>
+              Este es un mensaje generado de forma automática por el Panel de Control .<br>
               Por favor, no responda a este correo electrónico.
             </td>
           </tr>
@@ -660,6 +660,36 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)
 
+# Traducciones globales (usadas en emails, BD y payloads)
+_DEVICE_ES = {
+    "pump":     "bomba de agua",
+    "elevator": "elevador",
+}
+_VAR_ES = {
+    "flow_rate":    "Caudal (flujo)",
+    "pressure":     "Presión",
+    "temperature":  "Temperatura",
+    "vibration":    "Vibración",
+    "tank_level":   "Nivel de tanque",
+    "voltage":      "Voltaje",
+    "current":      "Corriente",
+    "speed":        "Velocidad",
+    "load":         "Carga",
+    "energy":       "Consumo eléctrico",
+    "motor_stuck":  "Motor atascado",
+    "trip_count":   "Conteo de viajes",
+    "position":     "Posición",
+    "door_status":  "Estado de puerta",
+    "Racionamiento": "Caudal (racionamiento)",
+}
+
+def _es_device(d):
+    """Traduce 'pump'/'elevator' a español para mostrar en textos."""
+    return _DEVICE_ES.get(d, d)
+
+def _es_var(v):
+    """Traduce nombre de variable de sensor al español."""
+    return _VAR_ES.get(v, v.replace("_", " ").title())
 
 def enter_protection_mode(reason=None, targets=None):
     """Activar protección para los `targets` indicados (por dispositivo)."""
@@ -676,34 +706,37 @@ def enter_protection_mode(reason=None, targets=None):
         elif device == "elevator":
             elevator_on = False
     reason_text = f" ({reason})" if reason else ""
-    targets_text = " y ".join(sorted(targets_set))
-    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text}.")
-    action_msg = f"Protección automática activada {reason_text}. Dispositivos apagados: {targets_text}."
+    # Texto en español para emails y BD
+    targets_text_es = " y ".join(_es_device(d) for d in sorted(targets_set))
+    # Texto interno (clave inglés) para logs
+    targets_text_raw = " y ".join(sorted(targets_set))
+    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text_raw}.")
+    action_msg = f"Protección automática activada{reason_text}. Dispositivos apagados: {targets_text_es}."
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "Protección automática",
-        "value": targets_text,
+        "value": targets_text_es,
         "risk": "Crítico",
         "message": action_msg,
     }
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
-    persist_notification_in_django("Protección automática", targets_text, "Crítico", action_msg)
-    # Enviar email de alerta crítica (protección automática es el evento más grave)
+    persist_notification_in_django("Protección automática", targets_text_es, "Crítico", action_msg)
+    # Enviar email de alerta crítica
     global last_email_sent_time
     now_ts = time.time()
     if now_ts - last_email_sent_time > 300:
         last_email_sent_time = now_ts
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        subject = f"[⚠️ PROTECCIÓN ACTIVADA] Dispositivos apagados: {targets_text} — INES"
-        body = f"""REPORTE AUTOMÁTICO DE PROTECCIÓN — INES
+        subject = f"[⚠️ PROTECCIÓN ACTIVADA] Dispositivos apagados: {targets_text_es} "
+        body = f"""REPORTE AUTOMÁTICO DE PROTECCIÓN 
 
 El sistema de protección automática ha detectado una condición crítica y ha apagado los siguientes dispositivos para prevenir daños mayores.
 
 DETALLES DEL EVENTO:
 --------------------------------------------
 Fecha/Hora:       {timestamp}
-Dispositivos:     {targets_text}
+Dispositivos:     {targets_text_es}
 Motivo:           {reason or 'Condición crítica detectada'}
 Estado:           PROTECCIÓN ACTIVADA
 
@@ -767,17 +800,17 @@ def update_protection_state():
         logger.info("✅ Protección finalizada para %s. Dispositivo restaurado.", device)
         # Guardar restauración en BD para historial completo
         persist_notification_in_django(
-            f"Protección {device}",
+            f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
             None,
             "Info",
-            f"Protección finalizada para {device}. Operación normal restaurada."
+            f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada."
         )
         notification_payload = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "variable": f"Protección {device}",
+            "variable": f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
             "value": None,
             "risk": "Info",
-            "message": f"Protección finalizada para {device}. Operación normal restaurada.",
+            "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
         }
         alert_log.insert(0, notification_payload)
         pending_notifications.append(notification_payload)
@@ -790,43 +823,62 @@ def update_protection_state():
 def get_professional_action(variable, risk_level, value):
     actions = {
         "flow_rate": {
+            "Bajo": "Caudal dentro de rango normal. Monitoreo de rutina activo.",
+            "Medio": "Caudal moderado. Verificar que no haya fugas menores o restricciones en la línea.",
             "Alto": "Flujo de agua elevado. Monitorear válvulas de alivio y posibles fugas.",
             "Crítico": "Caudal crítico (interrupción total o exceso grave). Apagado preventivo de bomba activado. Inspeccionar tubería principal."
         },
         "pressure": {
+            "Bajo": "Presión dentro de rango operativo. Sin acción requerida.",
+            "Medio": "Presión en zona de precaución. Revisar regulador de presión preventivamente.",
             "Alto": "Presión superior al límite recomendado. Verificar regulador de presión y manómetros.",
             "Crítico": "Presión crítica. Riesgo inminente de ruptura de tuberías. Apagar bomba y liberar presión."
         },
         "temperature": {
+            "Bajo": "Temperatura normal. Ventilación adecuada.",
+            "Medio": "Temperatura moderadamente elevada. Verificar ventilación de sala de máquinas.",
             "Alto": "Temperatura elevada en el motor de la bomba. Incrementar ventilación en sala de máquinas.",
             "Crítico": "Temperatura del motor crítica. Riesgo de sobrecalentamiento y fundición. Apagado de emergencia y revisión de refrigeración."
         },
         "vibration": {
+            "Bajo": "Vibración normal. Alineación mecánica correcta.",
+            "Medio": "Vibración moderada. Revisar fijaciones mecánicas y estado de rodamientos.",
             "Alto": "Nivel de vibración por encima del estándar. Programar mantenimiento mecánico.",
             "Crítico": "Vibración mecánica severa. Desalineación severa o falla de rodamientos. Apagar equipo inmediatamente."
         },
         "tank_level": {
+            "Bajo": "Nivel de tanque bajo. Monitorear reabastecimiento.",
+            "Medio": "Nivel de tanque en zona de precaución. Programar recarga próximamente.",
             "Alto": "Nivel de tanque elevado. Monitorear llenado automático.",
-            "Medio": "Nivel de tanque bajo.",
             "Crítico": "Nivel de tanque crítico. Riesgo de cavitación de la bomba. Detener succión y rellenar tanque urgentemente."
         },
         "speed": {
+            "Bajo": "Velocidad de ascensor normal.",
+            "Medio": "Velocidad moderadamente elevada. Monitorear variador de frecuencia.",
             "Alto": "Velocidad de ascensor por encima del límite de viaje seguro. Programar revisión de variador de frecuencia.",
             "Crítico": "Exceso de velocidad crítico. Frenado de emergencia activado. Inspección técnica de seguridad obligatoria."
         },
         "load": {
+            "Bajo": "Carga de cabina normal.",
+            "Medio": "Carga moderada en cabina. Vigilar comportamiento del motor.",
             "Alto": "Carga de cabina cercana al límite de diseño. Monitorear comportamiento de motor.",
             "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operación."
         },
         "energy": {
+            "Bajo": "Consumo de energía normal.",
+            "Medio": "Consumo de energía moderadamente elevado. Verificar eficiencia operativa.",
             "Alto": "Consumo de energía inusualmente elevado. Monitorear eficiencia.",
             "Crítico": "Pico de energía crítico. Posible cortocircuito o sobreesfuerzo del motor. Revisar protecciones eléctricas."
         },
         "voltage": {
+            "Bajo": "Voltaje dentro del rango nominal (200-240 V).",
+            "Medio": "Voltaje con ligera desviación. Verificar estabilidad de red eléctrica.",
             "Alto": "Inestabilidad en voltaje (fuera del rango 200 V – 240 V). Riesgo para componentes electrónicos.",
             "Crítico": "Fluctuación crítica de tensión eléctrica. Desconectar equipos para evitar daños."
         },
         "current": {
+            "Bajo": "Corriente de motor dentro del rango operativo.",
+            "Medio": "Corriente de motor moderadamente alta. Monitorear temperatura del bobinado.",
             "Alto": "Corriente de motor alta. Monitorear temperatura del bobinado.",
             "Crítico": "Amperaje crítico (sobrecarga eléctrica). Apagado automático de protección activo."
         },
@@ -877,39 +929,42 @@ def send_alert(variable, value, risk_level, recommended_action):
         device_target = None
     if LOG_SIM:
         print(
-            f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target} protection_ends={protection_ends}"
+            f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target}"
         )
     if risk_level in ("Alto", "Crítico"):
         if device_target:
             enter_protection_mode(
-                f"Alerta {risk_level} de {variable}", targets={device_target}
+                f"Alerta {risk_level} de {_es_var(variable)}", targets={device_target}
             )
         else:
             logger.warning(
                 f"Alerta crítica para {variable} sin mapeo a dispositivo; no se activará protección automática."
             )
+    # Solo enviar correo para Alto/Crítico
+    send_email = risk_level in ("Alto", "Crítico")
+    var_display = _es_var(variable)
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[Alerta de Monitoreo] Estado {risk_level.upper()}: Anomalía en {variable.replace('_', ' ').title()} — INES"
-    body = f"""REPORTE AUTOMÁTICO DE ANOMALÍA — INES
+    subject = f"[Alerta de Monitoreo] Nivel {risk_level.upper()}: Anomalía en {var_display} "
+    body = f"""REPORTE AUTOMÁTICO DE ANOMALÍA 
 
 Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
 
 DETALLES DEL EVENTO:
 --------------------------------------------
 Fecha/Hora:   {timestamp}
-Parametro:    {variable.replace('_', ' ').upper()}
+Parámetro:    {var_display.upper()}
 Lectura:      {value} {get_unit(variable)}
 Nivel Riesgo: {risk_level.upper()}
 
 MEDIDAS CORRECTIVAS SUGERIDAS:
 --------------------------------------------
-Accion:       {recommended_action}
+Acción:       {recommended_action}
 
-Este es un mensaje de contingencia generado de forma automatica por el modulo de proteccion del Sistema INES. Por favor, proceda con la inspeccion tecnica correspondiente de los equipos implicados.
+Este es un mensaje de contingencia generado de forma automática por el módulo de protección del Sistema INES. Por favor, proceda con la inspección técnica correspondiente de los equipos implicados.
 """
 
     now = time.time()
-    if now - last_email_sent_time > 300:  # 5 minutes cooldown
+    if send_email and now - last_email_sent_time > 300:  # 5 minutes cooldown
         last_email_sent_time = now
         threading.Thread(
             target=send_email_alert, args=(risk_level, subject, body), daemon=True
@@ -1208,7 +1263,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     update_protection_state()
     update_sensor_data()
 
-    # Verificar alertas
+    # Verificar alertas y persistir en DB
     for var, value in sensor_data.items():
         if var == "motor_stuck":
             if value:
@@ -1219,6 +1274,10 @@ def _run_sim_tick(sim: BuildingSimulator):
             continue
         risk, _ = classify_risk(var, value)
         if risk in ("Alto", "Crítico"):
+            action = get_professional_action(var, risk, value)
+            send_alert(var, value, risk, action)
+        elif risk in ("Bajo", "Medio"):
+            # Guardar en historial sin disparar protección ni email
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action)
         else:
@@ -1392,7 +1451,7 @@ def generate_pdf_report(period):
     # Título principal minimalista
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, "Reporte de Monitoreo Automatizado - INES", ln=1, align="L")
+    pdf.cell(0, 12, "Reporte de Monitoreo Automatizado", ln=1, align="L")
     pdf.set_font("Helvetica", "B", 11)
     pdf.set_text_color(95, 95, 95)
     pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
@@ -1784,23 +1843,7 @@ def update_thresholds():
     return jsonify({"status": "ok", "thresholds": thresholds})
 
 
-@app.route("/toggle_alerts", methods=["POST"])
-def toggle_alerts():
-    global alert_enabled
-    alert_enabled = request.json.get("enabled", True)
-    return jsonify({"status": "ok", "alert_enabled": alert_enabled})
 
-
-@app.route("/get_alert_log")
-def get_alert_log():
-    return jsonify(alert_log[:100])
-
-
-@app.route("/clear_history", methods=["POST"])
-def clear_history():
-    global history
-    history.clear()
-    return jsonify({"status": "ok", "message": "Historial limpiado"})
 
 
 @app.route("/clear_alerts", methods=["POST"])
@@ -1880,14 +1923,14 @@ def api_send_test_email():
         pdf_io = generate_pdf_report("hour")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio — INES", message, pdf_io, "reporte.pdf", [email]),
+            args=(risk_level, "Reporte de Edificio ", message, pdf_io, "reporte.pdf", [email]),
             daemon=True
         ).start()
     except Exception as e:
         logger.error(f"Error generando o enviando PDF a {email}: {e}")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio — INES", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
+            args=(risk_level, "Reporte de Edificio ", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", [email]),
             daemon=True
         ).start()
     return jsonify({"status": "ok", "message": f"Prueba enviada a {email}"})
@@ -1907,14 +1950,14 @@ def api_send_all_subscribers():
         pdf_io = generate_pdf_report("hour")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio (Masivo) — INES", message, pdf_io, "reporte.pdf", emails),
+            args=(risk_level, "Reporte de Edificio (Masivo) ", message, pdf_io, "reporte.pdf", emails),
             daemon=True
         ).start()
     except Exception as e:
         logger.error(f"Error generando o enviando PDF masivo: {e}")
         threading.Thread(
             target=send_email_alert,
-            args=(risk_level, "Reporte de Edificio (Masivo) — INES", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
+            args=(risk_level, "Reporte de Edificio (Masivo) ", message + f"\n\n(No se pudo adjuntar el reporte: {e})", None, "reporte.pdf", emails),
             daemon=True
         ).start()
     return jsonify({"status": "ok", "message": f"Prueba enviada a {len(emails)} destinatarios"})
@@ -2029,21 +2072,6 @@ def manual_update():
     )
 
 
-@app.route("/generate_report", methods=["POST"])
-def generate_report():
-    period = request.json.get("period", "hour")
-    try:
-        pdf_buffer = generate_pdf_report(period)
-        return send_file(
-            pdf_buffer,
-            as_attachment=True,
-            download_name=f"reporte_{period}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
-            mimetype="application/pdf",
-        )
-    except Exception as e:
-        logger.error(f"Error PDF: {e}")
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 
 @socketio.on("connect")
 def handle_connect():
@@ -2060,7 +2088,7 @@ HTML_TEMPLATE = """
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control de Telemetría — INES</title>
+    <title>Panel de Control de Telemetría </title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2634,28 +2662,14 @@ HTML_TEMPLATE = """
 
         <!-- Encabezado -->
         <header class="admin-info">
-            <h1>Panel de Control de Telemetría — INES</h1>
+            <h1>Panel de Control de Telemetría </h1>
             <p>Monitoreo continuo y en tiempo real de sensores hidráulicos, eléctricos, mecánicos y de temperatura. Actualización en vivo mediante WebSocket.</p>
         </header>
 
         <!-- Barra de controles -->
         <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2);">
-            <button id="clearHistoryBtn" class="btn btn-ghost" style="height: 44px; display:inline-flex; align-items:center;">
-                <i class="fas fa-trash-alt"></i> Limpiar Historial
-            </button>
             <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
             <div class="spacer"></div>
-            <select id="reportPeriodSelect" style="width:auto; height: 44px; display:inline-flex; align-items:center;">
-                <option value="minute">Último minuto</option>
-                <option value="ten_minutes">Últimos 10 min</option>
-                <option value="hour" selected>Última hora</option>
-                <option value="day">Último día</option>
-                <option value="week">Última semana</option>
-                <option value="month">Último mes</option>
-            </select>
-            <button id="generateReportBtn" class="btn btn-ok" style="height: 44px; display:inline-flex; align-items:center;">
-                <i class="fas fa-file-pdf"></i> Generar PDF
-            </button>
         </div>
 
         <!-- Aviso de credenciales -->
@@ -2785,19 +2799,6 @@ HTML_TEMPLATE = """
             <div class="chart-panel">
                 <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
                 <canvas id="chart2"></canvas>
-            </div>
-        </div>
-
-        <!-- Historial -->
-        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1); margin-top:var(--sp-3);">
-            <i class="fa-solid fa-list-ul"></i> Historial completo
-        </h2>
-        <div class="table-wrapper">
-            <div class="scroll-table" style="max-height: 500px;">
-                <table>
-                    <thead><tr><th>Fecha y hora</th><th>Tipo</th><th>Variable</th><th>Valor</th><th>Riesgo</th></tr></thead>
-                    <tbody id="historyBody"><tr><td colspan="5" style="text-align:center; padding:var(--sp-3); color:var(--color-text-secondary);">Cargando...</td></tr></tbody>
-                </table>
             </div>
         </div>
 
@@ -2961,22 +2962,6 @@ HTML_TEMPLATE = """
                     </div>`;
                 if(BOMBA_VARS.includes(k)) b.appendChild(card);
                 else if(ASCENSOR_VARS.includes(k)) a.appendChild(card);
-            }
-        }
-
-        function updateHistoryTable(hist){
-            let tbody=document.getElementById('historyBody'); tbody.innerHTML='';
-            if(!hist||hist.length===0){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:var(--sp-3);color:var(--color-text-secondary);">No hay registros</td></tr>'; return; }
-            let lastRecords = hist.slice(-30);
-            for(let i=lastRecords.length-1;i>=0;i--){
-                let r=lastRecords[i];
-                let cls = r.risk==='Crítico'?'row-crit':r.risk==='Alto'?'row-high':'';
-                let badgeCls = {Bajo:'badge-low',Medio:'badge-med',Alto:'badge-high',Crítico:'badge-crit'}[r.risk]||'badge-info';
-                let tr=document.createElement('tr'); tr.className=cls;
-                let varName = r.variable.includes(' (manual)') ? getVariableName(r.variable.replace(' (manual)', '')) + ' (manual)' : getVariableName(r.variable);
-                let valDisplay = r.variable.includes('door_status') ? (r.value === 'open' ? 'Abierta' : (r.value === 'closed' ? 'Cerrada' : r.value)) : r.value;
-                tr.innerHTML=`<td>${r.timestamp}</td><td>${r.type}</td><td>${varName}</td><td>${valDisplay}</td><td><span class="badge ${badgeCls}">${r.risk}</span></td>`;
-                tbody.appendChild(tr);
             }
         }
 
@@ -3145,19 +3130,6 @@ HTML_TEMPLATE = """
             }
         }
 
-        async function clearHistory(){
-            if(await window.showConfirm('¿Limpiar historial de lecturas?')){
-                let resp=await fetch('/clear_history',{method:'POST'});
-                if(resp.ok) {
-                    await window.showAlert('Historial limpiado.', 'success');
-                    updateHistoryTable([]);
-                    updateCharts([]);
-                } else {
-                    await window.showAlert('Error al limpiar.', 'error');
-                }
-            }
-        }
-
         function populateManualSensorSelect(){
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
             [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{
@@ -3200,26 +3172,6 @@ HTML_TEMPLATE = """
                 if(res.status==='ok'){msgEl.innerHTML=`<span style="color:var(--state-ok)">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(()=>msgEl.innerHTML='',3000);}
                 else{msgEl.innerHTML=`<span style="color:var(--state-critical)">Error: ${res.message}</span>`;}
             }catch(e){msgEl.innerHTML='<span style="color:var(--state-critical)">Error de conexión</span>';}
-        }
-
-        async function generateReport(){
-            let period=document.getElementById('reportPeriodSelect').value;
-            let btn=document.getElementById('generateReportBtn');
-            btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generando...';
-            try{
-                let resp=await fetch('/generate_report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({period})});
-                if(resp.ok){
-                    let blob=await resp.blob();
-                    let url=URL.createObjectURL(blob);
-                    let a=document.createElement('a'); a.href=url;
-                    a.download=`reporte_${period}_${new Date().toISOString().slice(0,19).replace(/:/g,'-')}.pdf`;
-                    document.body.appendChild(a); a.click(); URL.revokeObjectURL(url); a.remove();
-                }else{
-                    let err=await resp.text();
-                    try{let e=JSON.parse(err);await window.showAlert('Error: '+e.message, 'error');}catch(e){await window.showAlert('Error: '+err, 'error');}
-                }
-            }catch(e){await window.showAlert('Error de conexión', 'error');}
-            finally{btn.disabled=false; btn.innerHTML='<i class="fas fa-file-pdf"></i> Generar PDF';}
         }
 
         let activeUsers = [];
@@ -3367,11 +3319,9 @@ HTML_TEMPLATE = """
         document.getElementById('subBuildingSelect').addEventListener('change', (e) => loadUsersForBuilding(e.target.value));
         document.getElementById('sendAllSubscribersBtn').addEventListener('click', sendAllSubscribers);
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
-        document.getElementById('clearHistoryBtn').addEventListener('click', clearHistory);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
-        document.getElementById('generateReportBtn').addEventListener('click', generateReport);
 
         // Socket
         socket.on('connect', ()=>console.log('[INES] Socket conectado'));
@@ -3382,7 +3332,7 @@ HTML_TEMPLATE = """
             if(data.subscribers) subscribers=data.subscribers;
             if(data.thresholds) renderThresholdsPanel(data.thresholds);
             if(data.current) updateCards(data.current);
-            if(data.history){ updateHistoryTable(data.history); updateCharts(data.history); }
+            if(data.history){ updateCharts(data.history); }
             updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
             document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
             let ri = document.getElementById('rationingIndicator');

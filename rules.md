@@ -1,4 +1,4 @@
-# Reglas de Desarrollo — INES
+# Reglas de Desarrollo 
 
 ## 1. Interfaz de Usuario y Alertas (Modales)
 Queda estrictamente **prohibido** el uso de las alertas nativas del navegador (`alert()`, `confirm()`, `prompt()`) en cualquier vista, script o plantilla del proyecto. Todas las alertas y solicitudes de confirmación deben implementarse utilizando el sistema de **Modales Custom** coherente con el estilo tipográfico suizo de la aplicación.

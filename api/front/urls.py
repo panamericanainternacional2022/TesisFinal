@@ -17,6 +17,8 @@ from .views import (
     notificaciones_view,
     toggle_alerts_session_view,
     limpiar_notificaciones_view,
+    historial_view,
+    historial_pdf_view,
     monitoreo_view,
     monitoreo_edificio_view,
     configuracion_view,
@@ -65,6 +67,8 @@ urlpatterns = [
     ),
     path("descargar_pdf/", descargar_pdf_view, name="descargar_pdf"),
     path("notificaciones/", notificaciones_view, name="notificaciones"),
+    path("historial/", historial_view, name="historial"),
+    path("historial/pdf/", historial_pdf_view, name="historial_pdf"),
     path(
         "notificaciones/toggle_alerts/",
         toggle_alerts_session_view,
