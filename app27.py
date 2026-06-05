@@ -721,7 +721,8 @@ def enter_protection_mode(reason=None, targets=None):
     }
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
-    persist_notification_in_django("Protección automática", targets_text_es, "Crítico", action_msg)
+    if alert_enabled:
+        persist_notification_in_django("Protección automática", targets_text_es, "Crítico", action_msg)
     # Enviar email de alerta crítica
     global last_email_sent_time
     now_ts = time.time()
@@ -798,13 +799,14 @@ def update_protection_state():
             pass
         del protection_ends[device]
         logger.info("✅ Protección finalizada para %s. Dispositivo restaurado.", device)
-        # Guardar restauración en BD para historial completo
-        persist_notification_in_django(
-            f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
-            None,
-            "Info",
-            f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada."
-        )
+        # Guardar restauración en BD solo si las alertas están habilitadas
+        if alert_enabled:
+            persist_notification_in_django(
+                f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
+                None,
+                "Info",
+                f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada."
+            )
         notification_payload = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
             "variable": f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
@@ -1893,6 +1895,24 @@ def clear_alerts():
         except Exception as e:
             logger.warning("Error al eliminar notificaciones en Django: %s", e)
     return jsonify({"status": "ok", "message": "Alertas limpiadas"})
+
+
+@app.route("/toggle_alerts", methods=["POST"])
+def toggle_alerts():
+    """Activa o desactiva la generación de alertas en el simulador Flask.
+    El JS de la página de notificaciones llama a este endpoint al mismo tiempo
+    que actualiza el estado en la sesión de Django.
+    Body JSON esperado: {"enabled": true|false}
+    """
+    global alert_enabled
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        alert_enabled = bool(data.get("enabled", True))
+        logger.info("alert_enabled cambiado a: %s", alert_enabled)
+        return jsonify({"status": "ok", "alert_enabled": alert_enabled})
+    except Exception as e:
+        logger.error("Error en /toggle_alerts: %s", e)
+        return jsonify({"status": "error", "message": str(e)}), 400
 
 
 @app.route("/api/set_active_building/<int:edificio_id>", methods=["POST"])

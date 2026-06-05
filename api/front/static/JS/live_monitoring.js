@@ -302,7 +302,7 @@ function renderNotificationList(alerts) {
         setNotificationBadge(0);
         container.innerHTML = `
             <div class="no-notif" id="live-no-notif">
-                <i class="fa-regular fa-bell-slash"></i>
+                <i class="fa-solid fa-bell-slash"></i>
                 <p>No hay notificaciones pendientes.</p>
             </div>
         `;
@@ -317,7 +317,7 @@ function renderNotificationList(alerts) {
             <div class="notif-body">
                 <p>${safeText(alert.message)}</p>
                 <div class="notif-meta">
-                    <span><i class="fa-regular fa-clock"></i> ${new Date(alert.timestamp).toLocaleString()}</span>
+                    <span><i class="fa-solid fa-clock"></i> ${new Date(alert.timestamp).toLocaleString()}</span>
                     <span><strong>Variable:</strong> ${safeText(getVariableName(alert.variable))}</span>
                     <span><strong>Riesgo:</strong> ${safeText(alert.risk)}</span>
                 </div>
@@ -454,12 +454,12 @@ function getCookie(name) {
 function showDurationPicker() {
     return new Promise((resolve) => {
         const durations = [
-            { label: '5 min',    value: 5 },
-            { label: '10 min',   value: 10 },
-            { label: '30 min',   value: 30 },
-            { label: '1 hora',   value: 60 },
-            { label: '3 horas',  value: 180 },
-            { label: 'Siempre',  value: null },
+            { label: '5 min', value: 5 },
+            { label: '10 min', value: 10 },
+            { label: '30 min', value: 30 },
+            { label: '1 hora', value: 60 },
+            { label: '3 horas', value: 180 },
+            { label: 'Siempre', value: null },
         ];
 
         const backdrop = document.createElement('div');
@@ -536,8 +536,8 @@ function formatCountdown(remainingMs) {
     const h = Math.floor(totalSecs / 3600);
     const m = Math.floor((totalSecs % 3600) / 60);
     const s = totalSecs % 60;
-    if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (h > 0) return `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
 function startAlertCountdown(disabledUntilMs) {
@@ -570,8 +570,10 @@ async function reEnableAlerts() {
     const csrfToken = getCookie('csrftoken');
     const headers = { 'Content-Type': 'application/json' };
     if (csrfToken) headers['X-CSRFToken'] = csrfToken;
-    fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers, body: JSON.stringify({ enabled: true }) }).catch(() => {});
-    fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => {});
+    fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers, body: JSON.stringify({ enabled: true }) }).catch(() => { });
+    fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => { });
+    await window.showAlert('El tiempo de pausa ha expirado. Alertas reactivadas.', 'success');
+    window.location.reload();
 }
 
 function initLiveNotifications() {
@@ -599,8 +601,9 @@ function initLiveNotifications() {
                 if (csrfToken) h['X-CSRFToken'] = csrfToken;
                 try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: true }) }); }
                 catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
-                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => {});
+                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => { });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
+                window.location.reload();
 
             } else {
                 // ── Disable: ask for duration ──────────────────────────
@@ -624,12 +627,12 @@ function initLiveNotifications() {
                 if (csrfToken) h['X-CSRFToken'] = csrfToken;
                 try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }); }
                 catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
-                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: false }) }).catch(() => {});
+                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: false }) }).catch(() => { });
 
                 const label = minutes === null ? 'indefinidamente'
                     : minutes < 60 ? `por ${minutes} min`
-                    : minutes === 60 ? 'por 1 hora'
-                    : `por ${minutes / 60} horas`;
+                        : minutes === 60 ? 'por 1 hora'
+                            : `por ${minutes / 60} horas`;
                 await window.showAlert(`Alertas pausadas ${label}.`, 'success');
             }
         });

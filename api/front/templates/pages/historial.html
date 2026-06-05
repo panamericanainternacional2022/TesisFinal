@@ -98,7 +98,7 @@
                                 <!-- Desde -->
                                 <div style="display:flex; flex-direction:column; gap:4px;">
                                     <label style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
-                                        <i class="fa-regular fa-calendar"></i> Desde
+                                        <i class="fa-solid fa-calendar"></i> Desde
                                     </label>
                                     <div style="display:flex; gap:6px;">
                                         <input type="date" name="fecha_desde" id="fecha-desde"
@@ -113,7 +113,7 @@
                                 <!-- Hasta -->
                                 <div style="display:flex; flex-direction:column; gap:4px;">
                                     <label style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
-                                        <i class="fa-regular fa-calendar-check"></i> Hasta
+                                        <i class="fa-solid fa-calendar-check"></i> Hasta
                                     </label>
                                     <div style="display:flex; gap:6px;">
                                         <input type="date" name="fecha_hasta" id="fecha-hasta"
@@ -153,8 +153,8 @@
                                 {% endif %}
                                 {% if severidad %}<span class="filter-chip filter-chip-{{ severidad|lower }}"><i class="fa-solid fa-triangle-exclamation"></i> {{ severidad }}</span>{% endif %}
                                 {% if variable_filter %}<span class="filter-chip"><i class="fa-solid fa-gauge"></i> {{ variable_filter }}</span>{% endif %}
-                                {% if fecha_desde %}<span class="filter-chip"><i class="fa-regular fa-clock"></i> Desde: {{ fecha_desde }} {{ hora_desde }}</span>{% endif %}
-                                {% if fecha_hasta %}<span class="filter-chip"><i class="fa-regular fa-clock"></i> Hasta: {{ fecha_hasta }} {{ hora_hasta }}</span>{% endif %}
+                                {% if fecha_desde %}<span class="filter-chip"><i class="fa-solid fa-clock"></i> Desde: {{ fecha_desde }} {{ hora_desde }}</span>{% endif %}
+                                {% if fecha_hasta %}<span class="filter-chip"><i class="fa-solid fa-clock"></i> Hasta: {{ fecha_hasta }} {{ hora_hasta }}</span>{% endif %}
                             </div>
                             {% endif %}
 
@@ -201,7 +201,7 @@
                                     {% endif %}
 
                                     <div class="notif-meta" style="margin-top: 8px;">
-                                        <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
                                         {% if notif.id_equipo_monitoreo.id_edificio %}
                                         <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
                                         {% endif %}
@@ -212,7 +212,7 @@
                             </ul>
                             {% else %}
                             <div class="no-notif" id="historial-no-events">
-                                <i class="fa-regular fa-folder-open"></i>
+                                <i class="fa-solid fa-folder-open"></i>
                                 <p>No se encontraron eventos con los filtros aplicados.</p>
                             </div>
                             {% endif %}

@@ -86,7 +86,7 @@
                                         </p>
                                     {% endif %}
                                     <div class="notif-meta" style="margin-top: 8px;">
-                                        <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
                                         {% if notif.id_equipo_monitoreo.id_edificio %}
                                         <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
                                         {% endif %}
@@ -97,8 +97,8 @@
                             </ul>
                             {% else %}
                             <div class="no-notif" id="live-no-notif">
-                                {% if alertas_activadas %}
-                                <i class="fa-regular fa-bell-slash"></i>
+                                {% if not alertas_desactivadas %}
+                                <i class="fa-solid fa-bell-slash"></i>
                                 <p>No hay alertas pendientes.</p>
                                 {% else %}
                                 <i class="fa-solid fa-triangle-exclamation"></i>
