@@ -634,6 +634,7 @@ function initLiveNotifications() {
                         : minutes === 60 ? 'por 1 hora'
                             : `por ${minutes / 60} horas`;
                 await window.showAlert(`Alertas pausadas ${label}.`, 'success');
+                window.location.reload();
             }
         });
     }
