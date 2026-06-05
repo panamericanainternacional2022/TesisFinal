@@ -1,0 +1,407 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial de Eventos </title>
+    <meta name="description" content="Historial completo de eventos, fallas y alertas del sistema INES. Filtra por fecha, edificio, severidad o variable.">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card" style="max-width: 960px;">
+
+                    <!-- ── Cabecera ───────────────────────────────────── -->
+                    <div class="admin-info">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width:100%;">
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <h1 style="margin:0;">Historial de Eventos </h1>
+                                <span class="notif-count-badge" style="background: var(--color-ink); color: var(--color-surface); font-size: var(--text-xs); font-weight: var(--weight-bold); padding: 2px 10px; border: 2px solid var(--color-ink);">
+                                    {{ total_count }}
+                                </span>
+                            </div>
+                            <!-- Botón PDF (context-aware) -->
+                            <a id="pdfDownloadBtn"
+                               href="{% url 'historial_pdf' %}{% if filter_query_string %}?{{ filter_query_string }}{% endif %}"
+                               class="btn-action"
+                               style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; margin-top:0; background: var(--color-ink); color: var(--color-surface); border: 2px solid var(--color-ink); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); padding: 8px 14px; box-shadow: 3px 3px 0px rgba(10,10,10,0.3); transition: all var(--transition-fast);"
+                               title="Descargar PDF con los filtros actuales">
+                                <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                            </a>
+                        </div>
+                        <p style="margin-top:6px;">Historial completo de todos los eventos del sistema: informativo, bajo, medio, alto y crítico. Usa los filtros para encontrar un momento específico o generar un reporte de fallas.</p>
+
+                        <!-- ── Panel de Filtros ─────────────────────────── -->
+                        <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-2); width: 100%;">
+
+                            <!-- Fila 1: Edificio + Severidad + Variable -->
+                            <div style="display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: flex-end;">
+
+                                <!-- Filtro Edificio -->
+                                {% if edificios|length > 1 %}
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label for="edificio-filter" style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                        <i class="fa-solid fa-building"></i> Edificio
+                                    </label>
+                                    <select name="edificio" id="edificio-filter"
+                                            style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 200px; box-shadow: 3px 3px 0px var(--color-ink);">
+                                        <option value="">Todos los edificios</option>
+                                        {% for edif in edificios %}
+                                        <option value="{{ edif.id_edificio }}" {% if selected_edificio_id == edif.id_edificio %}selected{% endif %}>
+                                            {{ edif.nb_edificio }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                {% endif %}
+
+                                <!-- Filtro Severidad -->
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label for="severidad-filter" style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                        <i class="fa-solid fa-triangle-exclamation"></i> Severidad
+                                    </label>
+                                    <select name="severidad" id="severidad-filter"
+                                            style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 160px; box-shadow: 3px 3px 0px var(--color-ink);">
+                                        <option value="">Todas las severidades</option>
+                                        {% for sev in ALL_SEVERITIES %}
+                                        <option value="{{ sev }}" {% if severidad == sev %}selected{% endif %}>{{ sev }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+
+                                <!-- Filtro Variable -->
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label for="variable-filter" style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                        <i class="fa-solid fa-gauge"></i> Variable
+                                    </label>
+                                    <select name="variable" id="variable-filter"
+                                            style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 200px; box-shadow: 3px 3px 0px var(--color-ink);">
+                                        <option value="">Todas las variables</option>
+                                        {% for var in all_variables %}
+                                        <option value="{{ var }}" {% if variable_filter == var %}selected{% endif %}>{{ var }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Fila 2: Rango de Fecha y Hora -->
+                            <div style="display: flex; gap: var(--sp-2); flex-wrap: wrap; align-items: flex-end;">
+
+                                <!-- Desde -->
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                        <i class="fa-regular fa-calendar"></i> Desde
+                                    </label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="date" name="fecha_desde" id="fecha-desde"
+                                               value="{{ fecha_desde }}"
+                                               style="padding: 8px 10px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; box-shadow: 3px 3px 0px var(--color-ink); cursor: pointer;">
+                                        <input type="time" name="hora_desde" id="hora-desde"
+                                               value="{{ hora_desde }}"
+                                               style="padding: 8px 10px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; box-shadow: 3px 3px 0px var(--color-ink); cursor: pointer; width: 110px;">
+                                    </div>
+                                </div>
+
+                                <!-- Hasta -->
+                                <div style="display:flex; flex-direction:column; gap:4px;">
+                                    <label style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                        <i class="fa-regular fa-calendar-check"></i> Hasta
+                                    </label>
+                                    <div style="display:flex; gap:6px;">
+                                        <input type="date" name="fecha_hasta" id="fecha-hasta"
+                                               value="{{ fecha_hasta }}"
+                                               style="padding: 8px 10px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; box-shadow: 3px 3px 0px var(--color-ink); cursor: pointer;">
+                                        <input type="time" name="hora_hasta" id="hora-hasta"
+                                               value="{{ hora_hasta }}"
+                                               style="padding: 8px 10px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; box-shadow: 3px 3px 0px var(--color-ink); cursor: pointer; width: 110px;">
+                                    </div>
+                                </div>
+
+                                <!-- Botones Aplicar / Limpiar -->
+                                <div style="display:flex; gap:8px; align-items:flex-end;">
+                                    <button type="submit" id="applyFiltersBtn"
+                                            style="padding: 9px 16px; border: 2px solid var(--color-ink); background: var(--color-ink); color: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; cursor: pointer; box-shadow: 3px 3px 0px rgba(10,10,10,0.3); display:inline-flex; align-items:center; gap:6px; transition: all var(--transition-fast);">
+                                        <i class="fa-solid fa-filter"></i> Aplicar
+                                    </button>
+                                    <a href="{% url 'historial' %}"
+                                       style="padding: 9px 14px; border: 2px solid var(--color-ink); background: var(--color-surface); color: var(--color-ink); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); display:inline-flex; align-items:center; gap:6px; text-decoration:none; transition: all var(--transition-fast);">
+                                        <i class="fa-solid fa-xmark"></i> Limpiar
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Indicador de filtros activos -->
+                            {% if severidad or variable_filter or fecha_desde or fecha_hasta or selected_edificio_id %}
+                            <div id="activeFiltersBar" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; padding: 8px 12px; background: var(--color-bg); border: 2px solid var(--color-ink); border-left: 5px solid var(--color-ink); font-size: var(--text-xs); font-weight: var(--weight-bold);">
+                                <span style="text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink);">
+                                    <i class="fa-solid fa-filter"></i> Filtros activos:
+                                </span>
+                                {% if selected_edificio_id %}
+                                    {% for edif in edificios %}
+                                        {% if edif.id_edificio == selected_edificio_id %}
+                                        <span class="filter-chip"><i class="fa-solid fa-building"></i> {{ edif.nb_edificio }}</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                {% endif %}
+                                {% if severidad %}<span class="filter-chip filter-chip-{{ severidad|lower }}"><i class="fa-solid fa-triangle-exclamation"></i> {{ severidad }}</span>{% endif %}
+                                {% if variable_filter %}<span class="filter-chip"><i class="fa-solid fa-gauge"></i> {{ variable_filter }}</span>{% endif %}
+                                {% if fecha_desde %}<span class="filter-chip"><i class="fa-regular fa-clock"></i> Desde: {{ fecha_desde }} {{ hora_desde }}</span>{% endif %}
+                                {% if fecha_hasta %}<span class="filter-chip"><i class="fa-regular fa-clock"></i> Hasta: {{ fecha_hasta }} {{ hora_hasta }}</span>{% endif %}
+                            </div>
+                            {% endif %}
+
+                        </form>
+                    </div>
+
+                    <!-- ── Lista de Eventos ───────────────────────────── -->
+                    <div class="notif-card">
+                        <div id="historial-list">
+                            {% if notificaciones %}
+                            <ul class="notif-list">
+                            {% for notif in notificaciones %}
+                            <li class="notif-item hist-item-{{ notif.parsed_data.risk|lower|default:'info' }}">
+                                <div class="notif-body">
+                                    {% if notif.parsed_data.parsed %}
+                                        <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                                            <!-- Badge de severidad -->
+                                            <span class="sensor-badge
+                                                {% if notif.parsed_data.risk == 'Crítico' %}sensor-critical
+                                                {% elif notif.parsed_data.risk == 'Alto' %}sensor-high
+                                                {% elif notif.parsed_data.risk == 'Medio' %}sensor-warning
+                                                {% elif notif.parsed_data.risk == 'Bajo' %}sensor-active
+                                                {% else %}sensor-info{% endif %}">
+                                                {{ notif.parsed_data.risk }}
+                                            </span>
+                                            <!-- Valor medido (sólo si no es boolean) -->
+                                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" %}
+                                            <span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">
+                                                {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            <!-- Nombre de variable -->
+                                            <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">
+                                                {{ notif.parsed_data.variable }}
+                                            </span>
+                                        </div>
+                                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">
+                                            {{ notif.parsed_data.action }}
+                                        </p>
+                                    {% else %}
+                                        <p style="margin: 0; font-size: var(--text-base); color: var(--color-text-primary); line-height: var(--leading-normal);">
+                                            {{ notif.mensaje }}
+                                        </p>
+                                    {% endif %}
+
+                                    <div class="notif-meta" style="margin-top: 8px;">
+                                        <span><i class="fa-regular fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        {% if notif.id_equipo_monitoreo.id_edificio %}
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="no-notif" id="historial-no-events">
+                                <i class="fa-regular fa-folder-open"></i>
+                                <p>No se encontraron eventos con los filtros aplicados.</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- ── Paginación ────────────────────────────────── -->
+                    {% if notificaciones.has_other_pages %}
+                    <div class="pagination-container">
+                        {% if notificaciones.has_previous %}
+                            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn" title="Primera página">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn" title="Anterior">
+                                <i class="fa-solid fa-angle-left"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+                        {% endif %}
+
+                        <span class="page-current-info">
+                            Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
+                        </span>
+
+                        {% if notificaciones.has_next %}
+                            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn" title="Siguiente">
+                                <i class="fa-solid fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn" title="Última página">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        /* ── Tarjeta de Historial ── */
+        .notif-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
+        .notif-card .notif-list { border: none; box-shadow: none; }
+        .notif-card .no-notif   { border: none; box-shadow: none; }
+
+        /* ── Badges de severidad adicionales ── */
+        .sensor-badge.sensor-high {
+            background: #fff7ed;
+            color: #c2410c;
+            border-color: #c2410c;
+        }
+        .sensor-badge.sensor-info {
+            background: var(--state-inactive-bg);
+            color: var(--state-inactive);
+            border-color: var(--state-inactive);
+        }
+
+        /* ── Accent por fila según riesgo ── */
+        .hist-item-crítico { border-left: 4px solid var(--state-critical) !important; }
+        .hist-item-alto    { border-left: 4px solid #c2410c !important; }
+        .hist-item-medio   { border-left: 4px solid var(--state-warn) !important; }
+        .hist-item-bajo    { border-left: 4px solid var(--state-ok) !important; }
+        .hist-item-info    { border-left: 4px solid var(--state-inactive) !important; }
+
+        /* ── Filter chips ── */
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 10px;
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            box-shadow: 2px 2px 0px var(--color-ink);
+        }
+        .filter-chip-crítico { background: var(--state-critical-bg); border-color: var(--state-critical); color: var(--state-critical); box-shadow: 2px 2px 0px var(--state-critical); }
+        .filter-chip-alto    { background: #fff7ed; border-color: #c2410c; color: #c2410c; box-shadow: 2px 2px 0px #c2410c; }
+        .filter-chip-medio   { background: var(--state-warn-bg); border-color: var(--state-warn); color: var(--state-warn); box-shadow: 2px 2px 0px var(--state-warn); }
+        .filter-chip-bajo    { background: var(--state-ok-bg); border-color: var(--state-ok); color: var(--state-ok); box-shadow: 2px 2px 0px var(--state-ok); }
+        .filter-chip-info    { background: var(--state-inactive-bg); border-color: var(--state-inactive); color: var(--state-inactive); box-shadow: 2px 2px 0px var(--state-inactive); }
+
+        /* ── Paginación Neo-Brutalista ── */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: var(--sp-4);
+            flex-wrap: wrap;
+        }
+        .page-link-btn {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            padding: 8px 12px;
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            box-shadow: 3px 3px 0px var(--color-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-link-btn:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.2);
+        }
+        .page-link-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-current-info {
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            padding: 8px var(--sp-2);
+            border: 2px solid transparent;
+        }
+
+        /* ── Hover en botones de filtro ── */
+        #applyFiltersBtn:hover {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
+        }
+        #pdfDownloadBtn:hover {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
+        }
+
+        /* ── Inputs de fecha/hora ── */
+        input[type="date"]:focus,
+        input[type="time"]:focus {
+            outline: none;
+            background: var(--color-bg);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 700px) {
+            .reportes-card { max-width: 100% !important; }
+        }
+    </style>
+
+    <script>
+        // Actualizar la URL del botón PDF cada vez que cambia el formulario
+        (function() {
+            const form = document.getElementById('historialFilterForm');
+            const pdfBtn = document.getElementById('pdfDownloadBtn');
+            if (!form || !pdfBtn) return;
+
+            function updatePdfUrl() {
+                const data = new FormData(form);
+                const params = new URLSearchParams();
+                for (const [key, value] of data.entries()) {
+                    if (value) params.append(key, value);
+                }
+                const qs = params.toString();
+                pdfBtn.href = "{% url 'historial_pdf' %}" + (qs ? '?' + qs : '');
+            }
+
+            form.querySelectorAll('select, input').forEach(el => {
+                el.addEventListener('change', updatePdfUrl);
+                el.addEventListener('input', updatePdfUrl);
+            });
+
+            // Inicializar
+            updatePdfUrl();
+        })();
+    </script>
+</body>
+</html>
