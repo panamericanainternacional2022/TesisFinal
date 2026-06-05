@@ -1725,12 +1725,16 @@ def historial_view(request):
 
     # ── Leer filtros ────────────────────────────────────────────
     edificio_id = request.GET.get("edificio", "").strip()
+    # Normalize: template may render Python None as the string "None"
+    if edificio_id.lower() in ("", "none", "null"):
+        edificio_id = ""
     severidad = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
     fecha_desde = request.GET.get("fecha_desde", "").strip()
     hora_desde = request.GET.get("hora_desde", "").strip()
     fecha_hasta = request.GET.get("fecha_hasta", "").strip()
     hora_hasta = request.GET.get("hora_hasta", "").strip()
+    periodo_seleccionado = request.GET.get("periodo", "24h").strip()
 
 
     # ── Construir queryset base ─────────────────────────────────
@@ -1855,6 +1859,7 @@ def historial_view(request):
             "ALL_SEVERITIES": ALL_SEVERITIES,
             "rol": rol,
             "total_count": len(parsed_list),
+            "periodo_seleccionado": periodo_seleccionado,
         },
     )
 
@@ -1868,6 +1873,8 @@ def historial_pdf_view(request):
     rol = request.session.get("usuario_rol", "US")
 
     edificio_id = request.GET.get("edificio", "").strip()
+    if edificio_id.lower() in ("", "none", "null"):
+        edificio_id = ""
     severidad = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
     fecha_desde = request.GET.get("fecha_desde", "").strip()

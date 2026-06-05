@@ -470,9 +470,9 @@ function showDurationPicker() {
         container.innerHTML = `
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-2);">
                 <i class="fa-solid fa-clock" style="color:var(--state-warn);font-size:var(--text-xl);"></i>
-                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);text-transform:uppercase;letter-spacing:var(--tracking-wide);">Pausar alertas</span>
+                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);text-transform:uppercase;letter-spacing:var(--tracking-wide);">Desactivar alertas</span>
             </div>
-            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);line-height:var(--leading-normal);">¿Por cuánto tiempo deseas pausar las alertas?</p>
+            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);line-height:var(--leading-normal);">¿Por cuánto tiempo deseas desactivar las alertas?</p>
             <div id="durationGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-3);">
                 ${durations.map(d => `
                     <button data-minutes="${d.value === null ? 'null' : d.value}" style="
