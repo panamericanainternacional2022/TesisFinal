@@ -97,8 +97,13 @@
                             </ul>
                             {% else %}
                             <div class="no-notif" id="live-no-notif">
+                                {% if alertas_activadas %}
                                 <i class="fa-regular fa-bell-slash"></i>
                                 <p>No hay alertas pendientes.</p>
+                                {% else %}
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <p>Las alertas están desactivadas.</p>
+                                {% endif %}
                             </div>
                             {% endif %}
                         </div>
