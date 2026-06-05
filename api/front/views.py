@@ -2094,12 +2094,11 @@ def historial_pdf_view(request):
             pdf.set_text_color(95, 95, 95)
             pdf.cell(0, 8, "No se encontraron eventos con los filtros aplicados.", ln=1)
 
-        output_data = pdf.output(dest="S")
-        if isinstance(output_data, str):
-            output_data = output_data.encode("latin-1")
+        pdf_raw = pdf.output()
+        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("latin-1") if isinstance(pdf_raw, str) else bytes(pdf_raw)
 
-        filename = f"historial_INES_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
-        response = HttpResponse(output_data, content_type="application/pdf")
+        filename = f"historial_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
 
@@ -2165,14 +2164,11 @@ def descargar_pdf_view(request):
             pdf.cell(45, 8, b["email"][:24], 1)
             pdf.cell(30, 8, b["edificio_nombre"][:18], 1, 1)
 
-        output_data = pdf.output(dest="S")
-        if isinstance(output_data, str):
-            output_data = output_data.encode("latin1")
+        pdf_raw = pdf.output()
+        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("latin-1") if isinstance(pdf_raw, str) else bytes(pdf_raw)
 
-        response = HttpResponse(output_data, content_type="application/pdf")
-        response["Content-Disposition"] = (
-            'attachment; filename="reporte_beneficiarios.pdf"'
-        )
+        response = HttpResponse(pdf_bytes, content_type="application/pdf")
+        response["Content-Disposition"] = 'attachment; filename="reporte_beneficiarios.pdf"'
         return response
 
     except Exception:
