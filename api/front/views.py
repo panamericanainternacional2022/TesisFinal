@@ -1730,12 +1730,9 @@ def historial_view(request):
         edificio_id = ""
     severidad = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
-    fecha_desde = request.GET.get("fecha_desde", "").strip()
-    hora_desde = request.GET.get("hora_desde", "").strip()
-    fecha_hasta = request.GET.get("fecha_hasta", "").strip()
-    hora_hasta = request.GET.get("hora_hasta", "").strip()
     periodo_seleccionado = request.GET.get("periodo", "24h").strip()
-
+    fecha_desde_raw = request.GET.get("fecha_desde", "").strip()
+    fecha_hasta_raw = request.GET.get("fecha_hasta", "").strip()
 
     # ── Construir queryset base ─────────────────────────────────
     if _is_admin_role(rol):
@@ -1772,25 +1769,37 @@ def historial_view(request):
         notificaciones = notificaciones.filter(mensaje__icontains=f'"risk": "{severidad}"') | \
                          notificaciones.filter(mensaje__icontains=f'"risk":"{severidad}"')
 
-    # ── Filtro por rango de fecha/hora ────────────────────────────
+    # ── Filtro por período / rango de fechas (timezone-aware) ─────
     from django.utils import timezone as tz
     import datetime as dt
 
-    if fecha_desde:
-        try:
-            hora_str = hora_desde if hora_desde else "00:00"
-            dt_desde = dt.datetime.strptime(f"{fecha_desde} {hora_str}", "%Y-%m-%d %H:%M")
-            notificaciones = notificaciones.filter(fecha__gte=dt_desde)
-        except ValueError:
-            pass
+    now = tz.now()  # timezone-aware en hora de Venezuela (America/Caracas)
+    DELTA_MAP = {
+        "1h":  dt.timedelta(hours=1),
+        "12h": dt.timedelta(hours=12),
+        "24h": dt.timedelta(hours=24),
+        "3d":  dt.timedelta(days=3),
+        "7d":  dt.timedelta(days=7),
+    }
 
-    if fecha_hasta:
-        try:
-            hora_str = hora_hasta if hora_hasta else "23:59"
-            dt_hasta = dt.datetime.strptime(f"{fecha_hasta} {hora_str}", "%Y-%m-%d %H:%M")
-            notificaciones = notificaciones.filter(fecha__lte=dt_hasta)
-        except ValueError:
-            pass
+    if periodo_seleccionado in DELTA_MAP:
+        dt_desde = now - DELTA_MAP[periodo_seleccionado]
+        notificaciones = notificaciones.filter(fecha__gte=dt_desde)
+    elif periodo_seleccionado == "custom":
+        if fecha_desde_raw:
+            try:
+                naive = dt.datetime.strptime(fecha_desde_raw, "%Y-%m-%d")
+                notificaciones = notificaciones.filter(fecha__gte=tz.make_aware(naive))
+            except ValueError:
+                pass
+        if fecha_hasta_raw:
+            try:
+                naive = dt.datetime.strptime(fecha_hasta_raw, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59
+                )
+                notificaciones = notificaciones.filter(fecha__lte=tz.make_aware(naive))
+            except ValueError:
+                pass
 
     notificaciones = (
         notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
@@ -1805,7 +1814,6 @@ def historial_view(request):
         parsed_list.append(notif)
 
     # ── Filtro por variable (post-parseo) ─────────────────────────
-    # Obtener lista de variables únicas para el selector
     all_variables = sorted(set(
         n.parsed_data.get("variable", "")
         for n in parsed_list
@@ -1831,14 +1839,12 @@ def historial_view(request):
         query_params.append(f"severidad={severidad}")
     if variable_filter:
         query_params.append(f"variable={variable_filter}")
-    if fecha_desde:
-        query_params.append(f"fecha_desde={fecha_desde}")
-    if hora_desde:
-        query_params.append(f"hora_desde={hora_desde}")
-    if fecha_hasta:
-        query_params.append(f"fecha_hasta={fecha_hasta}")
-    if hora_hasta:
-        query_params.append(f"hora_hasta={hora_hasta}")
+    query_params.append(f"periodo={periodo_seleccionado}")
+    if periodo_seleccionado == "custom":
+        if fecha_desde_raw:
+            query_params.append(f"fecha_desde={fecha_desde_raw}")
+        if fecha_hasta_raw:
+            query_params.append(f"fecha_hasta={fecha_hasta_raw}")
     filter_query_string = "&".join(query_params)
 
     return render(
@@ -1851,10 +1857,8 @@ def historial_view(request):
             "severidad": severidad,
             "variable_filter": variable_filter,
             "all_variables": all_variables,
-            "fecha_desde": fecha_desde,
-            "hora_desde": hora_desde,
-            "fecha_hasta": fecha_hasta,
-            "hora_hasta": hora_hasta,
+            "fecha_desde": fecha_desde_raw,
+            "fecha_hasta": fecha_hasta_raw,
             "filter_query_string": filter_query_string,
             "ALL_SEVERITIES": ALL_SEVERITIES,
             "rol": rol,
@@ -1877,16 +1881,14 @@ def historial_pdf_view(request):
         edificio_id = ""
     severidad = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
-    fecha_desde = request.GET.get("fecha_desde", "").strip()
-    hora_desde = request.GET.get("hora_desde", "").strip()
-    fecha_hasta = request.GET.get("fecha_hasta", "").strip()
-    hora_hasta = request.GET.get("hora_hasta", "").strip()
+    periodo_seleccionado = request.GET.get("periodo", "24h").strip()
+    fecha_desde_raw = request.GET.get("fecha_desde", "").strip()
+    fecha_hasta_raw = request.GET.get("fecha_hasta", "").strip()
 
     var_names = VAR_NAMES
     units = UNITS
     risk_names_es = RISK_NAMES_ES
     device_names_es = DEVICE_NAMES_ES
-
 
     # ── Construir queryset base ─────────────────────────────────
     if _is_admin_role(rol):
@@ -1927,21 +1929,47 @@ def historial_pdf_view(request):
         notificaciones = notificaciones.filter(mensaje__icontains=f'"risk": "{severidad}"') | \
                          notificaciones.filter(mensaje__icontains=f'"risk":"{severidad}"')
 
-    if fecha_desde:
-        try:
-            hora_str = hora_desde if hora_desde else "00:00"
-            dt_desde = dt.datetime.strptime(f"{fecha_desde} {hora_str}", "%Y-%m-%d %H:%M")
-            notificaciones = notificaciones.filter(fecha__gte=dt_desde)
-        except ValueError:
-            pass
+    # ── Filtro por período (timezone-aware, hora Venezuela) ────────
+    from django.utils import timezone as tz
+    import datetime as dt
 
-    if fecha_hasta:
-        try:
-            hora_str = hora_hasta if hora_hasta else "23:59"
-            dt_hasta = dt.datetime.strptime(f"{fecha_hasta} {hora_str}", "%Y-%m-%d %H:%M")
-            notificaciones = notificaciones.filter(fecha__lte=dt_hasta)
-        except ValueError:
-            pass
+    now = tz.now()
+    DELTA_MAP = {
+        "1h":  dt.timedelta(hours=1),
+        "12h": dt.timedelta(hours=12),
+        "24h": dt.timedelta(hours=24),
+        "3d":  dt.timedelta(days=3),
+        "7d":  dt.timedelta(days=7),
+    }
+
+    if periodo_seleccionado in DELTA_MAP:
+        notificaciones = notificaciones.filter(fecha__gte=now - DELTA_MAP[periodo_seleccionado])
+    elif periodo_seleccionado == "custom":
+        if fecha_desde_raw:
+            try:
+                naive = dt.datetime.strptime(fecha_desde_raw, "%Y-%m-%d")
+                notificaciones = notificaciones.filter(fecha__gte=tz.make_aware(naive))
+            except ValueError:
+                pass
+        if fecha_hasta_raw:
+            try:
+                naive = dt.datetime.strptime(fecha_hasta_raw, "%Y-%m-%d").replace(
+                    hour=23, minute=59, second=59
+                )
+                notificaciones = notificaciones.filter(fecha__lte=tz.make_aware(naive))
+            except ValueError:
+                pass
+
+    # Período para el PDF (texto descriptivo)
+    periodo_label_map = {
+        "1h":  "Última hora",
+        "12h": "Últimas 12 horas",
+        "24h": "Últimas 24 horas",
+        "3d":  "Últimos 3 días",
+        "7d":  "Últimos 7 días",
+        "custom": f"Personalizado: {fecha_desde_raw or '?'} al {fecha_hasta_raw or '?'}",
+    }
+    rango = periodo_label_map.get(periodo_seleccionado, periodo_seleccionado)
 
     notificaciones = (
         notificaciones.select_related("id_equipo_monitoreo__id_edificio")
@@ -2009,13 +2037,6 @@ def historial_pdf_view(request):
         pdf.cell(0, 6, f"Edificio: {edificio_nombre}", ln=1)
         pdf.cell(0, 6, f"Severidad: {severidad if severidad else 'Todas'}", ln=1)
         pdf.cell(0, 6, f"Variable: {variable_filter if variable_filter else 'Todas'}", ln=1)
-        rango = ""
-        if fecha_desde:
-            rango += f"Desde: {fecha_desde} {hora_desde or '00:00'}  "
-        if fecha_hasta:
-            rango += f"Hasta: {fecha_hasta} {hora_hasta or '23:59'}"
-        if not rango:
-            rango = "Sin filtro de fechas (eventos del dia de hoy por defecto)"
         pdf.cell(0, 6, f"Rango: {rango}", ln=1)
         pdf.cell(0, 6, f"Total de eventos: {len(parsed_list)}", ln=1)
         pdf.ln(8)

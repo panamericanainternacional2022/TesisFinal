@@ -111,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "America/Caracas"  # Venezuela (UTC-4, sin horario de verano)
 
 USE_I18N = True
 

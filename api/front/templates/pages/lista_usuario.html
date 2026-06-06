@@ -38,9 +38,6 @@
                     </form>
 
                     <div class="table-wrapper">
-                        <div class="table-title-bar">
-                            Usuarios registrados
-                        </div>
                         <div class="table-responsive">
                             <table class="report-table centered-table">
                                 <thead>
@@ -85,7 +82,7 @@
 
                     <div class="table-actions-row action-buttons-row">
                         {% url 'registro_beneficiario' as registro_url %}
-                        {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar Usuario' %}
+                        {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
                         <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                     </div>

@@ -36,9 +36,6 @@
                     </form>
 
                     <div class="table-wrapper">
-                        <div class="table-title-bar">
-                            Edificios registrados
-                        </div>
                         <div class="table-responsive">
                             <table class="report-table centered-table">
                                 <thead>
@@ -71,7 +68,7 @@
 
                     <div class="table-actions-row action-buttons-row">
                         {% url 'registro_edificio' as registro_url %}
-                        {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar Edificio' %}
+                        {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
                         <a href="{% url 'seleccionar_edificio' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a href="{% url 'seleccionar_edificio' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                     </div>
