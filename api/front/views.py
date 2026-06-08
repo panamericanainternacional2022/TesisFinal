@@ -2069,17 +2069,81 @@ def historial_pdf_view(request):
         pdf.cell(0, 7, f"EVENTOS REGISTRADOS ({len(parsed_list)})", ln=1)
         pdf.ln(2)
 
+        # Configurar columnas dinámicamente según si se muestran todos los edificios o uno específico
+        mostrar_todos_edificios = (edificio_nombre == "Todos los edificios")
+        if mostrar_todos_edificios:
+            col_widths = [26, 26, 20, 30, 20, 68]
+            col_headers = ["Fecha / Hora", "Edificio", "Severidad", "Variable", "Valor", "Accion recomendada"]
+            col_aligns = ["L", "L", "C", "L", "C", "L"]
+        else:
+            col_widths = [38, 26, 40, 24, 62]
+            col_headers = ["Fecha / Hora", "Severidad", "Variable", "Valor", "Accion recomendada"]
+            col_aligns = ["L", "C", "L", "C", "L"]
+
+        def draw_row(pdf_obj, widths, aligns, row_data, cell_fills=None, cell_texts=None):
+            lines_per_col = []
+            for w, text in zip(widths, row_data):
+                t_str = str(text) if text is not None else ""
+                t_str = t_str.encode("latin-1", errors="replace").decode("latin-1")
+                lines = pdf_obj.multi_cell(w, 4, t_str, split_only=True)
+                lines_per_col.append(lines)
+            
+            max_lines = max(len(lines) for lines in lines_per_col) if lines_per_col else 1
+            line_height = 4.5
+            row_height = max_lines * line_height
+            
+            if pdf_obj.get_y() + row_height > 270:
+                pdf_obj.add_page()
+                
+            start_x = pdf_obj.get_x()
+            start_y = pdf_obj.get_y()
+            
+            # Dibujar fondos
+            for i in range(max_lines):
+                pdf_obj.set_xy(start_x, start_y + (i * line_height))
+                for j, lines in enumerate(lines_per_col):
+                    w = widths[j]
+                    fill_c = cell_fills[j] if (cell_fills and cell_fills[j]) else None
+                    if fill_c:
+                        pdf_obj.set_fill_color(*fill_c)
+                        pdf_obj.cell(w, line_height, "", border=0, fill=True)
+                    else:
+                        pdf_obj.cell(w, line_height, "", border=0, fill=False)
+
+            # Dibujar textos
+            for i in range(max_lines):
+                pdf_obj.set_xy(start_x, start_y + (i * line_height))
+                for j, lines in enumerate(lines_per_col):
+                    w = widths[j]
+                    align = aligns[j]
+                    txt = lines[i] if i < len(lines) else ""
+                    if align == "L" and txt:
+                        txt = f" {txt}"
+                    
+                    text_c = cell_texts[j] if (cell_texts and cell_texts[j]) else (26, 26, 26)
+                    pdf_obj.set_text_color(*text_c)
+                    pdf_obj.cell(w, line_height, txt, border=0, align=align, fill=False)
+                    
+            # Dibujar bordes
+            curr_x = start_x
+            pdf_obj.set_draw_color(10, 10, 10)
+            for w in widths:
+                pdf_obj.rect(curr_x, start_y, w, row_height)
+                curr_x += w
+                
+            pdf_obj.set_xy(start_x, start_y + row_height)
+
         if parsed_list:
             # Cabecera
             pdf.set_font("Helvetica", "B", 8)
-            pdf.set_fill_color(10, 10, 10)
-            pdf.set_text_color(255, 255, 255)
-            pdf.set_draw_color(10, 10, 10)
-            pdf.cell(38, 7, "  Fecha / Hora", 1, 0, "L", True)
-            pdf.cell(26, 7, "Severidad", 1, 0, "C", True)
-            pdf.cell(40, 7, "  Variable", 1, 0, "L", True)
-            pdf.cell(24, 7, "Valor", 1, 0, "C", True)
-            pdf.cell(62, 7, "  Accion recomendada", 1, 1, "L", True)
+            draw_row(
+                pdf,
+                col_widths,
+                col_aligns,
+                col_headers,
+                cell_fills=[(10, 10, 10)] * len(col_widths),
+                cell_texts=[(255, 255, 255)] * len(col_widths)
+            )
 
             pdf.set_font("Helvetica", "", 7)
             pdf.set_draw_color(10, 10, 10)
@@ -2093,30 +2157,28 @@ def historial_pdf_view(request):
             }
 
             for notif in parsed_list[:200]:  # Máx 200 filas
-                if pdf.get_y() > 268:
-                    pdf.add_page()
-
                 risk = notif.parsed_data.get("risk", "")
                 fill_c, text_c = risk_styles.get(risk, ((255, 255, 255), (26, 26, 26)))
 
                 fecha_str = notif.fecha.strftime("%d/%m/%Y %H:%M") if notif.fecha else ""
-                variable_str = (notif.parsed_data.get("variable", notif.mensaje or "")[:22]).encode("latin-1", errors="replace").decode("latin-1")
+                variable_str = notif.parsed_data.get("variable", notif.mensaje or "")
                 valor_str = notif.parsed_data.get("value", "")
                 if valor_str and valor_str.lower() not in ("true", "false", "none", ""):
                     unidad = notif.parsed_data.get("unit", "")
                     valor_str = f"{valor_str} {unidad}".strip()
-                valor_str = (valor_str[:12]).encode("latin-1", errors="replace").decode("latin-1")
-                accion_str = (notif.parsed_data.get("action", notif.mensaje or "")[:50]).encode("latin-1", errors="replace").decode("latin-1")
+                accion_str = notif.parsed_data.get("action", notif.mensaje or "")
 
-                pdf.set_text_color(26, 26, 26)
-                pdf.cell(38, 6, f"  {fecha_str}", 1)
-                pdf.set_fill_color(*fill_c)
-                pdf.set_text_color(*text_c)
-                pdf.cell(26, 6, risk[:10], 1, 0, "C", True)
-                pdf.set_text_color(26, 26, 26)
-                pdf.cell(40, 6, f"  {variable_str}", 1)
-                pdf.cell(24, 6, valor_str, 1, 0, "C")
-                pdf.cell(62, 6, f"  {accion_str}", 1, 1)
+                if mostrar_todos_edificios:
+                    edificio_fila = notif.id_equipo_monitoreo.id_edificio.nb_edificio if (notif.id_equipo_monitoreo and notif.id_equipo_monitoreo.id_edificio) else "N/A"
+                    row_data = [fecha_str, edificio_fila, risk, variable_str, valor_str, accion_str]
+                    cell_fills = [None, None, fill_c, None, None, None]
+                    cell_texts = [None, None, text_c, None, None, None]
+                else:
+                    row_data = [fecha_str, risk, variable_str, valor_str, accion_str]
+                    cell_fills = [None, fill_c, None, None, None]
+                    cell_texts = [None, text_c, None, None, None]
+
+                draw_row(pdf, col_widths, col_aligns, row_data, cell_fills, cell_texts)
         else:
             pdf.set_font("Helvetica", "I", 9)
             pdf.set_text_color(95, 95, 95)
