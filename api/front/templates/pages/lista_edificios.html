@@ -69,12 +69,30 @@
                     <div class="table-actions-row action-buttons-row">
                         {% url 'registro_edificio' as registro_url %}
                         {% include 'pages/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
+                        {% if edificios %}
                         <a href="{% url 'seleccionar_edificio' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a href="{% url 'seleccionar_edificio' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        {% else %}
+                        <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
         </main>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const hasItems = {% if edificios %}true{% else %}false{% endif %};
+            if (!hasItems) {
+                const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
+                btns.forEach(btn => {
+                    btn.removeAttribute('href');
+                    btn.setAttribute('aria-disabled', 'true');
+                    btn.setAttribute('tabindex', '-1');
+                });
+            }
+        });
+    </script>
 </body>
 </html>

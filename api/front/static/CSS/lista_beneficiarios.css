@@ -213,6 +213,16 @@
     opacity: 1 !important;
 }
 
+.register-button-react.disabled,
+.edit-btn.disabled,
+.delete-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
 /* ── Modal de selección ────────────────────────────────────────────────────── */
 .modal-overlay {
     display: none;
