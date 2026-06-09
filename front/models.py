@@ -23,8 +23,6 @@ class Edificio(models.Model):
     nb_edificio = models.CharField(max_length=255)
     rif = models.CharField(max_length=20, unique=True)
     direccion = models.TextField()
-    has_bomba = models.BooleanField(default=False)
-    has_ascensor = models.BooleanField(default=False)
 
     class Meta:
         db_table = "edificio"
@@ -80,11 +78,19 @@ class Usuario(models.Model):
 
 
 class EquipoMonitoreo(models.Model):
+    TIPO_BOMBA = "bomba"
+    TIPO_ELEVADOR = "elevador"
+    TIPO_CHOICES = [
+        (TIPO_BOMBA, "Bomba de agua"),
+        (TIPO_ELEVADOR, "Elevador"),
+    ]
+
     id_equipo_monitoreo = models.AutoField(primary_key=True)
     nb_equipo = models.CharField(max_length=255)
     id_edificio = models.ForeignKey(
         Edificio, on_delete=models.CASCADE, db_column="id_edificio"
     )
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_BOMBA)
 
     class Meta:
         db_table = "equipo_monitoreo"

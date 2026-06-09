@@ -847,41 +847,39 @@ def eliminar_beneficiario_view(request, beneficiario_id):
 
 @_login_required
 @_admin_required
-def _crear_equipos_para_edificio(edificio, has_bomba, has_ascensor):
+def _crear_equipos_para_edificio(edificio, con_bomba, con_elevador):
     """Crea EquipoMonitoreo según el equipamiento indicado."""
-    if has_bomba:
+    if con_bomba:
         EquipoMonitoreo.objects.get_or_create(
-            nb_equipo=f"Bomba de Agua - {edificio.nb_edificio}",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
+            defaults={"nb_equipo": f"Bomba de agua - {edificio.nb_edificio}"},
         )
-    if has_ascensor:
+    if con_elevador:
         EquipoMonitoreo.objects.get_or_create(
-            nb_equipo=f"Ascensor - {edificio.nb_edificio}",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
+            defaults={"nb_equipo": f"Elevador - {edificio.nb_edificio}"},
         )
 
 
-def _sincronizar_equipos_para_edificio(edificio, has_bomba, has_ascensor):
+def _sincronizar_equipos_para_edificio(edificio, con_bomba, con_elevador):
     """Crea o elimina EquipoMonitoreo para reflejar el equipamiento actual."""
-    if has_bomba:
+    if con_bomba:
         EquipoMonitoreo.objects.get_or_create(
-            nb_equipo=f"Bomba de Agua - {edificio.nb_edificio}",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
+            defaults={"nb_equipo": f"Bomba de agua - {edificio.nb_edificio}"},
         )
     else:
         EquipoMonitoreo.objects.filter(
-            nb_equipo__startswith="Bomba de Agua -",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
         ).delete()
-    if has_ascensor:
+    if con_elevador:
         EquipoMonitoreo.objects.get_or_create(
-            nb_equipo=f"Ascensor - {edificio.nb_edificio}",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
+            defaults={"nb_equipo": f"Elevador - {edificio.nb_edificio}"},
         )
     else:
         EquipoMonitoreo.objects.filter(
-            nb_equipo__startswith="Ascensor -",
-            id_edificio=edificio,
+            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
         ).delete()
 
 
@@ -889,19 +887,21 @@ def registro_edificio_view(request):
     bld_msgs = request.session.pop("_bld_msg", [])
     form_errors = {}
     edificio_data = {}
+    con_bomba = False
+    con_elevador = False
     if request.method == "POST":
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        has_bomba = request.POST.get("has_bomba") == "true"
-        has_ascensor = request.POST.get("has_ascensor") == "true"
+        con_bomba = request.POST.get("con_bomba") == "true"
+        con_elevador = request.POST.get("con_elevador") == "true"
 
         edificio_data = {
             "nb_edificio": nombre,
             "direccion": parroquia,
             "rif": rif,
-            "has_bomba": has_bomba,
-            "has_ascensor": has_ascensor,
+            "con_bomba": con_bomba,
+            "con_elevador": con_elevador,
         }
 
         if not (nombre and rif and parroquia):
@@ -937,10 +937,8 @@ def registro_edificio_view(request):
                     nb_edificio=nombre,
                     rif=rif,
                     direccion=parroquia,
-                    has_bomba=has_bomba,
-                    has_ascensor=has_ascensor,
                 )
-                _crear_equipos_para_edificio(edificio, has_bomba, has_ascensor)
+                _crear_equipos_para_edificio(edificio, con_bomba, con_elevador)
                 request.session["_bld_msg"] = [
                     {"text": "Edificio registrado correctamente.", "type": "success"}
                 ]
@@ -953,6 +951,8 @@ def registro_edificio_view(request):
             "page_messages": bld_msgs,
             "form_errors": form_errors,
             "edificio": edificio_data,
+            "con_bomba": con_bomba,
+            "con_elevador": con_elevador,
         },
     )
 
@@ -967,14 +967,12 @@ def editar_edificio_view(request, edificio_id):
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
-        has_bomba = request.POST.get("has_bomba") == "true"
-        has_ascensor = request.POST.get("has_ascensor") == "true"
+        con_bomba = request.POST.get("con_bomba") == "true"
+        con_elevador = request.POST.get("con_elevador") == "true"
 
         edificio.nb_edificio = nombre
         edificio.direccion = parroquia
         edificio.rif = rif
-        edificio.has_bomba = has_bomba
-        edificio.has_ascensor = has_ascensor
 
         if not (nombre and rif and parroquia):
             bld_msgs.append(
@@ -1007,11 +1005,12 @@ def editar_edificio_view(request, edificio_id):
                 )
             else:
                 edificio.save()
-                _sincronizar_equipos_para_edificio(edificio, has_bomba, has_ascensor)
+                _sincronizar_equipos_para_edificio(edificio, con_bomba, con_elevador)
                 request.session["_bld_msg"] = [
                     {"text": "Edificio actualizado correctamente.", "type": "success"}
                 ]
                 return redirect("lista_edificios")
+    equipos_tipos = set(edificio.equipomonitoreo_set.values_list("tipo", flat=True))
     return render(
         request,
         "pages/registro_edificio.html",
@@ -1020,6 +1019,8 @@ def editar_edificio_view(request, edificio_id):
             "edificio": edificio,
             "page_messages": bld_msgs,
             "form_errors": form_errors,
+            "con_bomba": EquipoMonitoreo.TIPO_BOMBA in equipos_tipos,
+            "con_elevador": EquipoMonitoreo.TIPO_ELEVADOR in equipos_tipos,
         },
     )
 
@@ -1028,7 +1029,7 @@ def editar_edificio_view(request, edificio_id):
 @_admin_required
 def lista_edificios_view(request):
     query = request.GET.get("q", "").strip()
-    edificios = Edificio.objects.all()
+    edificios = Edificio.objects.all().prefetch_related("equipomonitoreo_set")
     if query:
         edificios = edificios.filter(
             Q(nb_edificio__icontains=query)

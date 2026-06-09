@@ -945,7 +945,11 @@ def api_edificios():
         return jsonify([{"id": 1, "nombre": "Edificio Simulado (Sin DB)"}])
     try:
         edificios = Edificio.objects.all().order_by("nb_edificio")
-        return jsonify([{"id": e.id_edificio, "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}", "has_bomba": e.has_bomba, "has_ascensor": e.has_ascensor} for e in edificios])
+        return jsonify([{
+            "id": e.id_edificio,
+            "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}",
+            "equipos": [{"tipo": eq.tipo, "nombre": eq.nb_equipo} for eq in e.equipomonitoreo_set.all()],
+        } for e in edificios])
     except Exception as e:
         logger.error(f"Error cargando edificios: {e}")
         return jsonify([{"id": 1, "nombre": "Edificio Simulado (Error)"}])

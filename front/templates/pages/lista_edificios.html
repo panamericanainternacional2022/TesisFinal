@@ -52,9 +52,14 @@
                                             <tr>
                                                 <td title="{{ edificio.nb_edificio }}">{{ edificio.nb_edificio }}</td>
                                                 <td>
-                                                    {% if edificio.has_bomba %}<span class="equip-badge" title="Bomba de Agua">🔧</span>{% endif %}
-                                                    {% if edificio.has_ascensor %}<span class="equip-badge" title="Ascensor">🛗</span>{% endif %}
-                                                    {% if not edificio.has_bomba and not edificio.has_ascensor %}<span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>{% endif %}
+                                                    {% with equipos=edificio.equipomonitoreo_set.all %}
+                                                        {% for eq in equipos %}
+                                                            {% if eq.tipo == "bomba" %}<span class="equip-badge" title="Bomba de agua">🔧</span>{% endif %}
+                                                            {% if eq.tipo == "elevador" %}<span class="equip-badge" title="Elevador">🛗</span>{% endif %}
+                                                        {% empty %}
+                                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
+                                                        {% endfor %}
+                                                    {% endwith %}
                                                 </td>
                                                 <td title="{{ edificio.rif }}">{{ edificio.rif }}</td>
                                                 <td title="{{ edificio.direccion }}">{{ edificio.direccion }}</td>

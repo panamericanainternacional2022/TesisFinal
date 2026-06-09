@@ -128,7 +128,10 @@ def populate():
     )
     e2, _ = Edificio.objects.get_or_create(
         rif="J-98765432-1",
-        defaults={"nb_edificio": "Residencia La Campiña", "direccion": "Norte de la ciudad"},
+        defaults={
+            "nb_edificio": "Residencia La Campiña",
+            "direccion": "Norte de la ciudad",
+        },
     )
 
     print("Asignando Usuarios a Edificios...")
@@ -138,11 +141,17 @@ def populate():
     UsuarioEdificio.objects.get_or_create(id_usuario=u5, id_edificio=e2)
 
     print("Creando Equipos de Monitoreo...")
-    em1, _ = EquipoMonitoreo.objects.get_or_create(
-        nb_equipo="Tablero Principal", id_edificio=e1
+    eq1_bomba, _ = EquipoMonitoreo.objects.get_or_create(
+        id_edificio=e1, tipo=EquipoMonitoreo.TIPO_BOMBA,
+        defaults={"nb_equipo": f"Bomba de agua - {e1.nb_edificio}"},
     )
-    em2, _ = EquipoMonitoreo.objects.get_or_create(
-        nb_equipo="Bomba de Agua", id_edificio=e2
+    eq1_elevador, _ = EquipoMonitoreo.objects.get_or_create(
+        id_edificio=e1, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
+        defaults={"nb_equipo": f"Elevador - {e1.nb_edificio}"},
+    )
+    eq2_bomba, _ = EquipoMonitoreo.objects.get_or_create(
+        id_edificio=e2, tipo=EquipoMonitoreo.TIPO_BOMBA,
+        defaults={"nb_equipo": f"Bomba de agua - {e2.nb_edificio}"},
     )
 
     print("Creando Dispositivos Sensores...")
@@ -158,7 +167,7 @@ def populate():
 
     print("Asociando Sensores a Equipos (EquipoSensor)...")
     es1, _ = EquipoSensor.objects.get_or_create(
-        id_equipo_monitoreo=em1,
+        id_equipo_monitoreo=eq1_bomba,
         id_dispos_sensor=ds1,
         defaults={
             "tipo_valor_capt": 35.5,
@@ -167,7 +176,7 @@ def populate():
         },
     )
     es2, _ = EquipoSensor.objects.get_or_create(
-        id_equipo_monitoreo=em1,
+        id_equipo_monitoreo=eq1_bomba,
         id_dispos_sensor=ds2,
         defaults={
             "tipo_valor_capt": 220.0,
@@ -183,40 +192,13 @@ def populate():
 
     print("Asignando Status a Equipos...")
     sem1, _ = StatusEquipoMonitoreo.objects.get_or_create(
-        id_status=s1, id_equipo_monitoreo=em1
+        id_status=s1, id_equipo_monitoreo=eq1_bomba
     )
     sem2, _ = StatusEquipoMonitoreo.objects.get_or_create(
-        id_status=s1, id_equipo_monitoreo=em2
+        id_status=s1, id_equipo_monitoreo=eq2_bomba
     )
-
-    print("Creando Acciones Preventivas...")
-    AccionPrev.objects.get_or_create(
-        id_equipo_monitoreo=em1,
-        id_dispos_sensor=ds1,
-        defaults={
-            "parametro": "Temperatura",
-            "valor_min": 10.0,
-            "valor_max": 40.0,
-            "accion_preventiva": "Revisar ventilacion",
-            "id_status": s2,
-        },
-    )
-
-    print("Creando Notificaciones...")
-    Notificacion.objects.get_or_create(
-        id_usuario=u1,
-        id_equipo_monitoreo=em1,
-        defaults={
-            "fecha": timezone.now(),
-            "mensaje": "El equipo ha sido registrado exitosamente.",
-        },
-    )
-
-    print("Creando Historico de Fallas...")
-    HistoricoFalla.objects.get_or_create(
-        id_equipo_sensor=es1,
-        id_status_equipo_monitoreo=sem1,
-        defaults={"fecha": timezone.now()},
+    sem3, _ = StatusEquipoMonitoreo.objects.get_or_create(
+        id_status=s1, id_equipo_monitoreo=eq1_elevador
     )
 
     print("¡Población de base de datos completada exitosamente!")

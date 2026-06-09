@@ -66,25 +66,25 @@
                             <div class="form-group full-width">
                                 <label>Equipamiento del edificio</label>
                                 <div class="equipment-grid">
-                                    <div class="equip-card {% if editing and edificio.has_bomba %}equip-active{% endif %}" data-equip="bomba" onclick="toggleEquip(this)">
+                                    <div class="equip-card {% if con_bomba %}equip-active{% endif %}" data-equip="bomba" onclick="toggleEquip(this)">
                                         <div class="equip-icon">🔧</div>
-                                        <div class="equip-label">Bomba de Agua</div>
+                                        <div class="equip-label">Bomba de agua</div>
                                         <div class="equip-toggle">
-                                            <div class="equip-switch {% if editing and edificio.has_bomba %}switch-on{% endif %}">
+                                            <div class="equip-switch {% if con_bomba %}switch-on{% endif %}">
                                                 <div class="equip-knob"></div>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="has_bomba" value="{% if editing and edificio.has_bomba %}true{% else %}false{% endif %}" />
+                                        <input type="hidden" name="con_bomba" value="{% if con_bomba %}true{% else %}false{% endif %}" />
                                     </div>
-                                    <div class="equip-card {% if editing and edificio.has_ascensor %}equip-active{% endif %}" data-equip="ascensor" onclick="toggleEquip(this)">
+                                    <div class="equip-card {% if con_elevador %}equip-active{% endif %}" data-equip="elevador" onclick="toggleEquip(this)">
                                         <div class="equip-icon">🛗</div>
-                                        <div class="equip-label">Ascensor</div>
+                                        <div class="equip-label">Elevador</div>
                                         <div class="equip-toggle">
-                                            <div class="equip-switch {% if editing and edificio.has_ascensor %}switch-on{% endif %}">
+                                            <div class="equip-switch {% if con_elevador %}switch-on{% endif %}">
                                                 <div class="equip-knob"></div>
                                             </div>
                                         </div>
-                                        <input type="hidden" name="has_ascensor" value="{% if editing and edificio.has_ascensor %}true{% else %}false{% endif %}" />
+                                        <input type="hidden" name="con_elevador" value="{% if con_elevador %}true{% else %}false{% endif %}" />
                                     </div>
                                 </div>
                             </div>
