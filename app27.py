@@ -893,6 +893,21 @@ def _run_sim_tick(sim: BuildingSimulator):
     pending_notifications    = sim.pending_notifications
     last_email_sent_time     = sim.last_email_sent_time
 
+    # Sincronizar también los globales del módulo simulation.py
+    # (update_sensor_data, reset_critical_values y check_motor_stuck
+    #  están en simulation.py y usan sus propios globales)
+    import simulation as _sim_mod
+    _sim_mod.sensor_data           = sim.sensor_data
+    _sim_mod.pump_on               = sim.pump_on
+    _sim_mod.elevator_on           = sim.elevator_on
+    _sim_mod.protection_ends       = sim.protection_ends
+    _sim_mod.active_alerts         = sim.active_alerts
+    _sim_mod.door_close_attempts   = sim.door_close_attempts
+    _sim_mod.history               = sim.history
+    _sim_mod.alert_log             = sim.alert_log
+    _sim_mod.pending_notifications = sim.pending_notifications
+    _sim_mod.last_email_sent_time  = sim.last_email_sent_time
+
     # Ejecutar lógica de simulación (usan los globales)
     update_protection_state()
     update_sensor_data()
@@ -936,7 +951,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     # Copiar de vuelta los escalares que pudieron cambiar
     sim.pump_on               = pump_on
     sim.elevator_on           = elevator_on
-    sim.door_close_attempts   = door_close_attempts
+    sim.door_close_attempts   = _sim_mod.door_close_attempts  # update_sensor_data modificó simulation.door_close_attempts
     sim.last_email_sent_time  = last_email_sent_time
 
     # Restaurar active_edificio_id al valor original
@@ -959,6 +974,18 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     alert_log             = sim.alert_log
     pending_notifications = sim.pending_notifications
     last_email_sent_time  = sim.last_email_sent_time
+    # Sincronizar también simulation.py
+    import simulation as _sim_mod
+    _sim_mod.sensor_data           = sim.sensor_data
+    _sim_mod.pump_on               = sim.pump_on
+    _sim_mod.elevator_on           = sim.elevator_on
+    _sim_mod.protection_ends       = sim.protection_ends
+    _sim_mod.active_alerts         = sim.active_alerts
+    _sim_mod.door_close_attempts   = sim.door_close_attempts
+    _sim_mod.history               = sim.history
+    _sim_mod.alert_log             = sim.alert_log
+    _sim_mod.pending_notifications = sim.pending_notifications
+    _sim_mod.last_email_sent_time  = sim.last_email_sent_time
 
 
 def generate_data_and_emit():
