@@ -239,15 +239,12 @@
                         <div class="building-list-card">
                             <h2>Edificios registrados</h2>
                             {% if edificios %}
-                            <ul class="building-list" id="buildingList">
+                            <select id="buildingSelect" onchange="selectBuildingFromSelect(this)" style="width: 100%; padding: 10px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); margin-top: var(--sp-1);">
+                                <option value="">-- Seleccionar edificio --</option>
                                 {% for edificio in edificios %}
-                                <li>
-                                    <button type="button" class="building-item" data-id="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}" onclick="selectBuilding(this)">
-                                        <div class="building-item-title">{{ edificio.nb_edificio }}</div>
-                                    </button>
-                                </li>
+                                <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}">{{ edificio.nb_edificio }}</option>
                                 {% endfor %}
-                            </ul>
+                            </select>
                             {% else %}
                             <p>No hay edificios registrados.</p>
                             {% endif %}
@@ -279,23 +276,18 @@
         let isSimulatorOnline = false;
         let isTransitioning = false;
 
-        function selectBuilding(button){
-            if (!button) return;
-            const targetUrl = button.dataset.url;
-            const name = button.dataset.name;
-            const buildingId = button.dataset.id;
-            if (targetUrl) {
-                currentMonitorUrl = targetUrl;
-                if (isSimulatorOnline) {
-                    if (buildingFrame.src && buildingFrame.src.includes(':5000')) {
-                        buildingFrame.contentWindow.postMessage({
-                            type: 'CHANGE_BUILDING',
-                            buildingId: buildingId,
-                            buildingName: name
-                        }, '*');
-                    } else {
-                        buildingFrame.src = targetUrl;
-                    }
+        function selectBuilding(buildingId, name, targetUrl){
+            if (!buildingId) return;
+            currentMonitorUrl = targetUrl || null;
+            if (targetUrl && isSimulatorOnline) {
+                if (buildingFrame.src && buildingFrame.src.includes(':5000')) {
+                    buildingFrame.contentWindow.postMessage({
+                        type: 'CHANGE_BUILDING',
+                        buildingId: buildingId,
+                        buildingName: name
+                    }, '*');
+                } else {
+                    buildingFrame.src = targetUrl;
                 }
             }
             if (selectedText) {
@@ -304,8 +296,13 @@
             if (openMonitorButton) {
                 openMonitorButton.disabled = !currentMonitorUrl;
             }
-            document.querySelectorAll('.building-item').forEach(item => item.classList.remove('active'));
-            button.classList.add('active');
+            localStorage.setItem('selectedBuildingId', buildingId);
+        }
+
+        function selectBuildingFromSelect(sel) {
+            const option = sel.options[sel.selectedIndex];
+            if (!option || !option.value) return;
+            selectBuilding(option.value, option.dataset.name, option.dataset.url);
         }
 
         function openMonitorNewTab() {
@@ -455,9 +452,26 @@
         }
 
         document.addEventListener('DOMContentLoaded', ()=>{
-            const firstButton = document.querySelector('.building-item');
-            if(firstButton){
-                selectBuilding(firstButton);
+            const sel = document.getElementById('buildingSelect');
+            if (sel) {
+                const savedId = localStorage.getItem('selectedBuildingId');
+                let restored = false;
+                if (savedId) {
+                    for (let i = 0; i < sel.options.length; i++) {
+                        if (sel.options[i].value === savedId) {
+                            sel.selectedIndex = i;
+                            restored = true;
+                            break;
+                        }
+                    }
+                }
+                if (!restored && sel.options.length > 1) {
+                    sel.selectedIndex = 1;
+                }
+                const opt = sel.options[sel.selectedIndex];
+                if (opt && opt.value) {
+                    selectBuilding(opt.value, opt.dataset.name, opt.dataset.url);
+                }
             }
             checkSimulatorStatus();
             setInterval(checkSimulatorStatus, 5000);

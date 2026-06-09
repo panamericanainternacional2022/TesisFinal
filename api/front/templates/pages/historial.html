@@ -53,6 +53,12 @@
                                     <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
                                     <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
                                 </select>
+                                
+                                {% if periodo_seleccionado == 'custom' %}
+                                <button type="button" id="editCustomDatesBtn" class="hist-btn-ghost" style="padding: 8px 12px; font-size: var(--text-sm); display: inline-flex; align-items: center; gap: 6px;">
+                                    <i class="fa-solid fa-calendar-days"></i> Editar fechas
+                                </button>
+                                {% endif %}
 
                                 <!-- Separador -->
                                 <div style="width:1px; height:28px; background: var(--color-ink); opacity:0.15; margin: 0 2px;"></div>
@@ -61,7 +67,7 @@
                                 <button id="openFilterPanel" type="button" class="hist-btn-secondary">
                                     <i class="fa-solid fa-sliders"></i> Filtrar
                                     {% if severidad or variable_filter or selected_edificio_id %}
-                                    <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--state-warn); margin-left:2px; margin-bottom:6px;"></span>
+                                    <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--state-warn);"></span>
                                     {% endif %}
                                 </button>
 
@@ -72,13 +78,6 @@
                                    title="Descargar PDF con los filtros actuales">
                                     <i class="fa-solid fa-file-pdf"></i> Exportar PDF
                                 </a>
-
-                                <!-- Limpiar (solo si hay filtros del panel activos) -->
-                                {% if severidad or variable_filter or selected_edificio_id %}
-                                <a href="{% url 'historial' %}?periodo={{ periodo_seleccionado }}" class="hist-btn-ghost" title="Limpiar filtros del panel">
-                                    <i class="fa-solid fa-xmark"></i>
-                                </a>
-                                {% endif %}
 
                             </div>
                         </form>
@@ -204,9 +203,9 @@
         </div>
         <div class="filter-panel-footer">
             <button type="button" id="applyPanelFilters" style="flex:1; padding:11px 16px; border:2px solid var(--color-ink); background:var(--color-ink); color:var(--color-surface); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); border-radius:0px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:3px 3px 0px rgba(10,10,10,0.3); transition:all var(--transition-fast);">
-                <i class="fa-solid fa-filter"></i> Aplicar filtros
+                <i class="fa-solid fa-filter"></i> Aplicar
             </button>
-            <a href="{% url 'historial' %}?periodo={{ periodo_seleccionado }}" style="flex:1; padding:11px 16px; border:2px solid var(--color-ink); background:var(--color-surface); color:var(--color-ink); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); border-radius:0px; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:3px 3px 0px var(--color-ink); text-decoration:none; transition:all var(--transition-fast);">
+            <a href="{% url 'historial' %}?periodo={{ periodo_seleccionado }}{% if periodo_seleccionado == 'custom' %}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}{% endif %}" style="flex:1; padding:11px 16px; border:2px solid var(--color-ink); background:var(--color-surface); color:var(--color-ink); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); border-radius:0px; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow:3px 3px 0px var(--color-ink); text-decoration:none; transition:all var(--transition-fast);">
                 <i class="fa-solid fa-rotate-left"></i> Limpiar
             </a>
         </div>
@@ -224,13 +223,13 @@
             <!-- Inputs de fecha -->
             <div style="display:flex; flex-direction:column; gap:var(--sp-2);">
                 <div>
-                    <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;"><i class="fa-solid fa-calendar"></i> Desde</div>
+                    <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Desde</div>
                     <input type="date" id="modal-fecha-desde"
                            value="{{ fecha_desde }}"
                            style="width:100%; box-sizing:border-box; padding:10px 12px; border:2px solid var(--color-ink); background:var(--color-surface); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); border-radius:0px; outline:none; box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;">
                 </div>
                 <div>
-                    <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;"><i class="fa-solid fa-calendar-check"></i> Hasta</div>
+                    <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Hasta</div>
                     <input type="date" id="modal-fecha-hasta"
                            value="{{ fecha_hasta }}"
                            style="width:100%; box-sizing:border-box; padding:10px 12px; border:2px solid var(--color-ink); background:var(--color-surface); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); border-radius:0px; outline:none; box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;">
@@ -345,9 +344,6 @@
     </style>
 
     <script>
-        /* ═══════════════════════════════════════════════════════
-           SELECTOR DE PERÍODO
-        ═══════════════════════════════════════════════════════ */
         const periodoSelect = document.getElementById('periodoSelect');
         const form          = document.getElementById('historialFilterForm');
 
@@ -363,11 +359,17 @@
             }
         });
         // Guardar valor inicial como "prev"
-        periodoSelect.dataset.prev = periodoSelect.value;
+        periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '24h' : periodoSelect.value;
+
+        // Botón "Editar" junto al select
+        const editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
+        if (editCustomDatesBtn) {
+            editCustomDatesBtn.addEventListener('click', openCustomDateModal);
+        }
 
         /* ═══════════════════════════════════════════════════════
            MODAL DE RANGO PERSONALIZADO
-        ═══════════════════════════════════════════════════════ */
+         ═══════════════════════════════════════════════════════ */
         const backdrop      = document.getElementById('customDateBackdrop');
         const inputDesde    = document.getElementById('modal-fecha-desde');
         const inputHasta    = document.getElementById('modal-fecha-hasta');
@@ -406,8 +408,10 @@
         inputDesde.addEventListener('change', checkCustomDates);
         inputHasta.addEventListener('change', checkCustomDates);
 
-        // Max "hasta" = hoy
-        inputHasta.setAttribute('max', new Date().toISOString().split('T')[0]);
+        // Max fechas = hoy para ambos inputs
+        const todayStr = new Date().toISOString().split('T')[0];
+        inputDesde.setAttribute('max', todayStr);
+        inputHasta.setAttribute('max', todayStr);
 
         cancelBtn.addEventListener('click', closeCustomDateModal);
 
@@ -431,6 +435,7 @@
             const stored = "{{ periodo_seleccionado }}";
             if (stored === 'custom') {
                 periodoSelect.value = 'custom';
+                periodoSelect.dataset.prev = '24h';
             }
         })();
 

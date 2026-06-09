@@ -303,7 +303,7 @@ function renderNotificationList(alerts) {
         container.innerHTML = `
             <div class="no-notif" id="live-no-notif">
                 <i class="fa-solid fa-bell-slash"></i>
-                <p>No hay notificaciones pendientes.</p>
+                <p>No hay alertas pendientes.</p>
             </div>
         `;
         return;
@@ -642,7 +642,7 @@ function initLiveNotifications() {
     const clearBtn = document.getElementById('clearDbNotificationsBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
-            const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las notificaciones?');
+            const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las alertas?');
 
             if (shouldClear) {
                 try {
@@ -660,14 +660,14 @@ function initLiveNotifications() {
                     await fetch(`${MONITOR_BACKEND_ORIGIN}/clear_alerts`, { method: 'POST' }).catch(() => { });
 
                     if (respDjango.ok) {
-                        await window.showAlert('Notificaciones limpiadas con éxito.', 'success');
+                        await window.showAlert('Alertas limpiadas con éxito.', 'success');
                         window.location.href = window.location.pathname;
                     } else {
                         throw new Error('Error al limpiar');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    await window.showAlert('No se pudieron limpiar las notificaciones.', 'error');
+                    await window.showAlert('No se pudieron limpiar las alertas.', 'error');
                 }
             }
         });

@@ -1095,6 +1095,12 @@ def notificaciones_view(request):
                 id_usuario_id=usuario_id
             ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
 
+    alerts_cleared_at = request.session.get("alerts_cleared_at")
+    if alerts_cleared_at:
+        import datetime as dt
+        cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
+        notificaciones = notificaciones.filter(fecha__gt=cleared_dt)
+
     notificaciones = (
         notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
         # Solo alertas de Alto y Crítico en esta vista
@@ -1320,25 +1326,12 @@ def toggle_alerts_session_view(request):
 @_login_required
 def limpiar_notificaciones_view(request):
     from django.http import JsonResponse
+    import time
 
     if request.method == "POST":
-        usuario_id = request.session["usuario_id"]
-        rol = request.session.get("usuario_rol", "US")
-        if _is_admin_role(rol):
-            Notificacion.objects.all().delete()
-        else:
-            usuario_edificios = UsuarioEdificio.objects.filter(
-                id_usuario_id=usuario_id
-            ).values_list("id_edificio", flat=True)
-            equipos = EquipoMonitoreo.objects.filter(
-                id_edificio_id__in=list(usuario_edificios)
-            ).values_list("id_equipo_monitoreo", flat=True)
-            Notificacion.objects.filter(id_usuario_id=usuario_id).delete()
-            Notificacion.objects.filter(
-                id_equipo_monitoreo_id__in=list(equipos)
-            ).delete()
+        request.session["alerts_cleared_at"] = time.time()
         return JsonResponse(
-            {"status": "ok", "message": "Notificaciones eliminadas correctamente"}
+            {"status": "ok", "message": "Alertas limpiadas correctamente"}
         )
     return JsonResponse(
         {"status": "error", "message": "Método no permitido"}, status=405
