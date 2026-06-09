@@ -1,0 +1,222 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if accion == 'editar' %}Seleccionar edificio para editar{% else %}Seleccionar edificio para eliminar{% endif %} </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+    <style>
+        .select-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
+        .select-list { list-style: none; padding: 0; margin: 0; }
+        .select-list li { border-bottom: 2px solid var(--color-ink); }
+        .select-list li:last-child { border-bottom: none; }
+        .select-list li a {
+            display: flex; justify-content: space-between; align-items: center;
+            text-decoration: none; color: inherit; padding: 16px var(--sp-3); width: 100%;
+            transition: all var(--transition-fast);
+            box-sizing: border-box;
+        }
+        .select-list li a:hover {
+            background: var(--color-bg);
+        }
+        .item-name { font-weight: var(--weight-bold); color: var(--color-text-primary); font-size: var(--text-base); }
+        .item-id { color: var(--color-text-secondary); font-size: var(--text-sm); font-family: monospace; }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: var(--sp-4);
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            border-radius: 0px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            padding: 10px 16px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            box-shadow: 4px 4px 0px var(--color-ink);
+        }
+        .back-link:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(10, 10, 10, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card" style="max-width: 800px;">
+                    <div class="admin-info">
+                        <h1>{% if accion == 'editar' %}Seleccionar edificio para Editar{% else %}Seleccionar edificio para eliminar{% endif %} </h1>
+                        <p>Selecciona una de las edificaciones de la lista de registros activos para proceder a actualizar sus datos o removerla permanentemente de la base de datos.</p>
+                    </div>
+
+                    {% if items %}
+                    <div class="table-wrapper">
+                        <div class="table-responsive">
+                            <table class="report-table centered-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>RIF</th>
+                                        <th style="text-align: right; padding-right: var(--sp-4);">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for item in items %}
+                                    <tr>
+                                        <td>{{ item.nombre }}</td>
+                                        <td>{{ item.rif }}</td>
+                                        <td style="text-align: right; padding-right: var(--sp-4);">
+                                            {% if accion == 'editar' %}
+                                            <a href="{% url 'editar_edificio' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                                            {% else %}
+                                            <a href="{% url 'eliminar_edificio' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="no-data">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <p>No hay edificios registrados.</p>
+                    </div>
+                    {% endif %}
+
+                    <a href="{% url 'lista_edificios' %}" class="back-link">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a lista de edificios
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        /* ── Modal Custom ── */
+        .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 150ms ease;
+        }
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+        .custom-modal-container {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-3);
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            transform: scale(0.92);
+            transition: transform 150ms ease;
+            box-sizing: border-box;
+        }
+        .custom-modal-backdrop.active .custom-modal-container {
+            transform: scale(1);
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const deleteLinks = document.querySelectorAll('.btn-confirm-delete');
+            deleteLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    const message = this.getAttribute('data-confirm');
+                    
+                    showCustomModal({
+                        title: 'Confirmar',
+                        message: message,
+                        type: 'confirm',
+                        showCancel: true
+                    }).then(confirmed => {
+                        if (confirmed) {
+                            window.location.href = url;
+                        }
+                    });
+                });
+            });
+        });
+
+        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'custom-modal-backdrop';
+
+                const container = document.createElement('div');
+                container.className = 'custom-modal-container';
+
+                let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
+                        ${iconHtml}
+                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
+                        ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Cancelar</button>` : ''}
+                        <button id="customModalConfirmBtn" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Aceptar</button>
+                    </div>
+                `;
+
+                backdrop.appendChild(container);
+                document.body.appendChild(backdrop);
+
+                setTimeout(() => {
+                    backdrop.classList.add('active');
+                }, 10);
+
+                const cleanUp = (value) => {
+                    backdrop.classList.remove('active');
+                    setTimeout(() => {
+                        backdrop.remove();
+                        resolve(value);
+                    }, 150);
+                };
+
+                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
+                if (showCancel) {
+                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
+                }
+            });
+        }
+    </script>
+</body>
+</html>

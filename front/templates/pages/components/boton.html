@@ -1,0 +1,6 @@
+{% comment %}Componente de botón reutilizable{% endcomment %}
+{% if url %}
+    <a href="{{ url }}" class="{{ class|default:'' }}"{% if target %} target="{{ target }}"{% endif %}>{{ text }}</a>
+{% else %}
+    <button type="{{ type|default:'button' }}" class="{{ class|default:'' }}">{{ text }}</button>
+{% endif %}

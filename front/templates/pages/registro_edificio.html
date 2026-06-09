@@ -1,0 +1,189 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %} </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
+    <script src="{% static 'JS/validacion.js' %}" defer></script>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0 !important;">
+                <div style="max-width: 720px; margin: 0 auto;">
+                    <div class="admin-info">
+                        <h1>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %} </h1>
+                        <p>{% if editing %}Actualiza los datos de infraestructura, RIF y dirección física del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la información básica para registrar una nueva edificación y permitir la asignación posterior de sensores.{% endif %}</p>
+                    </div>
+
+                    {% if page_messages %}
+                        {% for msg in page_messages %}
+                            <div class="alert alert-{{ msg.type }}">{{ msg.text }}</div>
+                        {% endfor %}
+                    {% endif %}
+                    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
+                    {% csrf_token %}
+
+                     <div class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label for="nombreEdificio">Nombre del edificio</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ edificio.nb_edificio|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#127970;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.nombreEdificio %}{{ form_errors.nombreEdificio }}{% elif form_errors.nombreEdificio_long %}{{ form_errors.nombreEdificio_long }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="parroquia">Dirección</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="parroquia" name="parroquia" value="{{ edificio.direccion|default:'' }}" data-validate="direccion" maxlength="50" required class="{% if form_errors.direccion or form_errors.direccion_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#128205;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.direccion %}{{ form_errors.direccion }}{% elif form_errors.direccion_long %}{{ form_errors.direccion_long }}{% endif %}</div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="rif">RIF</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ edificio.rif|default:'' }}" data-validate="rif" maxlength="12" required class="{% if form_errors.rif or form_errors.rif_unico %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#128188;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.rif %}{{ form_errors.rif }}{% elif form_errors.rif_unico %}{{ form_errors.rif_unico }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Equipamiento del edificio</label>
+                                <div class="equipment-grid">
+                                    <div class="equip-card {% if editing and edificio.has_bomba %}equip-active{% endif %}" data-equip="bomba" onclick="toggleEquip(this)">
+                                        <div class="equip-icon">🔧</div>
+                                        <div class="equip-label">Bomba de Agua</div>
+                                        <div class="equip-toggle">
+                                            <div class="equip-switch {% if editing and edificio.has_bomba %}switch-on{% endif %}">
+                                                <div class="equip-knob"></div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_bomba" value="{% if editing and edificio.has_bomba %}true{% else %}false{% endif %}" />
+                                    </div>
+                                    <div class="equip-card {% if editing and edificio.has_ascensor %}equip-active{% endif %}" data-equip="ascensor" onclick="toggleEquip(this)">
+                                        <div class="equip-icon">🛗</div>
+                                        <div class="equip-label">Ascensor</div>
+                                        <div class="equip-toggle">
+                                            <div class="equip-switch {% if editing and edificio.has_ascensor %}switch-on{% endif %}">
+                                                <div class="equip-knob"></div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_ascensor" value="{% if editing and edificio.has_ascensor %}true{% else %}false{% endif %}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+<style>
+.equipment-grid {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+.equip-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 16px;
+    border: 2px solid var(--color-border, #e0e0e0);
+    border-radius: 12px;
+    background: var(--color-bg, #fafafa);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+}
+.equip-card:hover {
+    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-bg-hover, #f0f4ff);
+}
+.equip-card.equip-active {
+    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-primary-bg, #eff6ff);
+    box-shadow: 0 0 0 1px var(--color-primary, #3b82f6);
+}
+.equip-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+.equip-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-ink, #0a0a0a);
+}
+.equip-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.equip-switch {
+    width: 44px;
+    height: 24px;
+    background: var(--color-border, #d0d0d0);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.25s ease;
+}
+.equip-switch.switch-on {
+    background: var(--color-primary, #3b82f6);
+}
+.equip-knob {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.equip-switch.switch-on .equip-knob {
+    transform: translateX(20px);
+}
+</style>
+
+<script>
+function toggleEquip(card) {
+    card.classList.toggle('equip-active');
+    var sw = card.querySelector('.equip-switch');
+    sw.classList.toggle('switch-on');
+    var inp = card.querySelector('input[type=hidden]');
+    inp.value = inp.value === 'true' ? 'false' : 'true';
+}
+</script>
+
+                        <div class="actions-row">
+                            {% url 'lista_edificios' as back_url %}
+                            {% include 'pages/components/boton.html' with url=back_url class='back-button' text='Volver' %}
+                            {% if editing %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
+                            {% else %}
+                                {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Registrar edificio' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    </div>
+</body>
+</html>
