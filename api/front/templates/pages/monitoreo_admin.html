@@ -240,7 +240,7 @@
                             <h2>Edificios registrados</h2>
                             {% if edificios %}
                             <select id="buildingSelect" onchange="selectBuildingFromSelect(this)" style="width: 100%; padding: 10px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); margin-top: var(--sp-1);">
-                                <option value="">-- Seleccionar edificio --</option>
+                                <option value="all" data-name="Todos los edificios" data-url="">Todos los edificios</option>
                                 {% for edificio in edificios %}
                                 <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}">{{ edificio.nb_edificio }}</option>
                                 {% endfor %}
@@ -278,8 +278,16 @@
 
         function selectBuilding(buildingId, name, targetUrl){
             if (!buildingId) return;
-            currentMonitorUrl = targetUrl || null;
-            if (targetUrl && isSimulatorOnline) {
+
+            // Notificar al simulador Flask qué edificio (o todos) está activo
+            const apiUrl = buildingId === 'all'
+                ? 'http://127.0.0.1:5000/api/set_active_building/all'
+                : `http://127.0.0.1:5000/api/set_active_building/${buildingId}`;
+            fetch(apiUrl, { method: 'POST' }).catch(() => {});
+
+            currentMonitorUrl = (buildingId === 'all') ? null : (targetUrl || null);
+
+            if (currentMonitorUrl && isSimulatorOnline) {
                 if (buildingFrame.src && buildingFrame.src.includes(':5000')) {
                     buildingFrame.contentWindow.postMessage({
                         type: 'CHANGE_BUILDING',
@@ -287,11 +295,23 @@
                         buildingName: name
                     }, '*');
                 } else {
-                    buildingFrame.src = targetUrl;
+                    buildingFrame.src = currentMonitorUrl;
+                }
+            } else if (buildingId === 'all' && isSimulatorOnline) {
+                // En modo "todos": mostrar placeholder en iframe
+                buildingFrame.style.display = 'none';
+                const fallback = document.getElementById('iframeFallback');
+                if (fallback) {
+                    fallback.style.display = 'flex';
+                    fallback.querySelector('h3').textContent = 'Modo: Todos los edificios';
+                    fallback.querySelector('p').textContent = 'El simulador está generando eventos para todos los edificios. Las alertas se acumulan en la base de datos.';
+                    fallback.querySelector('i').className = 'fa-solid fa-city';
+                    fallback.querySelector('i').style.color = 'var(--color-ink)';
                 }
             }
+
             if (selectedText) {
-                selectedText.textContent = `Monitoreando edificio: ${name}`;
+                selectedText.textContent = buildingId === 'all' ? 'Monitoreando: Todos los edificios' : `Monitoreando edificio: ${name}`;
             }
             if (openMonitorButton) {
                 openMonitorButton.disabled = !currentMonitorUrl;
@@ -465,12 +485,14 @@
                         }
                     }
                 }
-                if (!restored && sel.options.length > 1) {
-                    sel.selectedIndex = 1;
+                if (!restored) {
+                    sel.selectedIndex = 0; // default: Todos los edificios
                 }
                 const opt = sel.options[sel.selectedIndex];
                 if (opt && opt.value) {
                     selectBuilding(opt.value, opt.dataset.name, opt.dataset.url);
+                } else if (opt && opt.value === 'all') {
+                    selectBuilding('all', 'Todos los edificios', '');
                 }
             }
             checkSimulatorStatus();

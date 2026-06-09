@@ -135,6 +135,71 @@ def build_live_payload():
     }
 
 
+def build_live_payload_all():
+    """Payload agregado para el modo 'Todos los edificios'.
+    Combina sensor_data (promedio), alert_log y history de todos los simuladores.
+    """
+    if not simulators:
+        return build_live_payload()
+
+    # Promedio de sensor_data numéricos
+    merged_sensor: dict = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
+    numeric_keys = [k for k, v in DEFAULT_SENSOR_DATA.items() if isinstance(v, (int, float)) and k not in ("motor_stuck",)]
+    for key in numeric_keys:
+        vals = [s.sensor_data.get(key, 0) for s in simulators.values()]
+        merged_sensor[key] = round(sum(vals) / len(vals), 1) if vals else 0
+    # motor_stuck: True si alguno lo tiene
+    merged_sensor["motor_stuck"] = any(s.sensor_data.get("motor_stuck") for s in simulators.values())
+    # door_status: 'open' si alguna está abierta
+    merged_sensor["door_status"] = "open" if any(s.sensor_data.get("door_status") == "open" for s in simulators.values()) else "closed"
+
+    merged_history = []
+    merged_alert_log = []
+    for sim in simulators.values():
+        merged_history.extend(sim.history)
+        merged_alert_log.extend(sim.alert_log)
+    merged_history.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
+    merged_alert_log.sort(key=lambda r: r.get("timestamp", ""), reverse=True)
+
+    stats = {}
+    for var in numeric_keys:
+        vals = [r["value"] for r in merged_history if r["variable"] == var and isinstance(r["value"], (int, float))]
+        if vals:
+            stats[var] = {"avg": sum(vals) / len(vals), "min": min(vals), "max": max(vals)}
+
+    sensors = []
+    for var, value in merged_sensor.items():
+        risk, color = ("Crítico", "red") if (var == "motor_stuck" and value) else \
+                      (("Bajo", "green") if var == "motor_stuck" else classify_risk(var, value))
+        sensors.append({"id": var, "nombre": titleize_name(var), "riesgo": risk, "color": color})
+
+    recommendations = generate_recommendations(merged_sensor, stats)
+
+    all_protection_ends: dict = {}
+    for sim in simulators.values():
+        all_protection_ends.update(sim.protection_ends)
+
+    return {
+        "current": merged_sensor,
+        "sensors": sensors,
+        "history": merged_history[:100],
+        "thresholds": thresholds,
+        "alert_enabled": alert_enabled,
+        "alert_log": merged_alert_log[:50],
+        "stats": stats,
+        "recommendations": recommendations,
+        "rationing": merged_sensor["flow_rate"] < RATIONING_THRESHOLD,
+        "door_close_attempts": max((s.door_close_attempts for s in simulators.values()), default=0),
+        "protection_active": bool(all_protection_ends),
+        "pump_on": all(s.pump_on for s in simulators.values()),
+        "elevator_on": all(s.elevator_on for s in simulators.values()),
+        "protection_remaining": int(max(0, max(all_protection_ends.values()) - time.time())) if all_protection_ends else 0,
+        "protection_targets": list(all_protection_ends.keys()),
+        "mode": "all",
+        "edificios_count": len(simulators),
+    }
+
+
 # ----------------------------------------------------------------------
 # Credenciales (ahora lee directamente desde el .env si existe)
 # ----------------------------------------------------------------------
@@ -154,7 +219,7 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
 
-active_edificio_id = None
+active_edificio_id = None  # None = todos los edificios
 
 # ----------------------------------------------------------------------
 # Obtener destinatarios de email desde la BD Django por edificio
@@ -1357,17 +1422,21 @@ def generate_data_and_emit():
         for sim in list(simulators.values()):
             _run_sim_tick(sim)
 
-        # Restaurar globales al simulador activo para que build_live_payload()
-        # y las rutas Flask vean los datos del edificio seleccionado
-        active_sim = simulators.get(active_edificio_id)
-        if active_sim:
-            _sync_globals_to_sim(active_sim)
+        # Construir payload según el modo activo
+        if active_edificio_id is None:
+            # Modo «Todos los edificios»: payload agregado
+            payload = build_live_payload_all()
+        else:
+            # Restaurar globales al simulador activo
+            active_sim = simulators.get(active_edificio_id)
+            if active_sim:
+                _sync_globals_to_sim(active_sim)
+            payload = build_live_payload()
 
-        payload = build_live_payload()
         if LOG_SIM:
+            mode_label = "ALL" if active_edificio_id is None else active_edificio_id
             print(
-                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{active_edificio_id}]: "
-                f"pump_on={pump_on} elevator_on={elevator_on} protection_ends={protection_ends} "
+                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{mode_label}]: "
                 f"edificios_activos={list(simulators.keys())}"
             )
         socketio.emit("sensor_update", payload)
@@ -1834,6 +1903,14 @@ def stream_monitoring():
                 yield f"data: {json.dumps(notification)}\n\n"
 
     return Response(event_stream(), mimetype="text/event-stream")
+
+
+@app.route("/api/set_active_building/all", methods=["POST"])
+def api_set_active_building_all():
+    global active_edificio_id
+    active_edificio_id = None  # None = todos los edificios
+    logger.info("Modo 'Todos los edificios' activado")
+    return jsonify({"status": "ok", "active_edificio_id": None, "mode": "all", "simuladores": list(simulators.keys())})
 
 
 @app.route("/api/notifications")
