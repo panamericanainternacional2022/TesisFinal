@@ -260,10 +260,10 @@
                     </div>
                     <div class="iframe-wrapper">
                         <!-- Loading message during state transitions -->
-                        <div id="iframeLoading" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                        <div id="iframeLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--color-ink); margin-bottom: var(--sp-2);"></i>
-                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Procesando...</h3>
-                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);"></p>
+                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Verificando el simulador...</h3>
+                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Comprobando el estado del simulador de monitoreo en tiempo real.</p>
                         </div>
                         <div id="iframeFallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
                             <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
@@ -424,10 +424,10 @@
             const loadingTitle = document.getElementById('iframeLoadingTitle');
             const loadingDesc = document.getElementById('iframeLoadingDesc');
             if (action === 'start') {
-                loadingTitle.textContent = 'Encendiendo el servicio...';
+                loadingTitle.textContent = 'Encendiendo el simulador...';
                 loadingDesc.textContent = 'Iniciando el simulador de monitoreo y cargando la interfaz gráfica de telemetría.';
             } else {
-                loadingTitle.textContent = 'Apagando el servicio...';
+                loadingTitle.textContent = 'Apagando el simulador...';
                 loadingDesc.textContent = 'Deteniendo el simulador de monitoreo y liberando los recursos del sistema.';
             }
             
@@ -464,7 +464,7 @@
             // Customize loading texts for restart
             const loadingTitle = document.getElementById('iframeLoadingTitle');
             const loadingDesc = document.getElementById('iframeLoadingDesc');
-            loadingTitle.textContent = 'Reiniciando el servicio...';
+            loadingTitle.textContent = 'Reiniciando el simulador...';
             loadingDesc.textContent = 'Reiniciando el simulador de monitoreo y restableciendo la telemetría.';
             
             // Show loading placeholder inside iframe container
