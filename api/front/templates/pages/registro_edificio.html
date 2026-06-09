@@ -63,6 +63,8 @@
                         </div>
 
                         <div class="actions-row">
+                            {% url 'lista_edificios' as back_url %}
+                            {% include 'pages/components/boton.html' with url=back_url class='back-button' text='Volver' %}
                             {% if editing %}
                                 {% include 'pages/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
                             {% else %}

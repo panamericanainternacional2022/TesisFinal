@@ -562,7 +562,7 @@ def menu_seleccion_view(request):
 @_login_required
 @_admin_required
 def usuario_view(request):
-    return render(request, "pages/usuario.html", {"user": {}})
+    return render(request, "pages/registro_usuario.html", {"user": {}})
 
 
 @_login_required
@@ -716,7 +716,7 @@ def registro_beneficiario_view(request):
 
     return render(
         request,
-        "pages/usuario.html",
+        "pages/registro_usuario.html",
         context,
     )
 
@@ -831,7 +831,7 @@ def editar_beneficiario_view(request, beneficiario_id):
     edificios = Edificio.objects.all()
     return render(
         request,
-        "pages/usuario.html",
+        "pages/registro_usuario.html",
         {
             "user": data,
             "editing": True,
