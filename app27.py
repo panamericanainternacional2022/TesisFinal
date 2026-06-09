@@ -12,7 +12,6 @@ import time
 import random
 import smtplib
 import logging
-import webbrowser
 import json
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -21,8 +20,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 from collections import deque
 
-import requests
-from flask import Flask, render_template_string, request, jsonify, send_file, Response
+from flask import Flask, render_template_string, request, jsonify, Response
 from flask_socketio import SocketIO, emit
 import eventlet
 
@@ -57,7 +55,7 @@ try:
 
     django.setup()
     from django.utils import timezone
-    from core.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio, Persona
+    from core.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
 
     DJANGO_CONNECTED = True
     logger.info("Django integrado correctamente en app27.py")

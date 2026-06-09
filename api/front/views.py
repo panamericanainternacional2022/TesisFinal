@@ -1710,7 +1710,6 @@ def _parse_notif_for_historial(notif):
 
 @_login_required
 def historial_view(request):
-    import json as _json
     from django.core.paginator import Paginator
 
     usuario_id = request.session["usuario_id"]
@@ -1924,7 +1923,6 @@ def historial_pdf_view(request):
 
     # ── Filtro por período (timezone-aware, hora Venezuela) ────────
     from django.utils import timezone as tz
-    import datetime as dt
 
     now = tz.now()
     DELTA_MAP = {
