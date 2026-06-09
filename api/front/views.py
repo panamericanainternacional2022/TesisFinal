@@ -2391,13 +2391,14 @@ def completar_registro_view(request):
 def simulador_status_view(request):
     import socket
     from django.http import JsonResponse
+    has_edificios = Edificio.objects.exists()
     try:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.settimeout(0.5)
             s.connect(("127.0.0.1", 5000))
-            return JsonResponse({"running": True})
+            return JsonResponse({"running": True, "has_edificios": has_edificios})
     except Exception:
-        return JsonResponse({"running": False})
+        return JsonResponse({"running": False, "has_edificios": has_edificios})
 
 
 @_login_required
