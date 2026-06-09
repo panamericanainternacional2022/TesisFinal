@@ -5,11 +5,12 @@ Para agregar una nueva variable al sistema en el futuro:
   1. Agrégala a VAR_NAMES con su nombre en español.
   2. Agrégala a UNITS con su unidad (o cadena vacía si no aplica).
   3. Si genera valores especiales (bool, enums), agrégala a VALUE_DISPLAY_ES.
-  4. En app27.py, agrega sus acciones en get_professional_action() y en _VAR_ES.
-  Eso es todo. No hay que tocar views.py ni el PDF.
+  4. Si pertenece a un dispositivo, agrégala a PUMP_VARS o ELEVATOR_VARS.
+  5. En app27.py, agrega sus acciones en get_professional_action().
+   Eso es todo. Las listas de estadísticas se derivan automáticamente.
 """
 
-# ─── Nombres de variables (inglés → español) ─────────────────────────────────
+# ─── Nombres de variables (inglés → español) ──────────────────────────────
 VAR_NAMES = {
     # Bomba de agua
     "flow_rate":    "Caudal (flujo)",
@@ -28,13 +29,13 @@ VAR_NAMES = {
     "position":     "Posición",
     "door_status":  "Estado de puerta",
     # Eventos de sistema
-    "Racionamiento":                        "Caudal (racionamiento)",
-    "Protección automática":                "Protección automática",
-    "Protección para la bomba de agua":     "Protección para la bomba de agua",
-    "Protección para el elevador":          "Protección para el elevador",
+    "rationing":            "Caudal (racionamiento)",
+    "auto_protection":      "Protección automática",
+    "protection_pump":      "Protección para la bomba de agua",
+    "protection_elevator":  "Protección para el elevador",
 }
 
-# ─── Unidades de medida ───────────────────────────────────────────────────────
+# ─── Unidades de medida ───────────────────────────────────────────────────
 UNITS = {
     "flow_rate":    "L/s",
     "pressure":     "bar",
@@ -50,10 +51,10 @@ UNITS = {
     "position":     "piso",
     "door_status":  "",
     "motor_stuck":  "",
-    "Racionamiento": "L/s",
+    "rationing":    "L/s",
 }
 
-# ─── Niveles de riesgo en español (forma adjetiva femenina) ───────────────────
+# ─── Niveles de riesgo en español (forma adjetiva femenina) ───────────────
 RISK_NAMES_ES = {
     "Crítico": "crítica",
     "Alto":    "alta",
@@ -63,7 +64,7 @@ RISK_NAMES_ES = {
     "Info":    "informativa",
 }
 
-# ─── Nombres de dispositivos en español ──────────────────────────────────────
+# ─── Nombres de dispositivos en español ───────────────────────────────────
 DEVICE_NAMES_ES = {
     "pump":       "bomba de agua",
     "elevator":   "ascensor",
@@ -75,7 +76,56 @@ DEVICE_NAMES_ES = {
     "chiller":    "enfriadora",
 }
 
-# ─── Traducción de valores especiales de sensores ─────────────────────────────
+# ─── Variables excluidas de clasificación de riesgo ───────────────────────
+NO_RISK_VARS = ["position", "door_status", "motor_stuck"]
+
+# ─── Variables de sensores agrupadas por dispositivo ──────────────────────
+PUMP_VARS = [
+    "flow_rate",
+    "pressure",
+    "temperature",
+    "vibration",
+    "tank_level",
+    "voltage",
+    "current",
+]
+
+ELEVATOR_VARS = [
+    "position",
+    "speed",
+    "load",
+    "trip_count",
+    "door_status",
+    "energy",
+    "motor_stuck",
+]
+
+# ─── Listas derivadas (sin redundancia de nombres) ────────────────────────
+# Variables numéricas de ascensor útiles para estadísticas
+_ELEVATOR_NUMERIC = [v for v in ELEVATOR_VARS if v not in NO_RISK_VARS]
+
+# Estadísticas de la UI en vivo: variables de bomba + carga
+STATS_VARS = PUMP_VARS + ["load"]
+
+# Tabla de estadísticas del PDF: todas las variables numéricas de ambos dispositivos
+PDF_STATS_VARS = PUMP_VARS + _ELEVATOR_NUMERIC
+
+# Gráfico de barras del PDF: todas las numéricas excepto velocidad y viajes
+PDF_BAR_VARS = [v for v in PDF_STATS_VARS if v not in ("speed", "trip_count")]
+
+PDF_BAR_LABELS = {
+    "temperature": "Temp. (°C)",
+    "pressure":    "Presión (bar)",
+    "flow_rate":   "Caudal (L/s)",
+    "vibration":   "Vibración (mm/s)",
+    "tank_level":  "Tanque (%)",
+    "load":        "Carga (kg)",
+    "energy":      "Energía (kW)",
+    "voltage":     "Voltaje (V)",
+    "current":     "Corriente (A)",
+}
+
+# ─── Traducción de valores especiales de sensores ─────────────────────────
 # Para variables cuyos valores son enums o booleanos, se traduce el valor crudo
 # al español para mostrarlo en el frontend.
 VALUE_DISPLAY_ES = {

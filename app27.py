@@ -63,6 +63,27 @@ except Exception as e:
     logger.warning("No se pudo inicializar Django desde app27.py: %s", e)
 
 # ----------------------------------------------------------------------
+# Configuración centralizada de sensores (fuente única de verdad)
+# ----------------------------------------------------------------------
+from front.sensor_config import (
+    VAR_NAMES,
+    UNITS,
+    DEVICE_NAMES_ES,
+    RISK_NAMES_ES,
+    STATS_VARS,
+    PDF_STATS_VARS,
+    PDF_BAR_VARS,
+    PDF_BAR_LABELS,
+    PUMP_VARS,
+    ELEVATOR_VARS,
+    NO_RISK_VARS,
+)
+
+# Apuntar dicts legacy a la fuente única de verdad
+_VAR_ES = VAR_NAMES
+_DEVICE_ES = DEVICE_NAMES_ES
+
+# ----------------------------------------------------------------------
 # Payload y estructura de datos para streaming en vivo
 # ----------------------------------------------------------------------
 
@@ -73,16 +94,7 @@ def titleize_name(text):
 
 def build_live_payload():
     stats = {}
-    for var in [
-        "temperature",
-        "flow_rate",
-        "pressure",
-        "vibration",
-        "tank_level",
-        "load",
-        "voltage",
-        "current",
-    ]:
+    for var in STATS_VARS:
         vals = [
             r["value"]
             for r in history
@@ -208,7 +220,7 @@ DEFAULT_THRESHOLDS = {
     "voltage": {"direction": "range", "low": 200, "high": 240},
     "current": {"direction": "higher", "low": 30, "medium": 40, "high": 50},
 }
-NO_RISK_VARS = ["position", "door_status", "motor_stuck"]
+# NO_RISK_VARS importado desde sensor_config
 RATIONING_THRESHOLD = 8.0
 MAX_HISTORY_SIZE = 500
 
@@ -310,23 +322,7 @@ last_email_sent_time  = 0.0
 # Funciones auxiliares
 # ----------------------------------------------------------------------
 def get_unit(var):
-    units = {
-        "flow_rate": "L/s",
-        "pressure": "bar",
-        "temperature": "°C",
-        "vibration": "mm/s",
-        "tank_level": "%",
-        "position": "piso",
-        "speed": "m/s",
-        "load": "kg",
-        "trip_count": "viajes",
-        "door_status": "",
-        "energy": "kW",
-        "voltage": "V",
-        "current": "A",
-        "motor_stuck": "",
-    }
-    return units.get(var, "")
+    return UNITS.get(var, "")
 
 
 def classify_risk(variable, value):
@@ -658,28 +654,8 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)
 
-# Traducciones globales (usadas en emails, BD y payloads)
-_DEVICE_ES = {
-    "pump":     "bomba de agua",
-    "elevator": "elevador",
-}
-_VAR_ES = {
-    "flow_rate":    "Caudal (flujo)",
-    "pressure":     "Presión",
-    "temperature":  "Temperatura",
-    "vibration":    "Vibración",
-    "tank_level":   "Nivel de tanque",
-    "voltage":      "Voltaje",
-    "current":      "Corriente",
-    "speed":        "Velocidad",
-    "load":         "Carga",
-    "energy":       "Consumo eléctrico",
-    "motor_stuck":  "Motor atascado",
-    "trip_count":   "Conteo de viajes",
-    "position":     "Posición",
-    "door_status":  "Estado de puerta",
-    "Racionamiento": "Caudal (racionamiento)",
-}
+# Traducciones globales (apuntan a sensor_config — fuente única de verdad)
+# _VAR_ES y _DEVICE_ES se asignan al inicio del módulo desde sensor_config
 
 def _es_device(d):
     """Traduce 'pump'/'elevator' a español para mostrar en textos."""
@@ -712,7 +688,7 @@ def enter_protection_mode(reason=None, targets=None):
     action_msg = f"Protección automática activada{reason_text}. Dispositivos apagados: {targets_text_es}."
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-        "variable": "Protección automática",
+        "variable": "auto_protection",
         "value": targets_text_es,
         "risk": "Crítico",
         "message": action_msg,
@@ -720,7 +696,7 @@ def enter_protection_mode(reason=None, targets=None):
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
     if alert_enabled:
-        persist_notification_in_django("Protección automática", targets_text_es, "Crítico", action_msg)
+        persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg)
     # Enviar email de alerta crítica
     global last_email_sent_time
     now_ts = time.time()
@@ -771,27 +747,10 @@ def update_protection_state():
         # Limpiar alertas activas relacionadas con el dispositivo
         try:
             if device == "pump":
-                for v in [
-                    "flow_rate",
-                    "pressure",
-                    "temperature",
-                    "vibration",
-                    "tank_level",
-                    "voltage",
-                    "current",
-                    "Racionamiento",
-                ]:
+                for v in PUMP_VARS + ["rationing"]:
                     active_alerts.pop(v, None)
             elif device == "elevator":
-                for v in [
-                    "position",
-                    "speed",
-                    "load",
-                    "trip_count",
-                    "door_status",
-                    "energy",
-                    "motor_stuck",
-                ]:
+                for v in ELEVATOR_VARS:
                     active_alerts.pop(v, None)
         except Exception:
             pass
@@ -800,14 +759,14 @@ def update_protection_state():
         # Guardar restauración en BD solo si las alertas están habilitadas
         if alert_enabled:
             persist_notification_in_django(
-                f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
+                f"protection_{device}",
                 None,
                 "Info",
                 f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada."
             )
         notification_payload = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "variable": f"Protección para {'la bomba de agua' if device == 'pump' else 'el elevador'}",
+            "variable": f"protection_{device}",
             "value": None,
             "risk": "Info",
             "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
@@ -903,7 +862,7 @@ def get_professional_action(variable, risk_level, value):
             "Alto": "Fallo en cierre de puerta. Revisar mecanismo de enclavamiento.",
             "Crítico": "Puerta no responde. Detener operación e inspeccionar sistema de puertas."
         },
-        "Racionamiento": {
+        "rationing": {
             "Crítico": "Caudal por debajo del mínimo admisible (racionamiento activo). Restringir consumo general."
         }
     }
@@ -922,27 +881,9 @@ def send_alert(variable, value, risk_level, recommended_action):
     active_alerts[variable] = risk_level
     device_target = None
     try:
-        bomba_vars = [
-            "flow_rate",
-            "pressure",
-            "temperature",
-            "vibration",
-            "tank_level",
-            "voltage",
-            "current",
-        ]
-        ascensor_vars = [
-            "position",
-            "speed",
-            "load",
-            "trip_count",
-            "door_status",
-            "energy",
-            "motor_stuck",
-        ]
-        if variable in bomba_vars or variable == "Racionamiento":
+        if variable in PUMP_VARS or variable == "rationing":
             device_target = "pump"
-        elif variable in ascensor_vars or variable == "motor_stuck":
+        elif variable in ELEVATOR_VARS:
             device_target = "elevator"
     except Exception:
         device_target = None
@@ -950,7 +891,7 @@ def send_alert(variable, value, risk_level, recommended_action):
         print(
             f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target}"
         )
-    _risk_adj = {"Crítico": "crítica", "Alto": "alta", "Medio": "media", "Bajo": "baja"}
+    _risk_adj = RISK_NAMES_ES
     if risk_level in ("Alto", "Crítico"):
         if device_target:
             enter_protection_mode(
@@ -1011,8 +952,8 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
 
 def check_rationing(flow_rate):
     if flow_rate < RATIONING_THRESHOLD:
-        action = get_professional_action("Racionamiento", "Crítico", flow_rate)
-        send_alert("Racionamiento", flow_rate, "Crítico", action)
+        action = get_professional_action("rationing", "Crítico", flow_rate)
+        send_alert("rationing", flow_rate, "Crítico", action)
         return True
     return False
 
@@ -1309,10 +1250,7 @@ def _run_sim_tick(sim: BuildingSimulator):
             classify_risk(var, value) if var != "motor_stuck"
             else ("Crítico" if value else "Bajo", "red" if value else "green")
         )
-        sensor_type = (
-            "Bomba" if var in ["flow_rate", "pressure", "temperature", "vibration", "tank_level", "voltage", "current"]
-            else "Ascensor"
-        )
+        sensor_type = "Bomba" if var in PUMP_VARS else "Ascensor"
         new_readings.append({"timestamp": timestamp, "type": sensor_type, "variable": var, "value": value, "risk": risk, "color": color})
     history.extend(new_readings)
     if len(history) > MAX_HISTORY_SIZE:
@@ -1434,21 +1372,8 @@ def generate_pdf_report(period):
         for r in history
         if datetime.strptime(r["timestamp"], "%Y-%m-%d %H:%M:%S") >= start_time
     ]
-    numeric_vars = [
-        "flow_rate",
-        "pressure",
-        "temperature",
-        "vibration",
-        "tank_level",
-        "speed",
-        "load",
-        "trip_count",
-        "energy",
-        "voltage",
-        "current",
-    ]
     stats = {}
-    for var in numeric_vars:
+    for var in PDF_STATS_VARS:
         vals = [
             r["value"]
             for r in filtered_readings
@@ -1542,35 +1467,13 @@ def generate_pdf_report(period):
     pdf.set_text_color(10, 10, 10)
     pdf.cell(0, 8, "VALORES PROMEDIO DEL PERIODO", ln=1)
     pdf.ln(2)
-    bar_vars = [
-        "temperature",
-        "pressure",
-        "flow_rate",
-        "vibration",
-        "tank_level",
-        "load",
-        "energy",
-        "voltage",
-        "current",
-    ]
-    display_names = {
-        "temperature": "Temp. (C)",
-        "pressure": "Presion (bar)",
-        "flow_rate": "Caudal (L/s)",
-        "vibration": "Vibracion (mm/s)",
-        "tank_level": "Tanque (%)",
-        "load": "Carga (kg)",
-        "energy": "Energia (kW)",
-        "voltage": "Voltaje (V)",
-        "current": "Corriente (A)",
-    }
     present_vars = []
     labels = []
     avgs = []
-    for v in bar_vars:
+    for v in PDF_BAR_VARS:
         if v in stats and isinstance(stats[v]["avg"], float):
             present_vars.append(v)
-            labels.append(display_names.get(v, v))
+            labels.append(PDF_BAR_LABELS.get(v, v))
             avgs.append(stats[v]["avg"])
     if avgs:
         max_avg = max(avgs)
@@ -1691,7 +1594,7 @@ def generate_pdf_report(period):
     pdf.set_font("Helvetica", "", 8)
     pdf.set_draw_color(10, 10, 10)
     pdf.set_text_color(26, 26, 26)
-    for var in numeric_vars:
+    for var in PDF_STATS_VARS:
         s = stats[var]
         pdf.cell(55, 6, _pdf_safe(f"  {_es_var(var)}"), 1)
         pdf.cell(32, 6, str(s["min"]), 1, 0, "C")
@@ -1811,7 +1714,12 @@ def apply_cors(response):
 
 @app.route("/")
 def index():
-    return render_template_string(HTML_TEMPLATE)
+    return render_template_string(HTML_TEMPLATE,
+        no_risk_vars=NO_RISK_VARS,
+        bomba_vars=PUMP_VARS,
+        ascensor_vars=ELEVATOR_VARS,
+        var_names=VAR_NAMES,
+        units=UNITS)
 
 
 @app.route("/api/status")
@@ -2049,20 +1957,7 @@ def manual_update():
             f"Valor manual ({sensor_data[variable]}): {action}",
         )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    sensor_type = (
-        "Bomba"
-        if variable
-        in [
-            "flow_rate",
-            "pressure",
-            "temperature",
-            "vibration",
-            "tank_level",
-            "voltage",
-            "current",
-        ]
-        else "Ascensor"
-    )
+    sensor_type = "Bomba" if variable in PUMP_VARS else "Ascensor"
     history.append(
         {
             "timestamp": timestamp,
@@ -2076,16 +1971,7 @@ def manual_update():
     if len(history) > MAX_HISTORY_SIZE:
         history.pop(0)
     stats = {}
-    for var in [
-        "temperature",
-        "flow_rate",
-        "pressure",
-        "vibration",
-        "tank_level",
-        "load",
-        "voltage",
-        "current",
-    ]:
+    for var in STATS_VARS:
         vals = [
             r["value"]
             for r in history
@@ -2942,31 +2828,17 @@ HTML_TEMPLATE = """
         window.showConfirm = function(message) {
             return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
         };
-        const NO_RISK_VARS = ['position','door_status','motor_stuck'];
-        const BOMBA_VARS = ['flow_rate','pressure','temperature','vibration','tank_level','voltage','current'];
-        const ASCENSOR_VARS = ['position','speed','load','trip_count','door_status','energy','motor_stuck'];
+        /* Fuente de verdad: api/front/sensor_config.py */
+        const NO_RISK_VARS = {{ no_risk_vars | tojson }};
+        const BOMBA_VARS = {{ bomba_vars | tojson }};
+        const ASCENSOR_VARS = {{ ascensor_vars | tojson }};
 
         function getVariableName(variable) {
-            const names = {
-                flow_rate: 'Caudal',
-                pressure: 'Presión',
-                temperature: 'Temperatura',
-                vibration: 'Vibración',
-                tank_level: 'Nivel de tanque',
-                voltage: 'Voltaje',
-                current: 'Corriente',
-                position: 'Posición',
-                speed: 'Velocidad',
-                load: 'Carga',
-                trip_count: 'Viajes',
-                door_status: 'Estado de puerta',
-                energy: 'Energía',
-                motor_stuck: 'Motor pegado'
-            };
+            const names = {{ var_names | tojson }};
             return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
 
-        function getUnit(v){ return {flow_rate:'L/s',pressure:'bar',temperature:'°C',vibration:'mm/s',tank_level:'%',position:'piso',speed:'m/s',load:'kg',trip_count:'viajes',door_status:'',energy:'kW',voltage:'V',current:'A'}[v]||''; }
+        function getUnit(v){ const units = {{ units | tojson }}; return units[v]||''; }
 
         function getRiskClass(varName, value){
             if(NO_RISK_VARS.includes(varName)){
