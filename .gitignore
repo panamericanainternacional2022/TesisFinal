@@ -12,3 +12,9 @@ __pycache__/
 .env
 .env.local
 .env.secret
+
+# Caches de herramientas
+.ruff_cache/
+
+# Directorio api/ vacío (restos de la reestructuración)
+api/

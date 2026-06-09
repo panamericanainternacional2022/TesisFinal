@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 # Integración con Django para persistir alertas en la base de datos
 # ----------------------------------------------------------------------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 DJANGO_CONNECTED = False
 try:
     import django
