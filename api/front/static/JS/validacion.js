@@ -202,25 +202,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Dirección: alfanumérico con puntuación básica
-    function validarDireccion(input) {
-        const valor = input.value;
-        const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
-        const valido = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]*$/;
-        if (valor && !valido.test(valor)) {
-            input.value = valor.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]/g, '');
-            mostrarError(input, 'Caracteres no válidos en la dirección.');
-        } else if (valor.length > maximo) {
-            input.value = valor.slice(0, maximo);
-            mostrarError(input, `Máximo ${maximo} caracteres.`);
-        } else if (valor && valor.length < 8) {
-            mostrarError(input, 'La dirección debe tener al menos 8 caracteres.');
-        } else {
-            limpiarError(input);
-        }
-        toggleSubmit(input.form);
-    }
-
     // ─── CONFIGURAR VALIDACIÓN POR DATA-ATRIBUTE ────────────────
 
     document.querySelectorAll('input[data-validate]').forEach(function (input) {
@@ -235,7 +216,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'email': validarEmail(input); break;
                 case 'password': validarPassword(input); break;
                 case 'confirm-password': validarConfirmPassword(input); break;
-                case 'direccion': validarDireccion(input); break;
                 case 'username': validarUsername(input); break;
             }
         });

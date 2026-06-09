@@ -114,32 +114,12 @@
                         </div>
 
                         <div class="form-group full-width">
-                            <label for="direccion">Dirección</label>
-                            <div class="input-with-icon">
-                                <input placeholder="Calle, Ciudad, Estado" type="text" id="direccion" name="direccion" value="{{ user.direccion|default:'' }}" data-validate="direccion" maxlength="50" class="{% if form_errors.direccion_long %}input-error{% endif %}" />
-                                <span class="edit-icon">&#9998;</span>
-                            </div>
-                            <div class="validation-error">{% if form_errors.direccion_long %}{{ form_errors.direccion_long }}{% endif %}</div>
-                        </div>
-
-                        {% if editing and edificio_actual %}
-                        <div class="form-group full-width">
-                            <label>Edificio actual</label>
-                            <div class="edificio-info-box">
-                                <strong>{{ edificio_actual.nb_edificio }}</strong><br>
-                                <span style="font-size:0.85rem;color:#5f6368;">RIF: {{ edificio_actual.rif }}</span><br>
-                                <span style="font-size:0.85rem;color:#5f6368;">{{ edificio_actual.direccion }}</span>
-                            </div>
-                        </div>
-                        {% endif %}
-
-                        <div class="form-group full-width">
                             <label for="id_edificio">Elegir edificio</label>
                             <div class="input-with-icon">
                                 <select id="id_edificio" name="id_edificio" required class="{% if form_errors.id_edificio %}input-error{% endif %}">
-                                    <option value="">Seleccione un edificio</option>
+                                    {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
                                     {% for edificio in edificios %}
-                                        <option value="{{ edificio.id_edificio }}" {% if user.id_edificio == edificio.id_edificio %}selected{% endif %}>{{ edificio.nb_edificio }} - {{ edificio.rif }}</option>
+                                        <option value="{{ edificio.id_edificio }}" {% if user.id_edificio == edificio.id_edificio %}selected{% endif %}>{{ edificio.nb_edificio }}</option>
                                     {% endfor %}
                                 </select>
                                 <span class="edit-icon">&#127970;</span>

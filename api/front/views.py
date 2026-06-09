@@ -230,14 +230,6 @@ def _validaciones_formulario_usuario(data, exclude_persona_id=None):
     if campo:
         errores["telefono"] = campo
 
-    # direccion
-    campo = _validar_longitud_min(data.get("direccion", ""), 8, "La dirección")
-    if campo:
-        errores["direccion_min"] = campo
-    campo = _validar_longitud_max(data.get("direccion", ""), 50, "La dirección")
-    if campo:
-        errores["direccion_long"] = campo
-
     campo = _validar_unico_email(data.get("email", ""), exclude_persona_id)
     if campo:
         errores["email_unico"] = campo
@@ -311,7 +303,6 @@ def _build_beneficiario_data(usuario):
         "cedula": persona.ci if persona else "",
         "nombre": persona.name if persona else usuario.username,
         "apellido": persona.apellido if persona else "",
-        "direccion": persona.direccion if persona else "",
         "email": persona.email if persona else "",
         "telefono": persona.telefono if persona else "",
         "edificio_nombre": edificio.nb_edificio if edificio else "",
@@ -627,7 +618,6 @@ def registro_beneficiario_view(request):
             email = request.POST.get("email", "").strip()
             cedula = request.POST.get("cedula", "").strip()
             telefono = request.POST.get("telefono", "").strip()
-            direccion = request.POST.get("direccion", "").strip()
             id_edificio = request.POST.get("id_edificio", "").strip()
 
             user_data = {
@@ -638,7 +628,6 @@ def registro_beneficiario_view(request):
                 "email": email,
                 "cedula": cedula,
                 "telefono": telefono,
-                "direccion": direccion,
                 "id_edificio": int(id_edificio) if id_edificio else "",
             }
 
@@ -684,7 +673,6 @@ def registro_beneficiario_view(request):
                             apellido=apellido_completo,
                             email=email,
                             telefono=telefono,
-                            direccion=direccion,
                         )
                         usuario = Usuario.objects.create(
                             username=generated_username,
@@ -737,7 +725,6 @@ def editar_beneficiario_view(request, beneficiario_id):
         email = request.POST.get("email", "").strip()
         cedula = request.POST.get("cedula", "").strip()
         telefono = request.POST.get("telefono", "").strip()
-        direccion = request.POST.get("direccion", "").strip()
         id_edificio = request.POST.get("id_edificio", "").strip()
 
         data = {
@@ -748,7 +735,6 @@ def editar_beneficiario_view(request, beneficiario_id):
             "email": email,
             "cedula": cedula,
             "telefono": telefono,
-            "direccion": direccion,
             "id_edificio": int(id_edificio) if id_edificio else "",
         }
 
@@ -786,7 +772,6 @@ def editar_beneficiario_view(request, beneficiario_id):
                 persona.email = email
                 persona.ci = cedula
                 persona.telefono = telefono
-                persona.direccion = direccion
                 persona.save()
 
                 if id_edificio:
@@ -822,7 +807,6 @@ def editar_beneficiario_view(request, beneficiario_id):
             "email": persona.email if persona else "",
             "cedula": persona.ci if persona else "",
             "telefono": persona.telefono if persona else "",
-            "direccion": persona.direccion if persona else "",
             "id_edificio": id_edificio_actual,
         }
 

@@ -10,7 +10,6 @@ class Persona(models.Model):
     apellido = models.CharField(max_length=255)
     email = models.EmailField(max_length=255)
     telefono = models.CharField(max_length=50)
-    direccion = models.TextField(blank=True, null=True)
 
     class Meta:
         db_table = "persona"

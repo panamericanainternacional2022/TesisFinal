@@ -45,7 +45,6 @@
                                         <th>Cédula</th>
                                         <th>Nombre</th>
                                         <th>Apellido</th>
-                                        <th>Dirección</th>
                                         <th>Edificio</th>
                                         <th>Estado</th>
                                     </tr>
@@ -57,7 +56,6 @@
                                                 <td>{{ beneficiario.cedula }}</td>
                                                 <td>{{ beneficiario.nombre }}</td>
                                                 <td>{{ beneficiario.apellido }}</td>
-                                                <td title="{{ beneficiario.direccion }}">{{ beneficiario.direccion }}</td>
                                                 <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
                                                 <td>
                                                     {% if beneficiario.registrado %}
@@ -70,7 +68,7 @@
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="6" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
                                                 No hay usuarios registrados.
                                             </td>
                                         </tr>

@@ -57,7 +57,6 @@ def populate():
             "apellido": "Perez",
             "email": "juan@example.com",
             "telefono": "04141234567",
-            "direccion": "Av Principal",
         },
     )
     p2, _ = Persona.objects.get_or_create(
@@ -67,7 +66,6 @@ def populate():
             "apellido": "Gomez",
             "email": "maria@example.com",
             "telefono": "04121234567",
-            "direccion": "Av Secundaria",
         },
     )
     p3, _ = Persona.objects.get_or_create(
@@ -77,7 +75,6 @@ def populate():
             "apellido": "Tupiza",
             "email": "tjta3105@gmail.com",
             "telefono": "04241234567",
-            "direccion": "Av Oeste",
         },
     )
     p4, _ = Persona.objects.get_or_create(
@@ -87,7 +84,6 @@ def populate():
             "apellido": "Sistema",
             "email": "admin@example.com",
             "telefono": "04161234567",
-            "direccion": "Oficina Central",
         },
     )
     p5, _ = Persona.objects.get_or_create(
@@ -97,7 +93,6 @@ def populate():
             "apellido": "Rodriguez",
             "email": "carlos@example.com",
             "telefono": "04149876543",
-            "direccion": "Av Bolivar",
         },
     )
 
