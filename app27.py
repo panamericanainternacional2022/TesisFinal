@@ -10,12 +10,8 @@ import sys
 import threading
 import time
 import random
-import smtplib
 import logging
 import json
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.mime.application import MIMEApplication
 from datetime import datetime, timedelta
 from io import BytesIO
 from collections import deque
@@ -950,7 +946,7 @@ def api_edificios():
         return jsonify([{"id": 1, "nombre": "Edificio Simulado (Sin DB)"}])
     try:
         edificios = Edificio.objects.all().order_by("nb_edificio")
-        return jsonify([{"id": e.id_edificio, "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}"} for e in edificios])
+        return jsonify([{"id": e.id_edificio, "nombre": e.nb_edificio or f"Edificio #{e.id_edificio}", "has_bomba": e.has_bomba, "has_ascensor": e.has_ascensor} for e in edificios])
     except Exception as e:
         logger.error(f"Error cargando edificios: {e}")
         return jsonify([{"id": 1, "nombre": "Edificio Simulado (Error)"}])
@@ -1156,13 +1152,15 @@ if __name__ == "__main__":
         except Exception as _e:
             logger.warning(f"No se pudieron crear simuladores desde la BD: {_e}")
 
-    # Si no hay simuladores (sin BD o BD vacía), crear uno dummy para no romper el loop
-    if not simulators:
+    # Sin BD: crear simulador dummy para no romper el loop de desarrollo
+    if not simulators and not DJANGO_CONNECTED:
         _dummy = BuildingSimulator(1, None, "Edificio Simulado")
         simulators[1] = _dummy
         active_edificio_id = 1
         _sync_globals_to_sim(_dummy)
         logger.info("Simulador dummy creado (sin conexión a BD).")
+    elif not simulators:
+        logger.warning("No hay EquipoMonitoreo en la BD. El loop de simulación está inactivo.")
 
     # Lanzar el loop de simulación en background
     socketio.start_background_task(generate_data_and_emit)

@@ -847,6 +847,44 @@ def eliminar_beneficiario_view(request, beneficiario_id):
 
 @_login_required
 @_admin_required
+def _crear_equipos_para_edificio(edificio, has_bomba, has_ascensor):
+    """Crea EquipoMonitoreo según el equipamiento indicado."""
+    if has_bomba:
+        EquipoMonitoreo.objects.get_or_create(
+            nb_equipo=f"Bomba de Agua - {edificio.nb_edificio}",
+            id_edificio=edificio,
+        )
+    if has_ascensor:
+        EquipoMonitoreo.objects.get_or_create(
+            nb_equipo=f"Ascensor - {edificio.nb_edificio}",
+            id_edificio=edificio,
+        )
+
+
+def _sincronizar_equipos_para_edificio(edificio, has_bomba, has_ascensor):
+    """Crea o elimina EquipoMonitoreo para reflejar el equipamiento actual."""
+    if has_bomba:
+        EquipoMonitoreo.objects.get_or_create(
+            nb_equipo=f"Bomba de Agua - {edificio.nb_edificio}",
+            id_edificio=edificio,
+        )
+    else:
+        EquipoMonitoreo.objects.filter(
+            nb_equipo__startswith="Bomba de Agua -",
+            id_edificio=edificio,
+        ).delete()
+    if has_ascensor:
+        EquipoMonitoreo.objects.get_or_create(
+            nb_equipo=f"Ascensor - {edificio.nb_edificio}",
+            id_edificio=edificio,
+        )
+    else:
+        EquipoMonitoreo.objects.filter(
+            nb_equipo__startswith="Ascensor -",
+            id_edificio=edificio,
+        ).delete()
+
+
 def registro_edificio_view(request):
     bld_msgs = request.session.pop("_bld_msg", [])
     form_errors = {}
@@ -855,11 +893,15 @@ def registro_edificio_view(request):
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
+        has_bomba = request.POST.get("has_bomba") == "true"
+        has_ascensor = request.POST.get("has_ascensor") == "true"
 
         edificio_data = {
             "nb_edificio": nombre,
             "direccion": parroquia,
             "rif": rif,
+            "has_bomba": has_bomba,
+            "has_ascensor": has_ascensor,
         }
 
         if not (nombre and rif and parroquia):
@@ -891,11 +933,14 @@ def registro_edificio_view(request):
                     }
                 )
             else:
-                Edificio.objects.create(
+                edificio = Edificio.objects.create(
                     nb_edificio=nombre,
                     rif=rif,
                     direccion=parroquia,
+                    has_bomba=has_bomba,
+                    has_ascensor=has_ascensor,
                 )
+                _crear_equipos_para_edificio(edificio, has_bomba, has_ascensor)
                 request.session["_bld_msg"] = [
                     {"text": "Edificio registrado correctamente.", "type": "success"}
                 ]
@@ -922,10 +967,14 @@ def editar_edificio_view(request, edificio_id):
         nombre = request.POST.get("nombreEdificio", "").strip()
         parroquia = request.POST.get("parroquia", "").strip()
         rif = request.POST.get("rif", "").strip()
+        has_bomba = request.POST.get("has_bomba") == "true"
+        has_ascensor = request.POST.get("has_ascensor") == "true"
 
         edificio.nb_edificio = nombre
         edificio.direccion = parroquia
         edificio.rif = rif
+        edificio.has_bomba = has_bomba
+        edificio.has_ascensor = has_ascensor
 
         if not (nombre and rif and parroquia):
             bld_msgs.append(
@@ -958,6 +1007,7 @@ def editar_edificio_view(request, edificio_id):
                 )
             else:
                 edificio.save()
+                _sincronizar_equipos_para_edificio(edificio, has_bomba, has_ascensor)
                 request.session["_bld_msg"] = [
                     {"text": "Edificio actualizado correctamente.", "type": "success"}
                 ]

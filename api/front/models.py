@@ -23,6 +23,8 @@ class Edificio(models.Model):
     nb_edificio = models.CharField(max_length=255)
     rif = models.CharField(max_length=20, unique=True)
     direccion = models.TextField()
+    has_bomba = models.BooleanField(default=False)
+    has_ascensor = models.BooleanField(default=False)
 
     class Meta:
         db_table = "edificio"

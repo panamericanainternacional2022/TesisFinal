@@ -41,6 +41,7 @@
                                 <thead>
                                     <tr>
                                         <th>Nombre</th>
+                                        <th>Equipamiento</th>
                                         <th>RIF</th>
                                         <th>Dirección</th>
                                     </tr>
@@ -50,13 +51,18 @@
                                         {% for edificio in edificios %}
                                             <tr>
                                                 <td title="{{ edificio.nb_edificio }}">{{ edificio.nb_edificio }}</td>
+                                                <td>
+                                                    {% if edificio.has_bomba %}<span class="equip-badge" title="Bomba de Agua">🔧</span>{% endif %}
+                                                    {% if edificio.has_ascensor %}<span class="equip-badge" title="Ascensor">🛗</span>{% endif %}
+                                                    {% if not edificio.has_bomba and not edificio.has_ascensor %}<span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>{% endif %}
+                                                </td>
                                                 <td title="{{ edificio.rif }}">{{ edificio.rif }}</td>
                                                 <td title="{{ edificio.direccion }}">{{ edificio.direccion }}</td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="3" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="4" style="text-align: center; padding: 24px 0;">
                                                 No hay edificios registrados.
                                             </td>
                                         </tr>
@@ -94,5 +100,13 @@
             }
         });
     </script>
+<style>
+.equip-badge {
+    font-size: 20px;
+    line-height: 1;
+    margin-right: 4px;
+    display: inline-block;
+}
+</style>
 </body>
 </html>

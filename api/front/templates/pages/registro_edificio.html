@@ -62,6 +62,114 @@
                             </div>
                         </div>
 
+                        <div class="form-row">
+                            <div class="form-group full-width">
+                                <label>Equipamiento del edificio</label>
+                                <div class="equipment-grid">
+                                    <div class="equip-card {% if editing and edificio.has_bomba %}equip-active{% endif %}" data-equip="bomba" onclick="toggleEquip(this)">
+                                        <div class="equip-icon">🔧</div>
+                                        <div class="equip-label">Bomba de Agua</div>
+                                        <div class="equip-toggle">
+                                            <div class="equip-switch {% if editing and edificio.has_bomba %}switch-on{% endif %}">
+                                                <div class="equip-knob"></div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_bomba" value="{% if editing and edificio.has_bomba %}true{% else %}false{% endif %}" />
+                                    </div>
+                                    <div class="equip-card {% if editing and edificio.has_ascensor %}equip-active{% endif %}" data-equip="ascensor" onclick="toggleEquip(this)">
+                                        <div class="equip-icon">🛗</div>
+                                        <div class="equip-label">Ascensor</div>
+                                        <div class="equip-toggle">
+                                            <div class="equip-switch {% if editing and edificio.has_ascensor %}switch-on{% endif %}">
+                                                <div class="equip-knob"></div>
+                                            </div>
+                                        </div>
+                                        <input type="hidden" name="has_ascensor" value="{% if editing and edificio.has_ascensor %}true{% else %}false{% endif %}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+<style>
+.equipment-grid {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+.equip-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px 16px;
+    border: 2px solid var(--color-border, #e0e0e0);
+    border-radius: 12px;
+    background: var(--color-bg, #fafafa);
+    cursor: pointer;
+    transition: all 0.25s ease;
+    user-select: none;
+}
+.equip-card:hover {
+    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-bg-hover, #f0f4ff);
+}
+.equip-card.equip-active {
+    border-color: var(--color-primary, #3b82f6);
+    background: var(--color-primary-bg, #eff6ff);
+    box-shadow: 0 0 0 1px var(--color-primary, #3b82f6);
+}
+.equip-icon {
+    font-size: 32px;
+    line-height: 1;
+}
+.equip-label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-ink, #0a0a0a);
+}
+.equip-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.equip-switch {
+    width: 44px;
+    height: 24px;
+    background: var(--color-border, #d0d0d0);
+    border-radius: 12px;
+    position: relative;
+    transition: background 0.25s ease;
+}
+.equip-switch.switch-on {
+    background: var(--color-primary, #3b82f6);
+}
+.equip-knob {
+    width: 20px;
+    height: 20px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    transition: transform 0.25s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+.equip-switch.switch-on .equip-knob {
+    transform: translateX(20px);
+}
+</style>
+
+<script>
+function toggleEquip(card) {
+    card.classList.toggle('equip-active');
+    var sw = card.querySelector('.equip-switch');
+    sw.classList.toggle('switch-on');
+    var inp = card.querySelector('input[type=hidden]');
+    inp.value = inp.value === 'true' ? 'false' : 'true';
+}
+</script>
+
                         <div class="actions-row">
                             {% url 'lista_edificios' as back_url %}
                             {% include 'pages/components/boton.html' with url=back_url class='back-button' text='Volver' %}
