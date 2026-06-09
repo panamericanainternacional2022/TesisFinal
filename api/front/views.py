@@ -855,7 +855,7 @@ def eliminar_beneficiario_view(request, beneficiario_id):
         if usuario.id_persona:
             Persona.objects.filter(id_persona=usuario.id_persona.id_persona).delete()
     messages.success(request, "Beneficiario eliminado correctamente.")
-    return redirect("lista_usuario")
+    return redirect("seleccionar_usuario", accion="eliminar")
 
 
 # ─── EDIFICIOS (ADMIN ONLY) ─────────────────────────────────────
@@ -1077,7 +1077,7 @@ def eliminar_edificio_view(request, edificio_id):
     messages.success(
         request, "Edificio y todos sus datos asociados fueron eliminados correctamente."
     )
-    return redirect("lista_edificios")
+    return redirect("seleccionar_edificio", accion="eliminar")
 
 
 # ─── NOTIFICACIONES ─────────────────────────────────────────────
