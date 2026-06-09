@@ -1018,43 +1018,61 @@ def lista_edificios_view(request):
 def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
     with transaction.atomic():
-        # Get all monitoring equipment associated with this building
-        equipos = EquipoMonitoreo.objects.filter(id_edificio=edificio)
+        # Desactivamos temporalmente las FK checks para evitar race conditions
+        # con app27.py, que crea notificaciones continuamente para los equipos.
+        from django.db import connection
 
-        # Get all sensors associated with those equipments
-        sensores = EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipos)
+        with connection.cursor() as cursor:
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
 
-        # Get all status records associated with those equipments
-        status_equipos = StatusEquipoMonitoreo.objects.filter(
-            id_equipo_monitoreo__in=equipos
+        # Materializamos los IDs para evitar subquerys dentro del mismo DELETE
+        equipo_ids = list(
+            EquipoMonitoreo.objects.filter(id_edificio=edificio).values_list(
+                "id_equipo_monitoreo", flat=True
+            )
+        )
+        sensor_ids = list(
+            EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipo_ids).values_list(
+                "id_equipo_sensor", flat=True
+            )
+        )
+        status_ids = list(
+            StatusEquipoMonitoreo.objects.filter(
+                id_equipo_monitoreo__in=equipo_ids
+            ).values_list("id_status_equipo_monitoreo", flat=True)
         )
 
         # Delete HistoricoFalla records that reference our sensors or equipment statuses
         HistoricoFalla.objects.filter(
-            Q(id_equipo_sensor__in=sensores)
-            | Q(id_status_equipo_monitoreo__in=status_equipos)
+            Q(id_equipo_sensor__in=sensor_ids)
+            | Q(id_status_equipo_monitoreo__in=status_ids)
         ).delete()
 
         # Delete the sensors
-        sensores.delete()
+        EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
 
         # Delete status records
-        status_equipos.delete()
+        StatusEquipoMonitoreo.objects.filter(
+            id_equipo_monitoreo__in=equipo_ids
+        ).delete()
 
         # Delete preventive actions
-        AccionPrev.objects.filter(id_equipo_monitoreo__in=equipos).delete()
+        AccionPrev.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
 
         # Delete notifications
-        Notificacion.objects.filter(id_equipo_monitoreo__in=equipos).delete()
+        Notificacion.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
 
         # Delete the monitoring equipment
-        equipos.delete()
+        EquipoMonitoreo.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
 
         # Delete user-building associations
         UsuarioEdificio.objects.filter(id_edificio=edificio).delete()
 
         # Finally, delete the building
         edificio.delete()
+
+        with connection.cursor() as cursor:
+            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
 
     messages.success(
         request, "Edificio y todos sus datos asociados fueron eliminados correctamente."
