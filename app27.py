@@ -55,7 +55,7 @@ try:
 
     django.setup()
     from django.utils import timezone
-    from core.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
+    from front.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
 
     DJANGO_CONNECTED = True
     logger.info("Django integrado correctamente en app27.py")

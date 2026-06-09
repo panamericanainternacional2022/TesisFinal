@@ -17,7 +17,7 @@ class AuthMiddleware:
         is_public = any(path.startswith(p) for p in public_paths if p)
         is_logged_in = request.session.get("usuario_id") is not None
         if is_logged_in:
-            from core.models import Usuario
+            from front.models import Usuario
 
             if not Usuario.objects.filter(
                 id_usuario=request.session.get("usuario_id")

@@ -14,7 +14,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.db import transaction
 from django.db.models import Q
 
-from core.models import (
+from front.models import (
     Usuario,
     Persona,
     Edificio,

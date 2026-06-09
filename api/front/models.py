@@ -67,6 +67,7 @@ class Usuario(models.Model):
         Persona, on_delete=models.CASCADE, db_column="id_persona"
     )
     rol = models.CharField(max_length=2, default="US")
+    registrado = models.BooleanField(default=False)
     alerts_disabled = models.BooleanField(default=False)
     alerts_disabled_until = models.FloatField(null=True, blank=True)  # Unix timestamp, None = indefinite
 
@@ -156,10 +157,11 @@ class AccionPrev(models.Model):
 class Notificacion(models.Model):
     id_notificacion = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey(
-        Usuario, on_delete=models.CASCADE, db_column="id_usuario"
+        Usuario, on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
     )
     id_equipo_monitoreo = models.ForeignKey(
-        EquipoMonitoreo, on_delete=models.CASCADE, db_column="id_equipo_monitoreo"
+        EquipoMonitoreo, on_delete=models.CASCADE, db_column="id_equipo_monitoreo",
+        blank=True, null=True,
     )
     fecha = models.DateTimeField()
     mensaje = models.TextField()
