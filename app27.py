@@ -43,15 +43,14 @@ logger = logging.getLogger(__name__)
 # Integración con Django para persistir alertas en la base de datos
 # ----------------------------------------------------------------------
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "api"))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 DJANGO_CONNECTED = False
 try:
     import django
 
     django.setup()
     from django.utils import timezone
-    from api.front.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
+    from front.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
 
     DJANGO_CONNECTED = True
     logger.info("Django integrado correctamente en app27.py")
@@ -61,7 +60,7 @@ except Exception as e:
 # ----------------------------------------------------------------------
 # Configuración centralizada de sensores (fuente única de verdad)
 # ----------------------------------------------------------------------
-from api.front.sensor_config import (
+from front.sensor_config import (
     VAR_NAMES,
     UNITS,
     DEVICE_NAMES_ES,

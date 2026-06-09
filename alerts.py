@@ -28,7 +28,7 @@ from simulation import (
     reset_critical_values,
 )
 
-from api.front.sensor_config import (
+from front.sensor_config import (
     VAR_NAMES, UNITS, PUMP_VARS, ELEVATOR_VARS,
     RISK_NAMES_ES, DEVICE_NAMES_ES,
 )
