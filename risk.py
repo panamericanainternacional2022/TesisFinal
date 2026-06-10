@@ -5,7 +5,7 @@ según umbrales configurables.
 """
 
 from front.sensor_config import NO_RISK_VARS
-from settings import thresholds
+from thresholds import thresholds
 
 
 def classify_risk(variable, value):

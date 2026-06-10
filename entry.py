@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Sistema PCLogo - Monitoreo Avanzado con Gráficos de Barras y Alertas Reales
-Ejecutar: python app.py
+Punto de entrada del sistema PCLogo.
+Inicializa Django, carga .env, crea la app Flask/SocketIO y arranca el loop.
+Ejecutar: python entry.py
 """
 
 import os
@@ -36,13 +37,13 @@ try:
     from front.models import Notificacion, EquipoMonitoreo, Edificio, Usuario, UsuarioEdificio
 
     DJANGO_CONNECTED = True
-    logger.info("Django integrado correctamente en app27.py")
+    logger.info("Django integrado correctamente en entry.py")
 except Exception as e:
-    logger.warning("No se pudo inicializar Django desde app27.py: %s", e)
+    logger.warning("No se pudo inicializar Django desde entry.py: %s", e)
 
 # ----------------------------------------------------------------------
 # Estado del simulador (importado desde simulation.py)
-# Expuesto en el namespace de app27 para que engine.py pueda sincronizarlo.
+# Expuesto en el namespace de entry para que engine.py pueda sincronizarlo.
 # ----------------------------------------------------------------------
 from simulation import (
     BuildingSimulator, simulators,

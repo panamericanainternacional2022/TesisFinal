@@ -21,7 +21,7 @@ from alerts import (
     send_alert, get_professional_action, check_rationing, update_protection_state,
 )
 import simulation as _sim_mod
-import app27
+import entry
 
 logger = logging.getLogger(__name__)
 
@@ -39,9 +39,9 @@ def _run_sim_tick(sim: BuildingSimulator):
     global door_close_attempts, history, alert_log, pending_notifications
     global last_email_sent_time
 
-    _saved_active = app27.active_edificio_id
+    _saved_active = entry.active_edificio_id
 
-    app27.active_edificio_id = sim.edificio_id
+    entry.active_edificio_id = sim.edificio_id
     sensor_data              = sim.sensor_data
     pump_on                  = sim.pump_on
     elevator_on              = sim.elevator_on
@@ -66,17 +66,17 @@ def _run_sim_tick(sim: BuildingSimulator):
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
 
-    app27.sensor_data              = sim.sensor_data
-    app27.pump_on                  = sim.pump_on
-    app27.elevator_on              = sim.elevator_on
-    app27.equipment_types          = sim.equipment_types
-    app27.protection_ends          = sim.protection_ends
-    app27.active_alerts            = sim.active_alerts
-    app27.door_close_attempts      = sim.door_close_attempts
-    app27.history                  = sim.history
-    app27.alert_log                = sim.alert_log
-    app27.pending_notifications    = sim.pending_notifications
-    app27.last_email_sent_time     = sim.last_email_sent_time
+    entry.sensor_data              = sim.sensor_data
+    entry.pump_on                  = sim.pump_on
+    entry.elevator_on              = sim.elevator_on
+    entry.equipment_types          = sim.equipment_types
+    entry.protection_ends          = sim.protection_ends
+    entry.active_alerts            = sim.active_alerts
+    entry.door_close_attempts      = sim.door_close_attempts
+    entry.history                  = sim.history
+    entry.alert_log                = sim.alert_log
+    entry.pending_notifications    = sim.pending_notifications
+    entry.last_email_sent_time     = sim.last_email_sent_time
 
     update_protection_state()
     update_sensor_data()
@@ -130,7 +130,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     sim.door_close_attempts   = _sim_mod.door_close_attempts
     sim.last_email_sent_time  = last_email_sent_time
 
-    app27.active_edificio_id = _saved_active
+    entry.active_edificio_id = _saved_active
 
 
 def _sync_globals_to_sim(sim: BuildingSimulator):
@@ -162,17 +162,17 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
 
-    app27.sensor_data              = sim.sensor_data
-    app27.pump_on                  = sim.pump_on
-    app27.elevator_on              = sim.elevator_on
-    app27.equipment_types          = sim.equipment_types
-    app27.protection_ends          = sim.protection_ends
-    app27.active_alerts            = sim.active_alerts
-    app27.door_close_attempts      = sim.door_close_attempts
-    app27.history                  = sim.history
-    app27.alert_log                = sim.alert_log
-    app27.pending_notifications    = sim.pending_notifications
-    app27.last_email_sent_time     = sim.last_email_sent_time
+    entry.sensor_data              = sim.sensor_data
+    entry.pump_on                  = sim.pump_on
+    entry.elevator_on              = sim.elevator_on
+    entry.equipment_types          = sim.equipment_types
+    entry.protection_ends          = sim.protection_ends
+    entry.active_alerts            = sim.active_alerts
+    entry.door_close_attempts      = sim.door_close_attempts
+    entry.history                  = sim.history
+    entry.alert_log                = sim.alert_log
+    entry.pending_notifications    = sim.pending_notifications
+    entry.last_email_sent_time     = sim.last_email_sent_time
 
 
 def generate_data_and_emit():
@@ -185,18 +185,18 @@ def generate_data_and_emit():
         for sim in list(simulators.values()):
             _run_sim_tick(sim)
 
-        active_sim = simulators.get(app27.active_edificio_id)
+        active_sim = simulators.get(entry.active_edificio_id)
         if active_sim:
             _sync_globals_to_sim(active_sim)
         else:
             equipment_types = set()
-            app27.equipment_types = set()
+            entry.equipment_types = set()
 
         payload = build_live_payload()
         if LOG_SIM:
             print(
-                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{app27.active_edificio_id}]: "
+                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{entry.active_edificio_id}]: "
                 f"pump_on={pump_on} elevator_on={elevator_on} protection_ends={protection_ends} "
                 f"edificios_activos={list(simulators.keys())}"
             )
-        app27.socketio.emit("sensor_update", payload)
+        entry.socketio.emit("sensor_update", payload)

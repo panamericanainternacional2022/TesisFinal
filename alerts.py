@@ -54,11 +54,11 @@ def _es_var(v):
 
 
 def get_building_emails(edificio_id=None):
-    from app27 import DJANGO_CONNECTED, active_edificio_id
+    from entry import DJANGO_CONNECTED, active_edificio_id
     if not DJANGO_CONNECTED:
         return []
     try:
-        from app27 import EquipoMonitoreo, Edificio, UsuarioEdificio
+        from entry import EquipoMonitoreo, Edificio, UsuarioEdificio
         if not edificio_id:
             if active_edificio_id:
                 edificio_id = active_edificio_id
@@ -389,11 +389,11 @@ def send_email_alert(
 
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action):
-    from app27 import DJANGO_CONNECTED
+    from entry import DJANGO_CONNECTED
     if not DJANGO_CONNECTED:
         return
     try:
-        from app27 import active_edificio_id, EquipoMonitoreo, Usuario, Notificacion, timezone
+        from entry import active_edificio_id, EquipoMonitoreo, Usuario, Notificacion, timezone
         from front.sensor_config import PUMP_VARS, ELEVATOR_VARS
 
         # Determinar qué tipo de equipo generó la alerta según la variable
@@ -464,7 +464,7 @@ def enter_protection_mode(reason=None, targets=None):
     }
     alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
-    from app27 import alert_enabled
+    from entry import alert_enabled
     if alert_enabled:
         persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg)
 
@@ -495,7 +495,7 @@ Este es un mensaje de contingencia generado de forma automatica por el modulo de
             target=send_email_alert, args=("Crítico", subject, body), daemon=True
         ).start()
     try:
-        from app27 import socketio
+        from entry import socketio
         socketio.emit("notification", notification_payload, broadcast=True)
     except Exception:
         pass
@@ -525,7 +525,7 @@ def update_protection_state():
             pass
         del protection_ends[device]
         logger.info("✅ Protección finalizada para %s. Dispositivo restaurado.", device)
-        from app27 import alert_enabled
+        from entry import alert_enabled
         if alert_enabled:
             persist_notification_in_django(
                 f"protection_{device}",
@@ -543,7 +543,7 @@ def update_protection_state():
         alert_log.insert(0, notification_payload)
         pending_notifications.append(notification_payload)
         try:
-            from app27 import socketio
+            from entry import socketio
             socketio.emit("notification", notification_payload, broadcast=True)
         except Exception:
             pass
@@ -551,7 +551,7 @@ def update_protection_state():
 
 def send_alert(variable, value, risk_level, recommended_action):
     global active_alerts, last_email_sent_time
-    from app27 import alert_enabled
+    from entry import alert_enabled
     if not alert_enabled:
         logger.info("Alertas desactivadas por el usuario")
         return
@@ -621,7 +621,7 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
     pending_notifications.append(notification_payload)
     persist_notification_in_django(variable, value, risk_level, recommended_action)
     try:
-        from app27 import socketio
+        from entry import socketio
         socketio.emit("notification", notification_payload, broadcast=True)
     except Exception:
         pass

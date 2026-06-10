@@ -15,7 +15,7 @@ from flask_socketio import emit
 from front.sensor_config import (
     VAR_NAMES, UNITS, STATS_VARS, PUMP_VARS, ELEVATOR_VARS, NO_RISK_VARS,
 )
-from settings import thresholds
+from thresholds import thresholds
 from risk import classify_risk
 from alerts import (
     send_alert, get_professional_action, generate_recommendations,
@@ -25,7 +25,7 @@ from payload import build_live_payload
 from pdf_report import generate_pdf_report
 from engine import _sync_globals_to_sim, _run_sim_tick
 
-import app27
+import entry
 import simulation
 
 logger = logging.getLogger(__name__)
@@ -85,7 +85,7 @@ def register_routes(app, socketio):
     # ------------------------------------------------------------------
     @app.route("/api/notifications")
     def api_notifications():
-        if not app27.DJANGO_CONNECTED:
+        if not entry.DJANGO_CONNECTED:
             return jsonify({"error": "Django no está disponible"}), 500
         try:
             from front.models import Notificacion
@@ -130,7 +130,7 @@ def register_routes(app, socketio):
     @app.route("/clear_alerts", methods=["POST"])
     def clear_alerts():
         simulation.alert_log.clear()
-        if app27.DJANGO_CONNECTED:
+        if entry.DJANGO_CONNECTED:
             try:
                 from front.models import EquipoMonitoreo, Notificacion
                 equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
@@ -150,9 +150,9 @@ def register_routes(app, socketio):
     def toggle_alerts():
         try:
             data = request.get_json(force=True, silent=True) or {}
-            app27.alert_enabled = bool(data.get("enabled", True))
-            logger.info("alert_enabled cambiado a: %s", app27.alert_enabled)
-            return jsonify({"status": "ok", "alert_enabled": app27.alert_enabled})
+            entry.alert_enabled = bool(data.get("enabled", True))
+            logger.info("alert_enabled cambiado a: %s", entry.alert_enabled)
+            return jsonify({"status": "ok", "alert_enabled": entry.alert_enabled})
         except Exception as e:
             logger.error("Error en /toggle_alerts: %s", e)
             return jsonify({"status": "error", "message": str(e)}), 400
@@ -162,8 +162,8 @@ def register_routes(app, socketio):
     # ------------------------------------------------------------------
     @app.route("/api/set_active_building/<int:edificio_id>", methods=["POST"])
     def api_set_active_building(edificio_id):
-        app27.active_edificio_id = edificio_id
-        logger.info(f"Edificio activo cambiado a: {app27.active_edificio_id}")
+        entry.active_edificio_id = edificio_id
+        logger.info(f"Edificio activo cambiado a: {entry.active_edificio_id}")
         new_sim = simulation.simulators.get(edificio_id)
         if new_sim:
             _sync_globals_to_sim(new_sim)
@@ -173,17 +173,17 @@ def register_routes(app, socketio):
             simulation.equipment_types = set()
             simulation.pump_on = False
             simulation.elevator_on = False
-            app27.equipment_types = set()
-            app27.pump_on = False
-            app27.elevator_on = False
-        return jsonify({"status": "ok", "active_edificio_id": app27.active_edificio_id, "simuladores": list(simulation.simulators.keys())})
+            entry.equipment_types = set()
+            entry.pump_on = False
+            entry.elevator_on = False
+        return jsonify({"status": "ok", "active_edificio_id": entry.active_edificio_id, "simuladores": list(simulation.simulators.keys())})
 
     # ------------------------------------------------------------------
     # Listar edificios desde Django
     # ------------------------------------------------------------------
     @app.route("/api/edificios", methods=["GET"])
     def api_edificios():
-        if not app27.DJANGO_CONNECTED:
+        if not entry.DJANGO_CONNECTED:
             return jsonify([{"id": 1, "nombre": "Edificio Simulado (Sin DB)"}])
         try:
             from front.models import Edificio
@@ -202,7 +202,7 @@ def register_routes(app, socketio):
     # ------------------------------------------------------------------
     @app.route("/api/usuarios_edificio/<int:edificio_id>", methods=["GET"])
     def api_usuarios_edificio(edificio_id):
-        if not app27.DJANGO_CONNECTED:
+        if not entry.DJANGO_CONNECTED:
             return jsonify([])
         try:
             from front.models import UsuarioEdificio
@@ -284,7 +284,6 @@ def register_routes(app, socketio):
         from simulation import (
             sensor_data, history, door_close_attempts, RATIONING_THRESHOLD,
         )
-        from settings import thresholds
 
         data = request.json
         variable = data.get("variable")
@@ -311,7 +310,7 @@ def register_routes(app, socketio):
             if variable != "motor_stuck"
             else ("Crítico" if sensor_data[variable] else "Bajo")
         )
-        if risk in ("Alto", "Crítico") and app27.alert_enabled:
+        if risk in ("Alto", "Crítico") and entry.alert_enabled:
             action = get_professional_action(variable, risk, sensor_data[variable])
             send_alert(
                 variable,
@@ -353,7 +352,7 @@ def register_routes(app, socketio):
                 "current": sensor_data,
                 "history": history,
                 "thresholds": thresholds,
-                "alert_enabled": app27.alert_enabled,
+                "alert_enabled": entry.alert_enabled,
                 "alert_log": simulation.alert_log[:50],
                 "rationing": sensor_data["flow_rate"] < RATIONING_THRESHOLD,
                 "door_close_attempts": door_close_attempts,

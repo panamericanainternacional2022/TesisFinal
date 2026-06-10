@@ -23,8 +23,8 @@ def build_live_payload():
         RATIONING_THRESHOLD,
     )
     from alerts import generate_recommendations
-    from settings import thresholds
-    from app27 import alert_enabled, active_edificio_id, DJANGO_CONNECTED
+    from thresholds import thresholds
+    from entry import alert_enabled, active_edificio_id, DJANGO_CONNECTED
 
     stats = {}
     for var in STATS_VARS:

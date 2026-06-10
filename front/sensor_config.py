@@ -6,7 +6,7 @@ Para agregar una nueva variable al sistema en el futuro:
   2. Agrégala a UNITS con su unidad (o cadena vacía si no aplica).
   3. Si genera valores especiales (bool, enums), agrégala a VALUE_DISPLAY_ES.
   4. Si pertenece a un dispositivo, agrégala a PUMP_VARS o ELEVATOR_VARS.
-  5. En app27.py, agrega sus acciones en get_professional_action().
+  5. En entry.py, agrega sus acciones en get_professional_action().
    Eso es todo. Las listas de estadísticas se derivan automáticamente.
 """
 

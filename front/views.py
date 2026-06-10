@@ -342,7 +342,7 @@ def _send_activation_email(email, user_id, request):
     host = request.get_host()
     link = f"{protocol}://{host}/completar_registro/?token={token}"
 
-    # Cargar variables de entorno desde .env si existen (como en app27.py)
+    # Cargar variables de entorno desde .env si existen (como en entry.py)
     env_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
         ".env",
@@ -2403,9 +2403,9 @@ def simulador_start_view(request):
     if is_running:
         return JsonResponse({"status": "ok", "message": "El simulador ya está encendido."})
 
-    # Get absolute path to app27.py
+    # Get absolute path to entry.py
     api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    app27_path = os.path.join(api_dir, "app27.py")
+    app27_path = os.path.join(api_dir, "entry.py")
 
     if not os.path.exists(app27_path):
         return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
@@ -2496,7 +2496,7 @@ def simulador_restart_view(request):
     # 2. Start
     import sys
     api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    app27_path = os.path.join(api_dir, "app27.py")
+    app27_path = os.path.join(api_dir, "entry.py")
 
     if not os.path.exists(app27_path):
         return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."}) 
