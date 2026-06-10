@@ -394,13 +394,26 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
         return
     try:
         from app27 import active_edificio_id, EquipoMonitoreo, Usuario, Notificacion, timezone
+        from front.sensor_config import PUMP_VARS, ELEVATOR_VARS
 
-        _sim = simulators.get(active_edificio_id)
-        if _sim and _sim.equipo_id:
-            equipo = EquipoMonitoreo.objects.filter(id_equipo_monitoreo=_sim.equipo_id).first()
-        elif active_edificio_id:
-            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id).first()
+        # Determinar qué tipo de equipo generó la alerta según la variable
+        _tipo = None
+        if variable in PUMP_VARS or variable == "rationing":
+            _tipo = EquipoMonitoreo.TIPO_BOMBA
+        elif variable in ELEVATOR_VARS:
+            _tipo = EquipoMonitoreo.TIPO_ELEVADOR
+
+        if _tipo and active_edificio_id:
+            equipo = EquipoMonitoreo.objects.filter(
+                id_edificio_id=active_edificio_id, tipo=_tipo
+            ).first()
         else:
+            equipo = None
+
+        if not equipo and active_edificio_id:
+            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id).first()
+
+        if not equipo:
             equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
 
         usuario = (
@@ -413,12 +426,13 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
             "value": str(value) if value is not None else None,
             "action": recommended_action,
         }, ensure_ascii=False)
-        Notificacion.objects.create(
-            id_usuario=usuario,
-            id_equipo_monitoreo=equipo,
-            fecha=timezone.now(),
-            mensaje=mensaje_json,
-        )
+        if usuario:
+            Notificacion.objects.create(
+                id_usuario=usuario,
+                id_equipo_monitoreo=equipo,
+                fecha=timezone.now(),
+                mensaje=mensaje_json,
+            )
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)
 
