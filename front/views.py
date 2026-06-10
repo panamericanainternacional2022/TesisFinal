@@ -1164,7 +1164,7 @@ def notificaciones_view(request):
         elif value_str == "pump":
             value_display = "Bomba de agua"
         elif value_str == "elevator":
-            value_display = "Ascensor"
+            value_display = "Elevador"
         elif value_str in device_names_es:
             value_display = device_names_es[value_str].capitalize()
         elif value_str:
@@ -1633,7 +1633,7 @@ def _parse_notif_for_historial(notif):
         elif value_str == "pump":
             value_display = "Bomba de agua"
         elif value_str == "elevator":
-            value_display = "Ascensor"
+            value_display = "Elevador"
         elif value_str in device_names_es:
             value_display = device_names_es[value_str].capitalize()
         elif value_str:

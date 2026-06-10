@@ -612,7 +612,7 @@
                 </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
-                <div class="status-cell-label">Ascensor</div>
+                <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
                     <span id="elevatorStatus">ENCENDIDO</span>
                     <span id="elevatorStatusBadge" class="badge" style="margin-left: 5px; display: none;"></span>
@@ -625,10 +625,14 @@
         </div>
 
         <!-- Stats + Recomendaciones -->
-        <div class="grid-2" style="margin-bottom: var(--sp-3);">
+        <div class="grid-3" style="margin-bottom: var(--sp-3);">
             <div class="panel">
-                <h2 class="panel-title"><i class="fa-solid fa-chart-bar"></i> Estadísticas recientes</h2>
-                <div id="statsPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+                <h2 class="panel-title"><i class="fa-solid fa-oil-can"></i> Estadísticas de Bomba</h2>
+                <div id="statsBombaPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
+            </div>
+            <div class="panel">
+                <h2 class="panel-title"><i class="fa-solid fa-elevator"></i> Estadísticas de Elevador</h2>
+                <div id="statsElevadorPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
             </div>
             <div class="panel">
                 <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones</h2>
@@ -705,12 +709,12 @@
             <div class="sensor-cards-grid" id="bombaCards"></div>
         </div>
 
-        <!-- Tarjetas de sensores: Ascensor -->
-        <div id="ascensorSection" class="sensor-section">
+        <!-- Tarjetas de sensores: Elevador -->
+        <div id="elevadorSection" class="sensor-section">
             <div class="sensor-section-title">
-                <i class="fa-solid fa-elevator"></i> Sensores de Ascensor y Motor
+                <i class="fa-solid fa-elevator"></i> Sensores de Elevador y Motor
             </div>
-            <div class="sensor-cards-grid" id="ascensorCards"></div>
+            <div class="sensor-cards-grid" id="elevadorCards"></div>
         </div>
 
         <!-- Gráficos -->
@@ -723,7 +727,7 @@
                 <canvas id="chart1"></canvas>
             </div>
             <div id="chartElevatorPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Ascensor / Motor</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Elevador / Motor</div>
                 <canvas id="chart2"></canvas>
             </div>
         </div>
@@ -823,7 +827,7 @@
         /* Fuente de verdad: api/front/sensor_config.py */
         const NO_RISK_VARS = {{ no_risk_vars | tojson }};
         const BOMBA_VARS = {{ bomba_vars | tojson }};
-        const ASCENSOR_VARS = {{ ascensor_vars | tojson }};
+        const ELEVADOR_VARS = {{ elevador_vars | tojson }};
 
         function getVariableName(variable) {
             const names = {{ var_names | tojson }};
@@ -858,7 +862,7 @@
         }
 
         function updateCards(data){
-            let b=document.getElementById('bombaCards'), a=document.getElementById('ascensorCards');
+            let b=document.getElementById('bombaCards'), a=document.getElementById('elevadorCards');
             b.innerHTML=''; a.innerHTML='';
             for(let [k,v] of Object.entries(data)){
                 let ri = getRiskClass(k,v);
@@ -875,7 +879,7 @@
                         <span class="badge ${ri.badge}">${ri.label}</span>
                     </div>`;
                 if(BOMBA_VARS.includes(k)) b.appendChild(card);
-                else if(ASCENSOR_VARS.includes(k)) a.appendChild(card);
+                else if(ELEVADOR_VARS.includes(k)) a.appendChild(card);
             }
         }
 
@@ -974,15 +978,15 @@
             chart2.update();
         }
 
-        function updateStatsAndRecs(stats, recs, attempts){
-            let statsDiv=document.getElementById('statsPanel');
-            if(stats && Object.keys(stats).length){
-                let rows = Object.entries(stats).map(([k,v])=>
+        function renderStatsTable(entries, containerId){
+            const div = document.getElementById(containerId);
+            if(entries.length){
+                const rows = entries.map(([k,v])=>
                     `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${getVariableName(k).toUpperCase()}</td>`+
                     `<td style="padding:4px 8px;">${v.avg.toFixed(1)}</td>`+
                     `<td style="padding:4px 8px;">${v.min}</td>`+
                     `<td style="padding:4px 8px;">${v.max}</td></tr>`).join('');
-                statsDiv.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
+                div.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
                     <thead><tr>
                         <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Variable</th>
                         <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Prom.</th>
@@ -990,8 +994,14 @@
                         <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Máx.</th>
                     </tr></thead><tbody>${rows}</tbody></table>`;
             } else {
-                statsDiv.innerHTML='<p style="color:var(--color-text-secondary);">No hay datos.</p>';
+                div.innerHTML='<p style="color:var(--color-text-secondary);">No hay datos.</p>';
             }
+        }
+
+        function updateStatsAndRecs(stats, recs, attempts){
+            const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
+            renderStatsTable(entries.filter(([k])=>BOMBA_VARS.includes(k)), 'statsBombaPanel');
+            renderStatsTable(entries.filter(([k])=>ELEVADOR_VARS.includes(k)), 'statsElevadorPanel');
             let recDiv=document.getElementById('recommendationsPanel');
             if(recs&&recs.length){
                 recDiv.innerHTML='<ul style="padding-left:var(--sp-2); margin:0;">'+recs.map(r=>`<li style="margin-bottom:4px;">${r}</li>`).join('')+'</ul>';
@@ -1046,16 +1056,16 @@
 
         function populateManualSensorSelect(){
             let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
-            [...BOMBA_VARS,...ASCENSOR_VARS].forEach(v=>{
+            [...BOMBA_VARS,...ELEVADOR_VARS].forEach(v=>{
                 let opt=document.createElement('option'); opt.value=v;
-                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Ascensor: ')+getVariableName(v).toUpperCase();
+                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Elevador: ')+getVariableName(v).toUpperCase();
                 sel.appendChild(opt);
             });
         }
 
         function updateSensorTypeIndicator(){
             let v=document.getElementById('manualSensorSelect').value;
-            document.getElementById('sensorTypeIndicator').textContent=BOMBA_VARS.includes(v)?'Bomba / Eléctrico':'Ascensor / Motor';
+            document.getElementById('sensorTypeIndicator').textContent=BOMBA_VARS.includes(v)?'Bomba / Eléctrico':'Elevador / Motor';
         }
 
         function updateManualRiskPreview(){
@@ -1283,7 +1293,7 @@
                 const el = document.getElementById(id);
                 if (el) el.style.display = hasPump ? '' : 'none';
             });
-            ['elevatorStatusRow','ascensorSection','chartElevatorPanel'].forEach(id => {
+            ['elevatorStatusRow','elevadorSection','chartElevatorPanel'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = hasElev ? '' : 'none';
             });

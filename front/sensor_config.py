@@ -20,7 +20,7 @@ VAR_NAMES = {
     "tank_level":   "Nivel de tanque",
     "voltage":      "Voltaje",
     "current":      "Corriente",
-    # Ascensor
+    # Elevador
     "speed":        "Velocidad",
     "load":         "Carga",
     "energy":       "Consumo eléctrico",
@@ -67,7 +67,7 @@ RISK_NAMES_ES = {
 # ─── Nombres de dispositivos en español ───────────────────────────────────
 DEVICE_NAMES_ES = {
     "pump":       "bomba de agua",
-    "elevator":   "ascensor",
+    "elevator":   "elevador",
     "motor":      "motor",
     "fan":        "ventilador",
     "compressor": "compresor",
@@ -101,11 +101,11 @@ ELEVATOR_VARS = [
 ]
 
 # ─── Listas derivadas (sin redundancia de nombres) ────────────────────────
-# Variables numéricas de ascensor útiles para estadísticas
+# Variables numéricas de elevador útiles para estadísticas
 _ELEVATOR_NUMERIC = [v for v in ELEVATOR_VARS if v not in NO_RISK_VARS]
 
-# Estadísticas de la UI en vivo: variables de bomba + carga
-STATS_VARS = PUMP_VARS + ["load"]
+# Estadísticas de la UI en vivo: todas las variables numéricas de ambos dispositivos
+STATS_VARS = PUMP_VARS + _ELEVATOR_NUMERIC
 
 # Tabla de estadísticas del PDF: todas las variables numéricas de ambos dispositivos
 PDF_STATS_VARS = PUMP_VARS + _ELEVATOR_NUMERIC

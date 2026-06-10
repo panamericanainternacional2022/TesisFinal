@@ -44,7 +44,7 @@ DEFAULT_SENSOR_DATA = {
 
 # ----------------------------------------------------------------------
 # Simulador por edificio: cada BuildingSimulator tiene su propio estado
-# independiente de sensores, bomba, ascensor, protecciones y alertas.
+# independiente de sensores, bomba, elevador, protecciones y alertas.
 # El patrón "state-swap" permite reutilizar las funciones globales
 # existentes sin modificarlas: antes de cada tick se redirigen los
 # globales al simulador correcto y se restauran al terminar.

@@ -301,7 +301,7 @@ function renderLiveMonitor(data) {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
         return renderCard(sensor.id, value, sensor.riesgo || 'Desconocido', sensor.nombre);
     }).join('');
-    const ascensorCards = sensors.filter(s => !isBombaVariable(s.id)).map(sensor => {
+    const elevadorCards = sensors.filter(s => !isBombaVariable(s.id)).map(sensor => {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
         const risk = sensor.id === 'motor_stuck'
             ? (sensor.valor ? 'Crítico' : 'Bajo')
@@ -310,7 +310,7 @@ function renderLiveMonitor(data) {
     }).join('');
 
     document.getElementById('bombaCards').innerHTML = bombaCards;
-    document.getElementById('ascensorCards').innerHTML = ascensorCards;
+    document.getElementById('elevadorCards').innerHTML = elevadorCards;
 
     // Ocultar secciones de equipos que no existen
     const toggleDisplay = (id, show) => {
@@ -318,7 +318,7 @@ function renderLiveMonitor(data) {
         if (el) el.style.display = show ? '' : 'none';
     };
     toggleDisplay('bombaSection', hasPump);
-    toggleDisplay('ascensorSection', hasElevator);
+    toggleDisplay('elevadorSection', hasElevator);
     toggleDisplay('summaryPumpRow', hasPump);
     toggleDisplay('summaryElevatorRow', hasElevator);
     toggleDisplay('chartPumpPanel', hasPump);

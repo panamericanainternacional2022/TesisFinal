@@ -105,7 +105,7 @@ def generate_recommendations(data, stats=None):
     elif data["tank_level"] < 30:
         recs.append("Nivel de tanque bajo.")
     if data["load"] > 800:
-        recs.append("Sobrepeso en ascensor (>800 kg). Reducir carga.")
+        recs.append("Sobrepeso en elevador (>800 kg). Reducir carga.")
     if data["voltage"] < 200 or data["voltage"] > 240:
         recs.append("Inestabilidad eléctrica. Revisar suministro.")
     if data["current"] > 45:
@@ -163,16 +163,16 @@ def get_professional_action(variable, risk_level, value):
             "Crítico": "Nivel de tanque crítico. Riesgo de cavitación de la bomba. Detener succión y rellenar tanque urgentemente."
         },
         "speed": {
-            "Bajo": "Velocidad de ascensor normal.",
+            "Bajo": "Velocidad de elevador normal.",
             "Medio": "Velocidad moderadamente elevada. Monitorear variador de frecuencia.",
-            "Alto": "Velocidad de ascensor por encima del límite de viaje seguro. Programar revisión de variador de frecuencia.",
+            "Alto": "Velocidad de elevador por encima del límite de viaje seguro. Programar revisión de variador de frecuencia.",
             "Crítico": "Exceso de velocidad crítico. Frenado de emergencia activado. Inspección técnica de seguridad obligatoria."
         },
         "load": {
             "Bajo": "Carga de cabina normal.",
             "Medio": "Carga moderada en cabina. Vigilar comportamiento del motor.",
             "Alto": "Carga de cabina cercana al límite de diseño. Monitorear comportamiento de motor.",
-            "Crítico": "Sobrecarga en cabina de ascensor. Desalojar exceso de peso para reanudar operación."
+            "Crítico": "Sobrecarga en cabina de elevador. Desalojar exceso de peso para reanudar operación."
         },
         "energy": {
             "Bajo": "Consumo de energía normal.",
@@ -193,19 +193,19 @@ def get_professional_action(variable, risk_level, value):
             "Crítico": "Amperaje crítico (sobrecarga eléctrica). Apagado automático de protección activo."
         },
         "motor_stuck": {
-            "Crítico": "Eje del motor del ascensor trabado/bloqueado. Detener cabina y realizar liberación de emergencia de pasajeros."
+            "Crítico": "Eje del motor del elevador trabado/bloqueado. Detener cabina y realizar liberación de emergencia de pasajeros."
         },
         "trip_count": {
             "Bajo": "Conteo de viajes dentro del rango normal.",
             "Medio": "Conteo de viajes elevado. Programar inspección de sistema de tracción próximamente.",
-            "Alto": "Conteo de viajes alto. Revisar desgaste de componentes mecánicos del ascensor.",
+            "Alto": "Conteo de viajes alto. Revisar desgaste de componentes mecánicos del elevador.",
             "Crítico": "Conteo de viajes crítico. Inspección técnica obligatoria antes de continuar operación."
         },
         "position": {
-            "Bajo": "Posición del ascensor dentro del rango normal de operación.",
-            "Medio": "Posición del ascensor en zona de precaución. Monitorear desplazamiento.",
-            "Alto": "Posición del ascensor fuera del rango seguro. Revisar sistema de límites.",
-            "Crítico": "Posición crítica detectada. Detener ascensor y revisar sistema de guías."
+            "Bajo": "Posición del elevador dentro del rango normal de operación.",
+            "Medio": "Posición del elevador en zona de precaución. Monitorear desplazamiento.",
+            "Alto": "Posición del elevador fuera del rango seguro. Revisar sistema de límites.",
+            "Crítico": "Posición crítica detectada. Detener elevador y revisar sistema de guías."
         },
         "door_status": {
             "Bajo": "Estado de puerta normal.",

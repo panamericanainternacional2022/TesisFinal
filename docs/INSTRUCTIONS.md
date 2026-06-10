@@ -16,7 +16,7 @@ Si durante la ronda de preguntas o demostración los profesores quieren ver cóm
      ```python
      if "pump" not in protection_ends and pump_on and random.random() < 0.001:
      ```
-   * **Ascensor:**
+   * **Elevador:**
      ```python
      if "elevator" not in protection_ends and elevator_on and random.random() < 0.001:
      ```

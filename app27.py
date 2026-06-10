@@ -400,7 +400,7 @@ def _run_sim_tick(sim: BuildingSimulator):
             classify_risk(var, value) if var != "motor_stuck"
             else ("Crítico" if value else "Bajo", "red" if value else "green")
         )
-        sensor_type = "Bomba" if var in PUMP_VARS else "Ascensor"
+        sensor_type = "Bomba" if var in PUMP_VARS else "Elevador"
         new_readings.append({"timestamp": timestamp, "type": sensor_type, "variable": var, "value": value, "risk": risk, "color": color})
     history.extend(new_readings)
     if len(history) > MAX_HISTORY_SIZE:
@@ -885,7 +885,7 @@ def index():
     return render_template("monitoreo_dashboard.html",
         no_risk_vars=NO_RISK_VARS,
         bomba_vars=PUMP_VARS,
-        ascensor_vars=ELEVATOR_VARS,
+        elevador_vars=ELEVATOR_VARS,
         var_names=VAR_NAMES,
         units=UNITS)
 
@@ -1134,7 +1134,7 @@ def manual_update():
             f"Valor manual ({sensor_data[variable]}): {action}",
         )
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    sensor_type = "Bomba" if variable in PUMP_VARS else "Ascensor"
+    sensor_type = "Bomba" if variable in PUMP_VARS else "Elevador"
     history.append(
         {
             "timestamp": timestamp,
