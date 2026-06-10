@@ -2405,8 +2405,7 @@ def simulador_start_view(request):
 
     # Get absolute path to app27.py
     api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    parent_dir = os.path.dirname(api_dir)
-    app27_path = os.path.join(parent_dir, "app27.py")
+    app27_path = os.path.join(api_dir, "app27.py")
 
     if not os.path.exists(app27_path):
         return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
@@ -2497,12 +2496,10 @@ def simulador_restart_view(request):
     # 2. Start
     import sys
     api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    parent_dir = os.path.dirname(api_dir)
-    app27_path = os.path.join(parent_dir, "app27.py")
+    app27_path = os.path.join(api_dir, "app27.py")
 
     if not os.path.exists(app27_path):
-        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
-
+        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."}) 
     try:
         python_exe = sys.executable
         if python_exe.lower().endswith("python.exe"):
