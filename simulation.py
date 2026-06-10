@@ -54,7 +54,7 @@ class BuildingSimulator:
     def __init__(self, edificio_id: int, nombre: str, equipment_types: set = None):
         self.edificio_id = edificio_id
         self.nombre      = nombre
-        self.equipment_types = equipment_types or {"bomba"}
+        self.equipment_types = equipment_types or set()
         self.sensor_data = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
         self.has_pump     = "bomba" in self.equipment_types
         self.has_elevator = "elevador" in self.equipment_types
@@ -77,9 +77,9 @@ simulators: dict = {}
 
 # Variables globales de estado que apuntan al simulador activo.
 sensor_data      = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
-pump_on          = True
-elevator_on      = True
-equipment_types  = {"bomba"}
+pump_on          = False
+elevator_on      = False
+equipment_types  = set()
 protection_ends  = {}
 active_alerts    = {}
 door_close_attempts = 0

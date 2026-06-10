@@ -450,6 +450,7 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
 
 
 def generate_data_and_emit():
+    global equipment_types
     while True:
         eventlet.sleep(5)
 
@@ -462,6 +463,9 @@ def generate_data_and_emit():
         active_sim = simulators.get(active_edificio_id)
         if active_sim:
             _sync_globals_to_sim(active_sim)
+        else:
+            # Edificio sin equipos: asignar set vacío para que no herede datos de otro simulador
+            equipment_types = set()
 
         payload = build_live_payload()
         if LOG_SIM:
@@ -987,7 +991,7 @@ def toggle_alerts():
 
 @app.route("/api/set_active_building/<int:edificio_id>", methods=["POST"])
 def api_set_active_building(edificio_id):
-    global active_edificio_id
+    global active_edificio_id, equipment_types, pump_on, elevator_on
     active_edificio_id = edificio_id
     logger.info(f"Edificio activo cambiado a: {active_edificio_id}")
     # Sincronizar globales al nuevo simulador activo de inmediato
@@ -997,7 +1001,12 @@ def api_set_active_building(edificio_id):
         _sync_globals_to_sim(new_sim)
         logger.info(f"Globales sincronizados al simulador: {new_sim}")
     else:
-        logger.warning(f"No existe simulador para edificio_id={edificio_id}. Se creará en el próximo ciclo si existe en la BD.")
+        # Si el edificio no tiene equipos, limpiar equipment_types para
+        # que build_live_payload() responda sin datos de sensores
+        logger.warning(f"No existe simulador para edificio_id={edificio_id} (sin equipos). Limpiando equipment_types.")
+        equipment_types = set()
+        pump_on = False
+        elevator_on = False
     return jsonify({"status": "ok", "active_edificio_id": active_edificio_id, "simuladores": list(simulators.keys())})
 
 
