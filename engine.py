@@ -66,6 +66,18 @@ def _run_sim_tick(sim: BuildingSimulator):
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
 
+    app27.sensor_data              = sim.sensor_data
+    app27.pump_on                  = sim.pump_on
+    app27.elevator_on              = sim.elevator_on
+    app27.equipment_types          = sim.equipment_types
+    app27.protection_ends          = sim.protection_ends
+    app27.active_alerts            = sim.active_alerts
+    app27.door_close_attempts      = sim.door_close_attempts
+    app27.history                  = sim.history
+    app27.alert_log                = sim.alert_log
+    app27.pending_notifications    = sim.pending_notifications
+    app27.last_email_sent_time     = sim.last_email_sent_time
+
     update_protection_state()
     update_sensor_data()
 
@@ -150,6 +162,18 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
 
+    app27.sensor_data              = sim.sensor_data
+    app27.pump_on                  = sim.pump_on
+    app27.elevator_on              = sim.elevator_on
+    app27.equipment_types          = sim.equipment_types
+    app27.protection_ends          = sim.protection_ends
+    app27.active_alerts            = sim.active_alerts
+    app27.door_close_attempts      = sim.door_close_attempts
+    app27.history                  = sim.history
+    app27.alert_log                = sim.alert_log
+    app27.pending_notifications    = sim.pending_notifications
+    app27.last_email_sent_time     = sim.last_email_sent_time
+
 
 def generate_data_and_emit():
     from payload import build_live_payload
@@ -166,6 +190,7 @@ def generate_data_and_emit():
             _sync_globals_to_sim(active_sim)
         else:
             equipment_types = set()
+            app27.equipment_types = set()
 
         payload = build_live_payload()
         if LOG_SIM:
