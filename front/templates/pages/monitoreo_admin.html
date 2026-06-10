@@ -270,6 +270,11 @@
                             <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
                             <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento.</p>
                         </div>
+                        <div id="iframeNoEquipment" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
+                            <i class="fa-solid fa-building-circle-xmark" style="font-size: 3rem; color: var(--color-text-secondary); margin-bottom: var(--sp-2); opacity: 0.5;"></i>
+                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Edificio sin equipos de monitoreo</h3>
+                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo activo. No hay sensores de bomba de agua ni de ascensor para simular o mostrar en el dashboard.</p>
+                        </div>
                         <iframe id="adminMonitorFrame" src="" style="display: none;" title="Dashboard Administrativo PCLogo"></iframe>
                     </div>
                 </div>
@@ -285,6 +290,30 @@
         let isTransitioning = false;
         const btnRestart = document.getElementById('btnRestartSimulator');
         const hasEdificios = {% if edificios %}true{% else %}false{% endif %};
+        let buildingsEquipment = {};
+
+        async function fetchBuildingsEquipment() {
+            try {
+                const resp = await fetch('http://127.0.0.1:5000/api/edificios');
+                const buildings = await resp.json();
+                buildings.forEach(b => {
+                    buildingsEquipment[b.id] = b.equipos && b.equipos.length > 0;
+                });
+            } catch (e) {
+                console.error('Error fetching building equipment:', e);
+            }
+        }
+
+        function getSelectedBuildingId() {
+            const sel = document.getElementById('buildingSelect');
+            if (!sel || !sel.value) return null;
+            return parseInt(sel.value);
+        }
+
+        function selectedBuildingHasEquipment() {
+            const id = getSelectedBuildingId();
+            return id ? !!buildingsEquipment[id] : false;
+        }
 
         function selectBuilding(buildingId, name, targetUrl){
             const btnToggle = document.getElementById('btnToggleSimulator');
@@ -297,7 +326,8 @@
             }
             currentMonitorUrl = targetUrl || null;
             if (btnToggle) btnToggle.disabled = false;
-            if (targetUrl && isSimulatorOnline) {
+            const hasEquip = selectedBuildingHasEquipment();
+            if (targetUrl && isSimulatorOnline && hasEquip) {
                 if (buildingFrame.src && buildingFrame.src.includes(':5000')) {
                     buildingFrame.contentWindow.postMessage({
                         type: 'CHANGE_BUILDING',
@@ -309,12 +339,15 @@
                 }
             }
             if (selectedText) {
-                selectedText.textContent = `Monitoreando edificio: ${name}`;
+                selectedText.textContent = hasEquip
+                    ? `Monitoreando edificio: ${name}`
+                    : `${name} (sin equipos de monitoreo)`;
             }
             if (openMonitorButton) {
                 openMonitorButton.disabled = !currentMonitorUrl;
             }
             localStorage.setItem('selectedBuildingId', buildingId);
+            updateDashboardDisplay();
         }
 
         function selectBuildingFromSelect(sel) {
@@ -327,6 +360,31 @@
             if (currentMonitorUrl) {
                 window.open(currentMonitorUrl, '_blank');
             }
+        }
+
+        function updateDashboardDisplay() {
+            const loadingEl = document.getElementById('iframeLoading');
+            const fallbackEl = document.getElementById('iframeFallback');
+            const noEquipEl = document.getElementById('iframeNoEquipment');
+            const frame = document.getElementById('adminMonitorFrame');
+
+            loadingEl.style.display = 'none';
+            fallbackEl.style.display = 'none';
+            noEquipEl.style.display = 'none';
+            frame.style.display = 'none';
+
+            if (!isSimulatorOnline) {
+                fallbackEl.style.display = 'flex';
+                return;
+            }
+
+            const hasEquip = selectedBuildingHasEquipment();
+            if (!hasEquip) {
+                noEquipEl.style.display = 'flex';
+                return;
+            }
+
+            frame.style.display = 'block';
         }
 
         async function checkSimulatorStatus() {
@@ -344,10 +402,7 @@
                     btnToggle.disabled = true;
                     btnRestart.disabled = true;
                     if (selectedText) selectedText.textContent = 'No hay edificios registrados.';
-                    document.getElementById('iframeLoading').style.display = 'none';
-                    document.getElementById('iframeFallback').style.display = 'flex';
-                    buildingFrame.style.display = 'none';
-                    buildingFrame.removeAttribute('src');
+                    updateDashboardDisplay();
                     return;
                 }
                 
@@ -361,10 +416,8 @@
                     btnToggle.style.borderColor = '#0a0a0a';
                     btnRestart.disabled = false;
                     
-                    document.getElementById('iframeLoading').style.display = 'none';
-                    document.getElementById('iframeFallback').style.display = 'none';
-                    buildingFrame.style.display = 'block';
-                    if ((!buildingFrame.src || !buildingFrame.src.includes(':5000')) && currentMonitorUrl) {
+                    const hasEquip = selectedBuildingHasEquipment();
+                    if (hasEquip && (!buildingFrame.src || !buildingFrame.src.includes(':5000')) && currentMonitorUrl) {
                         buildingFrame.src = currentMonitorUrl;
                     }
                 } else {
@@ -376,14 +429,12 @@
                     btnToggle.style.borderColor = 'var(--color-ink)';
                     btnRestart.disabled = true;
                     
-                    document.getElementById('iframeLoading').style.display = 'none';
-                    document.getElementById('iframeFallback').style.display = 'flex';
-                    buildingFrame.style.display = 'none';
                     buildingFrame.removeAttribute('src');
                 }
                 if (!currentMonitorUrl) {
                     btnToggle.disabled = true;
                 }
+                updateDashboardDisplay();
             } catch (error) {
                 console.error('Error checking simulator status:', error);
             }
@@ -434,6 +485,7 @@
             // Show loading placeholder inside iframe container
             document.getElementById('iframeLoading').style.display = 'flex';
             document.getElementById('iframeFallback').style.display = 'none';
+            document.getElementById('iframeNoEquipment').style.display = 'none';
             buildingFrame.style.display = 'none';
             
             try {
@@ -470,6 +522,7 @@
             // Show loading placeholder inside iframe container
             document.getElementById('iframeLoading').style.display = 'flex';
             document.getElementById('iframeFallback').style.display = 'none';
+            document.getElementById('iframeNoEquipment').style.display = 'none';
             buildingFrame.style.display = 'none';
             
             try {
@@ -493,7 +546,9 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', ()=>{
+        document.addEventListener('DOMContentLoaded', async ()=>{
+            await fetchBuildingsEquipment();
+
             const sel = document.getElementById('buildingSelect');
             if (sel) {
                 const savedId = localStorage.getItem('selectedBuildingId');
@@ -522,12 +577,13 @@
                 btnRestart.disabled = true;
                 badge.textContent = 'SIN EDIFICIOS';
                 badge.className = 'badge badge-inactive';
-                document.getElementById('iframeFallback').style.display = 'flex';
-                document.getElementById('iframeLoading').style.display = 'none';
-                buildingFrame.style.display = 'none';
+                updateDashboardDisplay();
                 if (selectedText) selectedText.textContent = 'No hay edificios registrados.';
+                return;
             }
             checkSimulatorStatus();
+            // Update equipment cache periodically
+            setInterval(fetchBuildingsEquipment, 30000);
             setInterval(checkSimulatorStatus, 5000);
         });
     </script>

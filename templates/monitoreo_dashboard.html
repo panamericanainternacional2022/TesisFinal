@@ -593,22 +593,9 @@
             <span id="credsMsg"></span>
         </div>
 
-        <!-- Mensaje de Edificio sin Equipos -->
-        <div id="noEquipmentMessage" style="display: none; text-align: center; padding: var(--sp-5) var(--sp-4); margin-bottom: var(--sp-3);">
-            <div style="font-size: 56px; color: var(--color-text-secondary); margin-bottom: var(--sp-3); opacity: 0.5;">
-                <i class="fa-solid fa-building-circle-xmark"></i>
-            </div>
-            <h2 style="font-size: var(--text-xl); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: var(--tracking-wide); margin-bottom: var(--sp-2); color: var(--color-ink);">Edificio sin Equipos de Monitoreo</h2>
-            <p style="color: var(--color-text-secondary); max-width: 520px; margin: 0 auto var(--sp-3); font-size: var(--text-sm); line-height: 1.6;">
-                Este edificio no tiene configurado ningún equipo de monitoreo activo. No hay sensores de bomba de agua ni de ascensor para simular o mostrar en el dashboard.
-            </p>
-            <div style="display: inline-flex; align-items: center; gap: 8px; background: var(--color-surface); border: 2px solid var(--color-ink); padding: 10px 18px; font-size: var(--text-sm); font-weight: var(--weight-medium);">
-                <i class="fa-solid fa-circle-info" style="color: var(--color-text-secondary);"></i>
-                Asocie equipos a este edificio desde <a href="/front/admin/" style="color: var(--color-ink); text-decoration: underline;">el panel de administración</a>.
-            </div>
-        </div>
 
-        <!-- Contenedor de toda la telemetría (oculto si no hay equipos) -->
+
+        <!-- Contenedor de toda la telemetría -->
         <div id="dashboardContent">
 
         <!-- Estado del sistema -->
@@ -1289,16 +1276,9 @@
             updateBadge('pumpStatusBadge', data.pump_status);
             updateBadge('elevatorStatusBadge', data.elevator_status);
             // Ocultar secciones según equipamiento del edificio
-            const et = data.equipment_types || ['bomba', 'elevador'];
+            const et = data.equipment_types || [];
             const hasPump = et.includes('bomba');
             const hasElev = et.includes('elevador');
-            const hasAnyEquip = hasPump || hasElev;
-            // Mostrar placeholder si no hay ningún equipo
-            const noEquipEl = document.getElementById('noEquipmentMessage');
-            const dashContent = document.getElementById('dashboardContent');
-            if (noEquipEl) noEquipEl.style.display = hasAnyEquip ? 'none' : 'block';
-            if (dashContent) dashContent.style.display = hasAnyEquip ? '' : 'none';
-            if (!hasAnyEquip) return;
             ['pumpStatusRow','bombaSection','chartPumpPanel'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = hasPump ? '' : 'none';
