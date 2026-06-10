@@ -1,7 +1,6 @@
 import sys
 import os
 import django
-from django.utils import timezone
 
 # Add the project root directory to python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -18,13 +17,7 @@ from front.models import (  # noqa: E402
     Edificio,
     UsuarioEdificio,
     EquipoMonitoreo,
-    DisposSensor,
-    EquipoSensor,
-    Status,
-    StatusEquipoMonitoreo,
-    AccionPrev,
     Notificacion,
-    HistoricoFalla,
 )
 
 
@@ -32,18 +25,12 @@ def populate():
     print("Iniciando limpieza de la base de datos...")
     
     # Eliminar en orden inverso de dependencias para evitar errores de llave foránea
-    HistoricoFalla.objects.all().delete()
     Notificacion.objects.all().delete()
-    AccionPrev.objects.all().delete()
-    StatusEquipoMonitoreo.objects.all().delete()
-    EquipoSensor.objects.all().delete()
-    UsuarioEdificio.objects.all().delete()
-    Status.objects.all().delete()
-    DisposSensor.objects.all().delete()
     EquipoMonitoreo.objects.all().delete()
-    Edificio.objects.all().delete()
+    UsuarioEdificio.objects.all().delete()
     Usuario.objects.all().delete()
     Persona.objects.all().delete()
+    Edificio.objects.all().delete()
     
     print("Base de datos limpia.")
 
@@ -152,53 +139,6 @@ def populate():
     eq2_bomba, _ = EquipoMonitoreo.objects.get_or_create(
         id_edificio=e2, tipo=EquipoMonitoreo.TIPO_BOMBA,
         defaults={"nb_equipo": f"Bomba de agua - {e2.nb_edificio}"},
-    )
-
-    print("Creando Dispositivos Sensores...")
-    ds1, _ = DisposSensor.objects.get_or_create(
-        nb_sensor="Sensor de Temperatura", modelo_iot="TempIOT-01"
-    )
-    ds2, _ = DisposSensor.objects.get_or_create(
-        nb_sensor="Sensor de Voltaje", modelo_iot="VoltIOT-02"
-    )
-    ds3, _ = DisposSensor.objects.get_or_create(
-        nb_sensor="Sensor de Corriente", modelo_iot="CurrIOT-03"
-    )
-
-    print("Asociando Sensores a Equipos (EquipoSensor)...")
-    es1, _ = EquipoSensor.objects.get_or_create(
-        id_equipo_monitoreo=eq1_bomba,
-        id_dispos_sensor=ds1,
-        defaults={
-            "tipo_valor_capt": 35.5,
-            "fecha_hora_lect": timezone.now(),
-            "descripcion_falla": "Normal",
-        },
-    )
-    es2, _ = EquipoSensor.objects.get_or_create(
-        id_equipo_monitoreo=eq1_bomba,
-        id_dispos_sensor=ds2,
-        defaults={
-            "tipo_valor_capt": 220.0,
-            "fecha_hora_lect": timezone.now(),
-            "descripcion_falla": "Normal",
-        },
-    )
-
-    print("Creando Status...")
-    s1, _ = Status.objects.get_or_create(nb_status="Operativo")
-    s2, _ = Status.objects.get_or_create(nb_status="Falla")
-    s3, _ = Status.objects.get_or_create(nb_status="Mantenimiento")
-
-    print("Asignando Status a Equipos...")
-    sem1, _ = StatusEquipoMonitoreo.objects.get_or_create(
-        id_status=s1, id_equipo_monitoreo=eq1_bomba
-    )
-    sem2, _ = StatusEquipoMonitoreo.objects.get_or_create(
-        id_status=s1, id_equipo_monitoreo=eq2_bomba
-    )
-    sem3, _ = StatusEquipoMonitoreo.objects.get_or_create(
-        id_status=s1, id_equipo_monitoreo=eq1_elevador
     )
 
     print("¡Población de base de datos completada exitosamente!")

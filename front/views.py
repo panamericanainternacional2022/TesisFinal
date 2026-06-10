@@ -21,15 +21,13 @@ from front.models import (
     UsuarioEdificio,
     Notificacion,
     EquipoMonitoreo,
-    EquipoSensor,
-    StatusEquipoMonitoreo,
-    AccionPrev,
-    HistoricoFalla,
 )
 
 from front.sensor_config import (
     VAR_NAMES,
     UNITS,
+    PUMP_VARS,
+    ELEVATOR_VARS,
     RISK_NAMES_ES,
     DEVICE_NAMES_ES,
     VALUE_DISPLAY_ES,
@@ -1053,57 +1051,12 @@ def lista_edificios_view(request):
 def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
     with transaction.atomic():
-        # Desactivamos temporalmente las FK checks para evitar race conditions
-        # con app27.py, que crea notificaciones continuamente para los equipos.
         from django.db import connection
-
         with connection.cursor() as cursor:
             cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
 
-        # Materializamos los IDs para evitar subquerys dentro del mismo DELETE
-        equipo_ids = list(
-            EquipoMonitoreo.objects.filter(id_edificio=edificio).values_list(
-                "id_equipo_monitoreo", flat=True
-            )
-        )
-        sensor_ids = list(
-            EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipo_ids).values_list(
-                "id_equipo_sensor", flat=True
-            )
-        )
-        status_ids = list(
-            StatusEquipoMonitoreo.objects.filter(
-                id_equipo_monitoreo__in=equipo_ids
-            ).values_list("id_status_equipo_monitoreo", flat=True)
-        )
-
-        # Delete HistoricoFalla records that reference our sensors or equipment statuses
-        HistoricoFalla.objects.filter(
-            Q(id_equipo_sensor__in=sensor_ids)
-            | Q(id_status_equipo_monitoreo__in=status_ids)
-        ).delete()
-
-        # Delete the sensors
-        EquipoSensor.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
-
-        # Delete status records
-        StatusEquipoMonitoreo.objects.filter(
-            id_equipo_monitoreo__in=equipo_ids
-        ).delete()
-
-        # Delete preventive actions
-        AccionPrev.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
-
-        # Delete notifications
-        Notificacion.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
-
-        # Delete the monitoring equipment
-        EquipoMonitoreo.objects.filter(id_equipo_monitoreo__in=equipo_ids).delete()
-
-        # Delete user-building associations
-        UsuarioEdificio.objects.filter(id_edificio=edificio).delete()
-
-        # Finally, delete the building
+        # Las FK cascade se encargan de todo: Edificio → EquipoMonitoreo → Notificacion
+        # y Edificio → UsuarioEdificio
         edificio.delete()
 
         with connection.cursor() as cursor:
@@ -1425,25 +1378,18 @@ def monitoreo_view(request):
 
     data = []
     for eq in equipos:
-        ultimo_status = (
-            StatusEquipoMonitoreo.objects.filter(id_equipo_monitoreo=eq)
-            .select_related("id_status")
-            .order_by("-id_status_equipo_monitoreo")
-            .first()
-        )
-
-        sensores = EquipoSensor.objects.filter(id_equipo_monitoreo=eq).select_related(
-            "id_dispos_sensor"
-        )
+        vars_list = PUMP_VARS if eq.tipo == EquipoMonitoreo.TIPO_BOMBA else ELEVATOR_VARS
+        sensores = [
+            {"nombre": VAR_NAMES.get(v, v), "unidad": UNITS.get(v, "")}
+            for v in vars_list
+        ]
 
         data.append(
             {
                 "equipo": eq,
                 "edificio": eq.id_edificio,
-                "status": ultimo_status.id_status.nb_status
-                if ultimo_status
-                else "Sin datos",
-                "sensores": list(sensores),
+                "status": eq.get_status_display(),
+                "sensores": sensores,
             }
         )
 

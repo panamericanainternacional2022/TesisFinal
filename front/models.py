@@ -3,6 +3,8 @@ from django.db import models
 # --- TABLAS MAESTRAS / INDEPENDIENTES ---
 
 
+
+
 class Persona(models.Model):
     id_persona = models.AutoField(primary_key=True)
     ci = models.IntegerField(unique=True)
@@ -31,28 +33,7 @@ class Edificio(models.Model):
         return self.nb_edificio
 
 
-class Status(models.Model):
-    id_status = models.AutoField(primary_key=True)
-    nb_status = models.CharField(max_length=255)
 
-    class Meta:
-        db_table = "status"
-        verbose_name_plural = "Statuses"
-
-    def __str__(self):
-        return self.nb_status
-
-
-class DisposSensor(models.Model):
-    id_dispos_sensor = models.AutoField(primary_key=True)
-    nb_sensor = models.CharField(max_length=255)
-    modelo_iot = models.CharField(max_length=255)
-
-    class Meta:
-        db_table = "dispos_sensor"
-
-    def __str__(self):
-        return f"{self.nb_sensor} ({self.modelo_iot})"
 
 
 # --- TABLAS CON RELACIONES ---
@@ -85,12 +66,22 @@ class EquipoMonitoreo(models.Model):
         (TIPO_ELEVADOR, "Elevador"),
     ]
 
+    STATUS_OPERATIVO = "operativo"
+    STATUS_FALLA = "falla"
+    STATUS_MANTENIMIENTO = "mantenimiento"
+    STATUS_CHOICES = [
+        (STATUS_OPERATIVO, "Operativo"),
+        (STATUS_FALLA, "Falla"),
+        (STATUS_MANTENIMIENTO, "Mantenimiento"),
+    ]
+
     id_equipo_monitoreo = models.AutoField(primary_key=True)
     nb_equipo = models.CharField(max_length=255)
     id_edificio = models.ForeignKey(
         Edificio, on_delete=models.CASCADE, db_column="id_edificio"
     )
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_BOMBA)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPERATIVO)
 
     class Meta:
         db_table = "equipo_monitoreo"
@@ -112,55 +103,6 @@ class UsuarioEdificio(models.Model):
         db_table = "usuario_edificio"
 
 
-class EquipoSensor(models.Model):
-    id_equipo_sensor = models.AutoField(primary_key=True)
-    id_equipo_monitoreo = models.ForeignKey(
-        EquipoMonitoreo, on_delete=models.CASCADE, db_column="id_equipo_monitoreo"
-    )
-    id_dispos_sensor = models.ForeignKey(
-        DisposSensor, on_delete=models.CASCADE, db_column="id_dispos_sensor"
-    )
-    tipo_valor_capt = models.FloatField()
-    fecha_hora_lect = models.DateTimeField()
-    descripcion_falla = models.TextField(null=True, blank=True)
-
-    class Meta:
-        db_table = "equipo_sensor"
-
-
-class StatusEquipoMonitoreo(models.Model):
-    id_status_equipo_monitoreo = models.AutoField(primary_key=True)
-    id_status = models.ForeignKey(
-        Status, on_delete=models.CASCADE, db_column="id_status"
-    )
-    id_equipo_monitoreo = models.ForeignKey(
-        EquipoMonitoreo, on_delete=models.CASCADE, db_column="id_equipo_monitoreo"
-    )
-
-    class Meta:
-        db_table = "status_equipo_monitoreo"
-
-
-class AccionPrev(models.Model):
-    id_accion_prev = models.AutoField(primary_key=True)
-    id_equipo_monitoreo = models.ForeignKey(
-        EquipoMonitoreo, on_delete=models.CASCADE, db_column="id_equipo_monitoreo"
-    )
-    id_dispos_sensor = models.ForeignKey(
-        DisposSensor, on_delete=models.CASCADE, db_column="id_dispos_sensor"
-    )
-    parametro = models.CharField(max_length=255)
-    valor_min = models.FloatField()
-    valor_max = models.FloatField()
-    accion_preventiva = models.TextField()
-    id_status = models.ForeignKey(
-        Status, on_delete=models.CASCADE, db_column="id_status"
-    )
-
-    class Meta:
-        db_table = "accion_prev"
-
-
 class Notificacion(models.Model):
     id_notificacion = models.AutoField(primary_key=True)
     id_usuario = models.ForeignKey(
@@ -175,22 +117,3 @@ class Notificacion(models.Model):
 
     class Meta:
         db_table = "notificacion"
-
-
-class HistoricoFalla(models.Model):
-    id_historico_falla = models.AutoField(primary_key=True)
-    id_equipo_sensor = models.ForeignKey(
-        EquipoSensor, on_delete=models.CASCADE, db_column="id_equipo_sensor"
-    )
-    fecha = models.DateTimeField()
-    id_status_equipo_monitoreo = models.ForeignKey(
-        StatusEquipoMonitoreo,
-        on_delete=models.CASCADE,
-        db_column="id_status_equipo_monitoreo",
-    )
-
-    class Meta:
-        db_table = "historico_falla"
-
-
-# Create your models here.
