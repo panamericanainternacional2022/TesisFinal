@@ -283,7 +283,6 @@
     </div>
     <script>
         const buildingFrame = document.getElementById('adminMonitorFrame');
-        const selectedText = document.getElementById('selectedBuildingText');
         const openMonitorButton = document.getElementById('openMonitorButton');
         let currentMonitorUrl = null;
         let isSimulatorOnline = false;
@@ -320,7 +319,6 @@
             if (!buildingId) {
                 currentMonitorUrl = null;
                 if (btnToggle) btnToggle.disabled = true;
-                if (selectedText) selectedText.textContent = 'Ningún edificio seleccionado';
                 if (openMonitorButton) openMonitorButton.disabled = true;
                 return;
             }
@@ -337,11 +335,6 @@
                 } else {
                     buildingFrame.src = targetUrl;
                 }
-            }
-            if (selectedText) {
-                selectedText.textContent = hasEquip
-                    ? `Monitoreando edificio: ${name}`
-                    : `${name} (sin equipos de monitoreo)`;
             }
             if (openMonitorButton) {
                 openMonitorButton.disabled = !currentMonitorUrl;
@@ -401,7 +394,6 @@
                     badge.className = 'badge badge-inactive';
                     btnToggle.disabled = true;
                     btnRestart.disabled = true;
-                    if (selectedText) selectedText.textContent = 'No hay edificios registrados.';
                     updateDashboardDisplay();
                     return;
                 }
@@ -578,7 +570,6 @@
                 badge.textContent = 'SIN EDIFICIOS';
                 badge.className = 'badge badge-inactive';
                 updateDashboardDisplay();
-                if (selectedText) selectedText.textContent = 'No hay edificios registrados.';
                 return;
             }
             checkSimulatorStatus();
