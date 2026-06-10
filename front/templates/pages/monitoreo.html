@@ -186,11 +186,11 @@
                                     <div class="status-cell-label">Protección</div>
                                     <div class="status-cell-value" id="summaryProtectionStatus">INACTIVA</div>
                                 </div>
-                                <div class="status-cell">
+                                <div id="summaryPumpRow" class="status-cell">
                                     <div class="status-cell-label">Bomba</div>
                                     <div class="status-cell-value" id="summaryPumpStatus">ENCENDIDA</div>
                                 </div>
-                                <div class="status-cell">
+                                <div id="summaryElevatorRow" class="status-cell">
                                     <div class="status-cell-label">Ascensor</div>
                                     <div class="status-cell-value" id="summaryElevatorStatus">ENCENDIDO</div>
                                 </div>
@@ -200,11 +200,11 @@
                                 </div>
                             </div>
                             <div class="monitoring-sections">
-                                <div class="monitoring-section">
+                                <div id="bombaSection" class="monitoring-section">
                                     <div class="sensor-section-title"><i class="fa-solid fa-oil-can"></i> Sensores de bomba y eléctricos</div>
                                     <div id="bombaCards" class="monitoring-cards-grid"></div>
                                 </div>
-                                <div class="monitoring-section">
+                                <div id="ascensorSection" class="monitoring-section">
                                     <div class="sensor-section-title"><i class="fa-solid fa-elevator"></i> Sensores de ascensor y motor</div>
                                     <div id="ascensorCards" class="monitoring-cards-grid"></div>
                                 </div>
@@ -213,11 +213,11 @@
                                 <i class="fa-solid fa-chart-bar"></i> Lecturas en tiempo real
                             </h2>
                             <div class="grid-charts">
-                                <div class="chart-panel">
+                                <div id="chartPumpPanel" class="chart-panel">
                                     <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de bomba y eléctricas</div>
                                     <canvas id="chart1"></canvas>
                                 </div>
-                                <div class="chart-panel">
+                                <div id="chartElevatorPanel" class="chart-panel">
                                     <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de ascensor y motor</div>
                                     <canvas id="chart2"></canvas>
                                 </div>

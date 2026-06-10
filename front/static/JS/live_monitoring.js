@@ -262,6 +262,10 @@ function renderLiveMonitor(data) {
         protectionStatusEl.textContent = data.protection_active ? 'ACTIVA' : 'INACTIVA';
     }
 
+    const equipTypes = data.equipment_types || ['bomba', 'elevador'];
+    const hasPump = equipTypes.includes('bomba');
+    const hasElevator = equipTypes.includes('elevador');
+
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
         return renderCard(sensor.id, value, sensor.riesgo || 'Desconocido', sensor.nombre);
@@ -276,6 +280,18 @@ function renderLiveMonitor(data) {
 
     document.getElementById('bombaCards').innerHTML = bombaCards;
     document.getElementById('ascensorCards').innerHTML = ascensorCards;
+
+    // Ocultar secciones de equipos que no existen
+    const toggleDisplay = (id, show) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = show ? '' : 'none';
+    };
+    toggleDisplay('bombaSection', hasPump);
+    toggleDisplay('ascensorSection', hasElevator);
+    toggleDisplay('summaryPumpRow', hasPump);
+    toggleDisplay('summaryElevatorRow', hasElevator);
+    toggleDisplay('chartPumpPanel', hasPump);
+    toggleDisplay('chartElevatorPanel', hasElevator);
 
     updateCharts(data.history || []);
 

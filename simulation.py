@@ -51,13 +51,15 @@ DEFAULT_SENSOR_DATA = {
 # ----------------------------------------------------------------------
 class BuildingSimulator:
     """Contenedor de estado independiente por edificio."""
-    def __init__(self, edificio_id: int, equipo_id: int, nombre: str):
+    def __init__(self, edificio_id: int, nombre: str, equipment_types: set = None):
         self.edificio_id = edificio_id
-        self.equipo_id   = equipo_id
         self.nombre      = nombre
+        self.equipment_types = equipment_types or {"bomba"}
         self.sensor_data = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
-        self.pump_on     = True
-        self.elevator_on = True
+        self.has_pump     = "bomba" in self.equipment_types
+        self.has_elevator = "elevador" in self.equipment_types
+        self.pump_on     = self.has_pump
+        self.elevator_on = self.has_elevator
         self.protection_ends: dict = {}
         self.active_alerts: dict = {}
         self.door_close_attempts: int = 0
@@ -67,7 +69,7 @@ class BuildingSimulator:
         self.last_email_sent_time: float = 0.0
 
     def __repr__(self):
-        return f"<BuildingSimulator edificio_id={self.edificio_id} nombre={self.nombre!r}>"
+        return f"<BuildingSimulator edificio_id={self.edificio_id} nombre={self.nombre!r} eq_types={self.equipment_types}>"
 
 
 # Diccionario global de simuladores: edificio_id -> BuildingSimulator
@@ -77,6 +79,7 @@ simulators: dict = {}
 sensor_data      = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
 pump_on          = True
 elevator_on      = True
+equipment_types  = {"bomba"}
 protection_ends  = {}
 active_alerts    = {}
 door_close_attempts = 0

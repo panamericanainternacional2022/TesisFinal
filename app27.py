@@ -86,7 +86,7 @@ from simulation import (
     PROTECTION_HOLD_SECONDS, LOG_SIM, SIMULTANEOUS_FAIL_PROB,
     DOOR_CLOSE_SUCCESS_PROB, DOOR_OPEN_PROB, MAX_DOOR_CLOSE_ATTEMPTS,
     DEFAULT_SENSOR_DATA, BuildingSimulator, simulators,
-    sensor_data, pump_on, elevator_on, protection_ends, active_alerts,
+    sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
     door_close_attempts, history, alert_log, pending_notifications,
     last_email_sent_time,
     reset_critical_values, check_motor_stuck, update_sensor_data,
@@ -124,8 +124,19 @@ def build_live_payload():
                 "max": max(vals),
             }
 
+    # Solo incluir variables de los tipos de equipo que existen en este edificio
+    _relevant_vars = set()
+    if "bomba" in equipment_types:
+        _relevant_vars.update(PUMP_VARS)
+    if "elevador" in equipment_types:
+        _relevant_vars.update(ELEVATOR_VARS)
+    # Siempre incluir variables de sistema (rationing, protección, etc.)
+    _relevant_vars.update(["rationing", "auto_protection", "protection_pump", "protection_elevator"])
+
     sensors = []
     for var, value in sensor_data.items():
+        if var not in _relevant_vars:
+            continue
         if var == "motor_stuck":
             risk, color = ("Crítico", "red") if value else ("Bajo", "green")
         else:
@@ -142,9 +153,9 @@ def build_live_payload():
     recommendations = generate_recommendations(sensor_data, stats)
 
     return {
-        "current": sensor_data,
+        "current": {k: v for k, v in sensor_data.items() if k in _relevant_vars},
         "sensors": sensors,
-        "history": history[-100:],
+        "history": [h for h in history[-200:] if h.get("variable") in _relevant_vars],
         "thresholds": thresholds,
         "alert_enabled": alert_enabled,
         "alert_log": alert_log[:50],
@@ -159,6 +170,7 @@ def build_live_payload():
         if protection_ends
         else 0,
         "protection_targets": list(protection_ends.keys()),
+        "equipment_types": list(equipment_types),
     }
 
 
@@ -272,7 +284,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     Los dicts (sensor_data, protection_ends, active_alerts) son mutados
     in-place por las funciones, por lo que no necesitan copia de vuelta.
     """
-    global sensor_data, pump_on, elevator_on, protection_ends, active_alerts
+    global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
     global door_close_attempts, history, alert_log, pending_notifications
     global last_email_sent_time, active_edificio_id
 
@@ -284,6 +296,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     sensor_data              = sim.sensor_data
     pump_on                  = sim.pump_on
     elevator_on              = sim.elevator_on
+    equipment_types          = sim.equipment_types
     protection_ends          = sim.protection_ends
     active_alerts            = sim.active_alerts
     door_close_attempts      = sim.door_close_attempts
@@ -299,6 +312,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     _sim_mod.sensor_data           = sim.sensor_data
     _sim_mod.pump_on               = sim.pump_on
     _sim_mod.elevator_on           = sim.elevator_on
+    _sim_mod.equipment_types       = sim.equipment_types
     _sim_mod.protection_ends       = sim.protection_ends
     _sim_mod.active_alerts         = sim.active_alerts
     _sim_mod.door_close_attempts   = sim.door_close_attempts
@@ -311,8 +325,18 @@ def _run_sim_tick(sim: BuildingSimulator):
     update_protection_state()
     update_sensor_data()
 
+    # Solo evaluar variables de los tipos de equipo que existen en este edificio
+    _alert_vars = set()
+    if "bomba" in equipment_types:
+        _alert_vars.update(PUMP_VARS)
+    if "elevador" in equipment_types:
+        _alert_vars.update(ELEVATOR_VARS)
+    _alert_vars.add("motor_stuck")  # siempre evaluar
+
     # Verificar alertas y persistir en DB
     for var, value in sensor_data.items():
+        if var not in _alert_vars:
+            continue
         if var == "motor_stuck":
             if value:
                 action = get_professional_action(var, "Crítico", value)
@@ -332,10 +356,12 @@ def _run_sim_tick(sim: BuildingSimulator):
             active_alerts.pop(var, None)
     check_rationing(sensor_data["flow_rate"])
 
-    # Agregar lecturas al historial del simulador
+    # Agregar lecturas al historial del simulador (solo vars relevantes al edificio)
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     new_readings = []
     for var, value in sensor_data.items():
+        if var not in _alert_vars and var not in ("rationing", "auto_protection", "protection_pump", "protection_elevator"):
+            continue
         risk, color = (
             classify_risk(var, value) if var != "motor_stuck"
             else ("Crítico" if value else "Bajo", "red" if value else "green")
@@ -361,11 +387,12 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     """Apunta todos los globales de estado al simulador activo.
     Llamar cada vez que active_edificio_id cambie o al final del loop.
     """
-    global sensor_data, pump_on, elevator_on, protection_ends, active_alerts
+    global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
     global door_close_attempts, history, alert_log, pending_notifications, last_email_sent_time
     sensor_data           = sim.sensor_data
     pump_on               = sim.pump_on
     elevator_on           = sim.elevator_on
+    equipment_types       = sim.equipment_types
     protection_ends       = sim.protection_ends
     active_alerts         = sim.active_alerts
     door_close_attempts   = sim.door_close_attempts
@@ -378,6 +405,7 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     _sim_mod.sensor_data           = sim.sensor_data
     _sim_mod.pump_on               = sim.pump_on
     _sim_mod.elevator_on           = sim.elevator_on
+    _sim_mod.equipment_types       = sim.equipment_types
     _sim_mod.protection_ends       = sim.protection_ends
     _sim_mod.active_alerts         = sim.active_alerts
     _sim_mod.door_close_attempts   = sim.door_close_attempts
@@ -1140,11 +1168,16 @@ if __name__ == "__main__":
             for _eq in _equipos:
                 if _eq.id_edificio:
                     _eid  = _eq.id_edificio.id_edificio
-                    _eqid = _eq.id_equipo_monitoreo
                     _enombre = _eq.id_edificio.nb_edificio or f"Edificio #{_eid}"
                     if _eid not in simulators:
-                        simulators[_eid] = BuildingSimulator(_eid, _eqid, _enombre)
+                        simulators[_eid] = BuildingSimulator(_eid, _enombre)
                         logger.info(f"Simulador creado: {simulators[_eid]}")
+                    # Acumular tipos de equipo para este edificio
+                    simulators[_eid].equipment_types.add(_eq.tipo)
+                    simulators[_eid].has_pump = "bomba" in simulators[_eid].equipment_types
+                    simulators[_eid].has_elevator = "elevador" in simulators[_eid].equipment_types
+                    simulators[_eid].pump_on = simulators[_eid].has_pump
+                    simulators[_eid].elevator_on = simulators[_eid].has_elevator
             if simulators:
                 # Establecer active_edificio_id al primer edificio en orden
                 active_edificio_id = min(simulators.keys())
@@ -1157,7 +1190,7 @@ if __name__ == "__main__":
 
     # Sin BD: crear simulador dummy para no romper el loop de desarrollo
     if not simulators and not DJANGO_CONNECTED:
-        _dummy = BuildingSimulator(1, None, "Edificio Simulado")
+        _dummy = BuildingSimulator(1, "Edificio Simulado", equipment_types={"bomba", "elevador"})
         simulators[1] = _dummy
         active_edificio_id = 1
         _sync_globals_to_sim(_dummy)
