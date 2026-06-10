@@ -446,10 +446,6 @@ def enter_protection_mode(reason=None, targets=None):
     targets_set = set(targets)
     for device in targets_set:
         protection_ends[device] = now + PROTECTION_HOLD_SECONDS
-        if device == "pump":
-            pump_on = True
-        elif device == "elevator":
-            elevator_on = True
     reason_text = f" ({reason})" if reason else ""
     targets_text_es = " y ".join(_es_device(d) for d in sorted(targets_set))
     targets_text_raw = " y ".join(sorted(targets_set))
@@ -506,10 +502,6 @@ def update_protection_state():
     now = time.time()
     expired = [d for d, end in protection_ends.items() if end and now >= end]
     for device in expired:
-        if device == "pump":
-            pump_on = True
-        elif device == "elevator":
-            elevator_on = True
         try:
             reset_critical_values({device})
         except Exception:

@@ -49,7 +49,7 @@ from simulation import (
     BuildingSimulator, simulators,
     sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
     door_close_attempts, history, alert_log, pending_notifications,
-    last_email_sent_time,
+    last_email_sent_time, sim_paused, sim_speed,
 )
 
 # ----------------------------------------------------------------------
@@ -64,9 +64,6 @@ if os.path.exists(env_path):
                     key, val = line.strip().split("=", 1)
                     os.environ[key.strip()] = val.strip().strip("'\"")
 
-from engine import _sync_globals_to_sim, generate_data_and_emit
-from routes import register_routes
-
 active_edificio_id = None
 alert_enabled = True
 
@@ -77,12 +74,15 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "clave-segura"
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode="eventlet")
 
-register_routes(app, socketio)
-
 # ----------------------------------------------------------------------
 # Inicio del servidor
 # ----------------------------------------------------------------------
 if __name__ == "__main__":
+    from routes import register_routes
+    from engine import _sync_globals_to_sim, generate_data_and_emit
+
+    register_routes(app, socketio)
+
     # --------------------------------------------------------------
     # Crear un BuildingSimulator por cada EquipoMonitoreo en la BD.
     # Si no hay conexión Django, se crea un simulador dummy.

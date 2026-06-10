@@ -13,8 +13,8 @@ from simulation import (
     BuildingSimulator, simulators,
     sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
     door_close_attempts, history, alert_log, pending_notifications,
-    last_email_sent_time,
-    update_sensor_data, check_motor_stuck,
+    last_email_sent_time, sim_paused, sim_speed,
+    update_sensor_data,
 )
 from risk import classify_risk
 from alerts import (
@@ -37,11 +37,16 @@ def _run_sim_tick(sim: BuildingSimulator):
     """
     global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
     global door_close_attempts, history, alert_log, pending_notifications
-    global last_email_sent_time
+    global last_email_sent_time, sim_paused, sim_speed
+
+    if sim.sim_paused:
+        return
 
     _saved_active = entry.active_edificio_id
 
     entry.active_edificio_id = sim.edificio_id
+    sim_paused               = sim.sim_paused
+    sim_speed                = sim.sim_speed
     sensor_data              = sim.sensor_data
     pump_on                  = sim.pump_on
     elevator_on              = sim.elevator_on
@@ -65,6 +70,8 @@ def _run_sim_tick(sim: BuildingSimulator):
     _sim_mod.alert_log             = sim.alert_log
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
+    _sim_mod.sim_paused            = sim.sim_paused
+    _sim_mod.sim_speed             = sim.sim_speed
 
     entry.sensor_data              = sim.sensor_data
     entry.pump_on                  = sim.pump_on
@@ -77,9 +84,11 @@ def _run_sim_tick(sim: BuildingSimulator):
     entry.alert_log                = sim.alert_log
     entry.pending_notifications    = sim.pending_notifications
     entry.last_email_sent_time     = sim.last_email_sent_time
+    entry.sim_paused               = sim.sim_paused
+    entry.sim_speed                = sim.sim_speed
 
     update_protection_state()
-    update_sensor_data()
+    update_sensor_data(active_sim=sim)
 
     _alert_vars = set()
     if "bomba" in equipment_types:
@@ -138,7 +147,9 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     Llamar cada vez que active_edificio_id cambie o al final del loop.
     """
     global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
-    global door_close_attempts, history, alert_log, pending_notifications, last_email_sent_time
+    global door_close_attempts, history, alert_log, pending_notifications, last_email_sent_time, sim_paused, sim_speed
+    sim_paused               = sim.sim_paused
+    sim_speed                = sim.sim_speed
     sensor_data           = sim.sensor_data
     pump_on               = sim.pump_on
     elevator_on           = sim.elevator_on
@@ -161,6 +172,8 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     _sim_mod.alert_log             = sim.alert_log
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
+    _sim_mod.sim_paused            = sim.sim_paused
+    _sim_mod.sim_speed             = sim.sim_speed
 
     entry.sensor_data              = sim.sensor_data
     entry.pump_on                  = sim.pump_on
@@ -173,6 +186,8 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     entry.alert_log                = sim.alert_log
     entry.pending_notifications    = sim.pending_notifications
     entry.last_email_sent_time     = sim.last_email_sent_time
+    entry.sim_paused               = sim.sim_paused
+    entry.sim_speed                = sim.sim_speed
 
 
 def generate_data_and_emit():
@@ -190,6 +205,7 @@ def generate_data_and_emit():
             _sync_globals_to_sim(active_sim)
         else:
             equipment_types = set()
+            _sim_mod.equipment_types = set()
             entry.equipment_types = set()
 
         payload = build_live_payload()

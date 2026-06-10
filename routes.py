@@ -23,7 +23,6 @@ from alerts import (
 )
 from payload import build_live_payload
 from pdf_report import generate_pdf_report
-from engine import _sync_globals_to_sim, _run_sim_tick
 
 import entry
 import simulation
@@ -162,6 +161,7 @@ def register_routes(app, socketio):
     # ------------------------------------------------------------------
     @app.route("/api/set_active_building/<int:edificio_id>", methods=["POST"])
     def api_set_active_building(edificio_id):
+        from engine import _sync_globals_to_sim
         entry.active_edificio_id = edificio_id
         logger.info(f"Edificio activo cambiado a: {entry.active_edificio_id}")
         new_sim = simulation.simulators.get(edificio_id)
@@ -368,6 +368,120 @@ def register_routes(app, socketio):
                 "risk": risk,
             }
         )
+
+    # ------------------------------------------------------------------
+    # SIMULATOR CONTROL
+    # ------------------------------------------------------------------
+    @app.route("/api/sim/status")
+    def api_sim_status():
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        return jsonify({
+            "edificio_id": sim.edificio_id,
+            "paused": sim.sim_paused,
+            "speed": sim.sim_speed,
+            "faults": dict(sim.sim_faults),
+            "pump_on": sim.pump_on,
+            "elevator_on": sim.elevator_on,
+        })
+
+    @app.route("/api/sim/pause", methods=["POST"])
+    def api_sim_pause():
+        data = request.get_json(force=True, silent=True) or {}
+        paused = data.get("paused")
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        if paused is None:
+            sim.sim_paused = not sim.sim_paused
+        else:
+            sim.sim_paused = bool(paused)
+        logger.info(f"Simulador {'pausado' if sim.sim_paused else 'reanudado'}: edificio={sim.edificio_id}")
+        return jsonify({"status": "ok", "paused": sim.sim_paused})
+
+    @app.route("/api/sim/reset", methods=["POST"])
+    def api_sim_reset():
+        from engine import _sync_globals_to_sim
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        ok, msg = simulation.reset_simulator(sim.edificio_id)
+        if ok:
+            _sync_globals_to_sim(sim)
+            logger.info(f"Simulador reiniciado: edificio={sim.edificio_id}")
+            return jsonify({"status": "ok", "message": msg})
+        return jsonify({"status": "error", "message": msg}), 400
+
+    @app.route("/api/sim/inject_fault", methods=["POST"])
+    def api_sim_inject_fault():
+        data = request.get_json(force=True, silent=True) or {}
+        device = data.get("device")
+        fault_type = data.get("fault_type")
+        if not device or not fault_type:
+            return jsonify({"error": "device y fault_type requeridos"}), 400
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        ok, msg = simulation.inject_fault(sim.edificio_id, device, fault_type)
+        if ok:
+            return jsonify({"status": "ok", "message": msg, "faults": dict(sim.sim_faults)})
+        return jsonify({"status": "error", "message": msg}), 400
+
+    @app.route("/api/sim/clear_fault", methods=["POST"])
+    def api_sim_clear_fault():
+        data = request.get_json(force=True, silent=True) or {}
+        device = data.get("device")
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        ok, msg = simulation.clear_fault(sim.edificio_id, device)
+        if ok:
+            return jsonify({"status": "ok", "message": msg, "faults": dict(sim.sim_faults)})
+        return jsonify({"status": "error", "message": msg}), 400
+
+    @app.route("/api/sim/set_speed", methods=["POST"])
+    def api_sim_set_speed():
+        data = request.get_json(force=True, silent=True) or {}
+        speed = data.get("speed", 1.0)
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        sim.sim_speed = max(0.1, min(10.0, float(speed)))
+        logger.info(f"Velocidad simulador cambiada a {sim.sim_speed}x: edificio={sim.edificio_id}")
+        return jsonify({"status": "ok", "speed": sim.sim_speed})
+
+    @app.route("/api/sim/toggle_pump", methods=["POST"])
+    def api_sim_toggle_pump():
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        if not sim.has_pump:
+            return jsonify({"error": "El edificio no tiene bomba"}), 400
+        data = request.get_json(force=True, silent=True) or {}
+        on = data.get("on")
+        if on is None:
+            sim.pump_on = not sim.pump_on
+        else:
+            sim.pump_on = bool(on)
+        logger.info(f"Bomba {'encendida' if sim.pump_on else 'apagada'}: edificio={sim.edificio_id}")
+        return jsonify({"status": "ok", "pump_on": sim.pump_on})
+
+    @app.route("/api/sim/toggle_elevator", methods=["POST"])
+    def api_sim_toggle_elevator():
+        sim = simulation.simulators.get(entry.active_edificio_id)
+        if not sim:
+            return jsonify({"error": "No active simulator"}), 404
+        if not sim.has_elevator:
+            return jsonify({"error": "El edificio no tiene elevador"}), 400
+        data = request.get_json(force=True, silent=True) or {}
+        on = data.get("on")
+        if on is None:
+            sim.elevator_on = not sim.elevator_on
+        else:
+            sim.elevator_on = bool(on)
+        logger.info(f"Elevador {'encendido' if sim.elevator_on else 'apagado'}: edificio={sim.edificio_id}")
+        return jsonify({"status": "ok", "elevator_on": sim.elevator_on})
 
     # ------------------------------------------------------------------
     # WebSocket connect

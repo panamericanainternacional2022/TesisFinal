@@ -622,6 +622,13 @@
                 <div class="status-cell-label">Última actualización</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
+            <div id="simStatusRow" class="status-cell">
+                <div class="status-cell-label">Simulación</div>
+                <div class="status-cell-value">
+                    <span id="simActiveStatus">ACTIVA</span>
+                    <span id="simSpeedDisplay" class="badge badge-info" style="margin-left:5px;">1.0x</span>
+                </div>
+            </div>
         </div>
 
         <!-- Stats + Recomendaciones -->
@@ -699,6 +706,59 @@
             <div style="font-size:var(--text-xs); margin-top:8px; height:18px;" id="manualRiskPreview"></div>
             <div id="manualMessage" style="margin-top:8px; font-size:var(--text-sm);"></div>
             <div id="sensorTypeIndicator" style="margin-top:6px; font-size:var(--text-sm); font-weight:var(--weight-medium); color:var(--color-text-secondary);"></div>
+        </div>
+
+        <!-- Control de simulación -->
+        <div class="panel">
+            <h2 class="panel-title"><i class="fa-solid fa-gamepad"></i> Control de Simulación</h2>
+            <div id="simControls" style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
+                <div class="form-group" style="min-width:100px;">
+                    <label class="form-label">Estado</label>
+                    <button id="simPauseBtn" class="btn btn-ghost" style="height:44px; width:120px;">
+                        <i class="fas fa-pause"></i> <span>Pausar</span>
+                    </button>
+                </div>
+                <div class="form-group" style="min-width:100px;">
+                    <label class="form-label">Velocidad</label>
+                    <div style="display:flex; gap:6px; align-items:center;">
+                        <input type="range" id="simSpeedSlider" min="0.1" max="10" step="0.1" value="1.0" style="width:120px; height:44px; accent-color:var(--color-ink);">
+                        <span id="simSpeedLabel" style="font-weight:var(--weight-bold); min-width:40px; font-size:var(--text-sm);">1.0x</span>
+                    </div>
+                </div>
+                <div class="form-group" style="min-width:140px;">
+                    <label class="form-label">Falla (bomba)</label>
+                    <div style="display:flex; gap:6px;">
+                        <select id="simFaultPump" style="height:44px; flex:1;">
+                            <option value="">Ninguna</option>
+                            <option value="dry_run">Sequía (dry run)</option>
+                            <option value="blocked_discharge">Descarga bloqueada</option>
+                            <option value="pipe_burst">Ruptura de tubería</option>
+                            <option value="cavitation">Cavitación</option>
+                            <option value="overheat">Sobrecalentamiento</option>
+                            <option value="power_surge">Sobrecarga eléctrica</option>
+                            <option value="power_outage">Corte eléctrico</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="min-width:140px;">
+                    <label class="form-label">Falla (elevador)</label>
+                    <div style="display:flex; gap:6px;">
+                        <select id="simFaultElevator" style="height:44px; flex:1;">
+                            <option value="">Ninguna</option>
+                            <option value="motor_stuck">Motor atascado</option>
+                            <option value="door_blocked">Puerta bloqueada</option>
+                            <option value="overspeed">Exceso de velocidad</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" style="min-width:60px;">
+                    <label class="form-label">&nbsp;</label>
+                    <button id="simResetBtn" class="btn btn-danger" style="height:44px;">
+                        <i class="fas fa-rotate-left"></i> Reset
+                    </button>
+                </div>
+            </div>
+            <div id="simStatusMessage" style="margin-top:8px; font-size:var(--text-sm); min-height:20px;"></div>
         </div>
 
         <!-- Tarjetas de sensores: Bomba -->
@@ -1098,6 +1158,140 @@
             }catch(e){msgEl.innerHTML='<span style="color:var(--state-critical)">Error de conexión</span>';}
         }
 
+        // ── Simulation Control ──
+        async function fetchSimStatus() {
+            try {
+                let resp = await fetch('/api/sim/status');
+                return await resp.json();
+            } catch (e) {
+                return null;
+            }
+        }
+
+        async function togglePause() {
+            try {
+                let resp = await fetch('/api/sim/pause', { method: 'POST' });
+                let data = await resp.json();
+                if (data.status === 'ok') {
+                    updatePauseBtn(data.paused);
+                    setSimMessage(data.paused ? '⏸ Simulación pausada' : '▶ Simulación reanudada', 'info');
+                }
+            } catch (e) {
+                setSimMessage('Error al pausar/reanudar', 'error');
+            }
+        }
+
+        function updatePauseBtn(paused) {
+            let btn = document.getElementById('simPauseBtn');
+            if (paused) {
+                btn.innerHTML = '<i class="fas fa-play"></i> <span>Reanudar</span>';
+                btn.className = 'btn btn-ok';
+            } else {
+                btn.innerHTML = '<i class="fas fa-pause"></i> <span>Pausar</span>';
+                btn.className = 'btn btn-ghost';
+            }
+        }
+
+        async function resetSim() {
+            let confirmed = await window.showConfirm('¿Reiniciar el simulador al estado normal?');
+            if (!confirmed) return;
+            try {
+                let resp = await fetch('/api/sim/reset', { method: 'POST' });
+                let data = await resp.json();
+                if (data.status === 'ok') {
+                    setSimMessage('✅ ' + data.message, 'success');
+                    updatePauseBtn(false);
+                    document.getElementById('simFaultPump').value = '';
+                    document.getElementById('simFaultElevator').value = '';
+                } else {
+                    setSimMessage('❌ ' + data.message, 'error');
+                }
+            } catch (e) {
+                setSimMessage('Error al reiniciar', 'error');
+            }
+        }
+
+        async function injectFault(device) {
+            let sel = document.getElementById(device === 'pump' ? 'simFaultPump' : 'simFaultElevator');
+            let faultType = sel.value;
+            if (!faultType) {
+                // Clear fault
+                try {
+                    let resp = await fetch('/api/sim/clear_fault', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ device: device })
+                    });
+                    let data = await resp.json();
+                    if (data.status === 'ok') {
+                        setSimMessage('✅ ' + data.message, 'success');
+                    }
+                } catch (e) {
+                    setSimMessage('Error al limpiar falla', 'error');
+                }
+                return;
+            }
+            try {
+                let resp = await fetch('/api/sim/inject_fault', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ device: device, fault_type: faultType })
+                });
+                let data = await resp.json();
+                if (data.status === 'ok') {
+                    setSimMessage('✅ ' + data.message, 'success');
+                } else {
+                    setSimMessage('❌ ' + data.message, 'error');
+                }
+            } catch (e) {
+                setSimMessage('Error al inyectar falla', 'error');
+            }
+        }
+
+        async function setSpeed() {
+            let slider = document.getElementById('simSpeedSlider');
+            let speed = parseFloat(slider.value);
+            document.getElementById('simSpeedLabel').textContent = speed.toFixed(1) + 'x';
+            try {
+                let resp = await fetch('/api/sim/set_speed', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ speed: speed })
+                });
+                let data = await resp.json();
+                if (data.status === 'ok') {
+                    setSimMessage('⚡ Velocidad: ' + data.speed.toFixed(1) + 'x', 'info');
+                }
+            } catch (e) {
+                // silent
+            }
+        }
+
+        function setSimMessage(msg, type) {
+            let el = document.getElementById('simStatusMessage');
+            let color = type === 'error' ? 'var(--state-critical)' : type === 'success' ? 'var(--state-ok)' : 'var(--color-text-secondary)';
+            el.innerHTML = '<span style="color:' + color + ';">' + msg + '</span>';
+            setTimeout(() => { if (el.innerHTML === '<span style="color:' + color + ';">' + msg + '</span>') el.innerHTML = ''; }, 4000);
+        }
+
+        // Eventos de control de simulación
+        document.getElementById('simPauseBtn').addEventListener('click', togglePause);
+        document.getElementById('simResetBtn').addEventListener('click', resetSim);
+        document.getElementById('simFaultPump').addEventListener('change', () => injectFault('pump'));
+        document.getElementById('simFaultElevator').addEventListener('change', () => injectFault('elevator'));
+        document.getElementById('simSpeedSlider').addEventListener('input', setSpeed);
+
+        // Cargar estado inicial de simulación
+        fetchSimStatus().then(data => {
+            if (data) {
+                updatePauseBtn(data.paused);
+                document.getElementById('simSpeedSlider').value = data.speed;
+                document.getElementById('simSpeedLabel').textContent = data.speed.toFixed(1) + 'x';
+                document.getElementById('simFaultPump').value = data.faults && data.faults.pump ? data.faults.pump : '';
+                document.getElementById('simFaultElevator').value = data.faults && data.faults.elevator ? data.faults.elevator : '';
+            }
+        });
+
         let activeUsers = [];
 
         async function loadBuildings() {
@@ -1297,6 +1491,19 @@
                 const el = document.getElementById(id);
                 if (el) el.style.display = hasElev ? '' : 'none';
             });
+            // Sim status
+            const simActive = document.getElementById('simActiveStatus');
+            const simSpd = document.getElementById('simSpeedDisplay');
+            if (data.sim_paused !== undefined) {
+                if (simActive) {
+                    simActive.textContent = data.sim_paused ? 'PAUSADA' : 'ACTIVA';
+                    simActive.style.color = data.sim_paused ? 'var(--state-warn)' : 'var(--state-ok)';
+                }
+                updatePauseBtn(data.sim_paused);
+            }
+            if (data.sim_speed !== undefined && simSpd) {
+                simSpd.textContent = data.sim_speed.toFixed(1) + 'x';
+            }
         }
 
 

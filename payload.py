@@ -20,7 +20,7 @@ def build_live_payload():
     from simulation import (
         sensor_data, protection_ends, history, alert_log,
         door_close_attempts, pump_on, elevator_on, equipment_types,
-        RATIONING_THRESHOLD,
+        RATIONING_THRESHOLD, sim_paused, sim_speed,
     )
     from alerts import generate_recommendations
     from thresholds import thresholds
@@ -118,4 +118,6 @@ def build_live_payload():
         "protection_elevator": _protection_elevator,
         "pump_status": _pump_status,
         "elevator_status": _elevator_status,
+        "sim_paused": sim_paused,
+        "sim_speed": sim_speed,
     }
