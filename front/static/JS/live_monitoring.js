@@ -262,6 +262,27 @@ function renderLiveMonitor(data) {
         protectionStatusEl.textContent = data.protection_active ? 'ACTIVA' : 'INACTIVA';
     }
 
+    const updateBadge = (badgeId, statusVal) => {
+        const badgeEl = document.getElementById(badgeId);
+        if (badgeEl) {
+            if (statusVal) {
+                badgeEl.style.display = 'inline-flex';
+                badgeEl.textContent = statusVal.toUpperCase();
+                if (statusVal === 'falla') {
+                    badgeEl.className = 'monitor-card-badge badge-red';
+                } else if (statusVal === 'mantenimiento') {
+                    badgeEl.className = 'monitor-card-badge badge-yellow';
+                } else {
+                    badgeEl.className = 'monitor-card-badge badge-green';
+                }
+            } else {
+                badgeEl.style.display = 'none';
+            }
+        }
+    };
+    updateBadge('pumpStatusBadge', data.pump_status);
+    updateBadge('elevatorStatusBadge', data.elevator_status);
+
     const equipTypes = data.equipment_types || ['bomba', 'elevador'];
     const hasPump = equipTypes.includes('bomba');
     const hasElevator = equipTypes.includes('elevador');

@@ -152,6 +152,36 @@ def build_live_payload():
 
     recommendations = generate_recommendations(sensor_data, stats)
 
+    # Buscar estado operativo de los equipos en la DB
+    _pump_status = None
+    _elevator_status = None
+    if DJANGO_CONNECTED and active_edificio_id:
+        try:
+            for eq in EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id):
+                if eq.tipo == "bomba":
+                    _pump_status = eq.status
+                elif eq.tipo == "elevador":
+                    _elevator_status = eq.status
+        except Exception as e:
+            logger.warning("Error fetching equipment status: %s", e)
+
+    # Detalle de protecciones activas
+    now = time.time()
+    _protection_pump = None
+    _protection_elevator = None
+    if "pump" in protection_ends:
+        remaining = int(max(0, protection_ends["pump"] - now))
+        _protection_pump = {
+            "message": "protección activa por alerta...",
+            "remaining": remaining,
+        }
+    if "elevator" in protection_ends:
+        remaining = int(max(0, protection_ends["elevator"] - now))
+        _protection_elevator = {
+            "message": "protección activa por alerta...",
+            "remaining": remaining,
+        }
+
     return {
         "current": {k: v for k, v in sensor_data.items() if k in _relevant_vars},
         "sensors": sensors,
@@ -166,11 +196,15 @@ def build_live_payload():
         "protection_active": bool(protection_ends),
         "pump_on": pump_on,
         "elevator_on": elevator_on,
-        "protection_remaining": int(max(0, max(protection_ends.values()) - time.time()))
+        "protection_remaining": int(max(0, max(protection_ends.values()) - now))
         if protection_ends
         else 0,
         "protection_targets": list(protection_ends.keys()),
         "equipment_types": list(equipment_types),
+        "protection_pump": _protection_pump,
+        "protection_elevator": _protection_elevator,
+        "pump_status": _pump_status,
+        "elevator_status": _elevator_status,
     }
 
 
@@ -331,7 +365,7 @@ def _run_sim_tick(sim: BuildingSimulator):
         _alert_vars.update(PUMP_VARS)
     if "elevador" in equipment_types:
         _alert_vars.update(ELEVATOR_VARS)
-    _alert_vars.add("motor_stuck")  # siempre evaluar
+        _alert_vars.add("motor_stuck")
 
     # Verificar alertas y persistir en DB
     for var, value in sensor_data.items():

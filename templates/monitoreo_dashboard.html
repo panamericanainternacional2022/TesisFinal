@@ -601,11 +601,17 @@
             </div>
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
-                <div class="status-cell-value" id="pumpStatus">ENCENDIDA</div>
+                <div class="status-cell-value">
+                    <span id="pumpStatus">ENCENDIDA</span>
+                    <span id="pumpStatusBadge" class="badge" style="margin-left: 5px; display: none;"></span>
+                </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Ascensor</div>
-                <div class="status-cell-value" id="elevatorStatus">ENCENDIDO</div>
+                <div class="status-cell-value">
+                    <span id="elevatorStatus">ENCENDIDO</span>
+                    <span id="elevatorStatusBadge" class="badge" style="margin-left: 5px; display: none;"></span>
+                </div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Última actualización</div>
@@ -1241,6 +1247,27 @@
             document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'INACTIVA';
             document.getElementById('pumpStatus').innerText = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
             document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
+
+            const updateBadge = (badgeId, statusVal) => {
+                const badgeEl = document.getElementById(badgeId);
+                if (badgeEl) {
+                    if (statusVal) {
+                        badgeEl.style.display = 'inline-block';
+                        badgeEl.textContent = statusVal.toUpperCase();
+                        if (statusVal === 'falla') {
+                            badgeEl.className = 'badge badge-crit';
+                        } else if (statusVal === 'mantenimiento') {
+                            badgeEl.className = 'badge badge-med';
+                        } else {
+                            badgeEl.className = 'badge badge-low';
+                        }
+                    } else {
+                        badgeEl.style.display = 'none';
+                    }
+                }
+            };
+            updateBadge('pumpStatusBadge', data.pump_status);
+            updateBadge('elevatorStatusBadge', data.elevator_status);
             // Ocultar secciones según equipamiento del edificio
             const et = data.equipment_types || ['bomba', 'elevador'];
             const hasPump = et.includes('bomba');

@@ -179,73 +179,93 @@ def update_sensor_data():
                 )
     pump_protected = "pump" in protection_ends or not pump_on
     elevator_protected = "elevator" in protection_ends or not elevator_on
-
-    if pump_protected:
-        sensor_data["flow_rate"] = round(max(0, min(60, sensor_data["flow_rate"])), 1)
-        sensor_data["pressure"] = round(max(0, min(12, sensor_data["pressure"])), 1)
-        sensor_data["temperature"] = round(
-            max(20, min(130, sensor_data["temperature"])), 1
-        )
-        sensor_data["vibration"] = round(max(0, min(15, sensor_data["vibration"])), 1)
-        sensor_data["tank_level"] = round(
-            max(0, min(100, sensor_data["tank_level"])), 1
-        )
-        sensor_data["voltage"] = round(max(180, min(260, sensor_data["voltage"])), 1)
-        sensor_data["current"] = round(max(0, min(70, sensor_data["current"])), 1)
+    if not pump_on:
+        sensor_data["flow_rate"] = 0.0
+        sensor_data["pressure"] = 0.0
+        sensor_data["vibration"] = 0.0
+        sensor_data["current"] = 0.0
+        sensor_data["temperature"] = 20.0
+        sensor_data["voltage"] = 220.0
     else:
-        fd = sensor_data["flow_rate"] + random.uniform(-1.5, 1.5)
-        if random.random() < 0.05:
-            fd += random.uniform(5, 15)
-        sensor_data["flow_rate"] = round(max(0, min(60, fd)), 1)
-        sensor_data["current"] = round(
-            max(
-                0,
-                min(
-                    70,
-                    sensor_data["current"]
-                    + random.uniform(-1, 1)
-                    + (sensor_data["load"] / 100) * 0.1,
+        if "pump" in protection_ends:
+            sensor_data["flow_rate"] = round(max(0, min(60, sensor_data["flow_rate"])), 1)
+            sensor_data["pressure"] = round(max(0, min(12, sensor_data["pressure"])), 1)
+            sensor_data["temperature"] = round(
+                max(20, min(130, sensor_data["temperature"])), 1
+            )
+            sensor_data["vibration"] = round(max(0, min(15, sensor_data["vibration"])), 1)
+            sensor_data["tank_level"] = round(
+                max(0, min(100, sensor_data["tank_level"])), 1
+            )
+            sensor_data["voltage"] = round(max(180, min(260, sensor_data["voltage"])), 1)
+            sensor_data["current"] = round(max(0, min(70, sensor_data["current"])), 1)
+        else:
+            fd = sensor_data["flow_rate"] + random.uniform(-1.5, 1.5)
+            if random.random() < 0.05:
+                fd += random.uniform(5, 15)
+            sensor_data["flow_rate"] = round(max(0, min(60, fd)), 1)
+
+            p = (
+                sensor_data["pressure"]
+                + random.uniform(-0.3, 0.3)
+                + (sensor_data["flow_rate"] - 20) * 0.02
+            )
+            sensor_data["pressure"] = round(max(0, min(12, p)), 1)
+
+            t = (
+                sensor_data["temperature"]
+                + random.uniform(-0.5, 1.0)
+                + max(0, (sensor_data["pressure"] - 5) * 0.2)
+            )
+            if random.random() < 0.03:
+                t += random.uniform(5, 20)
+            sensor_data["temperature"] = round(max(20, min(130, t)), 1)
+
+            v = (
+                sensor_data["vibration"]
+                + random.uniform(-0.3, 0.5)
+                + (sensor_data["flow_rate"] / 30)
+                + (max(0, sensor_data["temperature"] - 70) / 20)
+            )
+            sensor_data["vibration"] = round(max(0, min(15, v)), 1)
+
+            lvl = sensor_data["tank_level"] - sensor_data["flow_rate"] * 0.1
+            if random.random() < 0.1:
+                lvl += random.uniform(5, 15)
+            sensor_data["tank_level"] = round(max(0, min(100, lvl)), 1)
+
+            volt = sensor_data["voltage"] + random.uniform(-3, 3)
+            if random.random() < 0.02:
+                volt += random.uniform(-20, 20)
+            sensor_data["voltage"] = round(max(180, min(260, volt)), 1)
+
+            curr = sensor_data["current"]
+            curr = round(
+                max(
+                    0,
+                    min(
+                        70,
+                        curr + random.uniform(-1, 1) + (sensor_data["load"] / 100) * 0.1
+                    ),
                 ),
-            ),
-            1,
-        )
+                1,
+            )
+            sensor_data["current"] = curr
 
-        p = (
-            sensor_data["pressure"]
-            + random.uniform(-0.3, 0.3)
-            + (sensor_data["flow_rate"] - 20) * 0.02
-        )
-        sensor_data["pressure"] = round(max(0, min(12, p)), 1)
-        t = (
-            sensor_data["temperature"]
-            + random.uniform(-0.5, 1.0)
-            + max(0, (sensor_data["pressure"] - 5) * 0.2)
-        )
-        if random.random() < 0.03:
-            t += random.uniform(5, 20)
-        sensor_data["temperature"] = round(max(20, min(130, t)), 1)
-        v = (
-            sensor_data["vibration"]
-            + random.uniform(-0.3, 0.5)
-            + (sensor_data["flow_rate"] / 30)
-            + (max(0, sensor_data["temperature"] - 70) / 20)
-        )
-        sensor_data["vibration"] = round(max(0, min(15, v)), 1)
-        lvl = sensor_data["tank_level"] - sensor_data["flow_rate"] * 0.1
-        if random.random() < 0.1:
-            lvl += random.uniform(5, 15)
-        sensor_data["tank_level"] = round(max(0, min(100, lvl)), 1)
-
-    prev_pos = sensor_data["position"]
-    prev_door = sensor_data["door_status"]
-    pos = prev_pos
-    spd = sensor_data["speed"]
-    global door_close_attempts
     if not elevator_on:
-        spd = 0
+        sensor_data["speed"] = 0.0
+        sensor_data["position"] = 0.0
+        sensor_data["load"] = 0
         sensor_data["door_status"] = "closed"
+        sensor_data["energy"] = 0.0
+        sensor_data["motor_stuck"] = False
+        global door_close_attempts
         door_close_attempts = 0
     else:
+        prev_pos = sensor_data["position"]
+        prev_door = sensor_data["door_status"]
+        pos = prev_pos
+        spd = sensor_data["speed"]
         if random.random() < 0.3:
             spd = random.choice([0, random.uniform(0.5, 2.5)])
         pos += spd * 2
@@ -294,41 +314,20 @@ def update_sensor_data():
         )
         if random.random() < 0.1:
             sensor_data["trip_count"] += 1
-    if abs(pos - prev_pos) > 0.1 or spd != 0:
-        if door_close_attempts != 0 and LOG_SIM:
-            print(
-                f"[SIM] {time.strftime('%H:%M:%S')} DOORS_EVENT: reset attempts (pos change or movement) -> was {door_close_attempts}"
-            )
-        door_close_attempts = 0
-    sensor_data["position"] = round(pos, 1)
-    sensor_data["speed"] = round(spd, 1)
-    if elevator_protected:
-        sensor_data["energy"] = round(max(0, min(20, sensor_data["energy"])), 1)
-    else:
-        energy = (sensor_data["load"] / 500) * spd * 2 + random.uniform(0.5, 2)
-        sensor_data["energy"] = round(max(0, min(20, energy)), 1)
-    if pump_protected:
-        sensor_data["voltage"] = round(max(180, min(260, sensor_data["voltage"])), 1)
-    else:
-        volt = sensor_data["voltage"] + random.uniform(-3, 3)
-        if random.random() < 0.02:
-            volt += random.uniform(-20, 20)
-        sensor_data["voltage"] = round(max(180, min(260, volt)), 1)
-    curr = sensor_data["current"]
-    if not pump_on:
-        curr = round(max(0, curr), 1)
-    else:
-        curr = round(
-            max(
-                0,
-                min(
-                    70, curr + random.uniform(-1, 1) + (sensor_data["load"] / 100) * 0.1
-                ),
-            ),
-            1,
+        if abs(pos - prev_pos) > 0.1 or spd != 0:
+            if door_close_attempts != 0 and LOG_SIM:
+                print(
+                    f"[SIM] {time.strftime('%H:%M:%S')} DOORS_EVENT: reset attempts (pos change or movement) -> was {door_close_attempts}"
+                )
+            door_close_attempts = 0
+        sensor_data["position"] = round(pos, 1)
+        sensor_data["speed"] = round(spd, 1)
+        if "elevator" in protection_ends:
+            sensor_data["energy"] = round(max(0, min(20, sensor_data["energy"])), 1)
+        else:
+            energy = (sensor_data["load"] / 500) * spd * 2 + random.uniform(0.5, 2)
+            sensor_data["energy"] = round(max(0, min(20, energy)), 1)
+        stuck = check_motor_stuck(
+            sensor_data["speed"], sensor_data["load"], sensor_data["temperature"]
         )
-    sensor_data["current"] = curr
-    stuck = check_motor_stuck(
-        sensor_data["speed"], sensor_data["load"], sensor_data["temperature"]
-    )
-    sensor_data["motor_stuck"] = stuck
+        sensor_data["motor_stuck"] = stuck

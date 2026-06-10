@@ -447,14 +447,14 @@ def enter_protection_mode(reason=None, targets=None):
     for device in targets_set:
         protection_ends[device] = now + PROTECTION_HOLD_SECONDS
         if device == "pump":
-            pump_on = False
+            pump_on = True
         elif device == "elevator":
-            elevator_on = False
+            elevator_on = True
     reason_text = f" ({reason})" if reason else ""
     targets_text_es = " y ".join(_es_device(d) for d in sorted(targets_set))
     targets_text_raw = " y ".join(sorted(targets_set))
-    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Apagando: {targets_text_raw}.")
-    action_msg = f"Protección automática activada{reason_text}. Dispositivos apagados: {targets_text_es}."
+    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Marcha forzada: {targets_text_raw}.")
+    action_msg = f"Protección automática activada{reason_text}. Marcha forzada / Estado seguro: {targets_text_es}."
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "auto_protection",
@@ -473,10 +473,10 @@ def enter_protection_mode(reason=None, targets=None):
     if now_ts - last_email_sent_time > 300:
         last_email_sent_time = now_ts
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        subject = f"[Proteccion activada] Dispositivos apagados: {targets_text_es}"
+        subject = f"[Proteccion activada] Marcha forzada: {targets_text_es}"
         body = f"""REPORTE AUTOMATICO DE PROTECCION
 
-El sistema de proteccion automatica ha detectado una condicion critica y ha apagado los siguientes dispositivos para prevenir danos mayores.
+El sistema de proteccion automatica ha detectado una condicion critica y ha activado la marcha forzada / estado seguro para los siguientes dispositivos.
 
 DETALLES DEL EVENTO:
 --------------------------------------------
