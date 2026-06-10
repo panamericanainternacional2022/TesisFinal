@@ -179,6 +179,18 @@
                             <p style="font-size: var(--text-sm); max-width: 500px; margin: 0; color: var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
                         </div>
 
+                        <!-- Mensaje de Edificio sin Equipos -->
+                        <div id="noEquipmentMessage" class="panel" style="display: none; text-align: center; padding: var(--sp-4); margin-bottom: var(--sp-3); border: 2px solid var(--color-ink); background: var(--color-surface);">
+                            <div style="font-size: 48px; color: var(--color-text-secondary); margin-bottom: var(--sp-2);">
+                                <i class="fa-solid fa-circle-info"></i>
+                            </div>
+                            <h3 style="font-size: var(--text-lg); font-weight: var(--weight-medium); margin-bottom: var(--sp-1); text-transform: uppercase;">Edificio sin Equipos de Monitoreo</h3>
+                            <p style="color: var(--color-text-secondary); max-width: 500px; margin: 0 auto; font-size: var(--text-sm);">
+                                Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o Ascensor).
+                                Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.
+                            </p>
+                        </div>
+
                         <!-- Active monitoring telemetry block -->
                         <div id="monitoringActiveContent" style="display: none;">
                             <div class="status-grid" id="monitoringSummary">

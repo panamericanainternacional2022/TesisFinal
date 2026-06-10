@@ -286,6 +286,16 @@ function renderLiveMonitor(data) {
     const equipTypes = data.equipment_types || ['bomba', 'elevador'];
     const hasPump = equipTypes.includes('bomba');
     const hasElevator = equipTypes.includes('elevador');
+    const hasAnyEquipment = hasPump || hasElevator;
+
+    // Mostrar placeholder si el edificio no tiene ningún equipo
+    const noEquipEl = document.getElementById('noEquipmentMessage');
+    const activeContentEl = document.getElementById('monitoringActiveContent');
+    if (noEquipEl) noEquipEl.style.display = hasAnyEquipment ? 'none' : 'block';
+    if (activeContentEl) activeContentEl.style.display = hasAnyEquipment ? 'block' : 'none';
+
+    // Si no hay equipos, no renderizar el resto de la interfaz
+    if (!hasAnyEquipment) return;
 
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
