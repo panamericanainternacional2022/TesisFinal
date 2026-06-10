@@ -51,17 +51,11 @@ except Exception as e:
 from front.sensor_config import (
     VAR_NAMES,
     UNITS,
-    DEVICE_NAMES_ES,
-    RISK_NAMES_ES,
     STATS_VARS,
     PUMP_VARS,
     ELEVATOR_VARS,
     NO_RISK_VARS,
 )
-
-# Apuntar dicts legacy a la fuente única de verdad
-_VAR_ES = VAR_NAMES
-_DEVICE_ES = DEVICE_NAMES_ES
 
 # ----------------------------------------------------------------------
 # Estado del simulador (importado desde simulation.py)
@@ -209,82 +203,10 @@ def build_live_payload():
 
 active_edificio_id = None
 
-# ----------------------------------------------------------------------
-# Umbrales de riesgo (configurables)
-# ----------------------------------------------------------------------
-DEFAULT_THRESHOLDS = {
-    "flow_rate": {"direction": "higher", "low": 20, "medium": 35, "high": 45},
-    "pressure": {"direction": "higher", "low": 5, "medium": 7, "high": 9},
-    "temperature": {"direction": "higher", "low": 70, "medium": 85, "high": 100},
-    "vibration": {"direction": "higher", "low": 4, "medium": 7, "high": 10},
-    "tank_level": {"direction": "lower", "low": 30, "medium": 15, "high": 5},
-    "speed": {"direction": "higher", "low": 1.5, "medium": 2.5, "high": 3.5},
-    "load": {"direction": "higher", "low": 400, "medium": 700, "high": 900},
-    "trip_count": {"direction": "higher", "low": 10000, "medium": 20000, "high": 30000},
-    "energy": {"direction": "higher", "low": 8, "medium": 12, "high": 15},
-    "voltage": {"direction": "range", "low": 200, "high": 240},
-    "current": {"direction": "higher", "low": 30, "medium": 40, "high": 50},
-}
-# NO_RISK_VARS importado desde sensor_config
-thresholds = DEFAULT_THRESHOLDS.copy()
+from risk import classify_risk
+from settings import thresholds
+
 alert_enabled = True
-PROTECTION_TOGGLE_INTERVAL = 8
-SIMULATION_NORMAL_DURATION = 10
-protection_active = False
-last_protection_toggle = time.time()
-protection_end = 0
-protection_targets = set()
-
-
-# ----------------------------------------------------------------------
-# Funciones auxiliares
-# ----------------------------------------------------------------------
-# get_unit, generate_recommendations, send_email_alert, persist_notification_in_django,
-# _es_device, _es_var, enter_protection_mode, update_protection_state,
-# get_professional_action, send_alert, check_rationing -> alerts.py
-
-
-def classify_risk(variable, value):
-    if variable == "motor_stuck":
-        return ("Crítico", "red") if value else ("Bajo", "green")
-    if variable in NO_RISK_VARS:
-        return "Bajo", "green"
-    if variable in ("flow_rate", "pressure") and value == 0:
-        return "Crítico", "red"
-    if variable not in thresholds:
-        return "Desconocido", "gray"
-    cfg = thresholds[variable]
-    d = cfg["direction"]
-    if d == "range":
-        low, high = cfg["low"], cfg["high"]
-        return ("Bajo", "green") if low <= value <= high else ("Alto", "orange")
-    else:
-        low, med, high = cfg["low"], cfg["medium"], cfg["high"]
-        if d == "higher":
-            if value <= low:
-                return "Bajo", "green"
-            elif value <= med:
-                return "Medio", "yellow"
-            elif value <= high:
-                return "Alto", "orange"
-            else:
-                return "Crítico", "red"
-        else:
-            if value >= low:
-                return "Bajo", "green"
-            elif value >= med:
-                return "Medio", "yellow"
-            elif value >= high:
-                return "Alto", "orange"
-            else:
-                return "Crítico", "red"
-
-
-# get_unit, generate_recommendations, send_email_alert,
-# persist_notification_in_django, _es_device, _es_var,
-# enter_protection_mode, update_protection_state,
-# get_professional_action, send_alert, check_rationing
-# --> movidos a alerts.py
 
 
 def _run_sim_tick(sim: BuildingSimulator):

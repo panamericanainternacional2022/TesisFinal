@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 
 from front.sensor_config import PDF_BAR_VARS, PDF_STATS_VARS, PDF_BAR_LABELS
+from risk import classify_risk
 
 try:
     from fpdf import FPDF
@@ -55,7 +56,6 @@ def _pdf_safe(text):
 
 def generate_pdf_report(period):
     from simulation import sensor_data, history, alert_log, RATIONING_THRESHOLD
-    from app27 import classify_risk
     from alerts import _es_var, get_unit
 
     if not PDF_AVAILABLE:
