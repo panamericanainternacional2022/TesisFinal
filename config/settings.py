@@ -77,12 +77,12 @@ WSGI_APPLICATION = "config.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "tesis",
-        "USER": "root",
-        "PASSWORD": "7316314",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "monitoreo_db",
+        "USER": "postgres",
+        "PASSWORD": "918273",
         "HOST": "127.0.0.1",
-        "PORT": "3306",
+        "PORT": "5432",
     }
 }
 
