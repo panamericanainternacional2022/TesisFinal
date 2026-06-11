@@ -1,15 +1,17 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control de Telemetría </title>
+    <title>Panel de Control de Telemetría</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <style>
         /* ── Design Tokens ── */
         :root {
@@ -573,16 +575,27 @@
     </style>
 </head>
 <body>
-    <div class="page-wrapper">
+    <div class="main-layout">
+        {% include 'pages/components/sidebar.html' %}
+        <main class="main-content">
+        <div class="page-wrapper">
 
         <!-- Encabezado -->
         <header class="admin-info">
-            <h1>Panel de Control de Telemetría </h1>
-            <p>Monitoreo continuo y en tiempo real de sensores hidráulicos, eléctricos, mecánicos y de temperatura. Actualización en vivo mediante WebSocket.</p>
+            <h1>Panel de Control de Telemetría</h1>
+            <p>Monitoreo continuo y en tiempo real de sensores hidráulicos, eléctricos, mecánicos y de temperatura.</p>
         </header>
 
-        <!-- Barra de controles -->
-        <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2);">
+        <!-- Barra de controles + selector de edificio -->
+        <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">
+            <div class="form-group" style="min-width:220px;">
+                <label class="form-label">Edificio activo</label>
+                <select id="buildingSelect" style="height:44px;">
+                    {% for ed in edificios %}
+                    <option value="{{ ed.id_edificio }}" {% if ed.id_edificio == edificio_id %}selected{% endif %}>{{ ed.nb_edificio }}</option>
+                    {% endfor %}
+                </select>
+            </div>
             <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
             <div class="spacer"></div>
         </div>
@@ -809,12 +822,15 @@
         </div><!-- /dashboardContent -->
 
     </div><!-- /page-wrapper -->
+        </main>
+    </div><!-- /main-layout -->
 
+    {{ config_json|json_script:"dashConfig" }}
     <script>
-        let socket = io();
-        let chart1, chart2, chart3, chart4;
+        let chart1, chart2;
         let currentThresholds = {};
         let subscribers = {};
+        let sseSource = null;
 
         // ── Helper de Modales Personalizados ──
         function showCustomModal({ title, message, type = 'info', showCancel = false }) {
@@ -884,17 +900,19 @@
         window.showConfirm = function(message) {
             return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
         };
-        /* Fuente de verdad: api/front/sensor_config.py */
-        const NO_RISK_VARS = {{ no_risk_vars | tojson }};
-        const BOMBA_VARS = {{ bomba_vars | tojson }};
-        const ELEVADOR_VARS = {{ elevador_vars | tojson }};
+        const CONFIG = JSON.parse(document.getElementById('dashConfig').textContent);
+        const NO_RISK_VARS = CONFIG.no_risk_vars;
+        const BOMBA_VARS = CONFIG.bomba_vars;
+        const ELEVADOR_VARS = CONFIG.elevador_vars;
+        const VAR_NAMES_MAP = CONFIG.var_names;
+        const UNITS_MAP = CONFIG.units;
+        let EDIFICIO_ID = CONFIG.edificio_id || 0;
 
         function getVariableName(variable) {
-            const names = {{ var_names | tojson }};
-            return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+            return VAR_NAMES_MAP[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
         }
 
-        function getUnit(v){ const units = {{ units | tojson }}; return units[v]||''; }
+        function getUnit(v){ return UNITS_MAP[v]||''; }
 
         function getRiskClass(varName, value){
             if(NO_RISK_VARS.includes(varName)){
@@ -1098,6 +1116,14 @@
             }
         }
 
+        function csrfFetch(url, opts = {}) {
+            const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
+            const token = csrf ? csrf.split('=')[1] : '';
+            opts.headers = { ...opts.headers, 'X-CSRFToken': token };
+            opts.credentials = 'same-origin';
+            return fetch(url, opts);
+        }
+
         async function saveThresholds(){
             let newTh={};
             document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp=>{
@@ -1105,7 +1131,7 @@
                 if(!newTh[v]) newTh[v]={direction:document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`).value};
                 newTh[v][l]=parseFloat(inp.value);
             });
-            let resp=await fetch('/update_thresholds',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newTh)});
+            let resp=await csrfFetch('/api/thresholds/update/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newTh)});
             let res=await resp.json();
             if(res.status==='ok'){
                 document.getElementById('saveMessage').innerText='✓ Guardados';
@@ -1151,7 +1177,7 @@
             else if(v==='motor_stuck') val=(raw==='true'||raw==='1');
             else{let n=parseFloat(raw); if(isNaN(n)){msgEl.innerHTML='<span style="color:var(--state-critical)">Valor numérico inválido</span>';return;} val=n;}
             try{
-                let resp=await fetch('/manual_update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variable:v,value:val})});
+                let resp=await csrfFetch('/api/manual-update/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variable:v,value:val,edificio_id:EDIFICIO_ID})});
                 let res=await resp.json();
                 if(res.status==='ok'){msgEl.innerHTML=`<span style="color:var(--state-ok)">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(()=>msgEl.innerHTML='',3000);}
                 else{msgEl.innerHTML=`<span style="color:var(--state-critical)">Error: ${res.message}</span>`;}
@@ -1160,8 +1186,9 @@
 
         // ── Simulation Control ──
         async function fetchSimStatus() {
+            if (!EDIFICIO_ID) return null;
             try {
-                let resp = await fetch('/api/sim/status');
+                let resp = await fetch(`/api/sim/${EDIFICIO_ID}/status/`);
                 return await resp.json();
             } catch (e) {
                 return null;
@@ -1169,8 +1196,9 @@
         }
 
         async function togglePause() {
+            if (!EDIFICIO_ID) return;
             try {
-                let resp = await fetch('/api/sim/pause', { method: 'POST' });
+                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/pause/`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
                 let data = await resp.json();
                 if (data.status === 'ok') {
                     updatePauseBtn(data.paused);
@@ -1194,9 +1222,9 @@
 
         async function resetSim() {
             let confirmed = await window.showConfirm('¿Reiniciar el simulador al estado normal?');
-            if (!confirmed) return;
+            if (!confirmed || !EDIFICIO_ID) return;
             try {
-                let resp = await fetch('/api/sim/reset', { method: 'POST' });
+                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/reset/`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
                 let data = await resp.json();
                 if (data.status === 'ok') {
                     setSimMessage('✅ ' + data.message, 'success');
@@ -1212,31 +1240,19 @@
         }
 
         async function injectFault(device) {
+            if (!EDIFICIO_ID) return;
             let sel = document.getElementById(device === 'pump' ? 'simFaultPump' : 'simFaultElevator');
             let faultType = sel.value;
-            if (!faultType) {
-                // Clear fault
-                try {
-                    let resp = await fetch('/api/sim/clear_fault', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ device: device })
-                    });
-                    let data = await resp.json();
-                    if (data.status === 'ok') {
-                        setSimMessage('✅ ' + data.message, 'success');
-                    }
-                } catch (e) {
-                    setSimMessage('Error al limpiar falla', 'error');
-                }
-                return;
-            }
             try {
-                let resp = await fetch('/api/sim/inject_fault', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ device: device, fault_type: faultType })
-                });
+                let url, body;
+                if (!faultType) {
+                    url = `/api/sim/${EDIFICIO_ID}/clear-fault/`;
+                    body = JSON.stringify({ device: device });
+                } else {
+                    url = `/api/sim/${EDIFICIO_ID}/inject-fault/`;
+                    body = JSON.stringify({ device: device, fault_type: faultType });
+                }
+                let resp = await csrfFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
                 let data = await resp.json();
                 if (data.status === 'ok') {
                     setSimMessage('✅ ' + data.message, 'success');
@@ -1244,16 +1260,17 @@
                     setSimMessage('❌ ' + data.message, 'error');
                 }
             } catch (e) {
-                setSimMessage('Error al inyectar falla', 'error');
+                setSimMessage('Error al gestionar falla', 'error');
             }
         }
 
         async function setSpeed() {
+            if (!EDIFICIO_ID) return;
             let slider = document.getElementById('simSpeedSlider');
             let speed = parseFloat(slider.value);
             document.getElementById('simSpeedLabel').textContent = speed.toFixed(1) + 'x';
             try {
-                let resp = await fetch('/api/sim/set_speed', {
+                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/set-speed/`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ speed: speed })
@@ -1296,7 +1313,7 @@
 
         async function loadBuildings() {
             try {
-                let resp = await fetch('/api/edificios');
+                let resp = await fetch('/api/edificios/');
                 let buildings = await resp.json();
                 let select = document.getElementById('subBuildingSelect');
                 select.innerHTML = '';
@@ -1307,34 +1324,13 @@
                     select.appendChild(opt);
                 });
 
-                const urlParams = new URLSearchParams(window.location.search);
-                const urlEdificioId = urlParams.get('edificio');
-
-                if (urlEdificioId) {
-                    select.value = urlEdificioId;
-                    fetch(`/api/set_active_building/${urlEdificioId}`, { method: 'POST' })
-                        .catch(err => console.error("Error setting active building:", err));
-
-                    loadUsersForBuilding(urlEdificioId);
-
-                    const activeB = buildings.find(b => b.id == urlEdificioId);
-                    if (activeB) {
-                        document.getElementById('activeBuildingName').textContent = activeB.nombre;
-                        document.getElementById('activeBuildingNameContainer').style.display = 'flex';
-                        document.getElementById('subBuildingSelectContainer').style.display = 'none';
-                    }
+                document.getElementById('activeBuildingNameContainer').style.display = 'none';
+                document.getElementById('subBuildingSelectContainer').style.display = 'block';
+                if (buildings.length > 0) {
+                    select.value = EDIFICIO_ID || buildings[0].id;
+                    loadUsersForBuilding(select.value);
                 } else {
-                    document.getElementById('activeBuildingNameContainer').style.display = 'none';
-                    document.getElementById('subBuildingSelectContainer').style.display = 'block';
-                    if (buildings.length > 0) {
-                        // Seleccionar el primer edificio en el selector y notificar al backend
-                        select.value = buildings[0].id;
-                        fetch(`/api/set_active_building/${buildings[0].id}`, { method: 'POST' })
-                            .catch(err => console.error("Error setting default active building:", err));
-                        loadUsersForBuilding(buildings[0].id);
-                    } else {
-                        document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
-                    }
+                    document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
                 }
             } catch (e) {
                 console.error("Error al cargar edificios:", e);
@@ -1346,7 +1342,7 @@
             let container = document.getElementById('subscribersList');
             container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">Cargando usuarios...</p>';
             try {
-                let resp = await fetch(`/api/usuarios_edificio/${edificioId}`);
+                let resp = await fetch(`/api/usuarios_edificio/${edificioId}/`);
                 activeUsers = await resp.json();
                 updateSubscribersList();
             } catch (e) {
@@ -1389,7 +1385,7 @@
                     btn.disabled = true;
                     btn.innerText = 'Enviando...';
                     try {
-                        let resp = await fetch('/api/send_test_email', {
+                        let resp = await csrfFetch('/api/send-test-email/', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ email: email, risk_level: risk })
@@ -1418,7 +1414,7 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
             try {
-                let resp = await fetch('/api/send_all_subscribers', {
+                let resp = await csrfFetch('/api/send-all-subscribers/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ edificio_id: edificioId, risk_level: risk })
@@ -1441,9 +1437,20 @@
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
 
-        // Socket
-        socket.on('connect', ()=>console.log('[INES] Socket conectado'));
-        socket.on('init_data', (data)=>{ applyPayload(data); });
+        // SSE
+        function connectSSE() {
+            if (sseSource) { sseSource.close(); }
+            if (!EDIFICIO_ID) return;
+            const url = `/sse/${EDIFICIO_ID}/`;
+            sseSource = new EventSource(url);
+            sseSource.onmessage = (event) => {
+                try { applyPayload(JSON.parse(event.data)); } catch(e) {}
+            };
+            sseSource.onerror = () => {
+                console.warn('SSE error, reconectando en 5s...');
+                setTimeout(() => connectSSE(), 5000);
+            };
+        }
 
         function applyPayload(data){
             if(data.thresholds) currentThresholds=data.thresholds;
@@ -1507,34 +1514,26 @@
         }
 
 
-        socket.on('sensor_update', (data)=>{ applyPayload(data); });
-
         initCharts();
         populateManualSensorSelect();
         updateSensorTypeIndicator();
         loadBuildings();
+        connectSSE();
 
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.type === 'CHANGE_BUILDING') {
-                const buildingId = event.data.buildingId;
-                const buildingName = event.data.buildingName;
-                
-                let select = document.getElementById('subBuildingSelect');
-                if (select) select.value = buildingId;
-                
-                fetch(`/api/set_active_building/${buildingId}`, { method: 'POST' })
-                    .catch(err => console.error("Error setting active building:", err));
-
-                loadUsersForBuilding(buildingId);
-
-                const activeNameEl = document.getElementById('activeBuildingName');
-                if (activeNameEl) activeNameEl.textContent = buildingName;
-                
-                const url = new URL(window.location);
-                url.searchParams.set('edificio', buildingId);
-                window.history.replaceState({}, '', url);
-            }
+        document.getElementById('buildingSelect').addEventListener('change', function() {
+            EDIFICIO_ID = parseInt(this.value);
+            connectSSE();
+            fetchInitialData();
+            loadUsersForBuilding(EDIFICIO_ID);
         });
+
+        function fetchInitialData() {
+            const url = EDIFICIO_ID ? `/api/status/?edificio_id=${EDIFICIO_ID}` : '/api/status/';
+            fetch(url)
+                .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+                .then(data => applyPayload(data))
+                .catch(() => {});
+        }
     </script>
 </body>
 </html>

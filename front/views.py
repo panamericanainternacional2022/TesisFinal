@@ -28,6 +28,7 @@ from front.sensor_config import (
     UNITS,
     PUMP_VARS,
     ELEVATOR_VARS,
+    NO_RISK_VARS,
     RISK_NAMES_ES,
     DEVICE_NAMES_ES,
     VALUE_DISPLAY_ES,
@@ -1238,13 +1239,32 @@ def limpiar_notificaciones_view(request):
 def monitoreo_view(request):
     rol = request.session.get("usuario_rol", "US")
     if _is_admin_role(rol):
-        edificios = Edificio.objects.all()
+        edificios = list(Edificio.objects.all())
+        edificio_id = request.GET.get("edificio")
+        if edificio_id:
+            try:
+                edificio_id = int(edificio_id)
+            except (ValueError, TypeError):
+                edificio_id = edificios[0].id_edificio if edificios else 0
+        else:
+            edificio_id = edificios[0].id_edificio if edificios else 0
+        import json as _json_mod
+        config_json = _json_mod.dumps({
+            "no_risk_vars": NO_RISK_VARS,
+            "bomba_vars": PUMP_VARS,
+            "elevador_vars": ELEVATOR_VARS,
+            "var_names": VAR_NAMES,
+            "units": UNITS,
+            "edificio_id": edificio_id,
+        })
         return render(
             request,
-            "pages/monitoreo_admin.html",
+            "monitoreo_dashboard.html",
             {
                 "rol": rol,
                 "edificios": edificios,
+                "edificio_id": edificio_id,
+                "config_json": config_json,
             },
         )
 
