@@ -286,6 +286,7 @@ def register_routes(app, socketio):
     def manual_update():
         from simulation import (
             sensor_data, history, door_close_attempts, RATIONING_THRESHOLD,
+            simulators,
         )
 
         data = request.json
@@ -313,6 +314,7 @@ def register_routes(app, socketio):
             if variable != "motor_stuck"
             else ("Crítico" if sensor_data[variable] else "Bajo")
         )
+        sim_obj = simulators.get(entry.active_edificio_id)
         if risk in ("Alto", "Crítico") and entry.alert_enabled:
             action = get_professional_action(variable, risk, sensor_data[variable])
             send_alert(
@@ -320,6 +322,7 @@ def register_routes(app, socketio):
                 sensor_data[variable],
                 risk,
                 f"Valor manual ({sensor_data[variable]}): {action}",
+                sim=sim_obj,
             )
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         sensor_type = "Bomba" if variable in PUMP_VARS else "Elevador"

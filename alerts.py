@@ -16,9 +16,8 @@ import json as _json
 import logging
 from collections import deque
 
-logger = logging.getLogger(__name__)
-
 from simulation import (
+    BuildingSimulator,
     LOG_SIM, RATIONING_THRESHOLD,
     MAX_DOOR_CLOSE_ATTEMPTS, PROTECTION_HOLD_SECONDS,
     simulators,
@@ -27,6 +26,8 @@ from simulation import (
     last_email_sent_time,
     reset_critical_values,
 )
+
+logger = logging.getLogger(__name__)
 
 from front.sensor_config import (
     VAR_NAMES, UNITS, PUMP_VARS, ELEVATOR_VARS,
@@ -58,15 +59,25 @@ def _es_var(v):
     return VAR_NAMES.get(v, v.replace("_", " ").title())
 
 
-def enter_protection_mode(reason=None, targets=None):
-    global pump_on, elevator_on, protection_ends
+def _sim_or_global(sim, attr):
+    if sim is not None:
+        return getattr(sim, attr)
+    return globals()[attr]
+
+
+def enter_protection_mode(reason=None, targets=None, sim=None):
     if not targets:
         logger.warning("Protección solicitada sin targets; no se hará nada.")
         return
+
+    pe = _sim_or_global(sim, "protection_ends")
+    pn = _sim_or_global(sim, "pending_notifications")
+    les = _sim_or_global(sim, "last_email_sent_time")
+
     now = time.time()
     targets_set = set(targets)
     for device in targets_set:
-        protection_ends[device] = now + PROTECTION_HOLD_SECONDS
+        pe[device] = now + PROTECTION_HOLD_SECONDS
     reason_text = f" ({reason})" if reason else ""
     targets_text_es = " y ".join(_es_device(d) for d in sorted(targets_set))
     targets_text_raw = " y ".join(sorted(targets_set))
@@ -79,15 +90,15 @@ def enter_protection_mode(reason=None, targets=None):
         "risk": "Crítico",
         "message": action_msg,
     }
-    pending_notifications.append(notification_payload)
+    pn.append(notification_payload)
     from entry import alert_enabled
     if alert_enabled:
-        persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg)
+        eid = sim.edificio_id if sim else None
+        persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg, edificio_id=eid)
 
-    global last_email_sent_time
     now_ts = time.time()
-    if now_ts - last_email_sent_time > 300:
-        last_email_sent_time = now_ts
+    if now_ts - les > 300:
+        les = now_ts
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
         subject = f"[Proteccion activada] Marcha forzada: {targets_text_es}"
         body = f"""REPORTE AUTOMATICO DE PROTECCION
@@ -110,6 +121,13 @@ Este es un mensaje de contingencia generado de forma automatica por el modulo de
         threading.Thread(
             target=send_email_alert, args=("Crítico", subject, body), daemon=True
         ).start()
+
+    if sim is not None:
+        sim.last_email_sent_time = les
+    else:
+        global last_email_sent_time
+        last_email_sent_time = les
+
     try:
         from entry import socketio
         socketio.emit("notification", notification_payload, broadcast=True)
@@ -117,33 +135,39 @@ Este es un mensaje de contingencia generado de forma automatica por el modulo de
         pass
 
 
-def update_protection_state():
-    global pump_on, elevator_on, protection_ends
+def update_protection_state(sim=None):
+    pe = _sim_or_global(sim, "protection_ends")
+    sd = _sim_or_global(sim, "sensor_data")
+    aa = _sim_or_global(sim, "active_alerts")
+    pn = _sim_or_global(sim, "pending_notifications")
+
     now = time.time()
-    expired = [d for d, end in protection_ends.items() if end and now >= end]
+    expired = [d for d, end in pe.items() if end and now >= end]
     for device in expired:
         try:
-            reset_critical_values({device}, sensor_data)
+            reset_critical_values({device}, sd)
         except Exception:
             logger.exception("Error reseteando valores críticos para %s", device)
         try:
             if device == "pump":
                 for v in PUMP_VARS + ["rationing"]:
-                    active_alerts.pop(v, None)
+                    aa.pop(v, None)
             elif device == "elevator":
                 for v in ELEVATOR_VARS:
-                    active_alerts.pop(v, None)
+                    aa.pop(v, None)
         except Exception:
             pass
-        del protection_ends[device]
+        del pe[device]
         logger.info("Protección finalizada para %s. Dispositivo restaurado.", device)
         from entry import alert_enabled
         if alert_enabled:
+            eid = sim.edificio_id if sim else None
             persist_notification_in_django(
                 f"protection_{device}",
                 None,
                 "Info",
-                f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada."
+                f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
+                edificio_id=eid,
             )
         notification_payload = {
             "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -152,7 +176,7 @@ def update_protection_state():
             "risk": "Info",
             "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
         }
-        pending_notifications.append(notification_payload)
+        pn.append(notification_payload)
         try:
             from entry import socketio
             socketio.emit("notification", notification_payload, broadcast=True)
@@ -160,15 +184,17 @@ def update_protection_state():
             pass
 
 
-def send_alert(variable, value, risk_level, recommended_action):
-    global active_alerts, last_email_sent_time
+def send_alert(variable, value, risk_level, recommended_action, sim=None):
+    aa = _sim_or_global(sim, "active_alerts")
+    les = _sim_or_global(sim, "last_email_sent_time")
+
     from entry import alert_enabled
     if not alert_enabled:
         logger.info("Alertas desactivadas por el usuario")
         return
-    if variable in active_alerts and active_alerts[variable] == risk_level:
+    if variable in aa and aa[variable] == risk_level:
         return
-    active_alerts[variable] = risk_level
+    aa[variable] = risk_level
     device_target = None
     try:
         if variable in PUMP_VARS or variable == "rationing":
@@ -186,7 +212,8 @@ def send_alert(variable, value, risk_level, recommended_action):
         if device_target:
             enter_protection_mode(
                 f"alerta {_risk_adj.get(risk_level, risk_level.lower())} de {_es_var(variable).lower()}",
-                targets={device_target}
+                targets={device_target},
+                sim=sim,
             )
         else:
             logger.warning(
@@ -215,12 +242,18 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
 """
 
     now = time.time()
-    if send_email and now - last_email_sent_time > 300:
-        last_email_sent_time = now
+    if send_email and now - les > 300:
+        les = now
+        if sim is not None:
+            sim.last_email_sent_time = les
+        else:
+            global last_email_sent_time
+            last_email_sent_time = les
         threading.Thread(
             target=send_email_alert, args=(risk_level, subject, body), daemon=True
         ).start()
 
+    pn = _sim_or_global(sim, "pending_notifications")
     notification_payload = {
         "timestamp": timestamp,
         "variable": variable,
@@ -228,8 +261,9 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
         "risk": risk_level,
         "message": recommended_action,
     }
-    pending_notifications.append(notification_payload)
-    persist_notification_in_django(variable, value, risk_level, recommended_action)
+    pn.append(notification_payload)
+    eid = sim.edificio_id if sim else None
+    persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=eid)
     try:
         from entry import socketio
         socketio.emit("notification", notification_payload, broadcast=True)
@@ -237,9 +271,9 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
         pass
 
 
-def check_rationing(flow_rate):
+def check_rationing(flow_rate, sim=None):
     if flow_rate < RATIONING_THRESHOLD:
         action = get_professional_action("rationing", "Crítico", flow_rate)
-        send_alert("rationing", flow_rate, "Crítico", action)
+        send_alert("rationing", flow_rate, "Crítico", action, sim=sim)
         return True
     return False

@@ -342,7 +342,7 @@ def send_email_alert(
         logger.error("Error enviando email: %s", e)
 
 
-def persist_notification_in_django(variable, value, risk_level, recommended_action):
+def persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=None):
     import json as _json
     try:
         from django.utils import timezone
@@ -357,16 +357,19 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
         elif variable in ELEVATOR_VARS:
             _tipo = EquipoMonitoreo.TIPO_ELEVADOR
 
-        from entry import active_edificio_id
-        if _tipo and active_edificio_id:
+        eid = edificio_id
+        if eid is None:
+            from entry import active_edificio_id
+            eid = active_edificio_id
+        if _tipo and eid:
             equipo = EquipoMonitoreo.objects.filter(
-                id_edificio_id=active_edificio_id, tipo=_tipo
+                id_edificio_id=eid, tipo=_tipo
             ).first()
         else:
             equipo = None
 
-        if not equipo and active_edificio_id:
-            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id).first()
+        if not equipo and eid:
+            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=eid).first()
 
         if not equipo:
             equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
