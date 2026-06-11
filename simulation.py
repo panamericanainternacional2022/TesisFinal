@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 RATIONING_THRESHOLD = 8.0
 MAX_HISTORY_SIZE = 500
 MAX_LOG_ENTRIES = 100
-PROTECTION_HOLD_SECONDS = 8
+PROTECTION_HOLD_SECONDS = 30
 PROTECTION_TOGGLE_INTERVAL = 8
 SIMULATION_NORMAL_DURATION = 10
 LOG_SIM = True
@@ -387,7 +387,7 @@ def _update_elevator(sim: BuildingSimulator):
     if "elevator" in sim.protection_ends:
         energy = _clamp(energy, 0, 20)
 
-    stuck = (spd == 0 and load > 1000 and not at_floor and state not in ("IDLE", "DOOR_OPENING", "DOORS_OPEN", "DOOR_CLOSING"))
+    stuck = check_motor_stuck(spd, load, sd.get("temperature", 50.0))
 
     sd["position"] = round(pos, 1)
     sd["speed"] = round(spd, 1)
@@ -402,27 +402,29 @@ def _update_elevator(sim: BuildingSimulator):
 # ----------------------------------------------------------------------
 # Funciones de simulación (API pública)
 # ----------------------------------------------------------------------
-def reset_critical_values(targets):
+def reset_critical_values(targets, sd=None):
     """Resetear valores críticos asociados a los dispositivos deshabilitados."""
-    global sensor_data
+    if sd is None:
+        global sensor_data
+        sd = sensor_data
     if not targets:
         return
     if "pump" in targets:
-        sensor_data["flow_rate"] = 25.0
-        sensor_data["pressure"] = 4.0
-        sensor_data["temperature"] = 50.0
-        sensor_data["vibration"] = 1.5
-        sensor_data["tank_level"] = 80.0
-        sensor_data["voltage"] = 220.0
-        sensor_data["current"] = 18.0
+        sd["flow_rate"] = 25.0
+        sd["pressure"] = 4.0
+        sd["temperature"] = 50.0
+        sd["vibration"] = 1.5
+        sd["tank_level"] = 80.0
+        sd["voltage"] = 220.0
+        sd["current"] = 18.0
     if "elevator" in targets:
-        sensor_data["position"] = 0
-        sensor_data["speed"] = 0.0
-        sensor_data["load"] = 200
-        sensor_data["motor_stuck"] = False
-        sensor_data["door_status"] = "closed"
-        sensor_data["energy"] = 5.0
-        sensor_data["temperature"] = 50.0
+        sd["position"] = 0
+        sd["speed"] = 0.0
+        sd["load"] = 200
+        sd["motor_stuck"] = False
+        sd["door_status"] = "closed"
+        sd["energy"] = 5.0
+        sd["temperature"] = 50.0
         global door_close_attempts
         door_close_attempts = 0
 

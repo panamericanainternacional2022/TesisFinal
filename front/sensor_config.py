@@ -77,7 +77,7 @@ DEVICE_NAMES_ES = {
 }
 
 # ─── Variables excluidas de clasificación de riesgo ───────────────────────
-NO_RISK_VARS = ["position", "door_status", "motor_stuck"]
+NO_RISK_VARS = ["position", "door_status"]
 
 # ─── Variables de sensores agrupadas por dispositivo ──────────────────────
 PUMP_VARS = [
@@ -130,10 +130,12 @@ PDF_BAR_LABELS = {
 # al español para mostrarlo en el frontend.
 VALUE_DISPLAY_ES = {
     "door_status": {
-        "open":   "Abierta",
-        "closed": "Cerrada",
-        "true":   "Bloqueada",
-        "false":  "Normal",
+        "open":     "Abierta",
+        "closed":   "Cerrada",
+        "opening":  "Abriendo",
+        "closing":  "Cerrando",
+        "true":     "Bloqueada",
+        "false":    "Normal",
     },
     "motor_stuck": {
         "true":  "Atascado",

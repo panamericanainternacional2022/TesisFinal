@@ -8,8 +8,9 @@ import logging
 from datetime import datetime, timedelta
 from io import BytesIO
 
-from front.sensor_config import PDF_BAR_VARS, PDF_STATS_VARS, PDF_BAR_LABELS
+from front.sensor_config import PDF_BAR_VARS, PDF_STATS_VARS, PDF_BAR_LABELS, VAR_NAMES
 from front.services.risk_service import classify_risk
+from front.services.alert_service import get_unit
 
 try:
     from fpdf import FPDF
@@ -54,9 +55,12 @@ def _pdf_safe(text):
     return unicodedata.normalize('NFKD', str(text)).encode('latin-1', 'ignore').decode('latin-1')
 
 
+def _es_var(v):
+    return VAR_NAMES.get(v, v.replace("_", " ").title())
+
+
 def generate_pdf_report(period):
     from simulation import sensor_data, history, RATIONING_THRESHOLD
-    from alerts import _es_var, get_unit
     from front.services.alert_service import get_alert_log
     import entry
 

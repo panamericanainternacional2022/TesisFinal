@@ -108,9 +108,6 @@ def _run_sim_tick(sim: BuildingSimulator):
         if risk in ("Alto", "Crítico"):
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action)
-        elif risk in ("Bajo", "Medio"):
-            action = get_professional_action(var, risk, value)
-            send_alert(var, value, risk, action)
         else:
             active_alerts.pop(var, None)
     check_rationing(sensor_data["flow_rate"])

@@ -123,7 +123,7 @@ def update_protection_state():
     expired = [d for d, end in protection_ends.items() if end and now >= end]
     for device in expired:
         try:
-            reset_critical_values({device})
+            reset_critical_values({device}, sensor_data)
         except Exception:
             logger.exception("Error reseteando valores críticos para %s", device)
         try:

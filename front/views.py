@@ -1125,121 +1125,8 @@ def notificaciones_view(request):
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    import re
-    import json as _json
-
-    var_names = VAR_NAMES
-    units = UNITS
-    risk_names_es = RISK_NAMES_ES
-    device_names_es = DEVICE_NAMES_ES
-
-    def _translate_devices(text):
-        """Reemplaza nombres de dispositivos en inglés por su equivalente en español."""
-        for en, es in device_names_es.items():
-            text = re.sub(rf"\b{re.escape(en)}\b", es, text, flags=re.IGNORECASE)
-        return text
-
-    def _build_protection_action(risk, raw_action):
-        """Construye el texto de acción para notificaciones de Protección automática."""
-        risk_es = risk_names_es.get(risk, risk.lower())
-        devices_match = re.search(r"[Dd]ispositivos?\s+apagados?:\s*(.+)", raw_action)
-        if devices_match:
-            devices_es = _translate_devices(devices_match.group(1).rstrip("."))
-            return f"Protección automática activada (alerta {risk_es}). Dispositivos apagados: {devices_es}."
-        return f"Protección automática activada (alerta {risk_es}). {_translate_devices(raw_action)}"
-
-    def _build_restoration_action(raw_action):
-        """Traduce el mensaje de restauración de protección."""
-        return _translate_devices(raw_action)
-
-    def _make_parsed(risk, variable, value, action):
-        """Construye el dict parsed_data final."""
-        var_display = var_names.get(variable, variable.replace("_", " ").title())
-
-        value_str = str(value).lower().strip() if value is not None else ""
-
-        # Traducir valores especiales de sensores (door_status, motor_stuck, etc.)
-        if variable in VALUE_DISPLAY_ES:
-            value_display = VALUE_DISPLAY_ES[variable].get(value_str, str(value).capitalize())
-        elif value_str == "pump":
-            value_display = "Bomba de agua"
-        elif value_str == "elevator":
-            value_display = "Elevador"
-        elif value_str in device_names_es:
-            value_display = device_names_es[value_str].capitalize()
-        elif value_str:
-            value_display = value_str.capitalize()
-        else:
-            value_display = ""
-
-        if variable == "Protección automática":
-            action = _build_protection_action(risk, action)
-        elif variable.startswith("Protección "):
-            action = _build_restoration_action(action)
-        return {
-            "parsed": True,
-            "risk": risk,
-            "variable": var_display,
-            "value": value_display,
-            "unit": units.get(variable, ""),
-            "action": action,
-        }
-
     for notif in page_obj:
-        raw = (notif.mensaje or "").strip()
-        parsed_data = None
-
-        # Camino 1: JSON estructurado (registros nuevos)
-        if raw.startswith("{"):
-            try:
-                data = _json.loads(raw)
-                parsed_data = _make_parsed(
-                    risk=data.get("risk", ""),
-                    variable=data.get("variable", ""),
-                    value=data.get("value") or "",
-                    action=data.get("action", ""),
-                )
-            except (ValueError, KeyError):
-                parsed_data = None
-
-        # Camino 2: Regex formato [risk] variable = value - action
-        if parsed_data is None:
-            m = re.match(r"^\[(.*?)\]\s+(.*?)\s+=\s+(.*?)\s+-\s+(.*)$", raw)
-            if m:
-                parsed_data = _make_parsed(
-                    risk=m.group(1).strip(),
-                    variable=m.group(2).strip(),
-                    value=m.group(3).strip(),
-                    action=m.group(4).strip(),
-                )
-
-        # Camino 3: Regex formato legado proteccion sin corchetes
-        if parsed_data is None:
-            pm = re.match(
-                r"Protecci[oó]n autom[áa]tica activada\s*\(Alerta\s+(\w+)\s+de\s+(\w+)\)\.+\s*Dispositivos\s+apagados:\s*(.+)",
-                raw,
-                re.IGNORECASE,
-            )
-            if pm:
-                p_risk = pm.group(1).strip().capitalize()
-                p_variable = pm.group(2).strip()
-                p_devices_es = _translate_devices(pm.group(3).rstrip("."))
-                p_risk_es = risk_names_es.get(p_risk, p_risk.lower())
-                p_var_es = var_names.get(p_variable, p_variable.replace("_", " "))
-                parsed_data = {
-                    "parsed": True,
-                    "risk": p_risk,
-                    "variable": "Protección automática",
-                    "value": "True",
-                    "unit": "",
-                    "action": (
-                        f"Protección automática activada ({p_var_es} {p_risk_es}). "
-                        f"Dispositivos apagados: {p_devices_es}."
-                    ),
-                }
-
-        # Resultado final
-        notif.parsed_data = parsed_data or {"parsed": False}
+        _parse_notif_for_historial(notif)
 
     import time as _time
     usuario_id = request.session["usuario_id"]
@@ -2296,6 +2183,12 @@ def completar_registro_view(request):
         data = signing.loads(token, max_age=86400)  # 24 horas de validez
         user_id = data["user_id"]
         usuario = Usuario.objects.get(id_usuario=user_id)
+        if usuario.registrado:
+            return render(
+                request,
+                "pages/completar_registro.html",
+                {"error": "Este registro ya fue completado anteriormente. Puede iniciar sesión."},
+            )
     except (signing.BadSignature, signing.SignatureExpired, Usuario.DoesNotExist):
         return render(
             request,
