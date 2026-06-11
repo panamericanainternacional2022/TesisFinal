@@ -18,14 +18,14 @@ DEFAULT_THRESHOLDS = {
 
 
 def get_thresholds():
-    result = DEFAULT_THRESHOLDS.copy()
+    result = {k: dict(v) for k, v in DEFAULT_THRESHOLDS.items()}
     try:
         from front.models import UmbralConfig
         for row in UmbralConfig.objects.all():
             result[row.variable] = {
                 "direction": row.direction,
                 "low": row.low,
-                "medium": row.medium if row.medium is not None else 0,
+                "medium": row.medium,
                 "high": row.high,
             }
     except Exception as e:
@@ -36,12 +36,18 @@ def get_thresholds():
 def update_threshold(variable, config):
     try:
         from front.models import UmbralConfig
+        medium = config.get("medium")
+        if medium is not None:
+            try:
+                medium = float(medium)
+            except (ValueError, TypeError):
+                medium = None
         obj, created = UmbralConfig.objects.update_or_create(
             variable=variable,
             defaults={
                 "direction": config.get("direction", "higher"),
                 "low": config.get("low", 0),
-                "medium": config.get("medium"),
+                "medium": medium,
                 "high": config.get("high", 0),
             },
         )

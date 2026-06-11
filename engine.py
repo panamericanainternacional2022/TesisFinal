@@ -76,4 +76,7 @@ def generate_data_and_emit():
     while True:
         eventlet.sleep(5)
         for sim in list(simulators.values()):
-            _run_sim_tick(sim)
+            try:
+                _run_sim_tick(sim)
+            except Exception:
+                logger.exception("Error en tick de sim %s (%s)", sim.edificio_id, sim.nombre)

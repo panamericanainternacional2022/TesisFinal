@@ -60,11 +60,22 @@ def _es_var(v):
 
 
 def generate_pdf_report(period, edificio_id=None):
-    from simulation import sensor_data, history, RATIONING_THRESHOLD, simulators
+    from simulation import simulators
     from front.services.alert_service import get_alert_log
 
     if not PDF_AVAILABLE:
         raise ImportError("fpdf2 no instalado")
+
+    sim = None
+    if edificio_id and edificio_id in simulators:
+        sim = simulators[edificio_id]
+    elif simulators:
+        sim = next(iter(simulators.values()))
+
+    sensor_data = sim.sensor_data if sim else {}
+    history = sim.history if sim else []
+    rationing_threshold = sim.config.get("rationing_threshold", 10.0) if sim else 10.0
+
     now = datetime.now()
     if period == "minute":
         start_time = now - timedelta(minutes=1)
@@ -374,7 +385,7 @@ def generate_pdf_report(period, edificio_id=None):
     pdf.cell(0, 8, "ESTADO GENERAL DE RACIONAMIENTO", ln=1)
     pdf.ln(2)
 
-    if sensor_data["flow_rate"] < RATIONING_THRESHOLD:
+    if sensor_data.get("flow_rate", 0) < rationing_threshold:
         pdf.set_fill_color(254, 242, 242)
         pdf.set_text_color(153, 27, 27)
         pdf.set_draw_color(10, 10, 10)

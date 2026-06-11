@@ -403,13 +403,13 @@ def _update_elevator(sim: BuildingSimulator):
 # ----------------------------------------------------------------------
 # Funciones de simulación (API pública)
 # ----------------------------------------------------------------------
-def reset_critical_values(targets, sd=None):
+def reset_critical_values(targets, sim=None):
     """Resetear valores críticos asociados a los dispositivos deshabilitados."""
-    if sd is None:
-        global sensor_data
-        sd = sensor_data
-    if not targets:
+    if sim is None:
+        sim = next(iter(simulators.values()), None)
+    if sim is None or not targets:
         return
+    sd = sim.sensor_data
     if "pump" in targets:
         sd["flow_rate"] = 25.0
         sd["pressure"] = 4.0
@@ -426,8 +426,7 @@ def reset_critical_values(targets, sd=None):
         sd["door_status"] = "closed"
         sd["energy"] = 5.0
         sd["temperature"] = 50.0
-        global door_close_attempts
-        door_close_attempts = 0
+    sim.door_close_attempts = 0
 
 
 def check_motor_stuck(speed, load, temperature):

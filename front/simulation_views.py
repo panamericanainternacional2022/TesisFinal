@@ -85,7 +85,10 @@ def api_status(request):
     """Estado actual del simulador activo (primer edificio o por ?edificio_id)."""
     eid = request.GET.get("edificio_id")
     if eid:
-        eid = int(eid)
+        try:
+            eid = int(eid)
+        except (ValueError, TypeError):
+            return _json_error("edificio_id inválido")
     else:
         eid = next(iter(simulators.keys()), None)
     sim = _get_sim(eid)
@@ -126,7 +129,7 @@ def api_usuarios_edificio(request, edificio_id):
         p = ue.id_usuario.id_persona if ue.id_usuario else None
         data.append({
             "id": ue.id_usuario.id_usuario if ue.id_usuario else None,
-            "nombre": f"{p.nombre} {p.apellido}" if p else "Desconocido",
+            "nombre": f"{p.name} {p.apellido}" if p else "Desconocido",
             "email": p.email if p else "",
         })
     return JsonResponse(data, safe=False)
@@ -135,17 +138,27 @@ def api_usuarios_edificio(request, edificio_id):
 @login_required
 def api_notifications(request):
     """Últimas 50 notificaciones desde la BD."""
-    qs = Notificacion.objects.select_related("id_edificio").order_by("-fecha_hora")[:50]
+    qs = Notificacion.objects.select_related(
+        "id_equipo_monitoreo__id_edificio"
+    ).order_by("-fecha")[:50]
     data = []
     for n in qs:
+        msg = {}
+        if n.mensaje:
+            try:
+                msg = json.loads(n.mensaje)
+            except (json.JSONDecodeError, TypeError):
+                msg = {"raw": n.mensaje}
         data.append({
             "id": n.id_notificacion,
-            "timestamp": n.fecha_hora.isoformat() if n.fecha_hora else "",
-            "variable": n.variable or "",
-            "value": n.valor,
-            "risk": n.nivel_riesgo or "",
-            "message": n.mensaje or "",
-            "edificio": n.id_edificio.nb_edificio if n.id_edificio else None,
+            "timestamp": n.fecha.isoformat() if n.fecha else "",
+            "variable": msg.get("variable", ""),
+            "value": msg.get("value"),
+            "risk": msg.get("risk", ""),
+            "message": msg.get("action", msg.get("raw", n.mensaje or "")),
+            "edificio": n.id_equipo_monitoreo.id_edificio.nb_edificio
+            if n.id_equipo_monitoreo and n.id_equipo_monitoreo.id_edificio
+            else None,
         })
     return JsonResponse(data, safe=False)
 
@@ -174,7 +187,9 @@ def view_update_thresholds(request):
         value = float(value)
     except (ValueError, TypeError):
         return _json_error("value debe ser numérico")
-    update_threshold(variable, risk, value)
+    existing = get_thresholds().get(variable, {"direction": "higher", "low": 0, "medium": 0, "high": 0})
+    existing[risk.lower()] = value
+    update_threshold(variable, existing)
     return _json_ok({"thresholds": get_thresholds()})
 
 
@@ -293,7 +308,12 @@ def send_test_email(request):
     import threading
     threading.Thread(
         target=send_email_alert,
-        args=("Info", "[Prueba] Correo de prueba PCLogo", "Este es un correo de prueba del sistema PCLogo."),
+        kwargs={
+            "risk_level": "Info",
+            "subject": "[Prueba] Correo de prueba PCLogo",
+            "body": "Este es un correo de prueba del sistema PCLogo.",
+            "recipients": [email],
+        },
         daemon=True,
     ).start()
     return _json_ok({"message": f"Correo de prueba enviado a {email}"})

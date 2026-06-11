@@ -247,6 +247,24 @@
         </main>
     </div>
     <script>window.EDIFICIO_ID = {{ edificio_id|default:"null" }};</script>
+    <script>
+        window.showAlert = function(message, type = 'info') {
+            return new Promise((resolve) => {
+                const el = document.getElementById('global-alert');
+                if (el) {
+                    el.textContent = message;
+                    el.className = 'global-alert ' + type;
+                    el.style.display = 'block';
+                    setTimeout(() => { el.style.display = 'none'; resolve(); }, 3000);
+                } else { resolve(); }
+            });
+        };
+        window.showConfirm = function(message) {
+            return new Promise((resolve) => {
+                resolve(confirm(message));
+            });
+        };
+    </script>
     <script src="{% static 'JS/live_monitoring.js' %}?v=3" defer></script>
 </body>
 </html>

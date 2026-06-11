@@ -102,6 +102,11 @@ class UsuarioEdificio(models.Model):
     class Meta:
         db_table = "usuario_edificio"
 
+    def __str__(self):
+        edificio = self.id_edificio.nb_edificio if self.id_edificio else "?"
+        usuario = self.id_usuario.username if self.id_usuario else "?"
+        return f"{usuario} -> {edificio}"
+
 
 class Notificacion(models.Model):
     id_notificacion = models.AutoField(primary_key=True)
@@ -117,6 +122,9 @@ class Notificacion(models.Model):
 
     class Meta:
         db_table = "notificacion"
+
+    def __str__(self):
+        return f"[{self.fecha}] {self.mensaje[:60]}"
 
 
 class UmbralConfig(models.Model):

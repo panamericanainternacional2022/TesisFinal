@@ -882,6 +882,8 @@ def _sincronizar_equipos_para_edificio(edificio, con_bomba, con_elevador):
         ).delete()
 
 
+@_login_required
+@_admin_required
 def registro_edificio_view(request):
     bld_msgs = request.session.pop("_bld_msg", [])
     form_errors = {}
@@ -2108,6 +2110,7 @@ def historial_pdf_view(request):
 # ─── LEGACY ─────────────────────────────────────────────────────
 
 
+@_login_required
 def descargar_pdf_view(request):
     try:
         from fpdf import FPDF

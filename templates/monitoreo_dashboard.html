@@ -1519,6 +1519,7 @@
         updateSensorTypeIndicator();
         loadBuildings();
         connectSSE();
+        fetchInitialData();
 
         document.getElementById('buildingSelect').addEventListener('change', function() {
             EDIFICIO_ID = parseInt(this.value);

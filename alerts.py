@@ -135,7 +135,7 @@ def update_protection_state(sim=None):
     expired = [d for d, end in pe.items() if end and now >= end]
     for device in expired:
         try:
-            reset_critical_values({device}, sd)
+            reset_critical_values({device}, sim)
         except Exception:
             logger.exception("Error reseteando valores críticos para %s", device)
         try:

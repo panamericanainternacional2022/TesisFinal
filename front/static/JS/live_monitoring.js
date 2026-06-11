@@ -435,6 +435,29 @@ function initLiveMonitoring() {
     fetchInitialData();
 }
 
+function addLiveNotificationEvent(data) {
+    const container = document.getElementById('live-notifications-list');
+    if (!container) return;
+    const placeholder = document.getElementById('live-no-notif');
+    if (placeholder) placeholder.remove();
+    const item = document.createElement('div');
+    item.className = 'notif-item live-notif-item';
+    item.innerHTML = `
+        <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
+        <div class="notif-body">
+            <p>${safeText(data.message || '')}</p>
+            <div class="notif-meta">
+                <span><i class="fa-solid fa-clock"></i> ${data.timestamp ? new Date(data.timestamp).toLocaleString() : ''}</span>
+                <span><strong>Variable:</strong> ${safeText(getVariableName(data.variable) || data.variable)}</span>
+                <span><strong>Riesgo:</strong> ${safeText(data.risk)}</span>
+            </div>
+        </div>
+    `;
+    container.prepend(item);
+    unreadNotificationCount++;
+    setNotificationBadge(unreadNotificationCount);
+}
+
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -574,8 +597,10 @@ async function reEnableAlerts() {
     btn.className = 'btn-alerts-toggle enabled';
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
-    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }).catch(() => { });
-    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }).catch(() => { });
+    await Promise.allSettled([
+        csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
+        csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
+    ]);
     await window.showAlert('Alertas reactivadas.', 'success');
     window.location.reload();
 }
@@ -596,8 +621,10 @@ function initLiveNotifications() {
                 toggleBtn.className = 'btn-alerts-toggle enabled';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
-                csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }).catch(() => { });
-                csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }).catch(() => { });
+                await Promise.allSettled([
+                    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
+                    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
+                ]);
                 await window.showAlert('Alertas activadas con éxito.', 'success');
                 window.location.reload();
 
@@ -617,8 +644,10 @@ function initLiveNotifications() {
                     toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
                 }
 
-                csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }).catch(() => { });
-                csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, edificio_id: EDIFICIO_ID }) }).catch(() => { });
+                await Promise.allSettled([
+                    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }),
+                    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, edificio_id: EDIFICIO_ID }) }),
+                ]);
 
                 const label = minutes === null ? 'indefinidamente'
                     : minutes < 60 ? `por ${minutes} min`
