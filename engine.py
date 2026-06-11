@@ -16,7 +16,7 @@ from simulation import (
     last_email_sent_time, sim_paused, sim_speed,
     update_sensor_data,
 )
-from risk import classify_risk
+from front.services.risk_service import classify_risk
 from alerts import (
     send_alert, get_professional_action, check_rationing, update_protection_state,
 )

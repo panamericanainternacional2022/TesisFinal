@@ -117,3 +117,21 @@ class Notificacion(models.Model):
 
     class Meta:
         db_table = "notificacion"
+
+
+class UmbralConfig(models.Model):
+    variable = models.CharField(max_length=50, unique=True)
+    direction = models.CharField(max_length=10, default="higher")
+    low = models.FloatField()
+    medium = models.FloatField(null=True, blank=True)
+    high = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "umbral_config"
+        verbose_name = "Configuración de Umbral"
+        verbose_name_plural = "Configuraciones de Umbrales"
+
+    def __str__(self):
+        return f"{self.variable}: {self.direction} low={self.low} med={self.medium} high={self.high}"

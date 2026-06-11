@@ -1,20 +1,16 @@
-"""
-Módulo de clasificación de riesgo para sensores.
-Contiene la función classify_risk que evalúa el nivel de riesgo
-según umbrales configurables.
-"""
-
 from front.sensor_config import NO_RISK_VARS
-from thresholds import thresholds
+from front.services.threshold_service import get_thresholds
 
 
-def classify_risk(variable, value):
+def classify_risk(variable, value, thresholds=None):
     if variable == "motor_stuck":
         return ("Crítico", "red") if value else ("Bajo", "green")
     if variable in NO_RISK_VARS:
         return "Bajo", "green"
     if variable in ("flow_rate", "pressure") and value == 0:
         return "Crítico", "red"
+    if thresholds is None:
+        thresholds = get_thresholds()
     if variable not in thresholds:
         return "Desconocido", "gray"
     cfg = thresholds[variable]

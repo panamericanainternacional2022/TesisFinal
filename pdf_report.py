@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 
 from front.sensor_config import PDF_BAR_VARS, PDF_STATS_VARS, PDF_BAR_LABELS
-from risk import classify_risk
+from front.services.risk_service import classify_risk
 
 try:
     from fpdf import FPDF

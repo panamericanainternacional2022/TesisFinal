@@ -3,6 +3,7 @@ Módulo de rutas Flask para el sistema PCLogo.
 Contiene register_routes(app, socketio) que registra todos los endpoints.
 """
 
+from simulation import MAX_HISTORY_SIZE
 import json
 import logging
 import threading
@@ -15,8 +16,8 @@ from flask_socketio import emit
 from front.sensor_config import (
     VAR_NAMES, UNITS, STATS_VARS, PUMP_VARS, ELEVATOR_VARS, NO_RISK_VARS,
 )
-from thresholds import thresholds
-from risk import classify_risk
+from thresholds import thresholds, save_to_db
+from front.services.risk_service import classify_risk
 from alerts import (
     send_alert, get_professional_action, generate_recommendations,
     send_email_alert, get_building_emails,
@@ -121,6 +122,7 @@ def register_routes(app, socketio):
     @app.route("/update_thresholds", methods=["POST"])
     def update_thresholds():
         thresholds.update(request.json)
+        save_to_db()
         return jsonify({"status": "ok", "thresholds": thresholds})
 
     # ------------------------------------------------------------------
