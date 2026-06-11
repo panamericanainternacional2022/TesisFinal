@@ -1287,6 +1287,7 @@ def monitoreo_view(request):
             "equipos_data": data,
             "rol": rol,
             "query": query,
+            "edificio_id": data[0]["edificio"].id_edificio if len(data) > 0 else 0,
         },
     )
 
@@ -1304,6 +1305,7 @@ def monitoreo_edificio_view(request, edificio_id):
             "selected_edificio": edificio,
             "equipos_data": [],
             "query": "",
+            "edificio_id": edificio_id,
         },
     )
 
@@ -2263,151 +2265,67 @@ def completar_registro_view(request):
 
 @_login_required
 def simulador_status_view(request):
-    import socket
     from django.http import JsonResponse
+    from simulation import simulators
     has_edificios = Edificio.objects.exists()
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            s.connect(("127.0.0.1", 5000))
-            return JsonResponse({"running": True, "has_edificios": has_edificios})
-    except Exception:
-        return JsonResponse({"running": False, "has_edificios": has_edificios})
+    tiene_sim = len(simulators) > 0
+    return JsonResponse({"running": tiene_sim, "has_edificios": has_edificios})
 
 
 @_login_required
 @_admin_required
 def simulador_start_view(request):
-    import subprocess
-    import sys
     from django.http import JsonResponse
-    
-    # Check if already running
-    import socket
-    is_running = False
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            s.connect(("127.0.0.1", 5000))
-            is_running = True
-    except Exception:
-        pass
-
-    if is_running:
-        return JsonResponse({"status": "ok", "message": "El simulador ya está encendido."})
-
-    # Get absolute path to entry.py
-    api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    app27_path = os.path.join(api_dir, "entry.py")
-
-    if not os.path.exists(app27_path):
-        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."})
-
-    try:
-        python_exe = sys.executable
-        if python_exe.lower().endswith("python.exe"):
-            python_exe = python_exe[:-10] + "pythonw.exe"
-        # DETACHED_PROCESS = 0x00000008
-        env = os.environ.copy()
-        # CREATE_NO_WINDOW = 0x08000000, DETACHED_PROCESS = 0x00000008
-        # Combined = 0x08000008
-        subprocess.Popen(
-            [python_exe, app27_path],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            close_fds=True,
-            creationflags=0x08000008,
-            env=env
-        )
-        return JsonResponse({"status": "ok", "message": "Simulador encendido correctamente."})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Error al encender el simulador: {str(e)}"})
+    from simulation import simulators, BuildingSimulator
+    from front.models import EquipoMonitoreo
+    # En la arquitectura unificada la simulación corre en el mismo proceso.
+    if not simulators:
+        _creados = 0
+        for eq in EquipoMonitoreo.objects.select_related("id_edificio").all():
+            if not eq.id_edificio:
+                continue
+            eid = eq.id_edificio.id_edificio
+            enombre = eq.id_edificio.nb_edificio or f"Edificio #{eid}"
+            if eid not in simulators:
+                simulators[eid] = BuildingSimulator(eid, enombre)
+            simulators[eid].equipment_types.add(eq.tipo)
+            simulators[eid].has_pump = "bomba" in simulators[eid].equipment_types
+            simulators[eid].has_elevator = "elevador" in simulators[eid].equipment_types
+            simulators[eid].pump_on = simulators[eid].has_pump
+            simulators[eid].elevator_on = simulators[eid].has_elevator
+            _creados += 1
+        if _creados:
+            return JsonResponse({"status": "ok", "message": f"Simuladores creados ({_creados})."})
+        return JsonResponse({"status": "error", "message": "No hay equipos de monitoreo en la BD."})
+    # Si ya hay simuladores, reanudar los pausados
+    for sim in simulators.values():
+        sim.sim_paused = False
+    return JsonResponse({"status": "ok", "message": "Simulación reanudada."})
 
 
 @_login_required
 @_admin_required
 def simulador_stop_view(request):
-    import subprocess
     from django.http import JsonResponse
-    import socket
-    
-    is_running = False
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(0.5)
-            s.connect(("127.0.0.1", 5000))
-            is_running = True
-    except Exception:
-        pass
-
-    if not is_running:
-        return JsonResponse({"status": "ok", "message": "El simulador ya está apagado."})
-
-    try:
-        # Find process ID listening on port 5000 (CREATE_NO_WINDOW = 0x08000000)
-        output = subprocess.check_output("netstat -ano", shell=True, creationflags=0x08000000).decode("utf-8", errors="ignore")
-        pid = None
-        for line in output.splitlines():
-            if ":5000" in line and "LISTENING" in line:
-                parts = line.strip().split()
-                if len(parts) >= 5:
-                    pid = parts[-1]
-                    break
-        
-        if pid:
-            subprocess.check_call(f"taskkill /F /PID {pid}", shell=True, creationflags=0x08000000)
-            return JsonResponse({"status": "ok", "message": "Simulador apagado correctamente."})
-        else:
-            return JsonResponse({"status": "error", "message": "No se pudo determinar el PID del simulador en el puerto 5000."})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Error al apagar el simulador: {str(e)}"})
+    from simulation import simulators
+    if not simulators:
+        return JsonResponse({"status": "ok", "message": "No hay simuladores activos."})
+    for sim in simulators.values():
+        sim.sim_paused = True
+    return JsonResponse({"status": "ok", "message": "Simulación pausada."})
 
 
 @_login_required
 @_admin_required
 def simulador_restart_view(request):
-    import time
     from django.http import JsonResponse
-    
-    # 1. Stop
-    import subprocess
-    try:
-        output = subprocess.check_output("netstat -ano", shell=True, creationflags=0x08000000).decode("utf-8", errors="ignore")
-        pid = None
-        for line in output.splitlines():
-            if ":5000" in line and "LISTENING" in line:
-                parts = line.strip().split()
-                if len(parts) >= 5:
-                    pid = parts[-1]
-                    break
-        if pid:
-            subprocess.check_call(f"taskkill /F /PID {pid}", shell=True, creationflags=0x08000000)
-            time.sleep(1.5)
-    except Exception:
-        pass
-        
-    # 2. Start
-    import sys
-    api_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    app27_path = os.path.join(api_dir, "entry.py")
-
-    if not os.path.exists(app27_path):
-        return JsonResponse({"status": "error", "message": f"No se encontró el archivo del simulador en {app27_path}."}) 
-    try:
-        python_exe = sys.executable
-        if python_exe.lower().endswith("python.exe"):
-            python_exe = python_exe[:-10] + "pythonw.exe"
-        env = os.environ.copy()
-        env["NO_BROWSER"] = "1"
-        subprocess.Popen(
-            [python_exe, app27_path],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            close_fds=True,
-            creationflags=0x08000008,
-            env=env
-        )
-        return JsonResponse({"status": "ok", "message": "Simulador reiniciado correctamente."})
-    except Exception as e:
-        return JsonResponse({"status": "error", "message": f"Error al iniciar tras apagar: {str(e)}"})
+    from simulation import simulators, reset_simulator
+    if not simulators:
+        return JsonResponse({"status": "error", "message": "No hay simuladores activos."})
+    reiniciados = 0
+    for eid in list(simulators.keys()):
+        reset_simulator(eid)
+        simulators[eid].sim_paused = False
+        reiniciados += 1
+    return JsonResponse({"status": "ok", "message": f"{reiniciados} simulador(es) reiniciado(s)."})
 

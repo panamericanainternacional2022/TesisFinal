@@ -246,6 +246,7 @@
             </div>
         </main>
     </div>
-    <script src="{% static 'JS/live_monitoring.js' %}?v=2" defer></script>
+    <script>window.EDIFICIO_ID = {{ edificio_id|default:"null" }};</script>
+    <script src="{% static 'JS/live_monitoring.js' %}?v=3" defer></script>
 </body>
 </html>

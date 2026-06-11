@@ -1,6 +1,7 @@
 """
 Módulo del motor de simulación.
-Contiene _run_sim_tick, _sync_globals_to_sim y generate_data_and_emit.
+Contiene _run_sim_tick, generate_data_and_emit.
+Ya no emite por SocketIO — el SSE drena los payloads.
 """
 
 import time
@@ -11,17 +12,12 @@ from front.sensor_config import PUMP_VARS, ELEVATOR_VARS
 from simulation import (
     RATIONING_THRESHOLD, MAX_HISTORY_SIZE, LOG_SIM,
     BuildingSimulator, simulators,
-    sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
-    door_close_attempts, history, pending_notifications,
-    last_email_sent_time, sim_paused, sim_speed,
     update_sensor_data,
 )
 from front.services.risk_service import classify_risk
 from alerts import (
     send_alert, get_professional_action, check_rationing, update_protection_state,
 )
-import simulation as _sim_mod
-import entry
 
 logger = logging.getLogger(__name__)
 
@@ -74,74 +70,10 @@ def _run_sim_tick(sim: BuildingSimulator):
         sim.history = sim.history[-MAX_HISTORY_SIZE:]
 
 
-def _sync_globals_to_sim(sim: BuildingSimulator):
-    """Apunta todos los globales de estado al simulador activo.
-    Necesario para que routes.py y entry.py accedan al edificio activo.
-    """
-    global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
-    global door_close_attempts, history, pending_notifications, last_email_sent_time, sim_paused, sim_speed
-    sim_paused               = sim.sim_paused
-    sim_speed                = sim.sim_speed
-    sensor_data           = sim.sensor_data
-    pump_on               = sim.pump_on
-    elevator_on           = sim.elevator_on
-    equipment_types       = sim.equipment_types
-    protection_ends       = sim.protection_ends
-    active_alerts         = sim.active_alerts
-    door_close_attempts   = sim.door_close_attempts
-    history               = sim.history
-    pending_notifications = sim.pending_notifications
-    last_email_sent_time  = sim.last_email_sent_time
-    _sim_mod.sensor_data           = sim.sensor_data
-    _sim_mod.pump_on               = sim.pump_on
-    _sim_mod.elevator_on           = sim.elevator_on
-    _sim_mod.equipment_types       = sim.equipment_types
-    _sim_mod.protection_ends       = sim.protection_ends
-    _sim_mod.active_alerts         = sim.active_alerts
-    _sim_mod.door_close_attempts   = sim.door_close_attempts
-    _sim_mod.history               = sim.history
-    _sim_mod.pending_notifications = sim.pending_notifications
-    _sim_mod.last_email_sent_time  = sim.last_email_sent_time
-    _sim_mod.sim_paused            = sim.sim_paused
-    _sim_mod.sim_speed             = sim.sim_speed
-
-    entry.sensor_data              = sim.sensor_data
-    entry.pump_on                  = sim.pump_on
-    entry.elevator_on              = sim.elevator_on
-    entry.equipment_types          = sim.equipment_types
-    entry.protection_ends          = sim.protection_ends
-    entry.active_alerts            = sim.active_alerts
-    entry.door_close_attempts      = sim.door_close_attempts
-    entry.history                  = sim.history
-    entry.pending_notifications    = sim.pending_notifications
-    entry.last_email_sent_time     = sim.last_email_sent_time
-    entry.sim_paused               = sim.sim_paused
-    entry.sim_speed                = sim.sim_speed
-
-
 def generate_data_and_emit():
-    from payload import build_live_payload
-
-    global equipment_types
+    """Loop principal de simulación. Corre en un green thread.
+    El SSE drena los payloads desde cada sim.pending_notifications."""
     while True:
         eventlet.sleep(5)
-
         for sim in list(simulators.values()):
             _run_sim_tick(sim)
-
-        active_sim = simulators.get(entry.active_edificio_id)
-        if active_sim:
-            _sync_globals_to_sim(active_sim)
-        else:
-            equipment_types = set()
-            _sim_mod.equipment_types = set()
-            entry.equipment_types = set()
-
-        payload = build_live_payload()
-        if LOG_SIM:
-            print(
-                f"[SIM] {time.strftime('%H:%M:%S')} LOOP [{entry.active_edificio_id}]: "
-                f"pump_on={pump_on} elevator_on={elevator_on} protection_ends={protection_ends} "
-                f"edificios_activos={list(simulators.keys())}"
-            )
-        entry.socketio.emit("sensor_update", payload)

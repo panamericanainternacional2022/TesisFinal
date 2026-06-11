@@ -9,12 +9,9 @@ delegan en front/services/alert_service.py.
 """
 
 import os
-import sys
 import threading
 import time
-import json as _json
 import logging
-from collections import deque
 
 from simulation import (
     BuildingSimulator,
@@ -91,8 +88,8 @@ def enter_protection_mode(reason=None, targets=None, sim=None):
         "message": action_msg,
     }
     pn.append(notification_payload)
-    from entry import alert_enabled
-    if alert_enabled:
+    _ae = sim.alert_enabled if sim else True
+    if _ae:
         eid = sim.edificio_id if sim else None
         persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg, edificio_id=eid)
 
@@ -128,13 +125,6 @@ Este es un mensaje de contingencia generado de forma automatica por el modulo de
         global last_email_sent_time
         last_email_sent_time = les
 
-    try:
-        from entry import socketio
-        socketio.emit("notification", notification_payload, broadcast=True)
-    except Exception:
-        pass
-
-
 def update_protection_state(sim=None):
     pe = _sim_or_global(sim, "protection_ends")
     sd = _sim_or_global(sim, "sensor_data")
@@ -159,8 +149,8 @@ def update_protection_state(sim=None):
             pass
         del pe[device]
         logger.info("Protección finalizada para %s. Dispositivo restaurado.", device)
-        from entry import alert_enabled
-        if alert_enabled:
+        _ae = sim.alert_enabled if sim else True
+        if _ae:
             eid = sim.edificio_id if sim else None
             persist_notification_in_django(
                 f"protection_{device}",
@@ -177,19 +167,14 @@ def update_protection_state(sim=None):
             "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
         }
         pn.append(notification_payload)
-        try:
-            from entry import socketio
-            socketio.emit("notification", notification_payload, broadcast=True)
-        except Exception:
-            pass
 
 
 def send_alert(variable, value, risk_level, recommended_action, sim=None):
     aa = _sim_or_global(sim, "active_alerts")
     les = _sim_or_global(sim, "last_email_sent_time")
 
-    from entry import alert_enabled
-    if not alert_enabled:
+    _ae = sim.alert_enabled if sim else True
+    if not _ae:
         logger.info("Alertas desactivadas por el usuario")
         return
     if variable in aa and aa[variable] == risk_level:
@@ -264,11 +249,6 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
     pn.append(notification_payload)
     eid = sim.edificio_id if sim else None
     persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=eid)
-    try:
-        from entry import socketio
-        socketio.emit("notification", notification_payload, broadcast=True)
-    except Exception:
-        pass
 
 
 def check_rationing(flow_rate, sim=None):

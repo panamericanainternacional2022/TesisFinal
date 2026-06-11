@@ -359,8 +359,8 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
 
         eid = edificio_id
         if eid is None:
-            from entry import active_edificio_id
-            eid = active_edificio_id
+            from simulation import simulators
+            eid = next(iter(simulators.keys()), None)
         if _tipo and eid:
             equipo = EquipoMonitoreo.objects.filter(
                 id_edificio_id=eid, tipo=_tipo

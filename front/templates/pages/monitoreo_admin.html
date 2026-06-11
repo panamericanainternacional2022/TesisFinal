@@ -4,18 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel avanzado de monitoreo </title>
+    <title>Panel avanzado de monitoreo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
-    <style>        /* ── Contenedor principal de esta vista ── */
-        .admin-frame-card {
-            max-width: 1520px;
-            margin: 0 auto;
-        }
- 
-        /* ── Cabecera informativa ── */
+    <style>
+        .admin-frame-card { max-width: 1520px; margin: 0 auto; }
         .admin-info {
             background: var(--color-surface);
             border: 2px solid var(--color-ink);
@@ -25,7 +20,6 @@
             margin-bottom: var(--sp-3);
             border-radius: 0px;
         }
- 
         .admin-info h1 {
             font-size: var(--text-xl);
             font-weight: var(--weight-bold);
@@ -34,38 +28,13 @@
             margin-bottom: var(--sp-1);
             line-height: var(--leading-tight);
         }
- 
         .admin-info p {
             font-size: var(--text-sm);
             color: var(--color-text-secondary);
             margin-top: 4px;
             line-height: var(--leading-normal);
         }
- 
-        .admin-warning {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--state-warn-bg);
-            color: var(--state-warn);
-            border: 2px solid var(--color-ink);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
-            padding: 8px var(--sp-2);
-            margin-top: var(--sp-2);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            border-radius: 0px;
-        }
- 
-        /* ── Grid: lista de edificios + iframe ── */
-        .admin-body {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: var(--sp-3);
-            align-items: start;
-        }
- 
-        /* ── Panel de lista de edificios ── */
+        .admin-body { display: grid; grid-template-columns: 300px 1fr; gap: var(--sp-3); align-items: start; }
         .building-list-card {
             background: var(--color-surface);
             border: 2px solid var(--color-ink);
@@ -73,7 +42,6 @@
             padding: var(--sp-2);
             border-radius: 0px;
         }
- 
         .building-list-card h2 {
             font-size: var(--text-base);
             font-weight: var(--weight-bold);
@@ -83,133 +51,35 @@
             padding-bottom: var(--sp-1);
             border-bottom: 2px solid var(--color-ink);
         }
- 
-        .building-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            background: var(--color-ink);
-            border: 2px solid var(--color-ink);
-        }
- 
+        .building-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); }
         .building-item {
-            display: block;
-            width: 100%;
-            text-align: left;
-            padding: var(--sp-1) var(--sp-2);
-            background: var(--color-surface);
-            color: var(--color-text-primary);
-            font-family: var(--font-sans);
-            font-size: var(--text-sm);
-            border: none;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            border-left: 4px solid transparent;
+            display: block; width: 100%; text-align: left; padding: var(--sp-1) var(--sp-2);
+            background: var(--color-surface); color: var(--color-text-primary);
+            font-family: var(--font-sans); font-size: var(--text-sm); border: none;
+            cursor: pointer; transition: all var(--transition-fast); border-left: 4px solid transparent;
         }
- 
-        .building-item:hover,
-        .building-item.active {
-            background: var(--color-bg);
-        }
- 
-        .building-item.active {
-            border-left-color: var(--color-ink);
-        }
- 
-        .building-item-title {
-            font-weight: var(--weight-bold);
-            color: var(--color-ink);
-            margin-bottom: 2px;
-        }
- 
-        .building-item-subtitle {
-            font-size: var(--text-xs);
-            color: var(--color-text-secondary);
-        }
- 
-        .building-selected {
-            font-size: var(--text-sm);
-            color: var(--color-text-secondary);
-            margin-top: var(--sp-2);
-            padding-top: var(--sp-1);
-            border-top: 2px solid var(--color-ink);
-        }
- 
-        .building-action-row {
-            margin-top: var(--sp-1);
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--sp-1);
-            align-items: center;
-        }
- 
-        .building-url {
-            font-size: var(--text-xs);
-            color: var(--color-text-secondary);
-            word-break: break-all;
-        }
- 
+        .building-item:hover, .building-item.active { background: var(--color-bg); }
+        .building-item.active { border-left-color: var(--color-ink); }
+        .building-item-title { font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 2px; }
+        .building-item-subtitle { font-size: var(--text-xs); color: var(--color-text-secondary); }
+        .building-selected { font-size: var(--text-sm); color: var(--color-text-secondary); margin-top: var(--sp-2); padding-top: var(--sp-1); border-top: 2px solid var(--color-ink); }
         .open-monitor-button {
-            font-family: var(--font-sans);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            background: var(--color-ink);
-            color: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            padding: 8px var(--sp-2);
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            border-radius: 0px;
+            font-family: var(--font-sans); font-size: var(--text-sm); font-weight: var(--weight-bold);
+            background: var(--color-ink); color: var(--color-surface);
+            border: 2px solid var(--color-ink); padding: 8px var(--sp-2);
+            cursor: pointer; transition: all var(--transition-fast); border-radius: 0px;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
         }
- 
         .open-monitor-button:hover {
-            background: var(--color-surface);
-            color: var(--color-ink);
+            background: var(--color-surface); color: var(--color-ink);
             box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
         }
         .open-monitor-button:disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* ── Badge / Status Simulador ── */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 4px 10px;
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            text-transform: uppercase;
-            letter-spacing: 0.03em;
-            border: 2px solid var(--color-ink);
-            border-radius: 0px;
-        }
+        .inline-badge { display: inline-flex; align-items: center; padding: 4px 10px; font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; letter-spacing: 0.03em; border: 2px solid var(--color-ink); border-radius: 0px; }
         .badge-active { background: #bbf7d0; color: #16a34a; }
         .badge-inactive { background: #fecaca; color: #dc2626; }
         .badge-loading { background: #e0e0e0; color: #6b6b6b; }
- 
-        /* ── Iframe container ── */
-        .iframe-wrapper {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            height: calc(100vh - 220px);
-            overflow: hidden;
-            border-radius: 0px;
-        }
- 
-        .iframe-wrapper iframe {
-            width: 100%;
-            height: 100%;
-            border: 0;
-            display: block;
-        }
- 
-        /* ── Responsive ── */
-        @media (max-width: 900px) {
-            .admin-body { grid-template-columns: 1fr; }
-            .iframe-wrapper { height: 60vh; }
-        }
+        @media (max-width: 900px) { .admin-body { grid-template-columns: 1fr; } }
     </style>
 </head>
 <body>
@@ -218,39 +88,38 @@
         <main class="main-content">
             <div class="admin-frame-card">
                 <div class="admin-info">
-                    <h1>Panel avanzado de monitoreo </h1>
-                    <p>Selecciona un edificio registrado para desplegar su ventana de telemetría y supervisar el funcionamiento de los sensores hidráulicos y mecánicos en tiempo real.</p>
-                    <p>Este panel permite encender, apagar o reiniciar el simulador central de telemetría, así como auditar las lecturas de los dispositivos instalados.</p>
+                    <h1>Panel avanzado de monitoreo</h1>
+                    <p>Selecciona un edificio para supervisar sus sensores en tiempo real.</p>
                 </div>
                 <div class="admin-body">
                     <div style="display: flex; flex-direction: column; gap: var(--sp-3);">
                         <div class="building-list-card">
-                            <h2>Control del simulador</h2>
-                            <div style="margin-bottom: var(--sp-2); display: flex; align-items: center; justify-content: space-between;">
-                                <span style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; color: var(--color-text-secondary);">Estado del simulador:</span>
-                                <span class="badge badge-loading" id="simulatorStatusBadge">Verificando...</span>
+                            <h2>Simulación</h2>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-2);">
+                                <span style="font-size: var(--text-xs); font-weight: var(--weight-bold); text-transform: uppercase; color: var(--color-text-secondary);">Estado:</span>
+                                <span class="inline-badge badge-active" id="simStatusBadge">ACTIVO</span>
                             </div>
                             <div style="display: flex; gap: var(--sp-1);">
-                                <button type="button" class="open-monitor-button" id="btnToggleSimulator" onclick="toggleSimulator()" style="flex: 1;">Encender</button>
-                                <button type="button" class="open-monitor-button" id="btnRestartSimulator" onclick="restartSimulator()" style="background: var(--color-surface); color: var(--color-ink); flex: 1;">Reiniciar</button>
+                                <a id="btnMonitorRedirect" class="open-monitor-button" style="flex:1; justify-content:center;" href="#">
+                                    <i class="fa-solid fa-eye"></i> Monitorear
+                                </a>
                             </div>
                         </div>
-
                         <div class="building-list-card">
-                            <h2>Edificios registrados</h2>
+                            <h2>Edificios</h2>
                             {% if edificios|length == 1 %}
                             {% with edificio=edificios.0 %}
-                            <div style="width: 100%; padding: 10px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; box-shadow: 3px 3px 0px var(--color-ink); margin-top: var(--sp-1);">
+                            <div style="width:100%; padding:10px 12px; border:2px solid var(--color-ink); background:var(--color-surface); font-size:var(--text-sm); font-weight:var(--weight-bold);">
                                 {{ edificio.nb_edificio }}
                             </div>
                             <select id="buildingSelect" style="display:none;">
-                                <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}">{{ edificio.nb_edificio }}</option>
+                                <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}">{{ edificio.nb_edificio }}</option>
                             </select>
                             {% endwith %}
                             {% elif edificios|length > 1 %}
-                            <select id="buildingSelect" onchange="selectBuildingFromSelect(this)" style="width: 100%; padding: 10px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); margin-top: var(--sp-1);">
+                            <select id="buildingSelect" onchange="updateBuilding(this)" style="width:100%; padding:10px 12px; border:2px solid var(--color-ink); background:var(--color-surface); font-size:var(--text-sm); font-weight:var(--weight-bold); cursor:pointer; box-shadow:3px 3px 0px var(--color-ink);">
                                 {% for edificio in edificios %}
-                                <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}" data-url="http://127.0.0.1:5000/?edificio={{ edificio.id_edificio }}">{{ edificio.nb_edificio }}</option>
+                                <option value="{{ edificio.id_edificio }}" data-name="{{ edificio.nb_edificio }}">{{ edificio.nb_edificio }}</option>
                                 {% endfor %}
                             </select>
                             {% else %}
@@ -258,324 +127,53 @@
                             {% endif %}
                         </div>
                     </div>
-                    <div class="iframe-wrapper">
-                        <!-- Loading message during state transitions -->
-                        <div id="iframeLoading" style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
-                            <i class="fa-solid fa-spinner fa-spin" style="font-size: 3rem; color: var(--color-ink); margin-bottom: var(--sp-2);"></i>
-                            <h3 id="iframeLoadingTitle" style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Verificando el simulador...</h3>
-                            <p id="iframeLoadingDesc" style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Comprobando el estado del simulador de monitoreo en tiempo real.</p>
-                        </div>
-                        <div id="iframeFallback" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
-                            <i class="fa-solid fa-power-off" style="font-size: 3rem; color: #dc2626; margin-bottom: var(--sp-2);"></i>
-                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Simulador apagado</h3>
-                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">El servicio de monitoreo en tiempo real no está activo en este momento.</p>
-                        </div>
-                        <div id="iframeNoEquipment" style="display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: var(--sp-4); text-align: center; background: var(--color-surface); color: var(--color-text-secondary);">
-                            <i class="fa-solid fa-triangle-exclamation" style="font-size: 3rem; color: var(--state-warn); margin-bottom: var(--sp-2);"></i>
-                            <h3 style="font-size: var(--text-md); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: 8px;">Edificio sin equipos de monitoreo</h3>
-                            <p style="font-size: var(--text-sm); max-width: 400px; margin: 0; color: var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo activo. No hay sensores de bomba de agua ni de elevador para simular o mostrar en el dashboard.</p>
-                        </div>
-                        <iframe id="adminMonitorFrame" src="" style="display: none;" title="Dashboard Administrativo PCLogo"></iframe>
+                    <div style="background: var(--color-surface); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); padding: var(--sp-4); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; min-height: 300px;">
+                        <i class="fa-solid fa-building" style="font-size: 4rem; color: var(--color-text-secondary); margin-bottom: var(--sp-3);"></i>
+                        <h3 style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); margin-bottom: var(--sp-1);">Monitoreo en tiempo real</h3>
+                        <p style="font-size: var(--text-sm); color: var(--color-text-secondary); max-width: 400px; margin: 0 auto var(--sp-3);">Selecciona un edificio y presiona "Monitorear" para ver los sensores en vivo.</p>
+                        <a id="btnMonitorRedirectBig" class="open-monitor-button" href="#">
+                            <i class="fa-solid fa-eye"></i> Abrir monitoreo
+                        </a>
                     </div>
                 </div>
             </div>
         </main>
     </div>
     <script>
-        const buildingFrame = document.getElementById('adminMonitorFrame');
-        const openMonitorButton = document.getElementById('openMonitorButton');
-        let currentMonitorUrl = null;
-        let isSimulatorOnline = false;
-        let isTransitioning = false;
-        const btnRestart = document.getElementById('btnRestartSimulator');
-        const hasEdificios = {% if edificios %}true{% else %}false{% endif %};
-        let buildingsEquipment = {};
+        const btn = document.getElementById('btnMonitorRedirect');
+        const btnBig = document.getElementById('btnMonitorRedirectBig');
+        const sel = document.getElementById('buildingSelect');
 
-        async function fetchBuildingsEquipment() {
-            try {
-                const resp = await fetch('http://127.0.0.1:5000/api/edificios');
-                const buildings = await resp.json();
-                buildings.forEach(b => {
-                    buildingsEquipment[b.id] = b.equipos && b.equipos.length > 0;
-                });
-            } catch (e) {
-                console.error('Error fetching building equipment:', e);
+        function updateUrl() {
+            if (!sel) return;
+            const opt = sel.options[sel.selectedIndex];
+            if (opt && opt.value) {
+                const url = '/monitoreo/edificio/' + opt.value + '/';
+                if (btn) btn.href = url;
+                if (btnBig) btnBig.href = url;
             }
         }
 
-        function getSelectedBuildingId() {
-            const sel = document.getElementById('buildingSelect');
-            if (!sel || !sel.value) return null;
-            return parseInt(sel.value);
+        function updateBuilding(selEl) {
+            updateUrl();
         }
 
-        function selectedBuildingHasEquipment() {
-            const id = getSelectedBuildingId();
-            return id ? !!buildingsEquipment[id] : false;
-        }
-
-        function selectBuilding(buildingId, name, targetUrl){
-            const btnToggle = document.getElementById('btnToggleSimulator');
-            if (!buildingId) {
-                currentMonitorUrl = null;
-                if (btnToggle) btnToggle.disabled = true;
-                if (openMonitorButton) openMonitorButton.disabled = true;
-                return;
-            }
-            currentMonitorUrl = targetUrl || null;
-            if (btnToggle) btnToggle.disabled = false;
-            const hasEquip = selectedBuildingHasEquipment();
-            if (targetUrl && isSimulatorOnline && hasEquip) {
-                if (buildingFrame.src && buildingFrame.src.includes(':5000')) {
-                    buildingFrame.contentWindow.postMessage({
-                        type: 'CHANGE_BUILDING',
-                        buildingId: buildingId,
-                        buildingName: name
-                    }, '*');
-                } else {
-                    buildingFrame.src = targetUrl;
-                }
-            }
-            if (openMonitorButton) {
-                openMonitorButton.disabled = !currentMonitorUrl;
-            }
-            localStorage.setItem('selectedBuildingId', buildingId);
-            updateDashboardDisplay();
-        }
-
-        function selectBuildingFromSelect(sel) {
-            const option = sel.options[sel.selectedIndex];
-            if (!option || !option.value) return;
-            selectBuilding(option.value, option.dataset.name, option.dataset.url);
-        }
-
-        function openMonitorNewTab() {
-            if (currentMonitorUrl) {
-                window.open(currentMonitorUrl, '_blank');
-            }
-        }
-
-        function updateDashboardDisplay() {
-            const loadingEl = document.getElementById('iframeLoading');
-            const fallbackEl = document.getElementById('iframeFallback');
-            const noEquipEl = document.getElementById('iframeNoEquipment');
-            const frame = document.getElementById('adminMonitorFrame');
-
-            loadingEl.style.display = 'none';
-            fallbackEl.style.display = 'none';
-            noEquipEl.style.display = 'none';
-            frame.style.display = 'none';
-
-            if (!isSimulatorOnline) {
-                fallbackEl.style.display = 'flex';
-                return;
-            }
-
-            const hasEquip = selectedBuildingHasEquipment();
-            if (!hasEquip) {
-                noEquipEl.style.display = 'flex';
-                return;
-            }
-
-            frame.style.display = 'block';
-        }
-
-        async function checkSimulatorStatus() {
-            if (isTransitioning) return;
-            const badge = document.getElementById('simulatorStatusBadge');
-            const btnToggle = document.getElementById('btnToggleSimulator');
-            try {
-                const response = await fetch('/monitoreo/simulador/status/');
-                const data = await response.json();
-                
-                if (!data.has_edificios) {
-                    currentMonitorUrl = null;
-                    badge.textContent = 'SIN EDIFICIOS';
-                    badge.className = 'badge badge-inactive';
-                    btnToggle.disabled = true;
-                    btnRestart.disabled = true;
-                    updateDashboardDisplay();
-                    return;
-                }
-                
-                isSimulatorOnline = data.running;
-                if (isSimulatorOnline) {
-                    badge.textContent = 'ENCENDIDO';
-                    badge.className = 'badge badge-active';
-                    btnToggle.textContent = 'Apagar';
-                    btnToggle.style.background = '#dc2626';
-                    btnToggle.style.color = '#ffffff';
-                    btnToggle.style.borderColor = '#0a0a0a';
-                    btnRestart.disabled = false;
-                    
-                    const hasEquip = selectedBuildingHasEquipment();
-                    if (hasEquip && (!buildingFrame.src || !buildingFrame.src.includes(':5000')) && currentMonitorUrl) {
-                        buildingFrame.src = currentMonitorUrl;
-                    }
-                } else {
-                    badge.textContent = 'APAGADO';
-                    badge.className = 'badge badge-inactive';
-                    btnToggle.textContent = 'Encender';
-                    btnToggle.style.background = 'var(--color-ink)';
-                    btnToggle.style.color = 'var(--color-surface)';
-                    btnToggle.style.borderColor = 'var(--color-ink)';
-                    btnRestart.disabled = true;
-                    
-                    buildingFrame.removeAttribute('src');
-                }
-                if (!currentMonitorUrl) {
-                    btnToggle.disabled = true;
-                }
-                updateDashboardDisplay();
-            } catch (error) {
-                console.error('Error checking simulator status:', error);
-            }
-        }
-
-        async function pollStatusUntil(targetState, maxAttempts = 20) {
-            for (let i = 0; i < maxAttempts; i++) {
-                try {
-                    const response = await fetch('/monitoreo/simulador/status/');
-                    const data = await response.json();
-                    if (data.running === targetState) {
-                        return true;
-                    }
-                } catch (e) {
-                    console.error('Error polling status:', e);
-                }
-                await new Promise(resolve => setTimeout(resolve, 300));
-            }
-            return false;
-        }
-
-        async function toggleSimulator() {
-            if (!currentMonitorUrl) {
-                await checkSimulatorStatus();
-                return;
-            }
-            isTransitioning = true;
-            const btnToggle = document.getElementById('btnToggleSimulator');
-            const badge = document.getElementById('simulatorStatusBadge');
-            const targetState = !isSimulatorOnline;
-            const action = isSimulatorOnline ? 'stop' : 'start';
-            
-            badge.textContent = 'PROCESANDO...';
-            badge.className = 'badge badge-loading';
-            btnToggle.disabled = true;
-            
-            // Customize loading texts based on action
-            const loadingTitle = document.getElementById('iframeLoadingTitle');
-            const loadingDesc = document.getElementById('iframeLoadingDesc');
-            if (action === 'start') {
-                loadingTitle.textContent = 'Encendiendo el simulador...';
-                loadingDesc.textContent = 'Iniciando el simulador de monitoreo y cargando la interfaz gráfica de telemetría.';
-            } else {
-                loadingTitle.textContent = 'Apagando el simulador...';
-                loadingDesc.textContent = 'Deteniendo el simulador de monitoreo y liberando los recursos del sistema.';
-            }
-            
-            // Show loading placeholder inside iframe container
-            document.getElementById('iframeLoading').style.display = 'flex';
-            document.getElementById('iframeFallback').style.display = 'none';
-            document.getElementById('iframeNoEquipment').style.display = 'none';
-            buildingFrame.style.display = 'none';
-            
-            try {
-                const response = await fetch(`/monitoreo/simulador/${action}/`);
-                const data = await response.json();
-                // Wait until the target state (Online or Offline) is verified
-                await pollStatusUntil(targetState);
-                isTransitioning = false;
-                await checkSimulatorStatus();
-            } catch (error) {
-                console.error('Error toggling simulator:', error);
-                isTransitioning = false;
-                await checkSimulatorStatus();
-            } finally {
-                btnToggle.disabled = false;
-            }
-        }
-
-        async function restartSimulator() {
-            if (!isSimulatorOnline) return;
-            isTransitioning = true;
-            const badge = document.getElementById('simulatorStatusBadge');
-            
-            badge.textContent = 'REINICIANDO...';
-            badge.className = 'badge badge-loading';
-            btnRestart.disabled = true;
-            
-            // Customize loading texts for restart
-            const loadingTitle = document.getElementById('iframeLoadingTitle');
-            const loadingDesc = document.getElementById('iframeLoadingDesc');
-            loadingTitle.textContent = 'Reiniciando el simulador...';
-            loadingDesc.textContent = 'Reiniciando el simulador de monitoreo y restableciendo la telemetría.';
-            
-            // Show loading placeholder inside iframe container
-            document.getElementById('iframeLoading').style.display = 'flex';
-            document.getElementById('iframeFallback').style.display = 'none';
-            document.getElementById('iframeNoEquipment').style.display = 'none';
-            buildingFrame.style.display = 'none';
-            
-            try {
-                const response = await fetch('/monitoreo/simulador/restart/');
-                const data = await response.json();
-                // Wait until it is confirmed to be online again
-                await pollStatusUntil(true);
-                isTransitioning = false;
-                
-                // Force iframe reload if it's already there
-                if (currentMonitorUrl) {
-                    buildingFrame.src = currentMonitorUrl;
-                }
-                await checkSimulatorStatus();
-            } catch (error) {
-                console.error('Error restarting simulator:', error);
-                isTransitioning = false;
-                await checkSimulatorStatus();
-            } finally {
-                btnRestart.disabled = false;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async ()=>{
-            await fetchBuildingsEquipment();
-
-            const sel = document.getElementById('buildingSelect');
+        document.addEventListener('DOMContentLoaded', function() {
             if (sel) {
-                const savedId = localStorage.getItem('selectedBuildingId');
-                let restored = false;
-                if (savedId) {
+                const saved = localStorage.getItem('selectedBuildingId');
+                if (saved) {
                     for (let i = 0; i < sel.options.length; i++) {
-                        if (sel.options[i].value === savedId) {
+                        if (sel.options[i].value === saved) {
                             sel.selectedIndex = i;
-                            restored = true;
                             break;
                         }
                     }
                 }
-                if (!restored && sel.options.length > 0) {
-                    sel.selectedIndex = 0;
-                }
-                const opt = sel.options[sel.selectedIndex];
-                if (opt && opt.value) {
-                    selectBuilding(opt.value, opt.dataset.name, opt.dataset.url);
-                }
+                sel.addEventListener('change', function() {
+                    localStorage.setItem('selectedBuildingId', this.value);
+                });
             }
-            if (!hasEdificios) {
-                const btnToggle = document.getElementById('btnToggleSimulator');
-                const badge = document.getElementById('simulatorStatusBadge');
-                btnToggle.disabled = true;
-                btnRestart.disabled = true;
-                badge.textContent = 'SIN EDIFICIOS';
-                badge.className = 'badge badge-inactive';
-                updateDashboardDisplay();
-                return;
-            }
-            checkSimulatorStatus();
-            // Update equipment cache periodically
-            setInterval(fetchBuildingsEquipment, 30000);
-            setInterval(checkSimulatorStatus, 5000);
+            updateUrl();
         });
     </script>
 </body>

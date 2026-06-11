@@ -30,6 +30,28 @@ from .views import (
     simulador_stop_view,
     simulador_restart_view,
 )
+from .simulation_views import (
+    sse_stream,
+    api_status,
+    api_edificios,
+    api_usuarios_edificio,
+    api_notifications,
+    view_get_thresholds,
+    view_update_thresholds,
+    manual_update,
+    view_clear_alerts,
+    view_toggle_alerts,
+    send_test_email,
+    send_all_subscribers,
+    sim_status,
+    sim_pause,
+    sim_reset,
+    sim_inject_fault,
+    sim_clear_fault,
+    sim_set_speed,
+    sim_toggle_pump,
+    sim_toggle_elevator,
+)
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/login/", permanent=False), name="home"),
@@ -116,5 +138,66 @@ urlpatterns = [
         "monitoreo/simulador/restart/",
         simulador_restart_view,
         name="simulador_restart",
+    ),
+    # ─── SIMULACIÓN API (reemplaza routes.py Flask) ─────
+    path("sse/<int:edificio_id>/", sse_stream, name="sse_stream"),
+    path("api/status/", api_status, name="api_status"),
+    path("api/edificios/", api_edificios, name="api_edificios"),
+    path(
+        "api/usuarios_edificio/<int:edificio_id>/",
+        api_usuarios_edificio,
+        name="api_usuarios_edificio",
+    ),
+    path("api/notifications/", api_notifications, name="api_notifications"),
+    path("api/thresholds/", view_get_thresholds, name="api_thresholds"),
+    path("api/thresholds/update/", view_update_thresholds, name="api_thresholds_update"),
+    path("api/manual-update/", manual_update, name="manual_update"),
+    path("api/clear-alerts/", view_clear_alerts, name="api_clear_alerts"),
+    path("api/toggle-alerts/", view_toggle_alerts, name="api_toggle_alerts"),
+    path("api/send-test-email/", send_test_email, name="api_send_test_email"),
+    path(
+        "api/send-all-subscribers/",
+        send_all_subscribers,
+        name="api_send_all_subscribers",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/status/",
+        sim_status,
+        name="sim_status_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/pause/",
+        sim_pause,
+        name="sim_pause_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/reset/",
+        sim_reset,
+        name="sim_reset_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/inject-fault/",
+        sim_inject_fault,
+        name="sim_inject_fault_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/clear-fault/",
+        sim_clear_fault,
+        name="sim_clear_fault_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/set-speed/",
+        sim_set_speed,
+        name="sim_set_speed_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/toggle-pump/",
+        sim_toggle_pump,
+        name="sim_toggle_pump_api",
+    ),
+    path(
+        "api/sim/<int:edificio_id>/toggle-elevator/",
+        sim_toggle_elevator,
+        name="sim_toggle_elevator_api",
     ),
 ]

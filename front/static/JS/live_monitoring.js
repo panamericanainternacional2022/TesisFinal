@@ -1,25 +1,6 @@
-const BACKEND_ORIGINS = ['http://localhost:5000', 'http://127.0.0.1:5000'];
-let MONITOR_BACKEND_ORIGIN = BACKEND_ORIGINS[0];
-let SSE_URL = `${MONITOR_BACKEND_ORIGIN}/stream/monitoreo`;
+const EDIFICIO_ID = window.EDIFICIO_ID || 0;
+const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 let monitorConnectionTimeout = null;
-
-async function resolveMonitorBackendOrigin() {
-    for (const origin of BACKEND_ORIGINS) {
-        try {
-            const response = await fetch(`${origin}/api/status`, { method: 'GET', mode: 'cors' });
-            if (response.ok) {
-                MONITOR_BACKEND_ORIGIN = origin;
-                SSE_URL = `${MONITOR_BACKEND_ORIGIN}/stream/monitoreo`;
-                console.info('Usando backend de monitoreo en', origin);
-                return origin;
-            }
-        } catch (error) {
-            console.warn('No se puede conectar a', origin, error);
-        }
-    }
-    console.warn('No se pudo detectar backend de monitoreo; usando', MONITOR_BACKEND_ORIGIN);
-    return MONITOR_BACKEND_ORIGIN;
-}
 
 function safeText(value) {
     return value === null || value === undefined ? '-' : String(value);
@@ -188,10 +169,10 @@ function updateCharts(history) {
     const getSensorColor = (v) => {
         const r = getLatestReading(v);
         if (!r) return '#0a0a0a';
-        if (r.risk === 'Crítico') return '#991b1b'; // Red
-        if (r.risk === 'Alto') return '#c2410c'; // Orange
-        if (r.risk === 'Medio') return '#b45309'; // Amber/Yellow
-        return '#166534'; // Green / Low
+        if (r.risk === 'Crítico') return '#991b1b';
+        if (r.risk === 'Alto') return '#c2410c';
+        if (r.risk === 'Medio') return '#b45309';
+        return '#166534';
     };
 
     if (chart1) {
@@ -288,13 +269,11 @@ function renderLiveMonitor(data) {
     const hasElevator = equipTypes.includes('elevador');
     const hasAnyEquipment = hasPump || hasElevator;
 
-    // Mostrar placeholder si el edificio no tiene ningún equipo
     const noEquipEl = document.getElementById('noEquipmentMessage');
     const activeContentEl = document.getElementById('monitoringActiveContent');
     if (noEquipEl) noEquipEl.style.display = hasAnyEquipment ? 'none' : 'block';
     if (activeContentEl) activeContentEl.style.display = hasAnyEquipment ? 'block' : 'none';
 
-    // Si no hay equipos, no renderizar el resto de la interfaz
     if (!hasAnyEquipment) return;
 
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
@@ -312,7 +291,6 @@ function renderLiveMonitor(data) {
     document.getElementById('bombaCards').innerHTML = bombaCards;
     document.getElementById('elevadorCards').innerHTML = elevadorCards;
 
-    // Ocultar secciones de equipos que no existen
     const toggleDisplay = (id, show) => {
         const el = document.getElementById(id);
         if (el) el.style.display = show ? '' : 'none';
@@ -329,8 +307,6 @@ function renderLiveMonitor(data) {
     const totalAlerts = (data.alert_log || []).filter(a => a.risk !== 'Info').length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
-
-    // Toggle button state is driven by Django session; simulator state is not authoritative.
 }
 
 function renderNotificationList(alerts) {
@@ -341,7 +317,6 @@ function renderNotificationList(alerts) {
         placeholder.remove();
     }
 
-    // Filtrar alertas de nivel Info — solo mostrar Crítico, Alto, Medio, Bajo
     const filtered = (alerts || []).filter(a => a.risk !== 'Info');
 
     if (filtered.length === 0) {
@@ -375,23 +350,10 @@ function renderNotificationList(alerts) {
     container.innerHTML = items;
 }
 
-function fetchLiveNotifications() {
-    fetch(`${MONITOR_BACKEND_ORIGIN}/get_alert_log`)
-        .then((r) => r.ok ? r.json() : Promise.reject(r.statusText))
-        .then((alerts) => {
-            renderNotificationList(alerts);
-            renderConnectionStatus(true, 'Backend de monitoreo conectado');
-        })
-        .catch((error) => {
-            renderConnectionStatus(false, `No se puede conectar al backend de monitoreo (${MONITOR_BACKEND_ORIGIN}).`);
-            console.warn('Error cargando alertas desde app27.py:', error);
-        });
-}
-
 function renderConnectionStatus(isConnected, message) {
     const badge = document.getElementById('monitor-backend-status');
     if (badge) {
-        badge.textContent = message || (isConnected ? 'Backend de monitoreo conectado' : 'No se pudo conectar al backend de monitoreo.');
+        badge.textContent = message || (isConnected ? 'Sistema de monitoreo conectado' : 'No se pudo conectar al sistema de monitoreo.');
         badge.className = isConnected ? 'sensor-active' : 'sensor-critical';
     }
 
@@ -399,9 +361,6 @@ function renderConnectionStatus(isConnected, message) {
         clearTimeout(monitorConnectionTimeout);
         monitorConnectionTimeout = null;
     }
-
-    // Toggle button state is driven by Django session, not simulator connectivity.
-    // No changes to toggleBtn here.
 
     const activeContent = document.getElementById('monitoringActiveContent');
     const fallback = document.getElementById('userOfflineFallback');
@@ -423,8 +382,13 @@ function renderConnectionStatus(isConnected, message) {
 }
 
 function initLiveMonitoring() {
+    if (!SSE_URL) {
+        console.warn('Sin edificio_id definido; SSE no iniciado.');
+        fetchInitialData();
+        return;
+    }
     if (typeof EventSource === 'undefined') {
-        console.warn('EventSource no está disponible en este navegador.');
+        console.warn('EventSource no está disponible.');
         fetchInitialData();
         return;
     }
@@ -436,26 +400,15 @@ function initLiveMonitoring() {
             clearTimeout(monitorConnectionTimeout);
             monitorConnectionTimeout = null;
         }
-        renderConnectionStatus(true, 'Backend de monitoreo conectado');
-        console.info('Conectado al backend de monitoreo SSE en', SSE_URL);
-
-        // Push the session-stored alert state to the simulator now that it's online.
-        const toggleBtn = document.getElementById('toggleAlertsBtn');
-        if (toggleBtn) {
-            const sessionEnabled = toggleBtn.dataset.enabled === 'true';
-            fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled: sessionEnabled })
-            }).catch(() => { });
-        }
+        renderConnectionStatus(true, 'Sistema de monitoreo conectado');
+        console.info('Conectado SSE en', SSE_URL);
     };
 
     source.onerror = (err) => {
-        console.error('Error de conexión SSE:', err);
+        console.error('Error SSE:', err);
         if (!monitorConnectionTimeout) {
             monitorConnectionTimeout = setTimeout(() => {
-                renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
+                renderConnectionStatus(false, 'El simulador de monitoreo está apagado.');
                 monitorConnectionTimeout = null;
             }, 3500);
         }
@@ -466,7 +419,7 @@ function initLiveMonitoring() {
             const data = JSON.parse(event.data);
             renderLiveMonitor(data);
         } catch (error) {
-            console.error('Error parseando evento SSE:', error);
+            console.error('Error parseando SSE:', error);
         }
     };
 
@@ -542,7 +495,6 @@ function showDurationPicker() {
             </div>
         `;
 
-        // Hover effect on duration buttons
         container.querySelectorAll('#durationGrid button').forEach(btn => {
             btn.addEventListener('mouseenter', () => {
                 btn.style.background = 'var(--color-ink)';
@@ -606,6 +558,14 @@ function startAlertCountdown(disabledUntilMs) {
     alertCountdownInterval = setInterval(tick, 1000);
 }
 
+function csrfFetch(url, options) {
+    const csrfToken = getCookie('csrftoken');
+    const headers = options.headers || {};
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
+    return fetch(url, { ...options, headers, credentials: 'same-origin' });
+}
+
 async function reEnableAlerts() {
     const btn = document.getElementById('toggleAlertsBtn');
     if (!btn) return;
@@ -614,21 +574,15 @@ async function reEnableAlerts() {
     btn.className = 'btn-alerts-toggle enabled';
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
-    const csrfToken = getCookie('csrftoken');
-    const headers = { 'Content-Type': 'application/json' };
-    if (csrfToken) headers['X-CSRFToken'] = csrfToken;
-    fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers, body: JSON.stringify({ enabled: true }) }).catch(() => { });
-    fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => { });
-    await window.showAlert('El tiempo de pausa ha expirado. Alertas reactivadas.', 'success');
+    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }).catch(() => { });
+    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }).catch(() => { });
+    await window.showAlert('Alertas reactivadas.', 'success');
     window.location.reload();
 }
 
 function initLiveNotifications() {
     const notifContainer = document.getElementById('live-notifications-list');
     if (!notifContainer) return;
-    // Disabled to avoid overwriting Django database notifications, pagination and filtering
-    // fetchLiveNotifications();
-    // setInterval(fetchLiveNotifications, 5000);
 
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
@@ -636,26 +590,20 @@ function initLiveNotifications() {
             const isCurrentlyEnabled = toggleBtn.dataset.enabled === 'true';
 
             if (!isCurrentlyEnabled) {
-                // ── Re-enable ─────────────────────────────────────────
                 if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
                 toggleBtn.dataset.enabled = 'true';
                 toggleBtn.dataset.disabledUntilMs = '';
                 toggleBtn.className = 'btn-alerts-toggle enabled';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
-                const csrfToken = getCookie('csrftoken');
-                const h = { 'Content-Type': 'application/json' };
-                if (csrfToken) h['X-CSRFToken'] = csrfToken;
-                try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: true }) }); }
-                catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
-                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: true }) }).catch(() => { });
+                csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }).catch(() => { });
+                csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }).catch(() => { });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
                 window.location.reload();
 
             } else {
-                // ── Disable: ask for duration ──────────────────────────
                 const minutes = await showDurationPicker();
-                if (minutes === undefined) return; // cancelled
+                if (minutes === undefined) return;
 
                 toggleBtn.dataset.enabled = 'false';
                 toggleBtn.className = 'btn-alerts-toggle disabled';
@@ -669,12 +617,8 @@ function initLiveNotifications() {
                     toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
                 }
 
-                const csrfToken = getCookie('csrftoken');
-                const h = { 'Content-Type': 'application/json' };
-                if (csrfToken) h['X-CSRFToken'] = csrfToken;
-                try { await fetch('/notificaciones/toggle_alerts/', { method: 'POST', headers: h, body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }); }
-                catch (err) { console.error('Error al guardar estado en sesión Django:', err); }
-                fetch(`${MONITOR_BACKEND_ORIGIN}/toggle_alerts`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled: false }) }).catch(() => { });
+                csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }).catch(() => { });
+                csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, edificio_id: EDIFICIO_ID }) }).catch(() => { });
 
                 const label = minutes === null ? 'indefinidamente'
                     : minutes < 60 ? `por ${minutes} min`
@@ -690,23 +634,10 @@ function initLiveNotifications() {
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
             const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las alertas?');
-
             if (shouldClear) {
                 try {
-                    const csrfToken = getCookie('csrftoken');
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (csrfToken) {
-                        headers['X-CSRFToken'] = csrfToken;
-                    }
-
-                    const respDjango = await fetch('/notificaciones/limpiar/', {
-                        method: 'POST',
-                        headers: headers
-                    });
-
-                    await fetch(`${MONITOR_BACKEND_ORIGIN}/clear_alerts`, { method: 'POST' }).catch(() => { });
-
-                    if (respDjango.ok) {
+                    const resp = await csrfFetch('/notificaciones/limpiar/', { method: 'POST' });
+                    if (resp.ok) {
                         await window.showAlert('Alertas limpiadas con éxito.', 'success');
                         window.location.href = window.location.pathname;
                     } else {
@@ -722,11 +653,12 @@ function initLiveNotifications() {
 }
 
 function fetchInitialData() {
-    fetch(`${MONITOR_BACKEND_ORIGIN}/api/status`)
+    const url = EDIFICIO_ID ? `/api/status/?edificio_id=${EDIFICIO_ID}` : '/api/status/';
+    fetch(url)
         .then((r) => r.ok ? r.json() : Promise.reject(r.statusText))
         .then((data) => renderLiveMonitor(data))
         .catch((error) => {
-            console.warn('No se pudo obtener el estado inicial desde el backend de monitoreo.', error);
+            console.warn('No se pudo obtener estado inicial.', error);
         });
 }
 
@@ -734,7 +666,6 @@ window.addEventListener('DOMContentLoaded', async () => {
     setNotificationBadge(0);
     initCharts();
 
-    // Render toggle button from Django session state immediately (always enabled, no spinner)
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
         toggleBtn.disabled = false;
@@ -755,13 +686,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Start 3.5-second connection fallback timer
     monitorConnectionTimeout = setTimeout(() => {
-        renderConnectionStatus(false, 'El simulador de monitoreo está apagado. Comuníquese con el administrador para encenderlo.');
+        renderConnectionStatus(false, 'El simulador de monitoreo está apagado.');
         monitorConnectionTimeout = null;
     }, 3500);
-
-    await resolveMonitorBackendOrigin();
 
     initLiveMonitoring();
     initLiveNotifications();

@@ -79,6 +79,7 @@ class BuildingSimulator:
         self.history: list = []
         self.pending_notifications: deque = deque()
         self.last_email_sent_time: float = 0.0
+        self.alert_enabled: bool = True
 
         # --- Control del simulador ---
         self.sim_paused = False
@@ -436,22 +437,13 @@ def check_motor_stuck(speed, load, temperature):
 def update_sensor_data(active_sim=None):
     """Actualiza los datos de sensores usando modelos físicos.
     Se ejecuta por cada tick de simulación desde _run_sim_tick.
-    active_sim puede pasarse explícitamente desde _run_sim_tick.
     """
-    global sensor_data, pump_on, elevator_on, protection_ends
-    global door_close_attempts
-
     if active_sim is None:
-        for sim in simulators.values():
-            if sim.sensor_data is sensor_data:
-                active_sim = sim
-                break
-
+        active_sim = next(iter(simulators.values()), None)
     if active_sim is None:
         return
 
     dt = active_sim.sim_speed
-
     if active_sim.sim_paused:
         return
 
@@ -460,12 +452,10 @@ def update_sensor_data(active_sim=None):
     if active_sim.has_elevator:
         _update_elevator(active_sim)
 
-    door_close_attempts = active_sim.door_close_attempts
-
     if not active_sim.sim_faults:
-        if "pump" not in protection_ends and pump_on and random.random() < 0.001 * dt:
+        if "pump" not in active_sim.protection_ends and active_sim.pump_on and random.random() < 0.001 * dt:
             _inject_random_pump_fault(active_sim)
-        if "elevator" not in protection_ends and elevator_on and random.random() < 0.001 * dt:
+        if "elevator" not in active_sim.protection_ends and active_sim.elevator_on and random.random() < 0.001 * dt:
             _inject_random_elevator_fault(active_sim)
 
 
