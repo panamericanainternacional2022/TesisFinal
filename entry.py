@@ -48,7 +48,7 @@ except Exception as e:
 from simulation import (
     BuildingSimulator, simulators,
     sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
-    door_close_attempts, history, alert_log, pending_notifications,
+    door_close_attempts, history, pending_notifications,
     last_email_sent_time, sim_paused, sim_speed,
 )
 

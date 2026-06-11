@@ -55,8 +55,10 @@ def _pdf_safe(text):
 
 
 def generate_pdf_report(period):
-    from simulation import sensor_data, history, alert_log, RATIONING_THRESHOLD
+    from simulation import sensor_data, history, RATIONING_THRESHOLD
     from alerts import _es_var, get_unit
+    from front.services.alert_service import get_alert_log
+    import entry
 
     if not PDF_AVAILABLE:
         raise ImportError("fpdf2 no instalado")
@@ -102,7 +104,7 @@ def generate_pdf_report(period):
             stats[var] = {"min": "N/A", "max": "N/A", "avg": "N/A", "count": 0}
     alerts_in_period = [
         a
-        for a in alert_log
+        for a in get_alert_log(entry.active_edificio_id, 500)
         if datetime.strptime(a["timestamp"], "%Y-%m-%d %H:%M:%S") >= start_time
     ]
     pdf = PDFReport()

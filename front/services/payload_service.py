@@ -3,6 +3,7 @@ import logging
 from front.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS
 from front.services.risk_service import classify_risk
 from front.services.threshold_service import get_thresholds
+from front.services.alert_service import get_alert_log
 
 logger = logging.getLogger(__name__)
 
@@ -12,7 +13,7 @@ def titleize_name(text):
 
 
 def build_live_payload(
-    sensor_data, protection_ends, history, alert_log,
+    sensor_data, protection_ends, history,
     door_close_attempts, pump_on, elevator_on, equipment_types,
     RATIONING_THRESHOLD, sim_paused, sim_speed,
     generate_recommendations_fn=None, alert_enabled=True,
@@ -98,7 +99,7 @@ def build_live_payload(
         "history": [h for h in history[-200:] if h.get("variable") in _relevant_vars],
         "thresholds": thresholds,
         "alert_enabled": alert_enabled,
-        "alert_log": alert_log[:50],
+        "alert_log": get_alert_log(active_edificio_id, 50),
         "stats": stats,
         "recommendations": recommendations,
         "rationing": sensor_data.get("flow_rate", 0) < RATIONING_THRESHOLD,

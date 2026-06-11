@@ -23,6 +23,7 @@ from alerts import (
     send_email_alert, get_building_emails,
 )
 from payload import build_live_payload
+from front.services.alert_service import get_alert_log
 from pdf_report import generate_pdf_report
 
 import entry
@@ -130,16 +131,16 @@ def register_routes(app, socketio):
     # ------------------------------------------------------------------
     @app.route("/clear_alerts", methods=["POST"])
     def clear_alerts():
-        simulation.alert_log.clear()
         if entry.DJANGO_CONNECTED:
             try:
                 from front.models import EquipoMonitoreo, Notificacion
-                equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
-                if equipo:
-                    Notificacion.objects.filter(id_equipo_monitoreo=equipo).delete()
+                if entry.active_edificio_id:
+                    equipos = EquipoMonitoreo.objects.filter(id_edificio_id=entry.active_edificio_id)
+                    for eq in equipos:
+                        Notificacion.objects.filter(id_equipo_monitoreo=eq).delete()
                 else:
                     Notificacion.objects.all().delete()
-                logger.info("Notificaciones de Django eliminadas")
+                logger.info("Notificaciones de Django eliminadas para edificio %s", entry.active_edificio_id)
             except Exception as e:
                 logger.warning("Error al eliminar notificaciones en Django: %s", e)
         return jsonify({"status": "ok", "message": "Alertas limpiadas"})
@@ -355,7 +356,7 @@ def register_routes(app, socketio):
                 "history": history,
                 "thresholds": thresholds,
                 "alert_enabled": entry.alert_enabled,
-                "alert_log": simulation.alert_log[:50],
+                "alert_log": get_alert_log(entry.active_edificio_id, 50),
                 "rationing": sensor_data["flow_rate"] < RATIONING_THRESHOLD,
                 "door_close_attempts": door_close_attempts,
                 "recommendations": recs,

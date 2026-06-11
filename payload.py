@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 def build_live_payload():
     from simulation import (
-        sensor_data, protection_ends, history, alert_log,
+        sensor_data, protection_ends, history,
         door_close_attempts, pump_on, elevator_on, equipment_types,
         RATIONING_THRESHOLD, sim_paused, sim_speed,
     )
@@ -27,7 +27,6 @@ def build_live_payload():
         sensor_data=sensor_data,
         protection_ends=protection_ends,
         history=history,
-        alert_log=alert_log,
         door_close_attempts=door_close_attempts,
         pump_on=pump_on,
         elevator_on=elevator_on,

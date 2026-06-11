@@ -12,7 +12,7 @@ from simulation import (
     RATIONING_THRESHOLD, MAX_HISTORY_SIZE, LOG_SIM,
     BuildingSimulator, simulators,
     sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts,
-    door_close_attempts, history, alert_log, pending_notifications,
+    door_close_attempts, history, pending_notifications,
     last_email_sent_time, sim_paused, sim_speed,
     update_sensor_data,
 )
@@ -36,7 +36,7 @@ def _run_sim_tick(sim: BuildingSimulator):
     in-place por las funciones, por lo que no necesitan copia de vuelta.
     """
     global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
-    global door_close_attempts, history, alert_log, pending_notifications
+    global door_close_attempts, history, pending_notifications
     global last_email_sent_time, sim_paused, sim_speed
 
     if sim.sim_paused:
@@ -55,7 +55,6 @@ def _run_sim_tick(sim: BuildingSimulator):
     active_alerts            = sim.active_alerts
     door_close_attempts      = sim.door_close_attempts
     history                  = sim.history
-    alert_log                = sim.alert_log
     pending_notifications    = sim.pending_notifications
     last_email_sent_time     = sim.last_email_sent_time
 
@@ -67,7 +66,6 @@ def _run_sim_tick(sim: BuildingSimulator):
     _sim_mod.active_alerts         = sim.active_alerts
     _sim_mod.door_close_attempts   = sim.door_close_attempts
     _sim_mod.history               = sim.history
-    _sim_mod.alert_log             = sim.alert_log
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
     _sim_mod.sim_paused            = sim.sim_paused
@@ -81,7 +79,6 @@ def _run_sim_tick(sim: BuildingSimulator):
     entry.active_alerts            = sim.active_alerts
     entry.door_close_attempts      = sim.door_close_attempts
     entry.history                  = sim.history
-    entry.alert_log                = sim.alert_log
     entry.pending_notifications    = sim.pending_notifications
     entry.last_email_sent_time     = sim.last_email_sent_time
     entry.sim_paused               = sim.sim_paused
@@ -147,7 +144,7 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     Llamar cada vez que active_edificio_id cambie o al final del loop.
     """
     global sensor_data, pump_on, elevator_on, equipment_types, protection_ends, active_alerts
-    global door_close_attempts, history, alert_log, pending_notifications, last_email_sent_time, sim_paused, sim_speed
+    global door_close_attempts, history, pending_notifications, last_email_sent_time, sim_paused, sim_speed
     sim_paused               = sim.sim_paused
     sim_speed                = sim.sim_speed
     sensor_data           = sim.sensor_data
@@ -158,7 +155,6 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     active_alerts         = sim.active_alerts
     door_close_attempts   = sim.door_close_attempts
     history               = sim.history
-    alert_log             = sim.alert_log
     pending_notifications = sim.pending_notifications
     last_email_sent_time  = sim.last_email_sent_time
     _sim_mod.sensor_data           = sim.sensor_data
@@ -169,7 +165,6 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     _sim_mod.active_alerts         = sim.active_alerts
     _sim_mod.door_close_attempts   = sim.door_close_attempts
     _sim_mod.history               = sim.history
-    _sim_mod.alert_log             = sim.alert_log
     _sim_mod.pending_notifications = sim.pending_notifications
     _sim_mod.last_email_sent_time  = sim.last_email_sent_time
     _sim_mod.sim_paused            = sim.sim_paused
@@ -183,7 +178,6 @@ def _sync_globals_to_sim(sim: BuildingSimulator):
     entry.active_alerts            = sim.active_alerts
     entry.door_close_attempts      = sim.door_close_attempts
     entry.history                  = sim.history
-    entry.alert_log                = sim.alert_log
     entry.pending_notifications    = sim.pending_notifications
     entry.last_email_sent_time     = sim.last_email_sent_time
     entry.sim_paused               = sim.sim_paused

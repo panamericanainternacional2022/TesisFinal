@@ -77,7 +77,6 @@ class BuildingSimulator:
         self.active_alerts: dict = {}
         self.door_close_attempts: int = 0
         self.history: list = []
-        self.alert_log: list = []
         self.pending_notifications: deque = deque()
         self.last_email_sent_time: float = 0.0
 
@@ -117,7 +116,6 @@ protection_ends  = {}
 active_alerts    = {}
 door_close_attempts = 0
 history          = []
-alert_log        = []
 pending_notifications = deque()
 last_email_sent_time  = 0.0
 
@@ -558,7 +556,6 @@ def reset_simulator(edificio_id: int):
     sim.active_alerts.clear()
     sim.door_close_attempts = 0
     sim.history.clear()
-    sim.alert_log.clear()
     sim.pending_notifications.clear()
     sim.sim_faults.clear()
     sim.sim_paused = False

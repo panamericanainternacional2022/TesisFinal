@@ -19,11 +19,11 @@ from collections import deque
 logger = logging.getLogger(__name__)
 
 from simulation import (
-    LOG_SIM, MAX_LOG_ENTRIES, RATIONING_THRESHOLD,
+    LOG_SIM, RATIONING_THRESHOLD,
     MAX_DOOR_CLOSE_ATTEMPTS, PROTECTION_HOLD_SECONDS,
     simulators,
     sensor_data, pump_on, elevator_on, protection_ends, active_alerts,
-    door_close_attempts, history, alert_log, pending_notifications,
+    door_close_attempts, history, pending_notifications,
     last_email_sent_time,
     reset_critical_values,
 )
@@ -79,7 +79,6 @@ def enter_protection_mode(reason=None, targets=None):
         "risk": "Crítico",
         "message": action_msg,
     }
-    alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
     from entry import alert_enabled
     if alert_enabled:
@@ -153,7 +152,6 @@ def update_protection_state():
             "risk": "Info",
             "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
         }
-        alert_log.insert(0, notification_payload)
         pending_notifications.append(notification_payload)
         try:
             from entry import socketio
@@ -230,7 +228,6 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
         "risk": risk_level,
         "message": recommended_action,
     }
-    alert_log.insert(0, notification_payload)
     pending_notifications.append(notification_payload)
     persist_notification_in_django(variable, value, risk_level, recommended_action)
     try:
@@ -238,8 +235,6 @@ Este es un mensaje de contingencia generado de forma automatica. Por favor, proc
         socketio.emit("notification", notification_payload, broadcast=True)
     except Exception:
         pass
-    while len(alert_log) > MAX_LOG_ENTRIES:
-        alert_log.pop()
 
 
 def check_rationing(flow_rate):

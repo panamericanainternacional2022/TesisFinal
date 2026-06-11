@@ -390,3 +390,35 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
             )
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)
+
+
+def get_alert_log(edificio_id=None, limit=50):
+    import json
+    try:
+        from front.models import Notificacion
+        qs = Notificacion.objects.select_related("id_equipo_monitoreo__id_edificio")
+        if edificio_id:
+            qs = qs.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+        entries = []
+        for n in qs.order_by("-fecha")[:limit]:
+            try:
+                data = json.loads(n.mensaje)
+                entries.append({
+                    "timestamp": n.fecha.strftime("%Y-%m-%d %H:%M:%S"),
+                    "variable": data.get("variable", ""),
+                    "value": data.get("value", ""),
+                    "risk": data.get("risk", ""),
+                    "message": data.get("action", ""),
+                })
+            except (json.JSONDecodeError, AttributeError):
+                entries.append({
+                    "timestamp": n.fecha.strftime("%Y-%m-%d %H:%M:%S") if n.fecha else "",
+                    "variable": "",
+                    "value": "",
+                    "risk": "",
+                    "message": n.mensaje or "",
+                })
+        return entries
+    except Exception as e:
+        logger.warning("No se pudo obtener alert_log desde DB: %s", e)
+        return []
