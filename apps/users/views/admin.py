@@ -141,17 +141,18 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                             token = signing.dumps({"user_id": user.id_usuario, "email": post_data["email"]})
                             activation_link = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}{reverse('complete_registration')}?token={token}"
 
+                        person_name = f"{person.name} {person.last_name}".strip()
                         if email_sent:
                             msg_html = f"""
-                            <h3 style="margin: 0 0 6px; color: #137333; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">¡Registro Exitoso!</h3>
-                            <p style="margin: 0 0 4px; font-size: 0.9rem; line-height: 1.4;">Se ha enviado un correo de activación a: <strong style="word-break: break-all;">{post_data['email']}</strong></p>
+                            <h3 style="margin: 0 0 6px; color: #137333; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">¡Registro exitoso!</h3>
+                            <p style="margin: 0 0 4px; font-size: 0.9rem; line-height: 1.4;">Se ha enviado un correo de activación para <strong>{person_name}</strong> a: <strong style="word-break: break-all;">{post_data['email']}</strong></p>
                             <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">El usuario deberá seguir el enlace enviado para configurar su cuenta.</p>
                             """
                             messages.success(request, msg_html)
                         else:
                             msg_html = f"""
-                            <h3 style="margin: 0 0 6px; color: #c5221f; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">Registro Exitoso (Correo no enviado)</h3>
-                            <p style="margin: 0 0 6px; font-size: 0.9rem; line-height: 1.4;">Las credenciales SMTP no están configuradas. Copia y entrega el siguiente enlace directamente al usuario:</p>
+                            <h3 style="margin: 0 0 6px; color: #c5221f; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">Registro exitoso (Correo no enviado)</h3>
+                            <p style="margin: 0 0 6px; font-size: 0.9rem; line-height: 1.4;">Se ha registrado a <strong>{person_name}</strong>. Las credenciales SMTP no están configuradas. Copia y entrega el siguiente enlace directamente al usuario:</p>
                             <div style="margin: 0 0 6px 0; word-break: break-all; background: #fff; padding: 8px; border: 1.5px solid #c5221f; font-family: monospace; font-size: 0.82rem;"><a href="{activation_link}" target="_blank" style="color: #c5221f; text-decoration: underline; font-weight: bold;">{activation_link}</a></div>
                             <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">Válido por 24 horas.</p>
                             """
@@ -203,7 +204,8 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                         building_id=post_data["id_edificio"],
                     )
 
-                messages.success(request, "Beneficiario actualizado correctamente.")
+                full_name = f"{person.name} {person.last_name}".strip() or user.username
+                messages.success(request, f"Beneficiario <strong>{full_name}</strong> actualizado correctamente.")
                 return redirect("beneficiary_list")
 
     data = build_edit_initial_data(user, person)
@@ -230,6 +232,8 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
 @admin_required
 def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
+    person = user.id_persona
+    full_name = f"{person.name} {person.last_name}".strip() if person else user.username
     with transaction.atomic():
         Notification.objects.filter(user=user).delete()
         UserBuilding.objects.filter(user=user).delete()
@@ -237,7 +241,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         user.delete()
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
-    messages.success(request, "Beneficiario eliminado correctamente.")
+    messages.success(request, f"Beneficiario <strong>{full_name}</strong> eliminado correctamente.")
     return redirect("user_select", action="eliminar")
 
 
