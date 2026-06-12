@@ -1,7 +1,7 @@
 import logging
 
 from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS
-from apps.reports.services.risk_service import classify_risk
+from apps.core.services.risk_service import classify_risk
 from apps.alerts.services.threshold_service import get_thresholds
 from apps.alerts.services.alert_service import get_alert_log
 

@@ -21,7 +21,7 @@ from apps.sensors.payload import build_live_payload_for_sim
 from apps.sensors.sensor_config import (
     STATS_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
 )
-from apps.reports.services.risk_service import classify_risk
+from apps.core.services.risk_service import classify_risk
 from apps.alerts.services.threshold_service import get_thresholds, update_threshold
 from apps.alerts.services.alert_service import (
     generate_recommendations,
@@ -164,36 +164,6 @@ def api_notifications(request):
     return JsonResponse(data, safe=False)
 
 
-# ─── UMBRALES ─────────────────────────────────────────────────────
-
-@login_required
-def view_get_thresholds(request):
-    return JsonResponse(get_thresholds())
-
-
-@login_required
-@require_http_methods(["POST"])
-def view_update_thresholds(request):
-    import json as _json_mod
-    try:
-        data = _json_mod.loads(request.body)
-    except Exception:
-        return _json_error("JSON inválido")
-    variable = data.get("variable")
-    risk = data.get("risk")
-    value = data.get("value")
-    if not variable or not risk or value is None:
-        return _json_error("Faltan campos: variable, risk, value")
-    try:
-        value = float(value)
-    except (ValueError, TypeError):
-        return _json_error("value debe ser numérico")
-    existing = get_thresholds().get(variable, {"direction": "higher", "low": 0, "medium": 0, "high": 0})
-    existing[risk.lower()] = value
-    update_threshold(variable, existing)
-    return _json_ok({"thresholds": get_thresholds()})
-
-
 # ─── ACCIONES MANUALES ────────────────────────────────────────────
 
 @login_required
@@ -262,100 +232,6 @@ def manual_update(request):
         sim.history = sim.history[-MAX_HISTORY_SIZE:]
 
     return _json_ok({"variable": variable, "value": sd[variable], "risk": risk})
-
-
-# ─── NOTIFICACIONES / ALERTAS ────────────────────────────────────
-
-@login_required
-@require_http_methods(["POST"])
-def view_clear_alerts(request):
-    """Limpia notificaciones (usa timestamp en sesión como Django)."""
-    request.session["alerts_cleared_at"] = time_module.time()
-    return _json_ok()
-
-
-@login_required
-@require_http_methods(["POST"])
-def view_toggle_alerts(request):
-    """Activa/desactiva alertas para un simulador."""
-    try:
-        data = json.loads(request.body)
-    except Exception:
-        return _json_error("JSON inválido")
-    edificio_id = data.get("edificio_id")
-    enabled = data.get("enabled")
-    if enabled is None:
-        return _json_error("Falta campo 'enabled'")
-    sim = _get_sim(edificio_id) if edificio_id else next(iter(simulators.values()), None)
-    if not sim:
-        return _json_error("Simulador no encontrado", 404)
-    sim.alert_enabled = bool(enabled)
-    return _json_ok({"alert_enabled": sim.alert_enabled})
-
-
-# ─── CORREOS ──────────────────────────────────────────────────────
-
-@login_required
-@require_http_methods(["POST"])
-def send_test_email(request):
-    """Envía un correo de prueba a un destinatario."""
-    try:
-        data = json.loads(request.body)
-    except Exception:
-        return _json_error("JSON inválido")
-    email = data.get("email", "")
-    if not email:
-        return _json_error("Falta campo 'email'")
-    import threading
-    threading.Thread(
-        target=send_email_alert,
-        kwargs={
-            "risk_level": "Info",
-            "subject": "[Prueba] Correo de prueba PCLogo",
-            "body": "Este es un correo de prueba del sistema PCLogo.",
-            "recipients": [email],
-        },
-        daemon=True,
-    ).start()
-    return _json_ok({"message": f"Correo de prueba enviado a {email}"})
-
-
-@login_required
-@require_http_methods(["POST"])
-def send_all_subscribers(request):
-    """Envía reporte a todos los suscriptores de un edificio."""
-    try:
-        data = json.loads(request.body)
-    except Exception:
-        return _json_error("JSON inválido")
-    edificio_id = data.get("edificio_id")
-    sim = _get_sim(edificio_id) if edificio_id else next(iter(simulators.values()), None)
-    if not sim:
-        return _json_error("Simulador no encontrado", 404)
-    emails = get_building_emails(edificio_id or sim.edificio_id)
-    if not emails:
-        return _json_error("No hay suscriptores para este edificio")
-    timestamp = time_module.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[Reporte PCLogo] Resumen de monitoreo - {timestamp}"
-    body = f"""REPORTE PERIODICO DE MONITOREO
-
-Resumen de lecturas actuales del edificio.
-
-Fecha/Hora: {timestamp}
-
-Variables monitoreadas:
-"""
-    for var, val in sim.sensor_data.items():
-        body += f"  {VAR_NAMES.get(var, var)}: {val} {UNITS.get(var, '')}\n"
-    body += "\nEste reporte es generado automaticamente por el sistema PCLogo."
-    import threading
-    for email in emails:
-        threading.Thread(
-            target=send_email_alert,
-            args=("Info", subject, body, email),
-            daemon=True,
-        ).start()
-    return _json_ok({"message": f"Reporte enviado a {len(emails)} suscriptores"})
 
 
 # ─── CONTROL DEL SIMULADOR ───────────────────────────────────────

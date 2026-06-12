@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from io import BytesIO
 
 from apps.sensors.sensor_config import PDF_BAR_VARS, PDF_STATS_VARS, PDF_BAR_LABELS, VAR_NAMES
-from apps.reports.services.risk_service import classify_risk
+from apps.core.services.risk_service import classify_risk
 from apps.alerts.services.alert_service import get_unit
 
 try:

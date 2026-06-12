@@ -14,7 +14,7 @@ from apps.sensors.simulation import (
     BuildingSimulator, simulators,
     update_sensor_data,
 )
-from apps.reports.services.risk_service import classify_risk
+from apps.core.services.risk_service import classify_risk
 from apps.alerts.alerts import (
     send_alert, get_professional_action, check_rationing, update_protection_state,
 )
