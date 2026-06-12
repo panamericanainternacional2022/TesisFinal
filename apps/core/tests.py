@@ -1,8 +1,10 @@
-from unittest.mock import patch, Mock
-from django.test import TestCase, RequestFactory
+from unittest.mock import Mock, patch
+
 from django.http import HttpResponse
+from django.test import TestCase, RequestFactory
 from django.urls import reverse
-from apps.core.auth_decorators import _is_admin_role, _login_required, _admin_required, ADMIN_ROLES
+
+from apps.core.auth_decorators import ADMIN_ROLES, _admin_required, _is_admin_role, _login_required
 from apps.core.services.risk_service import classify_risk
 
 
@@ -85,7 +87,7 @@ class ClassifyRiskTests(TestCase):
         self.assertEqual(risk, "Desconocido")
         self.assertEqual(color, "gray")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
+    @patch("apps.alerts.services.threshold_service.get_thresholds")
     def test_range_direction(self, mock_get_thresholds):
         mock_get_thresholds.return_value = {
             "temperature": {"direction": "range", "low": 20, "high": 80},
@@ -93,7 +95,7 @@ class ClassifyRiskTests(TestCase):
         risk, color = classify_risk("temperature", 50, thresholds=mock_get_thresholds.return_value)
         self.assertEqual(risk, "Bajo")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
+    @patch("apps.alerts.services.threshold_service.get_thresholds")
     def test_range_direction_high(self, mock_get_thresholds):
         mock_get_thresholds.return_value = {
             "temperature": {"direction": "range", "low": 20, "high": 80},
@@ -101,7 +103,7 @@ class ClassifyRiskTests(TestCase):
         risk, color = classify_risk("temperature", 99, thresholds=mock_get_thresholds.return_value)
         self.assertEqual(risk, "Alto")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
+    @patch("apps.alerts.services.threshold_service.get_thresholds")
     def test_higher_direction(self, mock_get_thresholds):
         mock_get_thresholds.return_value = {
             "flow_rate": {"direction": "higher", "low": 10, "medium": 20, "high": 30},
@@ -117,7 +119,7 @@ class ClassifyRiskTests(TestCase):
             self.assertEqual(risk, expected_risk, f"flow_rate={value}")
             self.assertEqual(color, expected_color, f"flow_rate={value}")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
+    @patch("apps.alerts.services.threshold_service.get_thresholds")
     def test_lower_direction(self, mock_get_thresholds):
         mock_get_thresholds.return_value = {
             "tank_level": {"direction": "lower", "low": 80, "medium": 60, "high": 40},
