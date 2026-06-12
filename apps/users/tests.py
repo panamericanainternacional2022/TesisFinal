@@ -61,8 +61,8 @@ class ValidateRifTests(TestCase):
     def test_valid_j_rif(self):
         self.assertEqual(_validate_rif("J-12345678-0"), "")
 
-    def test_valid_v_rif(self):
-        self.assertEqual(_validate_rif("V123456780"), "")
+    def test_invalid_v_rif_for_building(self):
+        self.assertNotEqual(_validate_rif("V123456780"), "")
 
     def test_invalid_format(self):
         self.assertNotEqual(_validate_rif("ABC123"), "")
@@ -92,7 +92,7 @@ class ValidateEmailTests(TestCase):
 class ValidateUniqueEmailDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="12345678", name="Test", last_name="User",
+            ci="V-12345678", name="Test", last_name="User",
             email="existing@test.com",
         )
 
@@ -113,16 +113,15 @@ class ValidateUniqueEmailDBTests(TestCase):
 class ValidateUniqueCiDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="87654321", name="Test", last_name="User",
+            ci="V-87654321", name="Test", last_name="User",
             email="t@t.com",
         )
 
     def test_duplicate_ci_returns_error(self):
-        msg = _validate_unique_ci("87654321")
-        self.assertNotEqual(msg, "")
+        self.assertNotEqual(_validate_unique_ci("V-87654321"), "")
 
     def test_unique_ci_returns_empty(self):
-        self.assertEqual(_validate_unique_ci("11111111"), "")
+        self.assertEqual(_validate_unique_ci("V-11111111"), "")
 
 
 class ValidateFormTests(TestCase):
@@ -133,7 +132,7 @@ class ValidateFormTests(TestCase):
             "primerApellido": "Pérez",
             "segundoApellido": "Gómez",
             "email": "juan@test.com",
-            "cedula": "12345678",
+            "cedula": "V-12345678",
         }
         errors = validate_user_form(data)
         self.assertEqual(errors, {})
@@ -160,7 +159,7 @@ class ValidateFormTests(TestCase):
 class BuildBeneficiaryDataTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="12345678", name="Juan", last_name="Pérez",
+            ci="V-12345678", name="Juan", last_name="Pérez",
             email="juan@test.com",
         )
         self.user = Usuario.objects.create(
@@ -170,14 +169,14 @@ class BuildBeneficiaryDataTests(TestCase):
 
     def test_build_with_persona(self):
         data = build_beneficiary_data(self.user)
-        self.assertEqual(data["cedula"], "12345678")
+        self.assertEqual(data["cedula"], "V-12345678")
         self.assertEqual(data["nombre"], "Juan")
         self.assertEqual(data["last_name"], "Pérez")
         self.assertEqual(data["email"], "juan@test.com")
 
     def test_build_without_persona_uses_username(self):
         p = Persona.objects.create(
-            ci="11111111", name="", last_name="",
+            ci="V-11111111", name="", last_name="",
             email="np@test.com",
         )
         user = Usuario.objects.create(
@@ -202,7 +201,7 @@ class BuildRandomUsernameTests(TestCase):
 
     def test_increments_on_collision(self):
         p = Persona.objects.create(
-            ci="22222222", name="Col", last_name="Lis",
+            ci="V-22222222", name="Col", last_name="Lis",
             email="col@test.com",
         )
         Usuario.objects.create(
@@ -233,7 +232,7 @@ class GenerateRandomPasswordTests(TestCase):
 class LoginViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="12345678", name="Admin", last_name="User",
+            ci="V-12345678", name="Admin", last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -275,7 +274,7 @@ class LoginViewTests(TestCase):
 class BeneficiaryListViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="12345678", name="Admin", last_name="User",
+            ci="V-12345678", name="Admin", last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -290,7 +289,7 @@ class BeneficiaryListViewTests(TestCase):
     def test_lista_requires_admin(self):
         self.client.get(reverse("logout"))
         p = Persona.objects.create(
-            ci="87654321", name="Normal", last_name="User",
+            ci="V-87654321", name="Normal", last_name="User",
             email="n@n.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -304,7 +303,7 @@ class BeneficiaryListViewTests(TestCase):
 
     def test_lista_shows_beneficiarios(self):
         Persona.objects.create(
-            ci="87654321", name="Test", last_name="User",
+            ci="V-87654321", name="Test", last_name="User",
             email="t@t.com",
         )
         response = self.client.get(reverse("beneficiary_list"))
@@ -314,7 +313,7 @@ class BeneficiaryListViewTests(TestCase):
 class BeneficiaryCreateViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="12345678", name="Admin", last_name="User",
+            ci="V-12345678", name="Admin", last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -333,7 +332,7 @@ class BeneficiaryCreateViewTests(TestCase):
     def test_post_requires_edificio_first(self):
         response = self.client.post(reverse("beneficiary_create"), {
             "primerNombre": "Test", "primerApellido": "User",
-            "email": "test@test.com", "cedula": "99999999",
+            "email": "test@test.com", "cedula": "V-99999999",
             "id_edificio": "1",
         })
         self.assertContains(response, "Debe registrar al menos un edificio")

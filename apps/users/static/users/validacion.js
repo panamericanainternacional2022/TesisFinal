@@ -101,19 +101,40 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // RIF: letra (V,J,E,G) + 7-9 dígitos + dígito de control, guiones opcionales
+    // RIF: letra J + 7-9 dígitos + dígito de control, guiones opcionales
     function validarRIF(input) {
         let valor = input.value.toUpperCase();
-        const soloValido = /^[VJEGP\d\-]*$/;
+        const soloValido = /^[J\d\-]*$/;
         if (valor && !soloValido.test(valor)) {
-            valor = valor.replace(/[^VJEGP\d\-]/g, '');
+            valor = valor.replace(/[^J\d\-]/g, '');
         }
         if (input.value !== valor) {
             input.value = valor;
         }
-        const valido = /^[VJEGP]\-?\d{7,9}\-?\d$/;
-        if (valor && !valido.test(valor)) {
-            mostrarError(input, 'Formato: letra + 7-9 dígitos + dígito control. Ej: J-12345678-0');
+        const cleaned = valor.replace(/[\.\-\s]/g, '');
+        const valido = /^J\d{7,9}\d$/;
+        if (valor && !valido.test(cleaned)) {
+            mostrarError(input, 'Formato: J + 7-9 dígitos + dígito control. Ej: J-12345678-0');
+        } else {
+            limpiarError(input);
+        }
+        toggleSubmit(input.form);
+    }
+
+    // Cédula: V o E + 6-9 dígitos, guiones/puntos opcionales
+    function validarCedula(input) {
+        let valor = input.value.toUpperCase();
+        const soloValido = /^[VE\d\.\-]*$/;
+        if (valor && !soloValido.test(valor)) {
+            valor = valor.replace(/[^VE\d\.\-]/g, '');
+        }
+        if (input.value !== valor) {
+            input.value = valor;
+        }
+        const cleaned = valor.replace(/[\.\-\s]/g, '');
+        const valido = /^[VE]\d{6,9}$/;
+        if (valor && !valido.test(cleaned)) {
+            mostrarError(input, 'Formato: V o E + 6-9 dígitos. Ej: V-12345678');
         } else {
             limpiarError(input);
         }
@@ -194,6 +215,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'solo-numeros': validarSoloNumeros(input); break;
 
                 case 'rif': validarRIF(input); break;
+                case 'cedula': validarCedula(input); break;
                 case 'email': validarEmail(input); break;
                 case 'password': validarPassword(input); break;
                 case 'confirm-password': validarConfirmPassword(input); break;
@@ -225,7 +247,12 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     break;
                 case 'rif':
-                    if (!/^[VJEGP\d\-]$/.test(e.key.toUpperCase()) && e.key !== 'Backspace' && e.key !== 'Tab') {
+                    if (!/^[J\d\-]$/.test(e.key.toUpperCase()) && e.key !== 'Backspace' && e.key !== 'Tab') {
+                        e.preventDefault();
+                    }
+                    break;
+                case 'cedula':
+                    if (!/^[VE\d\.\-]$/.test(e.key.toUpperCase()) && e.key !== 'Backspace' && e.key !== 'Tab') {
                         e.preventDefault();
                     }
                     break;

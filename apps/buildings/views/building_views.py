@@ -10,6 +10,7 @@ from apps.buildings.services import (
     EquipmentConfig,
 )
 from apps.buildings.validators import validate_building_form
+from apps.users.validators import normalize_rif
 from apps.buildings.views.shared import (
     build_message, pop_messages, extract_building_data,
     extract_equipment_config, build_required_errors,
@@ -119,6 +120,8 @@ def _handle_register_post(
     request: HttpRequest, msgs: list,
 ) -> HttpResponse:
     data = extract_building_data(request)
+    if data.get("rif"):
+        data["rif"] = normalize_rif(data["rif"])
     config = extract_equipment_config(request)
 
     if not (data["name"] and data["rif"] and data["address"]):
@@ -174,6 +177,8 @@ def _handle_edit_post(
     request: HttpRequest, building: Building, msgs: list,
 ) -> HttpResponse:
     data = extract_building_data(request)
+    if data.get("rif"):
+        data["rif"] = normalize_rif(data["rif"])
     config = extract_equipment_config(request)
 
     building.name = data["name"]

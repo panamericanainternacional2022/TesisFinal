@@ -6,11 +6,11 @@ from django.utils.translation import gettext_lazy as _
 from apps.users.models import Persona
 
 REGEX_ONLY_LETTERS: re.Pattern = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$")
-REGEX_ONLY_NUMBERS: re.Pattern = re.compile(r"^\d+$")
 REGEX_EMAIL: re.Pattern = re.compile(
     r"^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$"
 )
-REGEX_RIF: re.Pattern = re.compile(r"^[VJEGP]\-?\d{7,9}\-?\d$")
+REGEX_VENEZUELAN_CI: re.Pattern = re.compile(r"^[VEve]\-?\d{6,9}$")
+REGEX_BUILDING_RIF: re.Pattern = re.compile(r"^[Jj]\-?\d{7,9}\-?\d$")
 REGEX_ADDRESS: re.Pattern = re.compile(
     r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]+$"
 )
@@ -53,10 +53,10 @@ FIELD_SPECS = [
     {
         "key": "cedula",
         "label": _("La cédula"),
-        "regex": REGEX_ONLY_NUMBERS,
-        "regex_msg": _("La cédula solo acepta números."),
-        "min": 6,
-        "max": 8,
+        "regex": REGEX_VENEZUELAN_CI,
+        "regex_msg": _("La cédula debe comenzar con V o E, seguida de 6 a 9 dígitos (ej: V-12345678)."),
+        "min": 7,
+        "max": 12,
     },
 ]
 
@@ -79,12 +79,43 @@ def _validate_max_length(value: str, maximum: int, label: str) -> str:
     return ""
 
 
+def normalize_ci(value: str) -> str:
+    if not value:
+        return ""
+    # Clean the input to get letters and numbers only
+    cleaned = re.sub(r"[\.\-\s]", "", value).upper()
+    if not cleaned:
+        return ""
+    if cleaned[0] in ("V", "E"):
+        prefix = cleaned[0]
+        numbers = cleaned[1:]
+    else:
+        prefix = "V"
+        numbers = cleaned
+    return f"{prefix}-{numbers}"
+
+
+def normalize_rif(value: str) -> str:
+    if not value:
+        return ""
+    cleaned = re.sub(r"[\.\-\s]", "", value).upper()
+    if not cleaned:
+        return ""
+    if len(cleaned) >= 2:
+        prefix = cleaned[0]
+        numbers = cleaned[1:-1]
+        dv = cleaned[-1]
+        return f"{prefix}-{numbers}-{dv}"
+    return cleaned
+
+
 def _validate_rif(value: str) -> str:
     if not value:
         return _("El RIF es obligatorio.")
-    if not REGEX_RIF.match(value.upper()):
+    cleaned = re.sub(r"[\.\-\s]", "", value).upper()
+    if not REGEX_BUILDING_RIF.match(cleaned):
         return _(
-            "El RIF debe tener formato: letra (V,J,E,G) + 7-9 dígitos + dígito de control. Ej: J-12345678-0"
+            "El RIF del edificio debe comenzar con J, seguido de 7 a 9 dígitos y un dígito de control. Ej: J-12345678-0"
         )
     return ""
 
@@ -112,11 +143,10 @@ def _validate_unique_email(email: str, exclude_persona_id: Optional[int] = None)
 
 
 def _validate_unique_ci(ci: str, exclude_persona_id: Optional[int] = None) -> str:
-    try:
-        ci_int = int(ci)
-    except (ValueError, TypeError):
+    if not ci:
         return ""
-    qs = Persona.objects.filter(ci=ci_int)
+    normalized = normalize_ci(ci)
+    qs = Persona.objects.filter(ci=normalized)
     if exclude_persona_id:
         qs = qs.exclude(id_persona=exclude_persona_id)
     if qs.exists():
@@ -126,6 +156,9 @@ def _validate_unique_ci(ci: str, exclude_persona_id: Optional[int] = None) -> st
 
 def validate_user_form(data: dict, exclude_persona_id: Optional[int] = None) -> dict:
     errors: dict[str, str] = {}
+
+    if "cedula" in data and data["cedula"]:
+        data["cedula"] = normalize_ci(data["cedula"])
 
     for spec in FIELD_SPECS:
         key = spec["key"]

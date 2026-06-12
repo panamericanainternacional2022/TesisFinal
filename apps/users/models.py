@@ -3,7 +3,7 @@ from django.db import models
 
 class Persona(models.Model):
     id_persona = models.AutoField(primary_key=True)
-    ci = models.IntegerField(unique=True)
+    ci = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255, db_column="apellido")
     email = models.EmailField(max_length=255)
