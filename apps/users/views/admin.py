@@ -182,6 +182,11 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
 
     if request.method == "POST":
         post_data = extract_post_data(request)
+        data = post_data
+
+        # Ensure id_edificio is int if it is digit-only for template comparison
+        if data.get("id_edificio") and data["id_edificio"].isdigit():
+            data["id_edificio"] = int(data["id_edificio"])
 
         if not has_required_fields(post_data):
             form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio para actualizar."
@@ -207,8 +212,9 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                 full_name = f"{person.name} {person.last_name}".strip() or user.username
                 messages.success(request, f"Beneficiario <strong>{full_name}</strong> actualizado correctamente.")
                 return redirect("beneficiary_list")
+    else:
+        data = build_edit_initial_data(user, person)
 
-    data = build_edit_initial_data(user, person)
     current_ue = UserBuilding.objects.filter(user=user).first()
     current_building = current_ue.building if current_ue else None
     buildings = Building.objects.all()

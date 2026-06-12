@@ -84,4 +84,4 @@ def _check_unique_rif(
     try:
         validate_unique_rif(data.get("rif", ""), exclude_building_id)
     except ValidationError as e:
-        errors["rif_unico"] = str(e)
+        errors["rif_unico"] = e.messages[0]
