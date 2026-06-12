@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if accion == 'editar' %}Seleccionar edificio para editar{% else %}Seleccionar edificio para eliminar{% endif %} </title>
+    <title>{% if action == 'edit' %}Seleccionar edificio para editar{% else %}Seleccionar edificio para eliminar{% endif %} </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
@@ -65,7 +65,7 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width: 800px;">
                     <div class="admin-info">
-                        <h1>{% if accion == 'editar' %}Seleccionar edificio para Editar{% else %}Seleccionar edificio para eliminar{% endif %} </h1>
+                        <h1>{% if action == 'edit' %}Seleccionar edificio para Editar{% else %}Seleccionar edificio para eliminar{% endif %} </h1>
                         <p>Selecciona una de las edificaciones de la lista de registros activos para proceder a actualizar sus datos o removerla permanentemente de la base de datos.</p>
                     </div>
 
@@ -83,13 +83,13 @@
                                 <tbody>
                                     {% for item in items %}
                                     <tr>
-                                        <td>{{ item.nombre }}</td>
+                                        <td>{{ item.name }}</td>
                                         <td>{{ item.rif }}</td>
                                         <td style="text-align: right; padding-right: var(--sp-4);">
-                                            {% if accion == 'editar' %}
-                                            <a href="{% url 'editar_edificio' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+{% if action == 'edit' %}
+                                            <a href="{% url 'edit_building' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                                             {% else %}
-                                            <a href="{% url 'eliminar_edificio' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                                            <a href="{% url 'delete_building' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ item.name }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -105,7 +105,7 @@
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'lista_edificios' %}" class="back-link">
+                    <a href="{% url 'building_list' %}" class="back-link">
                         <i class="fa-solid fa-arrow-left"></i> Volver a lista de edificios
                     </a>
                 </div>

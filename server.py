@@ -44,36 +44,36 @@ django.setup()
 # ─── Crear simuladores desde la BD ────────────────────────────────
 from apps.sensors.simulation import BuildingSimulator, simulators
 from apps.sensors.engine import generate_data_and_emit
-from apps.buildings.models import EquipoMonitoreo
+from apps.buildings.models import MonitoringEquipment
 
-equipos = EquipoMonitoreo.objects.select_related("id_edificio").all()
+equipos = MonitoringEquipment.objects.select_related("building").all()
 for eq in equipos:
-    if not eq.id_edificio:
+    if not eq.building:
         continue
-    eid = eq.id_edificio.id_edificio
-    enombre = eq.id_edificio.nb_edificio or f"Edificio #{eid}"
+    eid = eq.building.id
+    enombre = eq.building.name or f"Edificio #{eid}"
     if eid not in simulators:
         simulators[eid] = BuildingSimulator(eid, enombre)
-    simulators[eid].equipment_types.add(eq.tipo)
+    simulators[eid].equipment_types.add(eq.equipment_type)
     simulators[eid].has_pump = "bomba" in simulators[eid].equipment_types
     simulators[eid].has_elevator = "elevador" in simulators[eid].equipment_types
     simulators[eid].pump_on = simulators[eid].has_pump
     simulators[eid].elevator_on = simulators[eid].has_elevator
-    logger.info("Simulador creado: edificio=%s tipo=%s", eid, eq.tipo)
+    logger.info("Simulador creado: edificio=%s tipo=%s", eid, eq.equipment_type)
 
 if not simulators:
-    from apps.buildings.models import Edificio as EdifModel
-    dummy_edificio, _ = EdifModel.objects.get_or_create(
+    from apps.buildings.models import Building as BuildingModel
+    dummy_edificio, _ = BuildingModel.objects.get_or_create(
         rif="J-00000000-0",
-        defaults={"nb_edificio": "Edificio Simulado", "direccion": "Dirección simulada"},
+        defaults={"name": "Edificio Simulado", "address": "Dirección simulada"},
     )
-    EquipoMonitoreo.objects.get_or_create(
-        id_edificio=dummy_edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
-        defaults={"nb_equipo": f"Bomba de agua - {dummy_edificio.nb_edificio}"},
+    MonitoringEquipment.objects.get_or_create(
+        building=dummy_edificio, equipment_type=MonitoringEquipment.TYPE_PUMP,
+        defaults={"name": f"Bomba de agua - {dummy_edificio.name}"},
     )
-    EquipoMonitoreo.objects.get_or_create(
-        id_edificio=dummy_edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
-        defaults={"nb_equipo": f"Elevador - {dummy_edificio.nb_edificio}"},
+    MonitoringEquipment.objects.get_or_create(
+        building=dummy_edificio, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
+        defaults={"name": f"Elevador - {dummy_edificio.name}"},
     )
     _dummy = BuildingSimulator(1, "Edificio Simulado", equipment_types={"bomba", "elevador"})
     simulators[1] = _dummy

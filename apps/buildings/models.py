@@ -1,64 +1,72 @@
 from django.db import models
 
 
-class Edificio(models.Model):
-    id_edificio = models.AutoField(primary_key=True)
-    nb_edificio = models.CharField(max_length=255)
+class Building(models.Model):
+    id = models.AutoField(primary_key=True, db_column="id_edificio")
+    name = models.CharField(max_length=255, db_column="nb_edificio")
     rif = models.CharField(max_length=20, unique=True)
-    direccion = models.TextField()
+    address = models.TextField(db_column="direccion")
 
     class Meta:
         db_table = "edificio"
 
-    def __str__(self):
-        return self.nb_edificio
+    def __str__(self) -> str:
+        return self.name
 
 
-class EquipoMonitoreo(models.Model):
-    TIPO_BOMBA = "bomba"
-    TIPO_ELEVADOR = "elevador"
-    TIPO_CHOICES = [
-        (TIPO_BOMBA, "Bomba de agua"),
-        (TIPO_ELEVADOR, "Elevador"),
+class MonitoringEquipment(models.Model):
+    TYPE_PUMP = "bomba"
+    TYPE_ELEVATOR = "elevador"
+    TYPE_CHOICES = [
+        (TYPE_PUMP, "Bomba de agua"),
+        (TYPE_ELEVATOR, "Elevador"),
     ]
 
-    STATUS_OPERATIVO = "operativo"
-    STATUS_FALLA = "falla"
-    STATUS_MANTENIMIENTO = "mantenimiento"
+    STATUS_OPERATIONAL = "operativo"
+    STATUS_FAILURE = "falla"
+    STATUS_MAINTENANCE = "mantenimiento"
     STATUS_CHOICES = [
-        (STATUS_OPERATIVO, "Operativo"),
-        (STATUS_FALLA, "Falla"),
-        (STATUS_MANTENIMIENTO, "Mantenimiento"),
+        (STATUS_OPERATIONAL, "Operativo"),
+        (STATUS_FAILURE, "Falla"),
+        (STATUS_MAINTENANCE, "Mantenimiento"),
     ]
 
-    id_equipo_monitoreo = models.AutoField(primary_key=True)
-    nb_equipo = models.CharField(max_length=255)
-    id_edificio = models.ForeignKey(
-        Edificio, on_delete=models.CASCADE, db_column="id_edificio"
+    id = models.AutoField(primary_key=True, db_column="id_equipo_monitoreo")
+    name = models.CharField(max_length=255, db_column="nb_equipo")
+    building = models.ForeignKey(
+        Building, on_delete=models.CASCADE, db_column="id_edificio",
+        related_name="equipment",
     )
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default=TIPO_BOMBA)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_OPERATIVO)
+    equipment_type = models.CharField(
+        max_length=20, choices=TYPE_CHOICES, default=TYPE_PUMP,
+        db_column="tipo",
+    )
+    status = models.CharField(
+        max_length=20, choices=STATUS_CHOICES, default=STATUS_OPERATIONAL,
+    )
 
     class Meta:
         db_table = "equipo_monitoreo"
 
-    def __str__(self):
-        return self.nb_equipo
+    def __str__(self) -> str:
+        return self.name
 
 
-class UsuarioEdificio(models.Model):
-    id_usuario_beneficiario = models.AutoField(primary_key=True)
-    id_usuario = models.ForeignKey(
-        "users.Usuario", on_delete=models.CASCADE, db_column="id_usuario"
+class UserBuilding(models.Model):
+    id = models.AutoField(primary_key=True, db_column="id_usuario_beneficiario")
+    user = models.ForeignKey(
+        "users.Usuario", on_delete=models.CASCADE, db_column="id_usuario",
+        related_name="building_assignments",
     )
-    id_edificio = models.ForeignKey(
-        Edificio, on_delete=models.CASCADE, db_column="id_edificio"
+    building = models.ForeignKey(
+        Building, on_delete=models.CASCADE, db_column="id_edificio",
+        related_name="user_assignments",
     )
 
     class Meta:
         db_table = "usuario_edificio"
 
-    def __str__(self):
-        edificio = self.id_edificio.nb_edificio if self.id_edificio else "?"
-        usuario = self.id_usuario.username if self.id_usuario else "?"
-        return f"{usuario} -> {edificio}"
+    def __str__(self) -> str:
+        b_name = self.building.name if self.building else "?"
+        u_name = self.user.username if self.user else "?"
+        return f"{u_name} -> {b_name}"

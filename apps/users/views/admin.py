@@ -7,7 +7,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.alerts.models import Notificacion
-from apps.buildings.models import Edificio, UsuarioEdificio
+from apps.buildings.models import Building, UserBuilding
 from apps.core.auth_decorators import _login_required, _admin_required, ADMIN_ROLES
 from apps.users.models import Usuario, Persona
 from apps.users.services import (
@@ -34,12 +34,12 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 
     users = (
         Usuario.objects.select_related("id_persona")
-        .prefetch_related("usuarioedificio_set__id_edificio")
+        .prefetch_related("userbuilding_set__building")
         .exclude(rol__in=ADMIN_ROLES)
     )
 
     if building_id:
-        users = users.filter(usuarioedificio__id_edificio_id=building_id)
+        users = users.filter(userbuilding__building_id=building_id)
 
     if query:
         users = users.filter(
@@ -48,11 +48,11 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
             | Q(id_persona__last_name__icontains=query)
             | Q(id_persona__email__icontains=query)
             | Q(username__icontains=query)
-            | Q(usuarioedificio__id_edificio__nb_edificio__icontains=query)
+            | Q(userbuilding__building__name__icontains=query)
         ).distinct()
 
     beneficiaries = [build_beneficiary_data(u) for u in users]
-    buildings = Edificio.objects.all()
+    buildings = Building.objects.all()
 
     return render(
         request,
@@ -78,7 +78,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
     activation_link = ""
 
     if request.method == "POST":
-        if Edificio.objects.count() == 0:
+        if Building.objects.count() == 0:
             form_error = "Debe registrar al menos un edificio antes de crear un beneficiario."
         else:
             post_data = _extract_post_data(request)
@@ -112,9 +112,9 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                         form_error = "No se pudo generar un nombre de usuario. Verifica los datos ingresados."
 
                     if "user" in locals() and post_data.get("id_edificio"):
-                        UsuarioEdificio.objects.create(
-                            id_usuario=user,
-                            id_edificio_id=post_data["id_edificio"],
+                        UserBuilding.objects.create(
+                            user=user,
+                            building_id=post_data["id_edificio"],
                         )
 
                     if "user" in locals():
@@ -129,7 +129,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                         except RuntimeError as e:
                             activation_link = str(e)
 
-    buildings = Edificio.objects.all()
+    buildings = Building.objects.all()
     context: dict[str, Any] = {
         "user": user_data,
         "edificios": buildings,
@@ -171,20 +171,20 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                 person.phone = post_data["telefono"]
                 person.save()
 
-                UsuarioEdificio.objects.filter(id_usuario=user).delete()
+                UserBuilding.objects.filter(user=user).delete()
                 if post_data.get("id_edificio"):
-                    UsuarioEdificio.objects.create(
-                        id_usuario=user,
-                        id_edificio_id=post_data["id_edificio"],
+                    UserBuilding.objects.create(
+                        user=user,
+                        building_id=post_data["id_edificio"],
                     )
 
                 messages.success(request, "Beneficiario actualizado correctamente.")
                 return redirect("lista_usuario")
 
     data = _build_edit_initial_data(user, person)
-    current_ue = UsuarioEdificio.objects.filter(id_usuario=user).first()
-    current_building = current_ue.id_edificio if current_ue else None
-    buildings = Edificio.objects.all()
+    current_ue = UserBuilding.objects.filter(user=user).first()
+    current_building = current_ue.building if current_ue else None
+    buildings = Building.objects.all()
 
     return render(
         request,
@@ -207,7 +207,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
     with transaction.atomic():
         Notificacion.objects.filter(id_usuario=user).delete()
-        UsuarioEdificio.objects.filter(id_usuario=user).delete()
+        UserBuilding.objects.filter(user=user).delete()
         person_id = user.id_persona_id
         user.delete()
         if person_id:
@@ -226,20 +226,20 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
 
     users = (
         Usuario.objects.select_related("id_persona")
-        .prefetch_related("usuarioedificio_set__id_edificio")
+        .prefetch_related("userbuilding_set__building")
         .exclude(rol__in=ADMIN_ROLES)
     )
     items = []
     for u in users:
         p = u.id_persona
-        ue = u.usuarioedificio_set.first()
-        building = ue.id_edificio if ue else None
+        ue = u.userbuilding_set.first()
+        building = ue.building if ue else None
         items.append(
             {
                 "id": u.id_usuario,
                 "nombre": f"{p.name} {p.last_name}".strip() if p else u.username,
                 "cedula": p.ci if p else "",
-                "edificio": building.nb_edificio if building else "",
+                "edificio": building.name if building else "",
             }
         )
 
@@ -321,8 +321,8 @@ def _create_user_with_retry(
 
 
 def _build_edit_initial_data(user: Usuario, person: Persona) -> dict[str, Any]:
-    current_ue = UsuarioEdificio.objects.filter(id_usuario=user).first()
-    current_building = current_ue.id_edificio if current_ue else None
+    current_ue = UserBuilding.objects.filter(user=user).first()
+    current_building = current_ue.building if current_ue else None
 
     return {
         "primerNombre": person.name.split(" ")[0] if person and person.name else "",
@@ -338,5 +338,5 @@ def _build_edit_initial_data(user: Usuario, person: Persona) -> dict[str, Any]:
         "email": person.email if person else "",
         "cedula": person.ci if person else "",
         "telefono": person.phone if person else "",
-        "id_edificio": current_building.id_edificio if current_building else None,
+        "id_edificio": current_building.id if current_building else None,
     }

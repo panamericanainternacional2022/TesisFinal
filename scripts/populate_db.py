@@ -27,9 +27,9 @@ from apps.users.models import (  # noqa: E402
     Usuario,
 )
 from apps.buildings.models import (
-    Edificio,
-    UsuarioEdificio,
-    EquipoMonitoreo,
+    Building,
+    UserBuilding,
+    MonitoringEquipment,
 )
 from apps.alerts.models import Notificacion
 
@@ -39,11 +39,11 @@ def populate():
     
     # Eliminar en orden inverso de dependencias para evitar errores de llave foránea
     Notificacion.objects.all().delete()
-    EquipoMonitoreo.objects.all().delete()
-    UsuarioEdificio.objects.all().delete()
+    MonitoringEquipment.objects.all().delete()
+    UserBuilding.objects.all().delete()
     Usuario.objects.all().delete()
     Persona.objects.all().delete()
-    Edificio.objects.all().delete()
+    Building.objects.all().delete()
     
     print("Base de datos limpia.")
 
@@ -120,39 +120,39 @@ def populate():
     )
 
     print("Creando Edificios...")
-    e1, _ = Edificio.objects.get_or_create(
+    e1, _ = Building.objects.get_or_create(
         rif="J-12345678-9",
         defaults={
-            "nb_edificio": "Conjunto Junin",
-            "direccion": "Centro de la ciudad",
+            "name": "Conjunto Junin",
+            "address": "Centro de la ciudad",
         },
     )
-    e2, _ = Edificio.objects.get_or_create(
+    e2, _ = Building.objects.get_or_create(
         rif="J-98765432-1",
         defaults={
-            "nb_edificio": "Residencia La Campiña",
-            "direccion": "Norte de la ciudad",
+            "name": "Residencia La Campiña",
+            "address": "Norte de la ciudad",
         },
     )
 
     print("Asignando Usuarios a Edificios...")
-    UsuarioEdificio.objects.get_or_create(id_usuario=u1, id_edificio=e1)
-    UsuarioEdificio.objects.get_or_create(id_usuario=u2, id_edificio=e2)
-    UsuarioEdificio.objects.get_or_create(id_usuario=u3, id_edificio=e1)
-    UsuarioEdificio.objects.get_or_create(id_usuario=u5, id_edificio=e2)
+    UserBuilding.objects.get_or_create(user=u1, building=e1)
+    UserBuilding.objects.get_or_create(user=u2, building=e2)
+    UserBuilding.objects.get_or_create(user=u3, building=e1)
+    UserBuilding.objects.get_or_create(user=u5, building=e2)
 
     print("Creando Equipos de Monitoreo...")
-    eq1_bomba, _ = EquipoMonitoreo.objects.get_or_create(
-        id_edificio=e1, tipo=EquipoMonitoreo.TIPO_BOMBA,
-        defaults={"nb_equipo": f"Bomba de agua - {e1.nb_edificio}"},
+    eq1_bomba, _ = MonitoringEquipment.objects.get_or_create(
+        building=e1, equipment_type=MonitoringEquipment.TYPE_PUMP,
+        defaults={"name": f"Bomba de agua - {e1.name}"},
     )
-    eq1_elevador, _ = EquipoMonitoreo.objects.get_or_create(
-        id_edificio=e1, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
-        defaults={"nb_equipo": f"Elevador - {e1.nb_edificio}"},
+    eq1_elevador, _ = MonitoringEquipment.objects.get_or_create(
+        building=e1, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
+        defaults={"name": f"Elevador - {e1.name}"},
     )
-    eq2_bomba, _ = EquipoMonitoreo.objects.get_or_create(
-        id_edificio=e2, tipo=EquipoMonitoreo.TIPO_BOMBA,
-        defaults={"nb_equipo": f"Bomba de agua - {e2.nb_edificio}"},
+    eq2_bomba, _ = MonitoringEquipment.objects.get_or_create(
+        building=e2, equipment_type=MonitoringEquipment.TYPE_PUMP,
+        defaults={"name": f"Bomba de agua - {e2.name}"},
     )
 
     print("¡Población de base de datos completada exitosamente!")

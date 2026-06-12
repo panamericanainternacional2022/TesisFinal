@@ -1,30 +1,30 @@
 from django.urls import path
-from .views import (
-    registro_edificio_view,
-    lista_edificios_view,
-    editar_edificio_view,
-    eliminar_edificio_view,
-    seleccionar_edificio_view,
-    configuracion_view,
+from apps.buildings.views.building_views import (
+    register_building_view,
+    building_list_view,
+    edit_building_view,
+    delete_building_view,
+    select_building_view,
 )
+from apps.buildings.views.configuration_view import configuration_view
 
 urlpatterns = [
-    path("registro_edificio/", registro_edificio_view, name="registro_edificio"),
-    path("lista_edificios/", lista_edificios_view, name="lista_edificios"),
+    path("registro_edificio/", register_building_view, name="register_building"),
+    path("lista_edificios/", building_list_view, name="building_list"),
     path(
-        "editar_edificio/<int:edificio_id>/",
-        editar_edificio_view,
-        name="editar_edificio",
+        "editar_edificio/<int:building_id>/",
+        edit_building_view,
+        name="edit_building",
     ),
     path(
-        "eliminar_edificio/<int:edificio_id>/",
-        eliminar_edificio_view,
-        name="eliminar_edificio",
+        "eliminar_edificio/<int:building_id>/",
+        delete_building_view,
+        name="delete_building",
     ),
     path(
-        "seleccionar/edificio/<str:accion>/",
-        seleccionar_edificio_view,
-        name="seleccionar_edificio",
+        "seleccionar/edificio/<str:action>/",
+        select_building_view,
+        name="select_building",
     ),
-    path("configuracion/", configuracion_view, name="configuracion"),
+    path("configuracion/", configuration_view, name="configuration"),
 ]

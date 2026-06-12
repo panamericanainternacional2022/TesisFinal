@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 from apps.monitoring.views import menu_seleccion_view, historial_view, monitoreo_view
 from apps.monitoring.simulation_views import sse_stream, api_status
 from apps.users.models import Persona, Usuario
-from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.alerts.models import Notificacion
 
 
@@ -31,8 +31,8 @@ class HistorialViewTests(TestCase):
         self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
-        self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
+        self.edificio = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.equipo = MonitoringEquipment.objects.create(name="Bomba", building=self.edificio, equipment_type="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_historial_empty(self):

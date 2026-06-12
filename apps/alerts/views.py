@@ -10,7 +10,7 @@ from django.db.models import Q
 
 from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
-from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
+from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notificacion
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, RISK_NAMES_ES, DEVICE_NAMES_ES, VALUE_DISPLAY_ES,
@@ -143,25 +143,25 @@ def notificaciones_view(request):
     edificio_id = request.GET.get("edificio", "").strip()
 
     if _is_admin_role(rol):
-        edificios = Edificio.objects.all()
+        edificios = Building.objects.all()
         notificaciones = Notificacion.objects.all()
         if edificio_id:
-            notificaciones = notificaciones.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+            notificaciones = notificaciones.filter(id_equipo_monitoreo__building_id=edificio_id)
     else:
-        usuario_edificios = UsuarioEdificio.objects.filter(
-            id_usuario_id=usuario_id
-        ).values_list("id_edificio", flat=True)
-        edificios = Edificio.objects.filter(id_edificio__in=usuario_edificios)
+        usuario_edificios = UserBuilding.objects.filter(
+            user_id=usuario_id
+        ).values_list("building", flat=True)
+        edificios = Building.objects.filter(id__in=usuario_edificios)
 
         if edificio_id:
             if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
-                notificaciones = Notificacion.objects.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+                notificaciones = Notificacion.objects.filter(id_equipo_monitoreo__building_id=edificio_id)
             else:
                 notificaciones = Notificacion.objects.none()
         else:
-            equipos = EquipoMonitoreo.objects.filter(
-                id_edificio_id__in=list(usuario_edificios)
-            ).values_list("id_equipo_monitoreo", flat=True)
+            equipos = MonitoringEquipment.objects.filter(
+                building_id__in=list(usuario_edificios)
+            ).values_list("id", flat=True)
             notificaciones = Notificacion.objects.filter(
                 id_usuario_id=usuario_id
             ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
@@ -172,7 +172,7 @@ def notificaciones_view(request):
         notificaciones = notificaciones.filter(fecha__gt=cleared_dt)
 
     notificaciones = (
-        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
+        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__building")
         .exclude(Q(mensaje__risk="Info") | Q(mensaje__contains='"risk": "Info"') | Q(mensaje__contains='"risk":"Info"'))
         .exclude(Q(mensaje__risk="Bajo") | Q(mensaje__contains='"risk": "Bajo"') | Q(mensaje__contains='"risk":"Bajo"'))
         .exclude(Q(mensaje__risk="Medio") | Q(mensaje__contains='"risk": "Medio"') | Q(mensaje__contains='"risk":"Medio"'))

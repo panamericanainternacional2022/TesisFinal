@@ -8,7 +8,7 @@ from django.utils import timezone as tz
 from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
 from apps.users.services import build_beneficiary_data
-from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
+from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notificacion
 from apps.alerts.views import _parse_notif_for_historial
 from django.db.models import Q
@@ -34,31 +34,31 @@ def historial_pdf_view(request):
         notificaciones = Notificacion.objects.all()
         edificio_nombre = "Todos los edificios"
         if edificio_id:
-            notificaciones = notificaciones.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+            notificaciones = notificaciones.filter(id_equipo_monitoreo__building_id=edificio_id)
             try:
-                edificio_nombre = Edificio.objects.get(id_edificio=edificio_id).nb_edificio
-            except Edificio.DoesNotExist:
+                edificio_nombre = Building.objects.get(id=edificio_id).name
+            except Building.DoesNotExist:
                 pass
     else:
-        usuario_edificios = UsuarioEdificio.objects.filter(
-            id_usuario_id=usuario_id
-        ).values_list("id_edificio", flat=True)
+        usuario_edificios = UserBuilding.objects.filter(
+            user_id=usuario_id
+        ).values_list("building_id", flat=True)
         edificio_nombre = "Todos los edificios"
         if edificio_id:
             if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
                 notificaciones = Notificacion.objects.filter(
-                    id_equipo_monitoreo__id_edificio_id=edificio_id
+                    id_equipo_monitoreo__building_id=edificio_id
                 )
                 try:
-                    edificio_nombre = Edificio.objects.get(id_edificio=edificio_id).nb_edificio
-                except Edificio.DoesNotExist:
+                    edificio_nombre = Building.objects.get(id=edificio_id).name
+                except Building.DoesNotExist:
                     pass
             else:
                 notificaciones = Notificacion.objects.none()
         else:
-            equipos = EquipoMonitoreo.objects.filter(
-                id_edificio_id__in=list(usuario_edificios)
-            ).values_list("id_equipo_monitoreo", flat=True)
+            equipos = MonitoringEquipment.objects.filter(
+                building_id__in=list(usuario_edificios)
+            ).values_list("id", flat=True)
             notificaciones = Notificacion.objects.filter(
                 id_usuario_id=usuario_id
             ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
@@ -109,7 +109,7 @@ def historial_pdf_view(request):
     rango = periodo_label_map.get(periodo_seleccionado, periodo_seleccionado)
 
     notificaciones = (
-        notificaciones.select_related("id_equipo_monitoreo__id_edificio")
+        notificaciones.select_related("id_equipo_monitoreo__building")
         .distinct()
         .order_by("-fecha")
     )
@@ -332,7 +332,7 @@ def historial_pdf_view(request):
                 accion_str = notif.parsed_data.get("action", "")
 
                 if mostrar_todos_edificios:
-                    edificio_fila = notif.id_equipo_monitoreo.id_edificio.nb_edificio if (notif.id_equipo_monitoreo and notif.id_equipo_monitoreo.id_edificio) else "N/A"
+                    edificio_fila = notif.id_equipo_monitoreo.building.name if (notif.id_equipo_monitoreo and notif.id_equipo_monitoreo.building) else "N/A"
                     row_data = [fecha_str, edificio_fila, risk, variable_str, valor_str, accion_str]
                     cell_fills = [None, None, fill_c, None, None, None]
                     cell_texts = [None, None, text_c, None, None, None]
@@ -377,7 +377,7 @@ def descargar_pdf_view(request):
         from apps.core.auth_decorators import ADMIN_ROLES
         usuarios = (
             Usuario.objects.select_related("id_persona")
-            .prefetch_related("usuarioedificio_set__id_edificio")
+            .prefetch_related("userbuilding_set__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
         beneficiarios = [build_beneficiary_data(u) for u in usuarios]
@@ -441,7 +441,7 @@ def descargar_pdf_view(request):
         )
         usuarios = (
             Usuario.objects.select_related("id_persona")
-            .prefetch_related("usuarioedificio_set__id_edificio")
+            .prefetch_related("userbuilding_set__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
         for u in usuarios:

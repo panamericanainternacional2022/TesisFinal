@@ -7,7 +7,7 @@ from django.core.paginator import Paginator
 
 from apps.core.auth_decorators import _login_required, _admin_required, _is_admin_role
 from apps.users.models import Usuario
-from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
+from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notificacion
 from apps.alerts.views import _parse_notif_for_historial
 from apps.sensors.sensor_config import (
@@ -36,15 +36,15 @@ def monitoreo_view(request):
     import json as _json_mod
 
     if _is_admin_role(rol):
-        edificios = list(Edificio.objects.all())
+        edificios = list(Building.objects.all())
         edificio_id = request.GET.get("edificio")
         if edificio_id:
             try:
                 edificio_id = int(edificio_id)
             except (ValueError, TypeError):
-                edificio_id = edificios[0].id_edificio if edificios else 0
+                edificio_id = edificios[0].pk if edificios else 0
         else:
-            edificio_id = edificios[0].id_edificio if edificios else 0
+            edificio_id = edificios[0].pk if edificios else 0
         config_json = _json_mod.dumps({
             "no_risk_vars": NO_RISK_VARS,
             "bomba_vars": PUMP_VARS,
@@ -66,23 +66,23 @@ def monitoreo_view(request):
 
     usuario_id = request.session["usuario_id"]
     query = request.GET.get("q", "").strip()
-    usuario_edificios = UsuarioEdificio.objects.filter(
-        id_usuario_id=usuario_id
-    ).values_list("id_edificio_id", flat=True)
-    equipos = EquipoMonitoreo.objects.filter(
-        id_edificio_id__in=list(usuario_edificios)
-    ).select_related("id_edificio")
+    usuario_edificios = UserBuilding.objects.filter(
+        user_id=usuario_id
+    ).values_list("building_id", flat=True)
+    equipos = MonitoringEquipment.objects.filter(
+        building_id__in=list(usuario_edificios)
+    ).select_related("building")
 
     if query:
         equipos = equipos.filter(
-            Q(id_edificio__nb_edificio__icontains=query)
-            | Q(id_edificio__rif__icontains=query)
+            Q(building__name__icontains=query)
+            | Q(building__rif__icontains=query)
         )
 
     data = []
     edificio_id = 0
     for eq in equipos:
-        vars_list = PUMP_VARS if eq.tipo == EquipoMonitoreo.TIPO_BOMBA else ELEVATOR_VARS
+        vars_list = PUMP_VARS if eq.equipment_type == MonitoringEquipment.TYPE_PUMP else ELEVATOR_VARS
         sensores = [
             {"nombre": VAR_NAMES.get(v, v), "unidad": UNITS.get(v, "")}
             for v in vars_list
@@ -91,13 +91,13 @@ def monitoreo_view(request):
         data.append(
             {
                 "equipo": eq,
-                "edificio": eq.id_edificio,
+                "edificio": eq.building,
                 "status": eq.get_status_display(),
                 "sensores": sensores,
             }
         )
         if edificio_id == 0:
-            edificio_id = eq.id_edificio.id_edificio
+            edificio_id = eq.building.pk
 
     config_json = _json_mod.dumps({
         "no_risk_vars": NO_RISK_VARS,
@@ -125,7 +125,7 @@ def monitoreo_view(request):
 @_admin_required
 def monitoreo_edificio_view(request, edificio_id):
     rol = request.session.get("usuario_rol", "US")
-    edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
+    edificio = get_object_or_404(Building, pk=edificio_id)
     return render(
         request,
         "monitoring/monitoreo.html",
@@ -157,29 +157,29 @@ def historial_view(request):
     fecha_hasta_raw = request.GET.get("fecha_hasta", "").strip()
 
     if _is_admin_role(rol):
-        edificios = Edificio.objects.all()
+        edificios = Building.objects.all()
         notificaciones = Notificacion.objects.all()
         if edificio_id:
             notificaciones = notificaciones.filter(
-                id_equipo_monitoreo__id_edificio_id=edificio_id
+                id_equipo_monitoreo__building_id=edificio_id
             )
     else:
-        usuario_edificios = UsuarioEdificio.objects.filter(
-            id_usuario_id=usuario_id
-        ).values_list("id_edificio", flat=True)
-        edificios = Edificio.objects.filter(id_edificio__in=usuario_edificios)
+        usuario_edificios = UserBuilding.objects.filter(
+            user_id=usuario_id
+        ).values_list("building_id", flat=True)
+        edificios = Building.objects.filter(pk__in=usuario_edificios)
 
         if edificio_id:
             if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
                 notificaciones = Notificacion.objects.filter(
-                    id_equipo_monitoreo__id_edificio_id=edificio_id
+                    id_equipo_monitoreo__building_id=edificio_id
                 )
             else:
                 notificaciones = Notificacion.objects.none()
         else:
-            equipos = EquipoMonitoreo.objects.filter(
-                id_edificio_id__in=list(usuario_edificios)
-            ).values_list("id_equipo_monitoreo", flat=True)
+            equipos = MonitoringEquipment.objects.filter(
+                building_id__in=list(usuario_edificios)
+            ).values_list("pk", flat=True)
             notificaciones = Notificacion.objects.filter(
                 id_usuario_id=usuario_id
             ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
@@ -221,7 +221,7 @@ def historial_view(request):
                 pass
 
     notificaciones = (
-        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
+        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__building")
         .distinct()
         .order_by("-fecha")
     )
@@ -290,7 +290,7 @@ def historial_view(request):
 def simulador_status_view(request):
     from django.http import JsonResponse
     from apps.sensors.simulation import simulators
-    has_edificios = Edificio.objects.exists()
+    has_edificios = Building.objects.exists()
     tiene_sim = len(simulators) > 0
     return JsonResponse({"running": tiene_sim, "has_edificios": has_edificios})
 
@@ -300,17 +300,17 @@ def simulador_status_view(request):
 def simulador_start_view(request):
     from django.http import JsonResponse
     from apps.sensors.simulation import simulators, BuildingSimulator
-    from apps.buildings.models import EquipoMonitoreo
+    from apps.buildings.models import MonitoringEquipment
     if not simulators:
         _creados = 0
-        for eq in EquipoMonitoreo.objects.select_related("id_edificio").all():
-            if not eq.id_edificio:
+        for eq in MonitoringEquipment.objects.select_related("building").all():
+            if not eq.building:
                 continue
-            eid = eq.id_edificio.id_edificio
-            enombre = eq.id_edificio.nb_edificio or f"Edificio #{eid}"
+            eid = eq.building.pk
+            enombre = eq.building.name or f"Edificio #{eid}"
             if eid not in simulators:
                 simulators[eid] = BuildingSimulator(eid, enombre)
-            simulators[eid].equipment_types.add(eq.tipo)
+            simulators[eid].equipment_types.add(eq.equipment_type)
             simulators[eid].has_pump = "bomba" in simulators[eid].equipment_types
             simulators[eid].has_elevator = "elevador" in simulators[eid].equipment_types
             simulators[eid].pump_on = simulators[eid].has_pump

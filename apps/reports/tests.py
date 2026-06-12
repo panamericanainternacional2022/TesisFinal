@@ -2,7 +2,7 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.urls import reverse
 from apps.users.models import Persona, Usuario
-from apps.buildings.models import Edificio
+from apps.buildings.models import Building
 
 
 class ReportViewTests(TestCase):

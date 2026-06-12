@@ -74,11 +74,11 @@ def build_live_payload(
     _elevator_status = None
     if DJANGO_CONNECTED and active_edificio_id:
         try:
-            from apps.buildings.models import EquipoMonitoreo
-            for eq in EquipoMonitoreo.objects.filter(id_edificio_id=active_edificio_id):
-                if eq.tipo == "bomba":
+            from apps.buildings.models import MonitoringEquipment
+            for eq in MonitoringEquipment.objects.filter(building_id=active_edificio_id):
+                if eq.equipment_type == "bomba":
                     _pump_status = eq.status
-                elif eq.tipo == "elevador":
+                elif eq.equipment_type == "elevador":
                     _elevator_status = eq.status
         except Exception as e:
             logger.warning("Error fetching equipment status: %s", e)

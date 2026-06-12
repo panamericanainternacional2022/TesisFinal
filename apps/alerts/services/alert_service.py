@@ -16,29 +16,29 @@ def get_unit(var):
 def get_building_emails(edificio_id=None):
     try:
         from django.utils import timezone
-        from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+        from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
     except Exception:
         return []
     try:
         if not edificio_id:
-            equipo = EquipoMonitoreo.objects.first()
-            if equipo and equipo.id_edificio:
-                edificio_id = equipo.id_edificio.id_edificio
+            equipo = MonitoringEquipment.objects.first()
+            if equipo and equipo.building:
+                edificio_id = equipo.building.id
             else:
-                first_edf = Edificio.objects.first()
+                first_edf = Building.objects.first()
                 if first_edf:
-                    edificio_id = first_edf.id_edificio
+                    edificio_id = first_edf.id
                 else:
                     return []
 
-        users = UsuarioEdificio.objects.filter(
-            id_edificio_id=edificio_id,
-            id_usuario__registered=True,
-        ).select_related("id_usuario__id_persona")
+        users = UserBuilding.objects.filter(
+            building_id=edificio_id,
+            user__registered=True,
+        ).select_related("user__id_persona")
         emails = []
         for u in users:
-            if u.id_usuario and u.id_usuario.id_persona and u.id_usuario.id_persona.email:
-                email = u.id_usuario.id_persona.email.strip()
+            if u.user and u.user.id_persona and u.user.id_persona.email:
+                email = u.user.id_persona.email.strip()
                 if email and email not in emails:
                     emails.append(email)
         return emails
@@ -348,7 +348,7 @@ def send_email_alert(
 def persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=None):
     try:
         from django.utils import timezone
-        from apps.buildings.models import EquipoMonitoreo
+        from apps.buildings.models import MonitoringEquipment
         from apps.users.models import Usuario
         from apps.alerts.models import Notificacion
         from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
@@ -357,26 +357,26 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
     try:
         _tipo = None
         if variable in PUMP_VARS or variable == "rationing":
-            _tipo = EquipoMonitoreo.TIPO_BOMBA
+            _tipo = MonitoringEquipment.TYPE_PUMP
         elif variable in ELEVATOR_VARS:
-            _tipo = EquipoMonitoreo.TIPO_ELEVADOR
+            _tipo = MonitoringEquipment.TYPE_ELEVATOR
 
         eid = edificio_id
         if eid is None:
             from apps.sensors.simulation import simulators
             eid = next(iter(simulators.keys()), None)
         if _tipo and eid:
-            equipo = EquipoMonitoreo.objects.filter(
-                id_edificio_id=eid, tipo=_tipo
+            equipo = MonitoringEquipment.objects.filter(
+                building_id=eid, equipment_type=_tipo
             ).first()
         else:
             equipo = None
 
         if not equipo and eid:
-            equipo = EquipoMonitoreo.objects.filter(id_edificio_id=eid).first()
+            equipo = MonitoringEquipment.objects.filter(building_id=eid).first()
 
         if not equipo:
-            equipo = EquipoMonitoreo.objects.first() if EquipoMonitoreo.objects.exists() else None
+            equipo = MonitoringEquipment.objects.first() if MonitoringEquipment.objects.exists() else None
 
         usuario = (
             Usuario.objects.filter(rol="SA").first()
@@ -403,9 +403,9 @@ def get_alert_log(edificio_id=None, limit=50):
     import json
     try:
         from apps.alerts.models import Notificacion
-        qs = Notificacion.objects.select_related("id_equipo_monitoreo__id_edificio")
+        qs = Notificacion.objects.select_related("id_equipo_monitoreo__building")
         if edificio_id:
-            qs = qs.filter(id_equipo_monitoreo__id_edificio_id=edificio_id)
+            qs = qs.filter(id_equipo_monitoreo__building_id=edificio_id)
         entries = []
         for n in qs.order_by("-fecha")[:limit]:
             try:

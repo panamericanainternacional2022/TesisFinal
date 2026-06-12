@@ -1,61 +1,62 @@
 from django.test import TestCase
 from django.urls import reverse
-from apps.buildings.validators import _validate_unique_rif, validate_building_form
-from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.validators import validate_unique_rif, validate_building_form
+from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.users.models import Persona, Usuario
 
 
 # ─── VALIDATOR TESTS ──────────────────────────────────────────────────
 
 class ValidateBuildingFormTests(TestCase):
-    def test_valid_data_returns_empty(self):
+    def test_valid_data_returns_empty(self) -> None:
         data = {"nombreEdificio": "Edificio Principal", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
         errores = validate_building_form(data)
         self.assertEqual(errores, {})
 
-    def test_nombre_too_short(self):
+    def test_nombre_too_short(self) -> None:
         data = {"nombreEdificio": "AB", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
         errores = validate_building_form(data)
         self.assertIn("nombreEdificio_min", errores)
 
-    def test_invalid_rif(self):
+    def test_invalid_rif(self) -> None:
         data = {"nombreEdificio": "Edificio", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "invalid"}
         errores = validate_building_form(data)
         self.assertIn("rif", errores)
 
-    def test_direccion_too_short(self):
+    def test_direccion_too_short(self) -> None:
         data = {"nombreEdificio": "Edificio", "direccion": "Corta", "rif": "J-12345678-0"}
         errores = validate_building_form(data)
         self.assertIn("direccion_min", errores)
 
-    def test_rif_duplicate(self):
-        Edificio.objects.create(nb_edificio="Existente", rif="J-11111111-0", direccion="Dir 1")
+    def test_rif_duplicate(self) -> None:
+        Building.objects.create(name="Existente", rif="J-11111111-0", address="Dir 1")
         data = {"nombreEdificio": "Nuevo", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-11111111-0"}
         errores = validate_building_form(data)
         self.assertIn("rif_unico", errores)
 
 
 class ValidateUniqueRifTests(TestCase):
-    def test_unique_rif_returns_empty(self):
-        self.assertEqual(_validate_unique_rif("J-99999999-0"), "")
+    def test_unique_rif_returns_empty(self) -> None:
+        self.assertIsNone(validate_unique_rif("J-99999999-0"))
 
-    def test_duplicate_rif_returns_error(self):
-        Edificio.objects.create(nb_edificio="Test", rif="J-88888888-0", direccion="Dir")
-        msg = _validate_unique_rif("J-88888888-0")
-        self.assertNotEqual(msg, "")
+    def test_duplicate_rif_raises_error(self) -> None:
+        Building.objects.create(name="Test", rif="J-88888888-0", address="Dir")
+        from django.core.exceptions import ValidationError
+        with self.assertRaises(ValidationError):
+            validate_unique_rif("J-88888888-0")
 
-    def test_empty_rif_returns_empty(self):
-        self.assertEqual(_validate_unique_rif(""), "")
+    def test_empty_rif_returns_empty(self) -> None:
+        self.assertIsNone(validate_unique_rif(""))
 
-    def test_exclude_self(self):
-        edif = Edificio.objects.create(nb_edificio="Test", rif="J-77777777-0", direccion="Dir")
-        self.assertEqual(_validate_unique_rif("J-77777777-0", exclude_edificio_id=edif.id_edificio), "")
+    def test_exclude_self(self) -> None:
+        building = Building.objects.create(name="Test", rif="J-77777777-0", address="Dir")
+        self.assertIsNone(validate_unique_rif("J-77777777-0", exclude_building_id=building.id))
 
 
 # ─── VIEW TESTS ──────────────────────────────────────────────────────
 
 class BuildingViewTestBase(TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(
@@ -64,13 +65,13 @@ class BuildingViewTestBase(TestCase):
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
 
-class RegistroEdificioViewTests(BuildingViewTestBase):
-    def test_get_returns_form(self):
-        response = self.client.get(reverse("registro_edificio"))
+class RegisterBuildingViewTests(BuildingViewTestBase):
+    def test_get_returns_form(self) -> None:
+        response = self.client.get(reverse("register_building"))
         self.assertEqual(response.status_code, 200)
 
-    def test_post_creates_edificio(self):
-        response = self.client.post(reverse("registro_edificio"), {
+    def test_post_creates_building(self) -> None:
+        response = self.client.post(reverse("register_building"), {
             "nombreEdificio": "Edificio Test",
             "parroquia": "Av. Principal, Urb. Centro",
             "rif": "J-11111111-0",
@@ -78,49 +79,49 @@ class RegistroEdificioViewTests(BuildingViewTestBase):
             "con_elevador": "true",
         })
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(Edificio.objects.filter(rif="J-11111111-0").exists())
+        self.assertTrue(Building.objects.filter(rif="J-11111111-0").exists())
 
-    def test_post_missing_fields_shows_error(self):
-        response = self.client.post(reverse("registro_edificio"), {})
+    def test_post_missing_fields_shows_error(self) -> None:
+        response = self.client.post(reverse("register_building"), {})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Complete el nombre")
 
 
-class ListaEdificiosViewTests(BuildingViewTestBase):
-    def test_lists_edificios(self):
-        Edificio.objects.create(nb_edificio="Test Edificio", rif="J-22222222-0", direccion="Dir")
-        response = self.client.get(reverse("lista_edificios"))
+class BuildingListViewTests(BuildingViewTestBase):
+    def test_lists_buildings(self) -> None:
+        Building.objects.create(name="Test Edificio", rif="J-22222222-0", address="Dir")
+        response = self.client.get(reverse("building_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Edificio")
 
-    def test_search_by_name(self):
-        Edificio.objects.create(nb_edificio="Buscado", rif="J-33333333-0", direccion="Dir")
-        Edificio.objects.create(nb_edificio="Otro", rif="J-44444444-0", direccion="Dir")
-        response = self.client.get(reverse("lista_edificios"), {"q": "Buscado"})
+    def test_search_by_name(self) -> None:
+        Building.objects.create(name="Buscado", rif="J-33333333-0", address="Dir")
+        Building.objects.create(name="Otro", rif="J-44444444-0", address="Dir")
+        response = self.client.get(reverse("building_list"), {"q": "Buscado"})
         self.assertContains(response, "Buscado")
         self.assertNotContains(response, "Otro")
 
 
-class EliminarEdificioViewTests(BuildingViewTestBase):
-    def test_delete_edificio(self):
-        edif = Edificio.objects.create(nb_edificio="Test", rif="J-55555555-0", direccion="Dir")
-        response = self.client.post(reverse("eliminar_edificio", args=[edif.id_edificio]))
-        self.assertFalse(Edificio.objects.filter(id_edificio=edif.id_edificio).exists())
+class DeleteBuildingViewTests(BuildingViewTestBase):
+    def test_delete_building(self) -> None:
+        building = Building.objects.create(name="Test", rif="J-55555555-0", address="Dir")
+        response = self.client.post(reverse("delete_building", args=[building.id]), {"confirmed": "1"})
+        self.assertFalse(Building.objects.filter(id=building.id).exists())
 
-    def test_cascade_deletes_equipos(self):
-        edif = Edificio.objects.create(nb_edificio="Test", rif="J-66666666-0", direccion="Dir")
-        equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba 1", id_edificio=edif, tipo="bomba")
-        self.client.post(reverse("eliminar_edificio", args=[edif.id_edificio]))
-        self.assertFalse(EquipoMonitoreo.objects.filter(id_equipo_monitoreo=equipo.id_equipo_monitoreo).exists())
+    def test_cascade_deletes_equipment(self) -> None:
+        building = Building.objects.create(name="Test", rif="J-66666666-0", address="Dir")
+        equipo = MonitoringEquipment.objects.create(name="Bomba 1", building=building, equipment_type="bomba")
+        self.client.post(reverse("delete_building", args=[building.id]), {"confirmed": "1"})
+        self.assertFalse(MonitoringEquipment.objects.filter(id=equipo.id).exists())
 
 
-class ConfiguracionViewTests(BuildingViewTestBase):
-    def test_get_config_page(self):
-        response = self.client.get(reverse("configuracion"))
+class ConfigurationViewTests(BuildingViewTestBase):
+    def test_get_config_page(self) -> None:
+        response = self.client.get(reverse("configuration"))
         self.assertEqual(response.status_code, 200)
 
-    def test_update_email(self):
-        response = self.client.post(reverse("configuracion"), {
+    def test_update_email(self) -> None:
+        response = self.client.post(reverse("configuration"), {
             "email": "nuevo@test.com",
             "username": "",
             "current_password": "admin123",
@@ -131,8 +132,8 @@ class ConfiguracionViewTests(BuildingViewTestBase):
         self.persona.refresh_from_db()
         self.assertEqual(self.persona.email, "nuevo@test.com")
 
-    def test_wrong_current_password(self):
-        response = self.client.post(reverse("configuracion"), {
+    def test_wrong_current_password(self) -> None:
+        response = self.client.post(reverse("configuration"), {
             "email": "",
             "username": "",
             "current_password": "wrong",

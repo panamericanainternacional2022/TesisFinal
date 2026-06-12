@@ -5,7 +5,7 @@ from django.urls import reverse
 from django.utils import timezone
 from apps.alerts.models import Notificacion, UmbralConfig
 from apps.users.models import Persona, Usuario
-from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 
 
 # ─── MODEL TESTS ─────────────────────────────────────────────────────
@@ -14,13 +14,13 @@ class NotificacionModelTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", name="Test", last_name="User", email="t@t.com", phone="04121234567")
         self.usuario = Usuario.objects.create(username="testuser", password="abc", id_persona=self.persona, rol="US")
-        self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
-        self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
+        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
 
     def test_create_notificacion(self):
         notif = Notificacion.objects.create(
             id_usuario=self.usuario,
-            id_equipo_monitoreo=self.equipo,
+            id_equipo_monitoreo=self.equipment,
             fecha=timezone.now(),
             mensaje='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
@@ -40,8 +40,8 @@ class NotificacionesViewTests(TestCase):
         self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
-        self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
+        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_get_notificaciones_empty(self):
@@ -50,7 +50,7 @@ class NotificacionesViewTests(TestCase):
 
     def test_get_notificaciones_with_data(self):
         Notificacion.objects.create(
-            id_usuario=self.usuario, id_equipo_monitoreo=self.equipo,
+            id_usuario=self.usuario, id_equipo_monitoreo=self.equipment,
             fecha=timezone.now(), mensaje='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
         response = self.client.get(reverse("notificaciones"))

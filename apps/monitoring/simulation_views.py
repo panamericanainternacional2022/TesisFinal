@@ -25,7 +25,7 @@ from apps.alerts.services.alert_service import (
 )
 from apps.alerts.alerts import send_alert
 
-from apps.buildings.models import EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.models import MonitoringEquipment, UserBuilding
 from apps.alerts.models import Notificacion
 
 logger = logging.getLogger(__name__)
@@ -95,17 +95,17 @@ def api_status(request):
 def api_edificios(request):
     """Lista de edificios con sus equipos de monitoreo."""
     data = []
-    for eq in EquipoMonitoreo.objects.select_related("id_edificio").all():
-        if not eq.id_edificio:
+    for eq in MonitoringEquipment.objects.select_related("building").all():
+        if not eq.building:
             continue
-        e = eq.id_edificio
-        sim = simulators.get(e.id_edificio)
+        e = eq.building
+        sim = simulators.get(e.pk)
         data.append({
-            "id": e.id_edificio,
-            "nombre": e.nb_edificio,
-            "direccion": e.direccion or "",
+            "id": e.pk,
+            "nombre": e.name,
+            "direccion": e.address or "",
             "rif": e.rif or "",
-            "tipo": eq.tipo,
+            "tipo": eq.equipment_type,
             "simulador_activo": sim is not None,
             "sim_paused": sim.sim_paused if sim else False,
         })
@@ -114,14 +114,14 @@ def api_edificios(request):
 
 def api_usuarios_edificio(request, edificio_id):
     """Usuarios asociados a un edificio."""
-    usuarios = UsuarioEdificio.objects.filter(
-        id_edificio_id=edificio_id
-    ).select_related("id_usuario__id_persona")
+    usuarios = UserBuilding.objects.filter(
+        building_id=edificio_id
+    ).select_related("user__id_persona")
     data = []
     for ue in usuarios:
-        p = ue.id_usuario.id_persona if ue.id_usuario else None
+        p = ue.user.id_persona if ue.user else None
         data.append({
-            "id": ue.id_usuario.id_usuario if ue.id_usuario else None,
+            "id": ue.user.pk if ue.user else None,
             "nombre": f"{p.name} {p.last_name}" if p else "Desconocido",
             "email": p.email if p else "",
         })
@@ -131,7 +131,7 @@ def api_usuarios_edificio(request, edificio_id):
 def api_notifications(request):
     """Últimas 50 notificaciones desde la BD."""
     qs = Notificacion.objects.select_related(
-        "id_equipo_monitoreo__id_edificio"
+        "id_equipo_monitoreo__building"
     ).order_by("-fecha")[:50]
     data = []
     for n in qs:
@@ -150,8 +150,8 @@ def api_notifications(request):
             "value": msg.get("value"),
             "risk": msg.get("risk", ""),
             "message": msg.get("action", msg.get("raw", json.dumps(msg, ensure_ascii=False))),
-            "edificio": n.id_equipo_monitoreo.id_edificio.nb_edificio
-            if n.id_equipo_monitoreo and n.id_equipo_monitoreo.id_edificio
+            "edificio": n.id_equipo_monitoreo.building.name
+            if n.id_equipo_monitoreo and n.id_equipo_monitoreo.building
             else None,
         })
     return JsonResponse(data, safe=False)

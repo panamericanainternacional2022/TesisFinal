@@ -1,4 +1,4 @@
 from django.contrib import admin
-from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 
-admin.site.register([Edificio, EquipoMonitoreo, UsuarioEdificio])
+admin.site.register([Building, MonitoringEquipment, UserBuilding])

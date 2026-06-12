@@ -78,7 +78,7 @@ Si usted no solicito este registro, por favor ignore este correo.
 
 def build_beneficiary_data(user: Usuario) -> dict:
     person = user.id_persona
-    ue = user.usuarioedificio_set.first()
+    ue = user.building_assignments.first()
     building = ue.id_edificio if ue else None
     name = user.username
     last_name = ""

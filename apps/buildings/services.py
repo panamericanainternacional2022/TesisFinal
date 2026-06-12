@@ -1,35 +1,49 @@
-from apps.buildings.models import EquipoMonitoreo
+from dataclasses import dataclass, field
+
+from apps.buildings.models import Building, MonitoringEquipment
 
 
-def _crear_equipos_para_edificio(edificio, con_bomba, con_elevador):
-    if con_bomba:
-        EquipoMonitoreo.objects.get_or_create(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
-            defaults={"nb_equipo": f"Bomba de agua - {edificio.nb_edificio}"},
+@dataclass
+class EquipmentConfig:
+    has_pump: bool = False
+    has_elevator: bool = False
+
+
+def create_equipment_for_building(
+    building: Building,
+    config: EquipmentConfig,
+) -> None:
+    if config.has_pump:
+        MonitoringEquipment.objects.get_or_create(
+            building=building, equipment_type=MonitoringEquipment.TYPE_PUMP,
+            defaults={"name": f"Bomba de agua - {building.name}"},
         )
-    if con_elevador:
-        EquipoMonitoreo.objects.get_or_create(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
-            defaults={"nb_equipo": f"Elevador - {edificio.nb_edificio}"},
+    if config.has_elevator:
+        MonitoringEquipment.objects.get_or_create(
+            building=building, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
+            defaults={"name": f"Elevador - {building.name}"},
         )
 
 
-def _sincronizar_equipos_para_edificio(edificio, con_bomba, con_elevador):
-    if con_bomba:
-        EquipoMonitoreo.objects.get_or_create(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
-            defaults={"nb_equipo": f"Bomba de agua - {edificio.nb_edificio}"},
+def sync_equipment_for_building(
+    building: Building,
+    config: EquipmentConfig,
+) -> None:
+    if config.has_pump:
+        MonitoringEquipment.objects.get_or_create(
+            building=building, equipment_type=MonitoringEquipment.TYPE_PUMP,
+            defaults={"name": f"Bomba de agua - {building.name}"},
         )
     else:
-        EquipoMonitoreo.objects.filter(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_BOMBA,
+        MonitoringEquipment.objects.filter(
+            building=building, equipment_type=MonitoringEquipment.TYPE_PUMP,
         ).delete()
-    if con_elevador:
-        EquipoMonitoreo.objects.get_or_create(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
-            defaults={"nb_equipo": f"Elevador - {edificio.nb_edificio}"},
+    if config.has_elevator:
+        MonitoringEquipment.objects.get_or_create(
+            building=building, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
+            defaults={"name": f"Elevador - {building.name}"},
         )
     else:
-        EquipoMonitoreo.objects.filter(
-            id_edificio=edificio, tipo=EquipoMonitoreo.TIPO_ELEVADOR,
+        MonitoringEquipment.objects.filter(
+            building=building, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
         ).delete()

@@ -7,7 +7,7 @@ class Notificacion(models.Model):
         "users.Usuario", on_delete=models.CASCADE, db_column="id_usuario", blank=True, null=True
     )
     id_equipo_monitoreo = models.ForeignKey(
-        "buildings.EquipoMonitoreo", on_delete=models.CASCADE, db_column="id_equipo_monitoreo",
+        "buildings.MonitoringEquipment", on_delete=models.CASCADE, db_column="id_equipo_monitoreo",
         blank=True, null=True,
     )
     fecha = models.DateTimeField()
