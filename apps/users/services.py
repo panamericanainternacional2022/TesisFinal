@@ -79,7 +79,7 @@ Si usted no solicito este registro, por favor ignore este correo.
 def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
     person = user.id_persona
     ue = user.building_assignments.first()
-    building = ue.id_edificio if ue else None
+    building = ue.building if ue else None
     name = user.username
     last_name = ""
     id_number = ""
@@ -98,9 +98,9 @@ def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
         "last_name": last_name,
         "email": email,
         "phone": phone,
-        "edificio_nombre": building.nb_edificio if building else "",
+        "edificio_nombre": building.name if building else "",
         "edificio_rif": building.rif if building else "",
-        "edificio_direccion": building.direccion if building else "",
+        "edificio_direccion": building.address if building else "",
         "registered": user.registered,
     }
 

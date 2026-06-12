@@ -592,7 +592,7 @@
                 <label class="form-label">Edificio activo</label>
                 <select id="buildingSelect" style="height:44px;">
                     {% for ed in edificios %}
-                    <option value="{{ ed.id_edificio }}" {% if ed.id_edificio == edificio_id %}selected{% endif %}>{{ ed.nb_edificio }}</option>
+                    <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
                     {% endfor %}
                 </select>
             </div>

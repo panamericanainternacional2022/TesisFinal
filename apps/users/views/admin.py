@@ -40,12 +40,12 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 
     users = (
         Usuario.objects.select_related("id_persona")
-        .prefetch_related("userbuilding_set__building")
+        .prefetch_related("building_assignments__building")
         .exclude(rol__in=ADMIN_ROLES)
     )
 
     if building_id:
-        users = users.filter(userbuilding__building_id=building_id)
+        users = users.filter(building_assignments__building_id=building_id)
 
     if query:
         users = users.filter(
@@ -54,7 +54,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
             | Q(id_persona__last_name__icontains=query)
             | Q(id_persona__email__icontains=query)
             | Q(username__icontains=query)
-            | Q(userbuilding__building__name__icontains=query)
+            | Q(building_assignments__building__name__icontains=query)
         ).distinct()
 
     beneficiaries = [build_beneficiary_data(u) for u in users]
@@ -226,13 +226,13 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
 
     users = (
         Usuario.objects.select_related("id_persona")
-        .prefetch_related("userbuilding_set__building")
+        .prefetch_related("building_assignments__building")
         .exclude(rol__in=ADMIN_ROLES)
     )
     items = []
     for u in users:
         p = u.id_persona
-        ue = u.userbuilding_set.first()
+        ue = u.building_assignments.first()
         building = ue.building if ue else None
         items.append(
             {

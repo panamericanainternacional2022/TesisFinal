@@ -119,7 +119,7 @@
                                 <select id="id_edificio" name="id_edificio" required class="{% if form_errors.id_edificio %}input-error{% endif %}">
                                     {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
                                     {% for edificio in edificios %}
-                                        <option value="{{ edificio.id_edificio }}" {% if user.id_edificio == edificio.id_edificio %}selected{% endif %}>{{ edificio.nb_edificio }}</option>
+                                        <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
                                     {% endfor %}
                                 </select>
                                 <span class="edit-icon">&#127970;</span>

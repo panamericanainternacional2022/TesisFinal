@@ -19,7 +19,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
 
         usuarios = (
             Usuario.objects.select_related("id_persona")
-            .prefetch_related("userbuilding_set__building")
+            .prefetch_related("building_assignments__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
         from apps.users.services import build_beneficiary_data
@@ -97,7 +97,7 @@ def beneficiary_csv_view(request: Any) -> HttpResponse:
 
     usuarios = (
         Usuario.objects.select_related("id_persona")
-        .prefetch_related("userbuilding_set__building")
+        .prefetch_related("building_assignments__building")
         .exclude(rol__in=ADMIN_ROLES)
     )
     from apps.users.services import build_beneficiary_data

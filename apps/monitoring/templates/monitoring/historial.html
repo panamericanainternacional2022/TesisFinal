@@ -120,8 +120,8 @@
                                     {% endif %}
                                     <div class="notif-meta" style="margin-top:8px;">
                                         <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
-                                        {% if notif.id_equipo_monitoreo.id_edificio %}
-                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        {% if notif.monitoring_equipment.building %}
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
@@ -177,7 +177,7 @@
                 <select id="panel-edificio" class="filter-panel-select">
                     <option value="">Todos los edificios</option>
                     {% for edif in edificios %}
-                    <option value="{{ edif.id_edificio }}" {% if selected_edificio_id == edif.id_edificio %}selected{% endif %}>{{ edif.nb_edificio }}</option>
+                    <option value="{{ edif.id }}" {% if selected_edificio_id == edif.id %}selected{% endif %}>{{ edif.name }}</option>
                     {% endfor %}
                 </select>
             </div>

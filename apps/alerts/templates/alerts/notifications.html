@@ -87,8 +87,8 @@
                                     {% endif %}
                                     <div class="notif-meta" style="margin-top: 8px;">
                                         <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
-                                        {% if notif.id_equipo_monitoreo.id_edificio %}
-                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        {% if notif.monitoring_equipment.building %}
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
                                         {% endif %}
                                     </div>
                                 </div>
