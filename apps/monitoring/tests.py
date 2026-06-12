@@ -6,7 +6,7 @@ from apps.monitoring.views import menu_seleccion_view, historial_view, monitoreo
 from apps.monitoring.simulation_views import sse_stream, api_status
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
-from apps.alerts.models import Notificacion
+from apps.alerts.models import Notification
 
 
 class MenuSeleccionViewTests(TestCase):
@@ -40,9 +40,9 @@ class HistorialViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_historial_with_data(self):
-        Notificacion.objects.create(
-            id_usuario=self.usuario, id_equipo_monitoreo=self.equipo,
-            fecha="2026-01-01 12:00:00+00", mensaje='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+        Notification.objects.create(
+            user=self.usuario, monitoring_equipment=self.equipo,
+            date="2026-01-01 12:00:00+00", message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
         response = self.client.get(reverse("historial"))
         self.assertEqual(response.status_code, 200)

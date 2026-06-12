@@ -26,7 +26,7 @@ from apps.alerts.services.alert_service import (
 from apps.alerts.alerts import send_alert
 
 from apps.buildings.models import MonitoringEquipment, UserBuilding
-from apps.alerts.models import Notificacion
+from apps.alerts.models import Notification
 
 logger = logging.getLogger(__name__)
 
@@ -130,12 +130,12 @@ def api_usuarios_edificio(request, edificio_id):
 
 def api_notifications(request):
     """Últimas 50 notificaciones desde la BD."""
-    qs = Notificacion.objects.select_related(
-        "id_equipo_monitoreo__building"
+    qs = Notification.objects.select_related(
+        "monitoring_equipment__building"
     ).order_by("-fecha")[:50]
     data = []
     for n in qs:
-        msg = n.mensaje or {}
+        msg = n.message or {}
         if isinstance(msg, str):
             try:
                 msg = json.loads(msg)
@@ -144,14 +144,14 @@ def api_notifications(request):
         elif not isinstance(msg, dict):
             msg = {"raw": str(msg)}
         data.append({
-            "id": n.id_notificacion,
-            "timestamp": n.fecha.isoformat() if n.fecha else "",
+            "id": n.id,
+            "timestamp": n.date.isoformat() if n.date else "",
             "variable": msg.get("variable", ""),
             "value": msg.get("value"),
             "risk": msg.get("risk", ""),
             "message": msg.get("action", msg.get("raw", json.dumps(msg, ensure_ascii=False))),
-            "edificio": n.id_equipo_monitoreo.building.name
-            if n.id_equipo_monitoreo and n.id_equipo_monitoreo.building
+            "edificio": n.monitoring_equipment.building.name
+            if n.monitoring_equipment and n.monitoring_equipment.building
             else None,
         })
     return JsonResponse(data, safe=False)

@@ -31,14 +31,14 @@ from apps.buildings.models import (
     UserBuilding,
     MonitoringEquipment,
 )
-from apps.alerts.models import Notificacion
+from apps.alerts.models import Notification
 
 
 def populate():
     print("Iniciando limpieza de la base de datos...")
     
     # Eliminar en orden inverso de dependencias para evitar errores de llave foránea
-    Notificacion.objects.all().delete()
+    Notification.objects.all().delete()
     MonitoringEquipment.objects.all().delete()
     UserBuilding.objects.all().delete()
     Usuario.objects.all().delete()

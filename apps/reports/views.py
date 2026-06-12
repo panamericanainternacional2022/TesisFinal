@@ -9,8 +9,8 @@ from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
 from apps.users.services import build_beneficiary_data
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
-from apps.alerts.models import Notificacion
-from apps.alerts.views import _parse_notif_for_historial
+from apps.alerts.models import Notification
+from apps.alerts.views.shared import parse_notification_for_display
 from django.db.models import Q
 
 
@@ -31,10 +31,10 @@ def historial_pdf_view(request):
     fecha_hasta_raw = request.GET.get("fecha_hasta", "").strip()
 
     if _is_admin_role(rol):
-        notificaciones = Notificacion.objects.all()
+        notificaciones = Notification.objects.all()
         edificio_nombre = "Todos los edificios"
         if edificio_id:
-            notificaciones = notificaciones.filter(id_equipo_monitoreo__building_id=edificio_id)
+            notificaciones = notificaciones.filter(monitoring_equipment__building_id=edificio_id)
             try:
                 edificio_nombre = Building.objects.get(id=edificio_id).name
             except Building.DoesNotExist:
@@ -46,22 +46,22 @@ def historial_pdf_view(request):
         edificio_nombre = "Todos los edificios"
         if edificio_id:
             if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
-                notificaciones = Notificacion.objects.filter(
-                    id_equipo_monitoreo__building_id=edificio_id
+                notificaciones = Notification.objects.filter(
+                    monitoring_equipment__building_id=edificio_id
                 )
                 try:
                     edificio_nombre = Building.objects.get(id=edificio_id).name
                 except Building.DoesNotExist:
                     pass
             else:
-                notificaciones = Notificacion.objects.none()
+                notificaciones = Notification.objects.none()
         else:
             equipos = MonitoringEquipment.objects.filter(
                 building_id__in=list(usuario_edificios)
             ).values_list("id", flat=True)
-            notificaciones = Notificacion.objects.filter(
-                id_usuario_id=usuario_id
-            ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
+            notificaciones = Notification.objects.filter(
+                user_id=usuario_id
+            ) | Notification.objects.filter(monitoring_equipment_id__in=list(equipos))
 
     ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
     if severidad and severidad in ALL_SEVERITIES:
@@ -109,14 +109,14 @@ def historial_pdf_view(request):
     rango = periodo_label_map.get(periodo_seleccionado, periodo_seleccionado)
 
     notificaciones = (
-        notificaciones.select_related("id_equipo_monitoreo__building")
+        notificaciones.select_related("monitoring_equipment__building")
         .distinct()
         .order_by("-fecha")
     )
 
     parsed_list = []
     for notif in notificaciones:
-        notif = _parse_notif_for_historial(notif)
+        notif = parse_notification_for_display(notif)
         parsed_list.append(notif)
 
     if variable_filter:
@@ -332,7 +332,7 @@ def historial_pdf_view(request):
                 accion_str = notif.parsed_data.get("action", "")
 
                 if mostrar_todos_edificios:
-                    edificio_fila = notif.id_equipo_monitoreo.building.name if (notif.id_equipo_monitoreo and notif.id_equipo_monitoreo.building) else "N/A"
+                    edificio_fila = notif.monitoring_equipment.building.name if (notif.monitoring_equipment and notif.monitoring_equipment.building) else "N/A"
                     row_data = [fecha_str, edificio_fila, risk, variable_str, valor_str, accion_str]
                     cell_fills = [None, None, fill_c, None, None, None]
                     cell_texts = [None, None, text_c, None, None, None]

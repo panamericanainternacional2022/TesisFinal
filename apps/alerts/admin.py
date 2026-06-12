@@ -1,4 +1,4 @@
 from django.contrib import admin
-from apps.alerts.models import Notificacion, UmbralConfig
+from apps.alerts.models import Notification, ThresholdConfig
 
-admin.site.register([Notificacion, UmbralConfig])
+admin.site.register([Notification, ThresholdConfig])

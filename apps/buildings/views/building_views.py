@@ -4,6 +4,7 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.auth_decorators import _login_required, _admin_required
+from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.buildings.services import (
     create_equipment_for_building, sync_equipment_for_building,
@@ -235,10 +236,10 @@ def _handle_edit_post(
 
 
 def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
-    from apps.alerts.models import Notificacion
+    from apps.alerts.models import Notification
     equipment = list(building.equipment.all())
-    Notificacion.objects.filter(
-        id_equipo_monitoreo__building=building,
+    Notification.objects.filter(
+        monitoring_equipment__building=building,
     ).delete()
     for eq in equipment:
         eq.delete()
@@ -270,7 +271,7 @@ def _render_delete_confirmation(
 
 
 def _count_notifications_for_building(building: Building) -> int:
-    from apps.alerts.models import Notificacion
-    return Notificacion.objects.filter(
-        id_equipo_monitoreo__building=building,
+    from apps.alerts.models import Notification
+    return Notification.objects.filter(
+        monitoring_equipment__building=building,
     ).count()

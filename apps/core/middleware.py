@@ -20,12 +20,12 @@ class AuthMiddleware:
                 reverse("usuario"),
                 reverse("lista_usuario"),
                 reverse("registro_beneficiario"),
-                reverse("lista_edificios"),
-                reverse("registro_edificio"),
+                reverse("building_list"),
+                reverse("register_building"),
                 reverse("editar_beneficiario", args=[0]).rstrip("0/"),
                 reverse("eliminar_beneficiario", args=[0]).rstrip("0/"),
-                reverse("editar_edificio", args=[0]).rstrip("0/"),
-                reverse("eliminar_edificio", args=[0]).rstrip("0/"),
+                reverse("edit_building", args=[0]).rstrip("0/"),
+                reverse("delete_building", args=[0]).rstrip("0/"),
             ]
             self._admin_paths_cache = paths
             self._admin_paths_ts = now

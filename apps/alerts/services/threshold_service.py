@@ -1,8 +1,13 @@
 import logging
+from typing import Dict, Any
+
+from django.db import IntegrityError
+
+from apps.alerts.models import ThresholdConfig
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_THRESHOLDS = {
+DEFAULT_THRESHOLDS: Dict[str, Dict[str, Any]] = {
     "flow_rate": {"direction": "higher", "low": 20, "medium": 35, "high": 45},
     "pressure": {"direction": "higher", "low": 5, "medium": 7, "high": 9},
     "temperature": {"direction": "higher", "low": 70, "medium": 85, "high": 100},
@@ -17,11 +22,10 @@ DEFAULT_THRESHOLDS = {
 }
 
 
-def get_thresholds():
-    result = {k: dict(v) for k, v in DEFAULT_THRESHOLDS.items()}
+def get_thresholds() -> Dict[str, Dict[str, Any]]:
+    result: Dict[str, Dict[str, Any]] = {k: dict(v) for k, v in DEFAULT_THRESHOLDS.items()}
     try:
-        from apps.alerts.models import UmbralConfig
-        for row in UmbralConfig.objects.all():
+        for row in ThresholdConfig.objects.all():
             result[row.variable] = {
                 "direction": row.direction,
                 "low": row.low,
@@ -33,16 +37,19 @@ def get_thresholds():
     return result
 
 
-def update_threshold(variable, config):
+class ThresholdPersistenceError(Exception):
+    pass
+
+
+def update_threshold(variable: str, config: Dict[str, Any]) -> None:
     try:
-        from apps.alerts.models import UmbralConfig
         medium = config.get("medium")
         if medium is not None:
             try:
                 medium = float(medium)
             except (ValueError, TypeError):
                 medium = None
-        obj, created = UmbralConfig.objects.update_or_create(
+        ThresholdConfig.objects.update_or_create(
             variable=variable,
             defaults={
                 "direction": config.get("direction", "higher"),
@@ -51,15 +58,18 @@ def update_threshold(variable, config):
                 "high": config.get("high", 0),
             },
         )
-        return True
+    except IntegrityError:
+        raise ThresholdPersistenceError(f"Could not persist threshold {variable}: integrity error")
     except Exception as e:
-        logger.warning("Could not persist threshold %s: %s", variable, e)
-        return False
+        raise ThresholdPersistenceError(f"Could not persist threshold {variable}: {e}")
 
 
-def bulk_update(thresholds_dict):
-    ok = True
+def bulk_update(thresholds_dict: Dict[str, Dict[str, Any]]) -> None:
+    errors: list[str] = []
     for var, config in thresholds_dict.items():
-        if not update_threshold(var, config):
-            ok = False
-    return ok
+        try:
+            update_threshold(var, config)
+        except ThresholdPersistenceError as e:
+            errors.append(str(e))
+    if errors:
+        raise ThresholdPersistenceError("; ".join(errors))

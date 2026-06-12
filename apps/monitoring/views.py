@@ -8,8 +8,8 @@ from django.core.paginator import Paginator
 from apps.core.auth_decorators import _login_required, _admin_required, _is_admin_role
 from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
-from apps.alerts.models import Notificacion
-from apps.alerts.views import _parse_notif_for_historial
+from apps.alerts.models import Notification
+from apps.alerts.views.shared import parse_notification_for_display
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS,
     RISK_NAMES_ES, DEVICE_NAMES_ES,
@@ -158,10 +158,10 @@ def historial_view(request):
 
     if _is_admin_role(rol):
         edificios = Building.objects.all()
-        notificaciones = Notificacion.objects.all()
+        notificaciones = Notification.objects.all()
         if edificio_id:
             notificaciones = notificaciones.filter(
-                id_equipo_monitoreo__building_id=edificio_id
+                monitoring_equipment__building_id=edificio_id
             )
     else:
         usuario_edificios = UserBuilding.objects.filter(
@@ -171,25 +171,25 @@ def historial_view(request):
 
         if edificio_id:
             if edificio_id.isdigit() and int(edificio_id) in list(usuario_edificios):
-                notificaciones = Notificacion.objects.filter(
-                    id_equipo_monitoreo__building_id=edificio_id
+                notificaciones = Notification.objects.filter(
+                    monitoring_equipment__building_id=edificio_id
                 )
             else:
-                notificaciones = Notificacion.objects.none()
+                notificaciones = Notification.objects.none()
         else:
             equipos = MonitoringEquipment.objects.filter(
                 building_id__in=list(usuario_edificios)
             ).values_list("pk", flat=True)
-            notificaciones = Notificacion.objects.filter(
-                id_usuario_id=usuario_id
-            ) | Notificacion.objects.filter(id_equipo_monitoreo_id__in=list(equipos))
+            notificaciones = Notification.objects.filter(
+                user_id=usuario_id
+            ) | Notification.objects.filter(monitoring_equipment_id__in=list(equipos))
 
     ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
     if severidad and severidad in ALL_SEVERITIES:
         notificaciones = notificaciones.filter(
-            Q(mensaje__risk=severidad)
-            | Q(mensaje__contains=f'"risk": "{severidad}"')
-            | Q(mensaje__contains=f'"risk":"{severidad}"')
+            Q(message__risk=severidad)
+            | Q(message__contains=f'"risk": "{severidad}"')
+            | Q(message__contains=f'"risk":"{severidad}"')
         )
 
     now = tz.now()
@@ -203,12 +203,12 @@ def historial_view(request):
 
     if periodo_seleccionado in DELTA_MAP:
         dt_desde = now - DELTA_MAP[periodo_seleccionado]
-        notificaciones = notificaciones.filter(fecha__gte=dt_desde)
+        notificaciones = notificaciones.filter(date__gte=dt_desde)
     elif periodo_seleccionado == "custom":
         if fecha_desde_raw:
             try:
                 naive = dt.datetime.strptime(fecha_desde_raw, "%Y-%m-%d")
-                notificaciones = notificaciones.filter(fecha__gte=tz.make_aware(naive))
+                notificaciones = notificaciones.filter(date__gte=tz.make_aware(naive))
             except ValueError:
                 pass
         if fecha_hasta_raw:
@@ -216,19 +216,19 @@ def historial_view(request):
                 naive = dt.datetime.strptime(fecha_hasta_raw, "%Y-%m-%d").replace(
                     hour=23, minute=59, second=59
                 )
-                notificaciones = notificaciones.filter(fecha__lte=tz.make_aware(naive))
+                notificaciones = notificaciones.filter(date__lte=tz.make_aware(naive))
             except ValueError:
                 pass
 
     notificaciones = (
-        notificaciones.select_related("id_usuario", "id_equipo_monitoreo__building")
+        notificaciones.select_related("user", "monitoring_equipment__building")
         .distinct()
-        .order_by("-fecha")
+        .order_by("-date")
     )
 
     parsed_list = []
     for notif in notificaciones:
-        notif = _parse_notif_for_historial(notif)
+        notif = parse_notification_for_display(notif)
         parsed_list.append(notif)
 
     all_variables = sorted(set(

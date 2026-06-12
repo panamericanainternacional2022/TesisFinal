@@ -3,39 +3,39 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
-from apps.alerts.models import Notificacion, UmbralConfig
+from apps.alerts.models import Notification, ThresholdConfig
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 
 
 # ─── MODEL TESTS ─────────────────────────────────────────────────────
 
-class NotificacionModelTests(TestCase):
+class NotificationModelTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", name="Test", last_name="User", email="t@t.com", phone="04121234567")
         self.usuario = Usuario.objects.create(username="testuser", password="abc", id_persona=self.persona, rol="US")
         self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
         self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
 
-    def test_create_notificacion(self):
-        notif = Notificacion.objects.create(
-            id_usuario=self.usuario,
-            id_equipo_monitoreo=self.equipment,
-            fecha=timezone.now(),
-            mensaje='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+    def test_create_notification(self):
+        notif = Notification.objects.create(
+            user=self.usuario,
+            monitoring_equipment=self.equipment,
+            date=timezone.now(),
+            message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
-        self.assertEqual(Notificacion.objects.count(), 1)
-        self.assertEqual(notif.mensaje, notif.mensaje)
+        self.assertEqual(Notification.objects.count(), 1)
+        self.assertEqual(notif.message, notif.message)
 
-    def test_create_umbral_config(self):
-        umbral = UmbralConfig.objects.create(variable="temperature", direction="higher", low=20, medium=40, high=60)
-        self.assertEqual(UmbralConfig.objects.count(), 1)
+    def test_create_threshold_config(self):
+        umbral = ThresholdConfig.objects.create(variable="temperature", direction="higher", low=20, medium=40, high=60)
+        self.assertEqual(ThresholdConfig.objects.count(), 1)
         self.assertEqual(umbral.variable, "temperature")
 
 
 # ─── VIEW TESTS (notificaciones) ────────────────────────────────────
 
-class NotificacionesViewTests(TestCase):
+class NotificationsViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
@@ -44,20 +44,20 @@ class NotificacionesViewTests(TestCase):
         self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
-    def test_get_notificaciones_empty(self):
-        response = self.client.get(reverse("notificaciones"))
+    def test_get_notifications_empty(self):
+        response = self.client.get(reverse("notifications"))
         self.assertEqual(response.status_code, 200)
 
-    def test_get_notificaciones_with_data(self):
-        Notificacion.objects.create(
-            id_usuario=self.usuario, id_equipo_monitoreo=self.equipment,
-            fecha=timezone.now(), mensaje='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+    def test_get_notifications_with_data(self):
+        Notification.objects.create(
+            user=self.usuario, monitoring_equipment=self.equipment,
+            date=timezone.now(), message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
-        response = self.client.get(reverse("notificaciones"))
+        response = self.client.get(reverse("notifications"))
         self.assertEqual(response.status_code, 200)
 
-    def test_limpiar_notificaciones(self):
-        response = self.client.post(reverse("limpiar_notificaciones"))
+    def test_clear_notifications(self):
+        response = self.client.post(reverse("clear_notifications"))
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.content)
         self.assertEqual(data["status"], "ok")

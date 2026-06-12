@@ -28,14 +28,14 @@
                         
                         <!-- Filtro de Edificio y Botón Limpiar en la misma línea -->
                         <div style="margin-top: var(--sp-3); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
-                            {% if edificios|length > 1 %}
+                            {% if buildings|length > 1 %}
                             <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
                                 <div style="display: flex; align-items: center; gap: 8px;">
                                     <select name="edificio" id="edificio-filter" onchange="this.form.submit()" style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 220px; box-shadow: 3px 3px 0px var(--color-ink);">
                                         <option value="">Todos los edificios</option>
-                                        {% for edif in edificios %}
-                                        <option value="{{ edif.id_edificio }}" {% if selected_edificio_id == edif.id_edificio %}selected{% endif %}>
-                                            {{ edif.nb_edificio }}
+                                        {% for building in buildings %}
+                                        <option value="{{ building.id }}" {% if selected_building_id == building.id %}selected{% endif %}>
+                                            {{ building.name }}
                                         </option>
                                         {% endfor %}
                                     </select>
@@ -58,9 +58,9 @@
 
                     <div class="notif-card">
                         <div id="live-notifications-list">
-                            {% if notificaciones %}
+                            {% if notifications %}
                             <ul class="notif-list">
-                            {% for notif in notificaciones %}
+                            {% for notif in notifications %}
                             <li class="notif-item">
                                 <div class="notif-body">
                                     {% if notif.parsed_data.parsed %}
@@ -110,13 +110,13 @@
                     </div>
 
                     <!-- Paginación -->
-                    {% if notificaciones.has_other_pages %}
+                    {% if notifications.has_other_pages %}
                     <div class="pagination-container">
-                        {% if notificaciones.has_previous %}
-                            <a href="?page=1{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Primera página">
+                        {% if notifications.has_previous %}
+                            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Primera página">
                                 <i class="fa-solid fa-angles-left"></i>
                             </a>
-                            <a href="?page={{ notificaciones.previous_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Anterior">
+                            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Anterior">
                                 <i class="fa-solid fa-angle-left"></i>
                             </a>
                         {% else %}
@@ -125,14 +125,14 @@
                         {% endif %}
 
                         <span class="page-current-info">
-                            Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
+                            Página {{ notifications.number }} de {{ notifications.paginator.num_pages }}
                         </span>
 
-                        {% if notificaciones.has_next %}
-                            <a href="?page={{ notificaciones.next_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Siguiente">
+                        {% if notifications.has_next %}
+                            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Siguiente">
                                 <i class="fa-solid fa-angle-right"></i>
                             </a>
-                            <a href="?page={{ notificaciones.paginator.num_pages }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Última página">
+                            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Última página">
                                 <i class="fa-solid fa-angles-right"></i>
                             </a>
                         {% else %}

@@ -6,7 +6,7 @@ from django.db import transaction, IntegrityError
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
-from apps.alerts.models import Notificacion
+from apps.alerts.models import Notification
 from apps.buildings.models import Building, UserBuilding
 from apps.core.auth_decorators import _login_required, _admin_required, ADMIN_ROLES
 from apps.users.models import Usuario, Persona
@@ -206,7 +206,7 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
 def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
     with transaction.atomic():
-        Notificacion.objects.filter(id_usuario=user).delete()
+        Notification.objects.filter(user=user).delete()
         UserBuilding.objects.filter(user=user).delete()
         person_id = user.id_persona_id
         user.delete()

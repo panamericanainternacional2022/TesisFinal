@@ -1,17 +1,8 @@
-"""
-Módulo de alertas y notificaciones del sistema PCLogo.
-Contiene lógica de envío de correos, protección de dispositivos
-y persistencia de notificaciones en Django.
-
-Las funciones puras (generate_recommendations, get_professional_action,
-send_email_alert, get_building_emails, persist_notification_in_django)
-delegan en front/services/alert_service.py.
-"""
-
 import os
 import threading
 import time
 import logging
+from typing import Any, Dict, List, Optional, Set
 
 from apps.sensors.simulation.constants import (
     LOG_SIM, RATIONING_THRESHOLD, PROTECTION_HOLD_SECONDS,
@@ -20,15 +11,10 @@ from apps.sensors.simulation.globals import (
     sensor_data, protection_ends, active_alerts,
     pending_notifications, last_email_sent_time,
 )
-from apps.sensors.simulation.controls import reset_critical_values
-
-logger = logging.getLogger(__name__)
-
 from apps.sensors.sensor_config import (
     VAR_NAMES, PUMP_VARS, ELEVATOR_VARS,
     RISK_NAMES_ES, DEVICE_NAMES_ES,
 )
-
 from apps.alerts.services.alert_service import (
     get_unit,
     get_building_emails,
@@ -38,217 +24,300 @@ from apps.alerts.services.alert_service import (
     persist_notification_in_django,
 )
 
-SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
-SMTP_USER = os.environ.get("SMTP_USER", "")
-SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+logger = logging.getLogger(__name__)
 
-def _es_device(d):
-    return DEVICE_NAMES_ES.get(d, d)
+SMTP_SERVER: str = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+SMTP_PORT: int = int(os.environ.get("SMTP_PORT", 587))
+SMTP_USER: str = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD", "")
 
-
-def _es_var(v):
-    return VAR_NAMES.get(v, v.replace("_", " ").title())
+COOLDOWN_SECONDS: int = 300
 
 
-def _sim_or_global(sim, attr):
+def _translate_device_to_spanish(device: str) -> str:
+    return DEVICE_NAMES_ES.get(device, device)
+
+
+def _translate_variable_to_spanish(variable: str) -> str:
+    return VAR_NAMES.get(variable, variable.replace("_", " ").title())
+
+
+def _get_attribute(sim: Any, attr: str) -> Any:
     if sim is not None:
         return getattr(sim, attr)
     return globals()[attr]
 
 
-def enter_protection_mode(reason=None, targets=None, sim=None):
-    if not targets:
-        logger.warning("Protección solicitada sin targets; no se hará nada.")
-        return
+def _set_attribute(sim: Any, attr: str, value: Any) -> None:
+    if sim is not None:
+        setattr(sim, attr, value)
+    else:
+        globals()[attr] = value
 
-    pe = _sim_or_global(sim, "protection_ends")
-    pn = _sim_or_global(sim, "pending_notifications")
-    les = _sim_or_global(sim, "last_email_sent_time")
 
-    now = time.time()
-    targets_set = set(targets)
-    for device in targets_set:
-        pe[device] = now + PROTECTION_HOLD_SECONDS
-    reason_text = f" ({reason})" if reason else ""
-    targets_text_es = " y ".join(_es_device(d) for d in sorted(targets_set))
-    targets_text_raw = " y ".join(sorted(targets_set))
-    logger.warning(f"PROTECCIÓN ACTIVADA{reason_text}. Marcha forzada: {targets_text_raw}.")
-    action_msg = f"Protección automática activada{reason_text}. Marcha forzada / Estado seguro: {targets_text_es}."
-    notification_payload = {
+def _build_protection_notification_payload(
+    reason: Optional[str], targets_text_es: str
+) -> Dict[str, Any]:
+    return {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": "auto_protection",
         "value": targets_text_es,
-        "risk": "Crítico",
-        "message": action_msg,
+        "risk": "Critical",
+        "message": f"Automatic protection activated{(' (' + reason + ')') if reason else ''}. Forced operation / Safe state: {targets_text_es}.",
     }
-    pn.append(notification_payload)
-    _ae = sim.alert_enabled if sim else True
-    if _ae:
-        eid = sim.edificio_id if sim else None
-        persist_notification_in_django("auto_protection", targets_text_es, "Crítico", action_msg, edificio_id=eid)
 
+
+def _send_protection_email(
+    reason: Optional[str],
+    targets_text_es: str,
+    targets_text_raw: str,
+    last_email_time: float,
+) -> float:
     now_ts = time.time()
-    if now_ts - les > 300:
-        les = now_ts
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        subject = f"[Proteccion activada] Marcha forzada: {targets_text_es}"
-        body = f"""REPORTE AUTOMATICO DE PROTECCION
+    if now_ts - last_email_time <= COOLDOWN_SECONDS:
+        return last_email_time
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    subject = f"[Protection activated] Forced operation: {targets_text_es}"
+    body = (
+        f"AUTOMATIC PROTECTION REPORT\n\n"
+        f"The automatic protection system has detected a critical condition "
+        f"and activated forced operation / safe state for the following devices.\n\n"
+        f"EVENT DETAILS:\n"
+        f"{'':->44}\n"
+        f"Date/Time:      {timestamp}\n"
+        f"Devices:        {targets_text_es}\n"
+        f"Reason:         {reason or 'critical condition detected'}\n"
+        f"Status:         protection activated\n\n"
+        f"SUGGESTED CORRECTIVE MEASURES:\n"
+        f"{'':->44}\n"
+        f"Action: Inspect the indicated devices before resuming operation. "
+        f"Devices will automatically restore after the protection period.\n\n"
+        f"This is a contingency message automatically generated by the protection module."
+    )
+    threading.Thread(
+        target=send_email_alert, args=("Critical", subject, body), daemon=True
+    ).start()
+    return now_ts
 
-El sistema de proteccion automatica ha detectado una condicion critica y ha activado la marcha forzada / estado seguro para los siguientes dispositivos.
 
-DETALLES DEL EVENTO:
---------------------------------------------
-Fecha/Hora:      {timestamp}
-Dispositivos:    {targets_text_es}
-Motivo:          {reason or 'condicion critica detectada'}
-Estado:          proteccion activada
+def enter_protection_mode(
+    reason: Optional[str] = None,
+    targets: Optional[Set[str]] = None,
+    sim: Any = None,
+) -> None:
+    if not targets:
+        logger.warning("Protection requested without targets; nothing will be done.")
+        return
 
-MEDIDAS CORRECTIVAS SUGERIDAS:
---------------------------------------------
-Accion: Inspeccionar los dispositivos indicados antes de reanudar operacion. Los dispositivos se restauraran automaticamente tras el periodo de proteccion.
-
-Este es un mensaje de contingencia generado de forma automatica por el modulo de proteccion.
-"""
-        threading.Thread(
-            target=send_email_alert, args=("Crítico", subject, body), daemon=True
-        ).start()
-
-    if sim is not None:
-        sim.last_email_sent_time = les
-    else:
-        global last_email_sent_time
-        last_email_sent_time = les
-
-def update_protection_state(sim=None):
-    pe = _sim_or_global(sim, "protection_ends")
-    sd = _sim_or_global(sim, "sensor_data")
-    aa = _sim_or_global(sim, "active_alerts")
-    pn = _sim_or_global(sim, "pending_notifications")
+    pe = _get_attribute(sim, "protection_ends")
+    pn = _get_attribute(sim, "pending_notifications")
+    les = _get_attribute(sim, "last_email_sent_time")
 
     now = time.time()
-    expired = [d for d, end in pe.items() if end and now >= end]
+    for device in targets:
+        pe[device] = now + PROTECTION_HOLD_SECONDS
+
+    reason_text = f" ({reason})" if reason else ""
+    targets_text_es = " and ".join(_translate_device_to_spanish(d) for d in sorted(targets))
+    targets_text_raw = " and ".join(sorted(targets))
+    logger.warning("PROTECTION ACTIVATED%s. Forced operation: %s.", reason_text, targets_text_raw)
+
+    notification_payload = _build_protection_notification_payload(reason, targets_text_es)
+    pn.append(notification_payload)
+
+    alert_enabled = sim.alert_enabled if sim else True
+    if alert_enabled:
+        eid = sim.edificio_id if sim else None
+        persist_notification_in_django(
+            "auto_protection", targets_text_es, "Critical",
+            notification_payload["message"], edificio_id=eid
+        )
+
+    new_les = _send_protection_email(reason, targets_text_es, targets_text_raw, les)
+    _set_attribute(sim, "last_email_sent_time", new_les)
+
+
+def _get_expired_devices(protection_ends_dict: Dict[str, float]) -> List[str]:
+    now = time.time()
+    return [d for d, end in protection_ends_dict.items() if end and now >= end]
+
+
+def _reset_device(device: str, sim: Any) -> None:
+    from apps.sensors.simulation.controls import reset_critical_values
+
+    try:
+        reset_critical_values({device}, sim)
+    except Exception:
+        logger.exception("Error resetting critical values for %s", device)
+
+
+def _clear_device_alerts(device: str, active_alerts_dict: Dict[str, str]) -> None:
+    try:
+        if device == "pump":
+            for v in PUMP_VARS + ["rationing"]:
+                active_alerts_dict.pop(v, None)
+        elif device == "elevator":
+            for v in ELEVATOR_VARS:
+                active_alerts_dict.pop(v, None)
+    except Exception:
+        pass
+
+
+def _notify_protection_ended(device: str, sim: Any, pn: list) -> None:
+    device_es = "the water pump" if device == "pump" else "the elevator"
+    alert_enabled = sim.alert_enabled if sim else True
+    if alert_enabled:
+        eid = sim.edificio_id if sim else None
+        persist_notification_in_django(
+            f"protection_{device}",
+            None,
+            "Info",
+            f"Protection ended for {device_es}. Normal operation restored.",
+            edificio_id=eid,
+        )
+    notification_payload = {
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
+        "variable": f"protection_{device}",
+        "value": None,
+        "risk": "Info",
+        "message": f"Protection ended for {device_es}. Normal operation restored.",
+    }
+    pn.append(notification_payload)
+
+
+def update_protection_state(sim: Any = None) -> None:
+    pe = _get_attribute(sim, "protection_ends")
+    sd = _get_attribute(sim, "sensor_data")
+    aa = _get_attribute(sim, "active_alerts")
+    pn = _get_attribute(sim, "pending_notifications")
+
+    expired = _get_expired_devices(pe)
     for device in expired:
-        try:
-            reset_critical_values({device}, sim)
-        except Exception:
-            logger.exception("Error reseteando valores críticos para %s", device)
-        try:
-            if device == "pump":
-                for v in PUMP_VARS + ["rationing"]:
-                    aa.pop(v, None)
-            elif device == "elevator":
-                for v in ELEVATOR_VARS:
-                    aa.pop(v, None)
-        except Exception:
-            pass
+        _reset_device(device, sim)
+        _clear_device_alerts(device, aa)
         del pe[device]
-        logger.info("Protección finalizada para %s. Dispositivo restaurado.", device)
-        _ae = sim.alert_enabled if sim else True
-        if _ae:
-            eid = sim.edificio_id if sim else None
-            persist_notification_in_django(
-                f"protection_{device}",
-                None,
-                "Info",
-                f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
-                edificio_id=eid,
-            )
-        notification_payload = {
-            "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
-            "variable": f"protection_{device}",
-            "value": None,
-            "risk": "Info",
-            "message": f"Protección finalizada para {'la bomba de agua' if device == 'pump' else 'el elevador'}. Operación normal restaurada.",
-        }
-        pn.append(notification_payload)
+        logger.info("Protection ended for %s. Device restored.", device)
+        _notify_protection_ended(device, sim, pn)
 
 
-def send_alert(variable, value, risk_level, recommended_action, sim=None):
-    aa = _sim_or_global(sim, "active_alerts")
-    les = _sim_or_global(sim, "last_email_sent_time")
+def _determine_device_target(variable: str) -> Optional[str]:
+    try:
+        if variable in PUMP_VARS or variable == "rationing":
+            return "pump"
+        elif variable in ELEVATOR_VARS:
+            return "elevator"
+    except Exception:
+        pass
+    return None
 
-    _ae = sim.alert_enabled if sim else True
-    if not _ae:
-        logger.info("Alertas desactivadas por el usuario")
+
+def _build_alert_email_subject(variable: str, risk_level: str) -> str:
+    var_display = _translate_variable_to_spanish(variable)
+    return f"[Monitoring alert] Level {risk_level.lower()}: anomaly in {var_display.lower()}"
+
+
+def _build_alert_email_body(
+    variable: str, value: float, risk_level: str, recommended_action: str
+) -> str:
+    var_display = _translate_variable_to_spanish(variable)
+    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    unit = get_unit(variable)
+    return (
+        f"AUTOMATIC ANOMALY REPORT\n\n"
+        f"A reading outside the recommended operational ranges has been detected "
+        f"in the infrastructure monitoring sensors.\n\n"
+        f"EVENT DETAILS:\n"
+        f"{'':->44}\n"
+        f"Date/Time:      {timestamp}\n"
+        f"Parameter:      {var_display}\n"
+        f"Reading:        {value} {unit}\n"
+        f"Risk level:     {risk_level.lower()}\n\n"
+        f"SUGGESTED CORRECTIVE MEASURES:\n"
+        f"{'':->44}\n"
+        f"Action:         {recommended_action}\n\n"
+        f"This is an automatically generated contingency message. "
+        f"Please proceed with the corresponding technical inspection."
+    )
+
+
+def _send_alert_email(
+    variable: str,
+    value: float,
+    risk_level: str,
+    recommended_action: str,
+    last_email_time: float,
+    sim: Any,
+) -> float:
+    new_les = last_email_time
+    send_email = risk_level in ("Alto", "Critical")
+    now = time.time()
+    if send_email and now - last_email_time > COOLDOWN_SECONDS:
+        new_les = now
+        subject = _build_alert_email_subject(variable, risk_level)
+        body = _build_alert_email_body(variable, value, risk_level, recommended_action)
+        threading.Thread(
+            target=send_email_alert, args=(risk_level, subject, body), daemon=True
+        ).start()
+    return new_les
+
+
+def send_alert(
+    variable: str,
+    value: float,
+    risk_level: str,
+    recommended_action: str,
+    sim: Any = None,
+) -> None:
+    aa = _get_attribute(sim, "active_alerts")
+    les = _get_attribute(sim, "last_email_sent_time")
+
+    alert_enabled = sim.alert_enabled if sim else True
+    if not alert_enabled:
+        logger.info("Alerts disabled by user")
         return
+
     if variable in aa and aa[variable] == risk_level:
         return
     aa[variable] = risk_level
-    device_target = None
-    try:
-        if variable in PUMP_VARS or variable == "rationing":
-            device_target = "pump"
-        elif variable in ELEVATOR_VARS:
-            device_target = "elevator"
-    except Exception:
-        device_target = None
+
+    device_target = _determine_device_target(variable)
+
     if LOG_SIM:
         print(
             f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target}"
         )
-    _risk_adj = RISK_NAMES_ES
-    if risk_level in ("Alto", "Crítico"):
+
+    if risk_level in ("Alto", "Critical"):
         if device_target:
             enter_protection_mode(
-                f"alerta {_risk_adj.get(risk_level, risk_level.lower())} de {_es_var(variable).lower()}",
+                f"alert {RISK_NAMES_ES.get(risk_level, risk_level.lower())} of {_translate_variable_to_spanish(variable).lower()}",
                 targets={device_target},
                 sim=sim,
             )
         else:
             logger.warning(
-                f"Alerta crítica para {variable} sin mapeo a dispositivo; no se activará protección automática."
+                "Critical alert for %s without device mapping; automatic protection will not be activated.",
+                variable,
             )
-    send_email = risk_level in ("Alto", "Crítico")
-    var_display = _es_var(variable)
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[Alerta de monitoreo] Nivel {risk_level.lower()}: anomalía en {var_display.lower()}"
-    body = f"""REPORTE AUTOMATICO DE ANOMALIA
 
-Se ha detectado una lectura fuera de los rangos operacionales recomendados en los sensores de monitoreo de la infraestructura.
+    new_les = _send_alert_email(variable, value, risk_level, recommended_action, les, sim)
+    _set_attribute(sim, "last_email_sent_time", new_les)
 
-DETALLES DEL EVENTO:
---------------------------------------------
-Fecha/Hora:      {timestamp}
-Parametro:       {var_display}
-Lectura:         {value} {get_unit(variable)}
-Nivel de riesgo: {risk_level.lower()}
-
-MEDIDAS CORRECTIVAS SUGERIDAS:
---------------------------------------------
-Accion:          {recommended_action}
-
-Este es un mensaje de contingencia generado de forma automatica. Por favor, proceda con la inspeccion tecnica correspondiente.
-"""
-
-    now = time.time()
-    if send_email and now - les > 300:
-        les = now
-        if sim is not None:
-            sim.last_email_sent_time = les
-        else:
-            global last_email_sent_time
-            last_email_sent_time = les
-        threading.Thread(
-            target=send_email_alert, args=(risk_level, subject, body), daemon=True
-        ).start()
-
-    pn = _sim_or_global(sim, "pending_notifications")
+    pn = _get_attribute(sim, "pending_notifications")
     notification_payload = {
-        "timestamp": timestamp,
+        "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": variable,
         "value": value,
         "risk": risk_level,
         "message": recommended_action,
     }
     pn.append(notification_payload)
+
     eid = sim.edificio_id if sim else None
     persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=eid)
 
 
-def check_rationing(flow_rate, sim=None):
+def check_rationing(flow_rate: float, sim: Any = None) -> None:
     if flow_rate < RATIONING_THRESHOLD:
-        action = get_professional_action("rationing", "Crítico", flow_rate)
-        send_alert("rationing", flow_rate, "Crítico", action, sim=sim)
-        return True
-    return False
+        action = get_professional_action("rationing", "Critical", flow_rate)
+        send_alert("rationing", flow_rate, "Critical", action, sim=sim)

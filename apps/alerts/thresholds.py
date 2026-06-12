@@ -1,13 +1,9 @@
-"""
-Configuración del sistema de monitoreo.
-Contiene los umbrales de riesgo y configuración general.
-No confundir con front/sensor_config.py (nombres y unidades de sensores).
-"""
-
 import logging
+from typing import Dict, Any
+
 logger = logging.getLogger(__name__)
 
-DEFAULT_THRESHOLDS = {
+DEFAULT_THRESHOLDS: Dict[str, Dict[str, Any]] = {
     "flow_rate": {"direction": "higher", "low": 20, "medium": 35, "high": 45},
     "pressure": {"direction": "higher", "low": 5, "medium": 7, "high": 9},
     "temperature": {"direction": "higher", "low": 70, "medium": 85, "high": 100},
@@ -21,31 +17,25 @@ DEFAULT_THRESHOLDS = {
     "current": {"direction": "higher", "low": 30, "medium": 40, "high": 50},
 }
 
-thresholds = DEFAULT_THRESHOLDS.copy()
+thresholds: Dict[str, Dict[str, Any]] = DEFAULT_THRESHOLDS.copy()
 
 
-def load_from_db():
+def load_from_db() -> None:
     try:
         from apps.alerts.services.threshold_service import get_thresholds as _get_db
         db_thresholds = _get_db()
         if db_thresholds != DEFAULT_THRESHOLDS:
             thresholds.clear()
             thresholds.update(db_thresholds)
-            logger.info("Umbrales cargados desde la base de datos de Django")
+            logger.info("Thresholds loaded from Django database")
     except Exception as e:
-        logger.debug("No se pudieron cargar umbrales desde DB: %s", e)
+        logger.debug("Could not load thresholds from DB: %s", e)
 
 
-def save_to_db():
+def save_to_db() -> None:
     try:
         from apps.alerts.services.threshold_service import bulk_update
         bulk_update(thresholds)
-        logger.info("Umbrales persistidos en la base de datos de Django")
+        logger.info("Thresholds persisted in Django database")
     except Exception as e:
-        logger.warning("No se pudieron persistir umbrales en DB: %s", e)
-
-
-try:
-    load_from_db()
-except Exception:
-    pass
+        logger.warning("Could not persist thresholds in DB: %s", e)
