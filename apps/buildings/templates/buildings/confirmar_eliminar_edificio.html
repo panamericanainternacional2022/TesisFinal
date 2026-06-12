@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar eliminación de edificio </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+    <style>
+        .confirm-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            padding: var(--sp-4);
+            max-width: 600px;
+            margin: var(--sp-4) auto;
+        }
+        .confirm-card h1 {
+            font-size: var(--text-xl);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            margin-bottom: var(--sp-2);
+        }
+        .warning-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 8px 12px;
+            font-weight: var(--weight-bold);
+            font-size: var(--text-sm);
+            margin-bottom: var(--sp-3);
+        }
+        .detail-list {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 var(--sp-3) 0;
+        }
+        .detail-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--color-border, #e0e0e0);
+            display: flex;
+            justify-content: space-between;
+            font-size: var(--text-sm);
+        }
+        .detail-list li:last-child { border-bottom: none; }
+        .detail-label { font-weight: var(--weight-medium); color: var(--color-text-secondary); }
+        .detail-value { font-weight: var(--weight-bold); color: var(--color-ink); }
+        .actions-row { display: flex; gap: var(--sp-2); margin-top: var(--sp-3); flex-wrap: wrap; }
+        .btn-danger {
+            background: #991b1b;
+            color: white;
+            border: 2px solid #991b1b;
+            padding: 10px 20px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+            transition: all var(--transition-fast);
+        }
+        .btn-danger:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(10,10,10,0.25);
+        }
+        .btn-cancel {
+            background: var(--color-surface);
+            color: var(--color-ink);
+            border: 2px solid var(--color-ink);
+            padding: 10px 20px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+            transition: all var(--transition-fast);
+        }
+        .btn-cancel:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px rgba(10,10,10,0.25);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+        <main class="main-content">
+            <div class="confirm-card">
+                <div class="warning-badge">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    Esta acción no se puede deshacer
+                </div>
+                <h1>Eliminar edificio</h1>
+                <p style="color: var(--color-text-secondary); margin-bottom: var(--sp-3); font-size: var(--text-sm);">
+                    Estás a punto de eliminar <strong>{{ edificio.nb_edificio }}</strong> ({{ edificio.rif }}). 
+                    Los siguientes datos serán eliminados permanentemente:
+                </p>
+                <ul class="detail-list">
+                    <li>
+                        <span class="detail-label">Edificio</span>
+                        <span class="detail-value">{{ edificio.nb_edificio }}</span>
+                    </li>
+                    {% for eq in equipos %}
+                    <li>
+                        <span class="detail-label">Equipo de monitoreo</span>
+                        <span class="detail-value">{{ eq.nb_equipo|default:eq.tipo|title }}</span>
+                    </li>
+                    {% endfor %}
+                    {% if usuarios_count > 0 %}
+                    <li>
+                        <span class="detail-label">Usuarios asociados</span>
+                        <span class="detail-value">{{ usuarios_count }}</span>
+                    </li>
+                    {% endif %}
+                    {% if notificaciones_count > 0 %}
+                    <li>
+                        <span class="detail-label">Notificaciones / Alertas</span>
+                        <span class="detail-value">{{ notificaciones_count }}</span>
+                    </li>
+                    {% endif %}
+                </ul>
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="confirmed" value="1">
+                    <div class="actions-row">
+                        <button type="submit" class="btn-danger">
+                            <i class="fa-solid fa-trash-can"></i> Eliminar permanentemente
+                        </button>
+                        <a href="{% url 'seleccionar_edificio' accion='eliminar' %}" class="btn-cancel">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
