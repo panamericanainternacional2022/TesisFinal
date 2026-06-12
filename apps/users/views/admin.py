@@ -37,6 +37,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
     from apps.core.auth_decorators import ADMIN_ROLES
     query = request.GET.get("q", "").strip()
     building_id = request.GET.get("edificio", "").strip()
+    estado = request.GET.get("estado", "").strip()
 
     users = (
         Usuario.objects.select_related("id_persona")
@@ -46,6 +47,11 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 
     if building_id:
         users = users.filter(building_assignments__building_id=building_id)
+
+    if estado == "registrado":
+        users = users.filter(registered=True)
+    elif estado == "por_registrar":
+        users = users.filter(registered=False)
 
     if query:
         users = users.filter(
@@ -67,6 +73,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
             "beneficiarios": beneficiaries,
             "edificios": buildings,
             "selected_edificio_id": int(building_id) if building_id.isdigit() else None,
+            "current_estado": estado,
         },
     )
 
