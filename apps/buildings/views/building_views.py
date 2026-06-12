@@ -3,7 +3,7 @@ from django.db.models import Q
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
-from apps.core.auth_decorators import _login_required, _admin_required
+from apps.core.auth_decorators import login_required, admin_required
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.buildings.services import (
@@ -17,8 +17,8 @@ from apps.buildings.views.shared import build_message, pop_messages
 # ─── SELECT (READ) ──────────────────────────────────────────────────
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def select_building_view(request: HttpRequest, action: str) -> HttpResponse:
     VALID_ACTIONS = ("edit", "delete")
     if action not in VALID_ACTIONS:
@@ -36,8 +36,8 @@ def select_building_view(request: HttpRequest, action: str) -> HttpResponse:
     )
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def building_list_view(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("q", "").strip()
     buildings = Building.objects.all().prefetch_related("equipment")
@@ -58,8 +58,8 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
 # ─── CREATE ─────────────────────────────────────────────────────────
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def register_building_view(request: HttpRequest) -> HttpResponse:
     msgs = pop_messages(request)
     if request.method == "POST":
@@ -70,8 +70,8 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
 # ─── UPDATE ─────────────────────────────────────────────────────────
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, id=building_id)
     msgs = pop_messages(request)
@@ -100,8 +100,8 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
 # ─── DELETE ─────────────────────────────────────────────────────────
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, id=building_id)
     if request.method == "POST" and request.POST.get("confirmed") == "1":

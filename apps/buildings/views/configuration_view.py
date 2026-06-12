@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
-from apps.core.auth_decorators import _login_required
+from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
 from apps.users.validators import (
     _validate_field, _validate_email, _validate_unique_email,
@@ -11,7 +11,7 @@ from apps.users.validators import (
 from apps.buildings.views.shared import build_message
 
 
-@_login_required
+@login_required
 def configuration_view(request: HttpRequest) -> HttpResponse:
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:

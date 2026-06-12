@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator
 
-from apps.core.auth_decorators import _login_required, _admin_required
+from apps.core.auth_decorators import login_required, admin_required
 from apps.buildings.models import Building
 from apps.alerts.models import Notification
 
@@ -13,7 +13,7 @@ from .shared import (
 )
 
 
-@_login_required
+@login_required
 def render_admin_monitoreo(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
@@ -39,8 +39,8 @@ def render_admin_monitoreo(request) -> HttpResponse:
     )
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def monitoreo_edificio_view(request, building_id: int) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     building = get_object_or_404(Building, pk=building_id)
@@ -57,7 +57,7 @@ def monitoreo_edificio_view(request, building_id: int) -> HttpResponse:
     )
 
 
-@_login_required
+@login_required
 def render_admin_historial(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     building_id = request.GET.get("edificio", "").strip()
@@ -120,7 +120,7 @@ def render_admin_historial(request) -> HttpResponse:
     )
 
 
-@_login_required
+@login_required
 def simulador_status_view(request) -> JsonResponse:
     from json import dumps as json_dumps
     from apps.sensors.simulation.globals import simulators
@@ -130,8 +130,8 @@ def simulador_status_view(request) -> JsonResponse:
     return JsonResponse({"running": has_simulator, "has_edificios": has_buildings})
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def simulador_start_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.models import BuildingSimulator
@@ -162,8 +162,8 @@ def simulador_start_view(request) -> JsonResponse:
     return JsonResponse({"status": "ok", "message": "Simulación reanudada."})
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def simulador_stop_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
 
@@ -174,8 +174,8 @@ def simulador_stop_view(request) -> JsonResponse:
     return JsonResponse({"status": "ok", "message": "Simulación pausada."})
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def simulador_restart_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.controls import reset_simulator

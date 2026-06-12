@@ -1,7 +1,9 @@
 from django.urls import path
-from .views import historial_pdf_view, descargar_pdf_view
+from .views.history import history_pdf_view
+from .views.beneficiaries import beneficiary_pdf_view, beneficiary_csv_view
 
 urlpatterns = [
-    path("historial/pdf/", historial_pdf_view, name="historial_pdf"),
-    path("descargar_pdf/", descargar_pdf_view, name="descargar_pdf"),
+    path("historial/pdf/", history_pdf_view, name="history_pdf"),
+    path("beneficiarios/pdf/", beneficiary_pdf_view, name="beneficiary_pdf"),
+    path("beneficiarios/csv/", beneficiary_csv_view, name="beneficiary_csv"),
 ]

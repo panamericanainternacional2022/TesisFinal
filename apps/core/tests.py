@@ -2,25 +2,25 @@ from unittest.mock import patch, Mock
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
 from django.urls import reverse
-from apps.core.auth_decorators import _is_admin_role, _login_required, _admin_required, ADMIN_ROLES
+from apps.core.auth_decorators import is_admin_role, login_required, admin_required, ADMIN_ROLES
 from apps.core.services.risk_service import classify_risk
 
 
 class IsAdminRoleTests(TestCase):
     def test_admin_roles_return_true(self):
         for rol in ADMIN_ROLES:
-            self.assertTrue(_is_admin_role(rol))
+            self.assertTrue(is_admin_role(rol))
 
     def test_non_admin_roles_return_false(self):
         for rol in ("US", "OP", None, ""):
-            self.assertFalse(_is_admin_role(rol))
+            self.assertFalse(is_admin_role(rol))
 
 
 class LoginRequiredDecoratorTests(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
         self.mock_view = Mock(return_value=HttpResponse("ok"))
-        self.wrapped = _login_required(self.mock_view)
+        self.wrapped = login_required(self.mock_view)
 
     def test_redirects_when_not_logged_in(self):
         request = self.factory.get("/")

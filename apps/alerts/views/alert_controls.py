@@ -5,11 +5,11 @@ from typing import Optional
 from django.http import HttpRequest, JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.core.auth_decorators import _login_required
+from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
 
 
-@_login_required
+@login_required
 @require_http_methods(["POST"])
 def toggle_alerts_session_view(request: HttpRequest) -> JsonResponse:
     try:
@@ -66,7 +66,7 @@ def _disable_alerts(
     return until_ts
 
 
-@_login_required
+@login_required
 @require_http_methods(["POST"])
 def clear_notifications_view(request: HttpRequest) -> JsonResponse:
     request.session["alerts_cleared_at"] = _time.time()

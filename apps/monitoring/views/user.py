@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator
 from django.db.models import Q
 
-from apps.core.auth_decorators import _login_required
+from apps.core.auth_decorators import login_required
 from apps.buildings.models import Building, MonitoringEquipment
 from apps.alerts.models import Notification
 
@@ -15,7 +15,7 @@ from .shared import (
 )
 
 
-@_login_required
+@login_required
 def render_user_monitoreo(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session["usuario_id"]
@@ -58,7 +58,7 @@ def render_user_monitoreo(request) -> HttpResponse:
     )
 
 
-@_login_required
+@login_required
 def render_user_historial(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session["usuario_id"]
@@ -138,7 +138,7 @@ def render_user_historial(request) -> HttpResponse:
     )
 
 
-@_login_required
+@login_required
 def menu_seleccion_view(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     return render(request, "monitoring/menu_seleccion.html", {"rol": rol})

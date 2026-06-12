@@ -1,6 +1,6 @@
 from django.http import HttpRequest, HttpResponse
 
-from apps.core.auth_decorators import _is_admin_role
+from apps.core.auth_decorators import is_admin_role
 from .admin import (
     render_admin_monitoreo,
     render_admin_historial,
@@ -19,13 +19,13 @@ from .user import (
 
 def monitoreo_view(request: HttpRequest) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    if _is_admin_role(rol):
+    if is_admin_role(rol):
         return render_admin_monitoreo(request)
     return render_user_monitoreo(request)
 
 
 def historial_view(request: HttpRequest) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    if _is_admin_role(rol):
+    if is_admin_role(rol):
         return render_admin_historial(request)
     return render_user_historial(request)

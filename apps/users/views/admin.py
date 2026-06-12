@@ -8,7 +8,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, UserBuilding
-from apps.core.auth_decorators import _login_required, _admin_required, ADMIN_ROLES
+from apps.core.auth_decorators import login_required, admin_required, ADMIN_ROLES
 from apps.users.models import Usuario, Persona
 from apps.users.services import (
     build_beneficiary_data,
@@ -20,14 +20,14 @@ from apps.users.validators import validate_user_form
 from django.db.models import Q
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def user_registration_view(request: HttpRequest) -> HttpResponse:
     return render(request, "users/registro_usuario.html", {"user": {}})
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("q", "").strip()
     building_id = request.GET.get("edificio", "").strip()
@@ -65,8 +65,8 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
     )
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 @transaction.atomic
 def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
     generated_username = None
@@ -144,8 +144,8 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
     return render(request, "users/registro_usuario.html", context)
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 @transaction.atomic
 def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
@@ -201,8 +201,8 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
     )
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
     with transaction.atomic():
@@ -216,8 +216,8 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
     return redirect("seleccionar_usuario", accion="eliminar")
 
 
-@_login_required
-@_admin_required
+@login_required
+@admin_required
 def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
     VALID_ACTIONS = ("editar", "eliminar")
     if action not in VALID_ACTIONS:

@@ -6,7 +6,7 @@ from django.shortcuts import render
 from django.http import HttpRequest, JsonResponse
 from django.db.models import Q
 
-from apps.core.auth_decorators import _login_required, _is_admin_role
+from apps.core.auth_decorators import login_required, is_admin_role
 from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
@@ -14,7 +14,7 @@ from apps.alerts.views.shared import parse_notification_for_display
 from django.core.paginator import Paginator
 
 
-@_login_required
+@login_required
 def notifications_view(request: HttpRequest):
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:
@@ -26,7 +26,7 @@ def notifications_view(request: HttpRequest):
     rol = request.session.get("usuario_rol", "US")
     building_id_raw = request.GET.get("building", "").strip()
 
-    if _is_admin_role(rol):
+    if is_admin_role(rol):
         buildings = Building.objects.all()
         notifications = Notification.objects.all()
         if building_id_raw:
