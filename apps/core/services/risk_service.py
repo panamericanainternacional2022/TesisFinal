@@ -1,9 +1,8 @@
-def classify_risk(
-    variable: str, value: float, thresholds: dict | None = None
-) -> tuple[str, str]:
-    from apps.sensors.sensor_config import NO_RISK_VARS
-    from apps.alerts.services.threshold_service import get_thresholds
+from apps.sensors.sensor_config import NO_RISK_VARS
+from apps.alerts.services.threshold_service import get_thresholds
 
+
+def classify_risk(variable, value, thresholds=None):
     if variable == "motor_stuck":
         return ("Crítico", "red") if value else ("Bajo", "green")
     if variable in NO_RISK_VARS:
@@ -14,40 +13,28 @@ def classify_risk(
         thresholds = get_thresholds()
     if variable not in thresholds:
         return "Desconocido", "gray"
-    return _classify_by_threshold(thresholds[variable], value)
-
-
-def _classify_by_threshold(cfg: dict, value: float) -> tuple[str, str]:
-    direction = cfg["direction"]
-    if direction == "range":
-        return _evaluate_range(cfg, value)
-    if direction == "higher":
-        return _evaluate_higher(cfg, value)
-    return _evaluate_lower(cfg, value)
-
-
-def _evaluate_range(cfg: dict, value: float) -> tuple[str, str]:
-    low, high = cfg["low"], cfg["high"]
-    return ("Bajo", "green") if low <= value <= high else ("Alto", "orange")
-
-
-def _evaluate_higher(cfg: dict, value: float) -> tuple[str, str]:
-    low, med, high = cfg["low"], cfg["medium"], cfg["high"]
-    if value <= low:
-        return "Bajo", "green"
-    if value <= med:
-        return "Medio", "yellow"
-    if value <= high:
-        return "Alto", "orange"
-    return "Crítico", "red"
-
-
-def _evaluate_lower(cfg: dict, value: float) -> tuple[str, str]:
-    low, med, high = cfg["low"], cfg["medium"], cfg["high"]
-    if value >= low:
-        return "Bajo", "green"
-    if value >= med:
-        return "Medio", "yellow"
-    if value >= high:
-        return "Alto", "orange"
-    return "Crítico", "red"
+    cfg = thresholds[variable]
+    d = cfg["direction"]
+    if d == "range":
+        low, high = cfg["low"], cfg["high"]
+        return ("Bajo", "green") if low <= value <= high else ("Alto", "orange")
+    else:
+        low, med, high = cfg["low"], cfg["medium"], cfg["high"]
+        if d == "higher":
+            if value <= low:
+                return "Bajo", "green"
+            elif value <= med:
+                return "Medio", "yellow"
+            elif value <= high:
+                return "Alto", "orange"
+            else:
+                return "Crítico", "red"
+        else:
+            if value >= low:
+                return "Bajo", "green"
+            elif value >= med:
+                return "Medio", "yellow"
+            elif value >= high:
+                return "Alto", "orange"
+            else:
+                return "Crítico", "red"
