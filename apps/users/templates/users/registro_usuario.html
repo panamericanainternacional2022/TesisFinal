@@ -30,22 +30,6 @@
                             {{ form_error }}
                         </div>
                     {% endif %}
-                    {% if email_sent is not None %}
-                        {% if email_sent %}
-                            <div class="credentials-box" style="background-color: #e6f4ea; border-color: #137333; color: #137333; padding: 15px; margin-bottom: 20px; border-left: 5px solid #137333;">
-                                <h3 style="margin-top: 0; color: #137333;">¡Registro Exitoso!</h3>
-                                <p style="margin:0 0 4px;">Se ha enviado un correo de activación a: <strong>{{ sent_to }}</strong></p>
-                                <p style="margin:0; font-size: 0.95rem;">El usuario deberá seguir el enlace enviado para elegir su nombre de usuario y contraseña.</p>
-                            </div>
-                        {% else %}
-                            <div class="credentials-box" style="background-color: #fce8e6; border-color: #c5221f; color: #c5221f; padding: 15px; margin-bottom: 20px; border-left: 5px solid #c5221f;">
-                                <h3 style="margin-top: 0; color: #c5221f;">Usuario registrado (Correo no enviado)</h3>
-                                <p style="margin:0 0 8px;">Las credenciales SMTP no están configuradas correctamente o hubo un error en la red. Copia y entrega el siguiente enlace directamente al usuario:</p>
-                                <p style="margin:0 0 8px; word-break: break-all; background: #fff; padding: 8px; border: 1px solid #c5221f; font-family: monospace;"><a href="{{ activation_link }}" target="_blank">{{ activation_link }}</a></p>
-                                <p style="margin:0; font-size: 0.85rem; color: #5f6368;">El usuario podrá utilizar este enlace para configurar su cuenta (válido por 24 horas).</p>
-                            </div>
-                        {% endif %}
-                    {% endif %}
                      <div class="profile-form">
                         <div class="form-row">
                             <div class="form-group half-width">

@@ -22,6 +22,29 @@
                         <p>Consulta, busca, edita o elimina la información de los usuarios, residentes y personal técnico autorizados en la plataforma.</p>
                     </div>
 
+                    {% if messages %}
+                        <div class="messages-container" style="margin-bottom: var(--sp-3);">
+                            {% for message in messages %}
+                                {% if "<div" in message.message %}
+                                    {{ message.message|safe }}
+                                {% else %}
+                                    <div class="credentials-box alert-fadeable {% if message.tags %}alert-{{ message.tags }}{% endif %}" style="padding: 15px; margin-bottom: 20px; position: relative; border-radius: 0px; box-sizing: border-box;
+                                        {% if message.tags == 'success' %}
+                                            background-color: #e6f4ea; border-color: #137333; color: #137333; border-left: 5px solid #137333; border-style: solid; border-width: 1px 1px 1px 5px;
+                                        {% elif message.tags == 'warning' or message.tags == 'error' %}
+                                            background-color: #fce8e6; border-color: #c5221f; color: #c5221f; border-left: 5px solid #c5221f; border-style: solid; border-width: 1px 1px 1px 5px;
+                                        {% else %}
+                                            background-color: #f1f3f4; border-color: #5f6368; color: #5f6368; border-left: 5px solid #5f6368; border-style: solid; border-width: 1px 1px 1px 5px;
+                                        {% endif %}
+                                    ">
+                                        <button type="button" class="close-msg-btn" style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: inherit; line-height: 1;">&times;</button>
+                                        {{ message.message }}
+                                    </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
                     <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
                         <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
                             <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
@@ -104,6 +127,34 @@
                     btn.setAttribute('tabindex', '-1');
                 });
             }
+
+            // Auto-fade alert-fadeable messages
+            const fadeableAlerts = document.querySelectorAll('.alert-fadeable');
+            fadeableAlerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.transition = 'opacity 0.6s ease, margin 0.6s ease, padding 0.6s ease, height 0.6s ease';
+                    alert.style.opacity = '0';
+                    setTimeout(() => {
+                        alert.style.height = '0';
+                        alert.style.padding = '0';
+                        alert.style.margin = '0';
+                        alert.style.border = 'none';
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 600);
+                    }, 600);
+                }, 5000); // 5 seconds display
+            });
+
+            // Close button handler for alerts
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('close-msg-btn')) {
+                    const alert = e.target.closest('.credentials-box') || e.target.closest('.alert-fadeable');
+                    if (alert) {
+                        alert.remove();
+                    }
+                }
+            });
         });
     </script>
 </body>

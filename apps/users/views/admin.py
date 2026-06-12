@@ -122,11 +122,37 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                         )
 
                     if "user" in locals():
-                        activation_link = send_activation_email(
-                            post_data["email"], user.id_usuario,
-                            f"{'https' if request.is_secure() else 'http'}://{request.get_host()}",
-                        )
-                        email_sent = True
+                        try:
+                            activation_link = send_activation_email(
+                                post_data["email"], user.id_usuario,
+                                f"{'https' if request.is_secure() else 'http'}://{request.get_host()}",
+                            )
+                            email_sent = True
+                        except Exception:
+                            email_sent = False
+                            from django.core import signing
+                            from django.urls import reverse
+                            token = signing.dumps({"user_id": user.id_usuario, "email": post_data["email"]})
+                            activation_link = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}{reverse('complete_registration')}?token={token}"
+
+                        if email_sent:
+                            msg_html = f"""
+                            <h3 style="margin-top: 0; color: #137333;">¡Registro Exitoso!</h3>
+                            <p style="margin:0 0 4px;">Se ha enviado un correo de activación a: <strong>{post_data['email']}</strong></p>
+                            <p style="margin:0; font-size: 0.95rem;">El usuario deberá seguir el enlace enviado para elegir su nombre de usuario y contraseña.</p>
+                            """
+                            messages.success(request, f'<div class="credentials-box alert-fadeable" style="background-color: #e6f4ea; border-color: #137333; color: #137333; padding: 15px; margin-bottom: 20px; border-left: 5px solid #137333; position: relative;">{msg_html}</div>')
+                        else:
+                            msg_html = f"""
+                            <button type="button" class="close-msg-btn" style="position: absolute; right: 15px; top: 15px; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #c5221f; line-height: 1;">&times;</button>
+                            <h3 style="margin-top: 0; color: #c5221f;">Usuario registrado (Correo no enviado)</h3>
+                            <p style="margin:0 0 8px;">Las credenciales SMTP no están configuradas correctamente o hubo un error en la red. Copia y entrega el siguiente enlace directamente al usuario:</p>
+                            <p style="margin:0 0 8px; word-break: break-all; background: #fff; padding: 8px; border: 1px solid #c5221f; font-family: monospace;"><a href="{activation_link}" target="_blank" style="color: #c5221f; text-decoration: underline;">{activation_link}</a></p>
+                            <p style="margin:0; font-size: 0.85rem; color: #5f6368;">El usuario podrá utilizar este enlace para configurar su cuenta (válido por 24 horas).</p>
+                            """
+                            messages.warning(request, f'<div class="credentials-box" style="background-color: #fce8e6; border-color: #c5221f; color: #c5221f; padding: 15px; margin-bottom: 20px; border-left: 5px solid #c5221f; position: relative;">{msg_html}</div>')
+
+                        return redirect("beneficiary_list")
 
     buildings = Building.objects.all()
     context: dict[str, Any] = {
@@ -135,10 +161,6 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
         "form_error": form_error,
         "form_errors": form_errors,
     }
-    if email_sent:
-        context["email_sent"] = email_sent
-        context["activation_link"] = activation_link
-        context["sent_to"] = post_data.get("email", "")
 
     return render(request, "users/registro_usuario.html", context)
 

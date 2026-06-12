@@ -7,7 +7,6 @@ class Persona(models.Model):
     name = models.CharField(max_length=255)
     last_name = models.CharField(max_length=255, db_column="apellido")
     email = models.EmailField(max_length=255)
-    phone = models.CharField(max_length=50, db_column="telefono")
 
     class Meta:
         db_table = "persona"

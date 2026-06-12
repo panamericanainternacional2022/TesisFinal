@@ -10,7 +10,6 @@ REGEX_ONLY_NUMBERS: re.Pattern = re.compile(r"^\d+$")
 REGEX_EMAIL: re.Pattern = re.compile(
     r"^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$"
 )
-REGEX_PHONE: re.Pattern = re.compile(r"^[\d\s\+\-]+$")
 REGEX_RIF: re.Pattern = re.compile(r"^[VJEGP]\-?\d{7,9}\-?\d$")
 REGEX_ADDRESS: re.Pattern = re.compile(
     r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]+$"
@@ -80,19 +79,6 @@ def _validate_max_length(value: str, maximum: int, label: str) -> str:
     return ""
 
 
-def _validate_phone(value: str) -> str:
-    if not value:
-        return ""
-    if not REGEX_PHONE.match(value):
-        return _("El teléfono contiene caracteres no válidos.")
-    digits = re.sub(r"[\s\+\-]", "", value)
-    if len(digits) < 10:
-        return _("El teléfono debe tener al menos 10 dígitos reales.")
-    if len(digits) > 20:
-        return _("El teléfono no puede tener más de 20 dígitos.")
-    return ""
-
-
 def _validate_rif(value: str) -> str:
     if not value:
         return _("El RIF es obligatorio.")
@@ -138,17 +124,6 @@ def _validate_unique_ci(ci: str, exclude_persona_id: Optional[int] = None) -> st
     return ""
 
 
-def _validate_unique_phone(phone: str, exclude_persona_id: Optional[int] = None) -> str:
-    if not phone:
-        return ""
-    qs = Persona.objects.filter(phone=phone)
-    if exclude_persona_id:
-        qs = qs.exclude(id_persona=exclude_persona_id)
-    if qs.exists():
-        return _("El teléfono ya está registrado por otro usuario.")
-    return ""
-
-
 def validate_user_form(data: dict, exclude_persona_id: Optional[int] = None) -> dict:
     errors: dict[str, str] = {}
 
@@ -172,10 +147,6 @@ def validate_user_form(data: dict, exclude_persona_id: Optional[int] = None) -> 
     if error:
         errors["email"] = error
 
-    error = _validate_phone(data.get("telefono", ""))
-    if error:
-        errors["telefono"] = error
-
     error = _validate_unique_email(data.get("email", ""), exclude_persona_id)
     if error:
         errors["email_unico"] = error
@@ -183,9 +154,5 @@ def validate_user_form(data: dict, exclude_persona_id: Optional[int] = None) -> 
     error = _validate_unique_ci(data.get("cedula", ""), exclude_persona_id)
     if error:
         errors["cedula_unico"] = error
-
-    error = _validate_unique_phone(data.get("telefono", ""), exclude_persona_id)
-    if error:
-        errors["telefono_unico"] = error
 
     return errors

@@ -275,6 +275,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     document.querySelectorAll('form').forEach(function (form) {
         form.querySelectorAll('input[data-validate], select').forEach(function (input) {
+            if (input.classList.contains('input-error')) {
+                return;
+            }
             if (input.value) {
                 if (input.tagName === 'SELECT') {
                     input.dispatchEvent(new Event('change'));
