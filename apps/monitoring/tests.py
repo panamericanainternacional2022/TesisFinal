@@ -2,8 +2,10 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.http import StreamingHttpResponse
 from unittest.mock import patch, MagicMock
-from apps.monitoring.views import menu_seleccion_view, historial_view, monitoreo_view
-from apps.monitoring.simulation_views import sse_stream, api_status
+from apps.monitoring.views.dispatch import historial_view, monitoreo_view
+from apps.monitoring.views.user import menu_seleccion_view
+from apps.monitoring.simulation.streaming import sse_stream
+from apps.monitoring.simulation.api import api_status
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.alerts.models import Notification
@@ -59,20 +61,19 @@ class MonitorViewTests(TestCase):
         response = self.client.get(reverse("monitoreo"))
         self.assertEqual(response.status_code, 200)
 
-    @patch("apps.monitoring.simulation_views.build_live_payload_for_sim")
-    @patch("apps.monitoring.simulation_views.simulators")
+    @patch("apps.sensors.payload.build_live_payload_for_sim")
+    @patch("apps.monitoring.simulation.shared.simulators")
     def test_api_status_returns_json(self, mock_simulators, mock_payload):
         mock_payload.return_value = {"status": "ok"}
         mock_sim = MagicMock()
         mock_sim.edificio_id = 1
-        mock_simulators.items.return_value = [(1, mock_sim)]
         mock_simulators.get.return_value = mock_sim
-        response = self.client.get(reverse("api_status"))
+        response = self.client.get(reverse("api_status"), {"edificio_id": 1})
         self.assertEqual(response.status_code, 200)
 
 
 class SseStreamTests(TestCase):
-    @patch("apps.monitoring.simulation_views.simulators")
+    @patch("apps.monitoring.simulation.shared.simulators")
     def test_sse_returns_streaming_response(self, mock_simulators):
         from apps.users.models import Persona, Usuario
         from django.contrib.auth.hashers import make_password
