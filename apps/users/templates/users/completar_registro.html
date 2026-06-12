@@ -101,7 +101,7 @@
                 </div>
             {% else %}
                 <h1>Configurar credenciales</h1>
-                <p class="info-text">Hola <strong>{{ usuario.id_persona.name }}</strong>, por favor ingresa tu correo electrónico registrado, define tu nombre de usuario y contraseña para poder acceder al sistema.</p>
+                <p class="info-text">Hola <strong>{{ usuario.id_persona.name }}</strong>, por favor define tu nombre de usuario y contraseña para tu cuenta (<strong>{{ usuario.id_persona.email }}</strong>) para poder acceder al sistema.</p>
 
                 {% if form_error %}
                     <div class="alert-error">
@@ -112,14 +112,6 @@
                 <form method="POST" class="login-form" autocomplete="off">
                     {% csrf_token %}
                     <input type="hidden" name="token" value="{{ token }}">
-                    
-                    <div class="form-group">
-                        <label for="email">Correo electrónico</label>
-                        <input type="email" id="email" name="email" placeholder="Correo registrado para la cuenta" value="{{ email_val|default:'' }}" required class="{% if form_errors.email %}input-error{% endif %}">
-                        {% if form_errors.email %}
-                            <div class="validation-error">{{ form_errors.email }}</div>
-                        {% endif %}
-                    </div>
 
                     <div class="form-group">
                         <label for="username">Nombre de usuario</label>

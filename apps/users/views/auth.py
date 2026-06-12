@@ -68,25 +68,19 @@ def complete_registration_view(request: HttpRequest) -> HttpResponse:
     form_error = None
     form_errors: dict[str, str] = {}
     username_val = request.POST.get("username", "").strip()
-    email_val = request.POST.get("email", "").strip()
 
     if request.method == "POST":
         password = request.POST.get("password", "").strip()
         confirm_password = request.POST.get("confirm_password", "").strip()
 
-        if not email_val or not username_val or not password or not confirm_password:
+        if not username_val or not password or not confirm_password:
             form_error = "Todos los campos son obligatorios."
-            if not email_val:
-                form_errors["email"] = "Este campo es obligatorio."
             if not username_val:
                 form_errors["username"] = "Este campo es obligatorio."
             if not password:
                 form_errors["password"] = "Este campo es obligatorio."
             if not confirm_password:
                 form_errors["confirm_password"] = "Este campo es obligatorio."
-        elif email_val.lower() != token_email.lower():
-            form_error = "El correo ingresado no coincide con el registrado."
-            form_errors["email"] = "No coincide con el correo registrado."
         elif password != confirm_password:
             form_error = "Las contraseñas no coinciden."
             form_errors["confirm_password"] = "Las contraseñas no coinciden."
@@ -118,10 +112,9 @@ def complete_registration_view(request: HttpRequest) -> HttpResponse:
         request,
         "users/completar_registro.html",
         {
-            "user": user,
+            "usuario": user,
             "token": token,
             "username_val": username_val,
-            "email_val": email_val,
             "form_error": form_error,
             "form_errors": form_errors,
         },
