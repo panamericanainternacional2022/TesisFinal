@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.db.models import Q
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.auth_decorators import login_required, admin_required
@@ -249,4 +249,28 @@ def _render_delete_confirmation(
             "usuarios_count": user_assignments.count(),
             "notifications_count": notifications,
         },
-    )
+     )
+
+
+def check_rif_uniqueness_view(request: HttpRequest) -> JsonResponse:
+    rif = request.GET.get("rif", "").strip()
+    exclude_id = request.GET.get("exclude_id", "").strip()
+    exclude_building_id = int(exclude_id) if exclude_id.isdigit() else None
+
+    if not rif:
+        return JsonResponse({"exists": False})
+
+    from apps.buildings.validators import validate_unique_rif
+    from apps.users.validators import normalize_rif
+    from django.core.exceptions import ValidationError
+
+    normalized = normalize_rif(rif)
+    try:
+        validate_unique_rif(normalized, exclude_building_id)
+        exists = False
+        error = ""
+    except ValidationError as e:
+        exists = True
+        error = str(e)
+
+    return JsonResponse({"exists": exists, "error": error})

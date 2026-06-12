@@ -115,6 +115,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const valido = /^J\d{7,9}\d$/;
         if (valor && !valido.test(cleaned)) {
             mostrarError(input, 'Formato: J + 7-9 dígitos + dígito control. Ej: J-12345678-0');
+        } else if (valor) {
+            limpiarError(input);
+            const excludeId = input.getAttribute('data-exclude-id') || '';
+            const url = `/buildings/api/check-rif/?rif=${encodeURIComponent(valor)}&exclude_id=${encodeURIComponent(excludeId)}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        mostrarError(input, 'Este RIF ya está registrado en otro edificio.');
+                    } else {
+                        limpiarError(input);
+                    }
+                    toggleSubmit(input.form);
+                })
+                .catch(() => {});
         } else {
             limpiarError(input);
         }
@@ -135,6 +150,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const valido = /^[VE]\d{6,9}$/;
         if (valor && !valido.test(cleaned)) {
             mostrarError(input, 'Formato: V o E + 6-9 dígitos. Ej: V-12345678');
+        } else if (valor) {
+            limpiarError(input);
+            const excludeId = input.getAttribute('data-exclude-id') || '';
+            const url = `/users/api/check-cedula/?cedula=${encodeURIComponent(valor)}&exclude_id=${encodeURIComponent(excludeId)}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        mostrarError(input, 'Esta cédula ya está registrada por otro usuario.');
+                    } else {
+                        limpiarError(input);
+                    }
+                    toggleSubmit(input.form);
+                })
+                .catch(() => {});
         } else {
             limpiarError(input);
         }

@@ -5,6 +5,7 @@ from apps.buildings.views.building_views import (
     edit_building_view,
     delete_building_view,
     select_building_view,
+    check_rif_uniqueness_view,
 )
 from apps.buildings.views.configuration_view import configuration_view
 
@@ -27,4 +28,5 @@ urlpatterns = [
         name="select_building",
     ),
     path("settings/", configuration_view, name="configuration"),
+    path("api/check-rif/", check_rif_uniqueness_view, name="check_rif"),
 ]

@@ -2,7 +2,7 @@ from typing import Any
 
 from django.contrib import messages
 from django.db import transaction
-from django.http import HttpRequest, HttpResponse
+from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Q
 
@@ -281,3 +281,16 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
             "accion": action,
         },
     )
+
+
+def check_cedula_uniqueness_view(request: HttpRequest) -> JsonResponse:
+    ci = request.GET.get("cedula", "").strip()
+    exclude_id = request.GET.get("exclude_id", "").strip()
+    exclude_persona_id = int(exclude_id) if exclude_id.isdigit() else None
+
+    if not ci:
+        return JsonResponse({"exists": False})
+
+    from apps.users.validators import _validate_unique_ci
+    error = _validate_unique_ci(ci, exclude_persona_id)
+    return JsonResponse({"exists": bool(error), "error": error})

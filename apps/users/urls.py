@@ -12,6 +12,7 @@ from apps.users.views.admin import (
     beneficiary_update_view,
     beneficiary_delete_view,
     user_select_view,
+    check_cedula_uniqueness_view,
 )
 
 urlpatterns = [
@@ -40,4 +41,5 @@ urlpatterns = [
         name="user_select",
     ),
     path("complete-registration/", complete_registration_view, name="complete_registration"),
+    path("api/check-cedula/", check_cedula_uniqueness_view, name="check_cedula"),
 ]
