@@ -101,25 +101,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Teléfono: dígitos, +, -, espacios
-    function validarTelefono(input) {
-        const valor = input.value;
-        const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
-        const valido = /^[\d\s\+\-]*$/;
-        if (valor && !valido.test(valor)) {
-            input.value = valor.replace(/[^\d\s\+\-]/g, '');
-            mostrarError(input, 'Solo se permiten números, +, - y espacios.');
-        } else if (valor && valor.replace(/[\s\+\-]/g, '').length < 10) {
-            mostrarError(input, 'El teléfono debe tener al menos 10 dígitos reales.');
-        } else if (valor && valor.replace(/[\s\+\-]/g, '').length > 20) {
-            input.value = valor.slice(0, valor.length - 1);
-            mostrarError(input, 'Máximo 20 dígitos.');
-        } else {
-            limpiarError(input);
-        }
-        toggleSubmit(input.form);
-    }
-
     // RIF: letra (V,J,E,G) + 7-9 dígitos + dígito de control, guiones opcionales
     function validarRIF(input) {
         let valor = input.value.toUpperCase();
@@ -211,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function () {
             switch (tipo) {
                 case 'solo-letras': validarSoloLetras(input); break;
                 case 'solo-numeros': validarSoloNumeros(input); break;
-                case 'telefono': validarTelefono(input); break;
+
                 case 'rif': validarRIF(input); break;
                 case 'email': validarEmail(input); break;
                 case 'password': validarPassword(input); break;

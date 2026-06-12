@@ -89,7 +89,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
             user_data = post_data
 
             if not has_required_fields(post_data):
-                form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio."
+                form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio."
                 form_errors = build_required_field_errors(post_data)
             else:
                 form_errors = validate_user_form(post_data)
@@ -101,7 +101,6 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                         name=f"{post_data['primerNombre']} {post_data['segundoNombre']}".strip(),
                         last_name=f"{post_data['primerApellido']} {post_data['segundoApellido']}".strip(),
                         email=post_data["email"],
-                        phone=post_data["telefono"],
                     )
                     generated_password = generate_random_password(10)
 
@@ -178,7 +177,7 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         post_data = extract_post_data(request)
 
         if not has_required_fields(post_data):
-            form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio para actualizar."
+            form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio para actualizar."
             form_errors = build_required_field_errors(post_data)
         else:
             form_errors = validate_user_form(post_data, exclude_persona_id=person.id_persona)
@@ -189,7 +188,6 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                 person.last_name = f"{post_data['primerApellido']} {post_data['segundoApellido']}".strip()
                 person.email = post_data["email"]
                 person.ci = post_data["cedula"]
-                person.phone = post_data["telefono"]
                 person.save()
 
                 UserBuilding.objects.filter(user=user).delete()

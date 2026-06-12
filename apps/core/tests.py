@@ -44,7 +44,7 @@ class AdminRequiredDecoratorTests(TestCase):
 
     def test_calls_view_when_admin(self):
         from apps.users.models import Persona
-        p = Persona.objects.create(ci="12345678", name="Admin", last_name="U", email="a@a.com", phone="")
+        p = Persona.objects.create(ci="12345678", name="Admin", last_name="U", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         from apps.users.models import Usuario
         Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=p, rol="SA", registered=True)

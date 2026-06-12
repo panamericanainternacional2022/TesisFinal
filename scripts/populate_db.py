@@ -57,7 +57,6 @@ def populate():
             "name": "Juan",
             "last_name": "Perez",
             "email": "juan@example.com",
-            "phone": "04141234567",
         },
     )
     p2, _ = Persona.objects.get_or_create(
@@ -66,7 +65,6 @@ def populate():
             "name": "Maria",
             "last_name": "Gomez",
             "email": "maria@example.com",
-            "phone": "04121234567",
         },
     )
     p3, _ = Persona.objects.get_or_create(
@@ -75,7 +73,6 @@ def populate():
             "name": "Tommy",
             "last_name": "Tupiza",
             "email": "tjta3105@gmail.com",
-            "phone": "04241234567",
         },
     )
     p4, _ = Persona.objects.get_or_create(
@@ -84,7 +81,6 @@ def populate():
             "name": "Admin",
             "last_name": "Sistema",
             "email": "admin@example.com",
-            "phone": "04161234567",
         },
     )
     p5, _ = Persona.objects.get_or_create(
@@ -93,7 +89,6 @@ def populate():
             "name": "Carlos",
             "last_name": "Rodriguez",
             "email": "carlos@example.com",
-            "phone": "04149876543",
         },
     )
 

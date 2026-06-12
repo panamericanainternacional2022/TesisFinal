@@ -93,7 +93,7 @@ def beneficiary_csv_view(request: Any) -> HttpResponse:
     response["Content-Disposition"] = 'attachment; filename="reporte_beneficiarios.csv"'
     response.write("\ufeff".encode("utf8"))
     writer = csv.writer(response)
-    writer.writerow(["Cedula", "Nombre", "Apellido", "Email", "Telefono", "Edificio"])
+    writer.writerow(["Cedula", "Nombre", "Apellido", "Email", "Edificio"])
 
     usuarios = (
         Usuario.objects.select_related("id_persona")
@@ -110,7 +110,6 @@ def beneficiary_csv_view(request: Any) -> HttpResponse:
                 b["nombre"],
                 b["last_name"],
                 b["email"],
-                b["phone"],
                 b["edificio_nombre"],
             ]
         )

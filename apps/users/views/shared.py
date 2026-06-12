@@ -16,7 +16,6 @@ def extract_post_data(request: HttpRequest) -> dict[str, Any]:
         "segundoApellido": request.POST.get("segundoApellido", "").strip(),
         "email": request.POST.get("email", "").strip(),
         "cedula": request.POST.get("cedula", "").strip(),
-        "telefono": request.POST.get("telefono", "").strip(),
         "id_edificio": request.POST.get("id_edificio", "").strip(),
     }
 
@@ -28,7 +27,6 @@ def has_required_fields(data: dict[str, Any]) -> bool:
         and data.get("email")
         and data.get("cedula")
         and data.get("id_edificio")
-        and data.get("telefono")
     )
 
 
@@ -39,7 +37,6 @@ def build_required_field_errors(data: dict[str, Any]) -> dict[str, str]:
         "primerApellido",
         "email",
         "cedula",
-        "telefono",
         "id_edificio",
     )
     for key in required:
@@ -90,6 +87,5 @@ def build_edit_initial_data(user: Usuario, person: Persona) -> dict[str, Any]:
         else "",
         "email": person.email if person else "",
         "cedula": person.ci if person else "",
-        "telefono": person.phone if person else "",
         "id_edificio": current_building.id if current_building else None,
     }

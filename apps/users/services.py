@@ -84,20 +84,17 @@ def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
     last_name = ""
     id_number = ""
     email = ""
-    phone = ""
     if person:
         id_number = person.ci
         name = person.name or user.username
         last_name = person.last_name or ""
         email = person.email or ""
-        phone = person.phone or ""
     return {
         "id": user.id_usuario,
         "cedula": id_number,
         "nombre": name,
         "last_name": last_name,
         "email": email,
-        "phone": phone,
         "edificio_nombre": building.name if building else "",
         "edificio_rif": building.rif if building else "",
         "edificio_direccion": building.address if building else "",

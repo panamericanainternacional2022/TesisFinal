@@ -11,7 +11,6 @@ from apps.users.validators import (
     _validate_field,
     _validate_min_length,
     _validate_max_length,
-    _validate_phone,
     _validate_rif,
     _validate_email,
     _validate_unique_email,
@@ -55,22 +54,6 @@ class ValidateLengthTests(TestCase):
         self.assertIn("no puede tener más de 3", msg)
 
 
-class ValidatePhoneTests(TestCase):
-    def test_empty_returns_empty(self):
-        self.assertEqual(_validate_phone(""), "")
-
-    def test_valid_with_spaces_and_plus(self):
-        self.assertEqual(_validate_phone("+58 412 1234567"), "")
-
-    def test_invalid_characters(self):
-        msg = _validate_phone("abc123")
-        self.assertNotEqual(msg, "")
-
-    def test_too_few_digits(self):
-        msg = _validate_phone("123")
-        self.assertNotEqual(msg, "")
-
-
 class ValidateRifTests(TestCase):
     def test_empty_rif_returns_error(self):
         self.assertNotEqual(_validate_rif(""), "")
@@ -110,7 +93,7 @@ class ValidateUniqueEmailDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="12345678", name="Test", last_name="User",
-            email="existing@test.com", phone="04121234567",
+            email="existing@test.com",
         )
 
     def test_duplicate_email_returns_error(self):
@@ -131,7 +114,7 @@ class ValidateUniqueCiDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="87654321", name="Test", last_name="User",
-            email="t@t.com", phone="04121234567",
+            email="t@t.com",
         )
 
     def test_duplicate_ci_returns_error(self):
@@ -151,7 +134,6 @@ class ValidateFormTests(TestCase):
             "segundoApellido": "Gómez",
             "email": "juan@test.com",
             "cedula": "12345678",
-            "telefono": "04121234567",
         }
         errors = validate_user_form(data)
         self.assertEqual(errors, {})
@@ -164,14 +146,12 @@ class ValidateFormTests(TestCase):
             "segundoApellido": "",
             "email": "bad-email",
             "cedula": "abc",
-            "telefono": "12",
         }
         errors = validate_user_form(data)
         self.assertIn("primerNombre", errors)
         self.assertIn("primerApellido", errors)
         self.assertIn("email", errors)
         self.assertIn("cedula", errors)
-        self.assertIn("telefono", errors)
 
 
 # ─── SERVICE TESTS ─────────────────────────────────────────────────────
@@ -181,7 +161,7 @@ class BuildBeneficiaryDataTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="12345678", name="Juan", last_name="Pérez",
-            email="juan@test.com", phone="04121234567",
+            email="juan@test.com",
         )
         self.user = Usuario.objects.create(
             username="jperez", password="abc123",
@@ -194,12 +174,11 @@ class BuildBeneficiaryDataTests(TestCase):
         self.assertEqual(data["nombre"], "Juan")
         self.assertEqual(data["last_name"], "Pérez")
         self.assertEqual(data["email"], "juan@test.com")
-        self.assertEqual(data["phone"], "04121234567")
 
     def test_build_without_persona_uses_username(self):
         p = Persona.objects.create(
             ci="11111111", name="", last_name="",
-            email="np@test.com", phone="",
+            email="np@test.com",
         )
         user = Usuario.objects.create(
             username="nopersona", password="abc123",
@@ -224,7 +203,7 @@ class BuildRandomUsernameTests(TestCase):
     def test_increments_on_collision(self):
         p = Persona.objects.create(
             ci="22222222", name="Col", last_name="Lis",
-            email="col@test.com", phone="",
+            email="col@test.com",
         )
         Usuario.objects.create(
             username="JPérez", password="abc",
@@ -255,7 +234,7 @@ class LoginViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="12345678", name="Admin", last_name="User",
-            email="admin@test.com", phone="04121234567",
+            email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
         self.user = Usuario.objects.create(
@@ -297,7 +276,7 @@ class BeneficiaryListViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="12345678", name="Admin", last_name="User",
-            email="admin@test.com", phone="04121234567",
+            email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
         self.user = Usuario.objects.create(
@@ -312,7 +291,7 @@ class BeneficiaryListViewTests(TestCase):
         self.client.get(reverse("logout"))
         p = Persona.objects.create(
             ci="87654321", name="Normal", last_name="User",
-            email="n@n.com", phone="04120000000",
+            email="n@n.com",
         )
         from django.contrib.auth.hashers import make_password
         Usuario.objects.create(
@@ -326,7 +305,7 @@ class BeneficiaryListViewTests(TestCase):
     def test_lista_shows_beneficiarios(self):
         Persona.objects.create(
             ci="87654321", name="Test", last_name="User",
-            email="t@t.com", phone="04121234567",
+            email="t@t.com",
         )
         response = self.client.get(reverse("beneficiary_list"))
         self.assertEqual(response.status_code, 200)
@@ -336,7 +315,7 @@ class BeneficiaryCreateViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="12345678", name="Admin", last_name="User",
-            email="admin@test.com", phone="04121234567",
+            email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
         self.user = Usuario.objects.create(
@@ -355,6 +334,6 @@ class BeneficiaryCreateViewTests(TestCase):
         response = self.client.post(reverse("beneficiary_create"), {
             "primerNombre": "Test", "primerApellido": "User",
             "email": "test@test.com", "cedula": "99999999",
-            "telefono": "04121234567", "id_edificio": "1",
+            "id_edificio": "1",
         })
         self.assertContains(response, "Debe registrar al menos un edificio")
