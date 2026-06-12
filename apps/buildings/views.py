@@ -184,16 +184,54 @@ def lista_edificios_view(request):
 @_admin_required
 def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
-    edificio.delete()
-    messages.success(
-        request, "Edificio y todos sus datos asociados fueron eliminados correctamente."
+
+    if request.method == "POST" and request.POST.get("confirmed") == "1":
+        from apps.users.models import UsuarioEdificio
+        from apps.alerts.models import Notificacion
+        equipos = list(edificio.equipomonitoreo_set.all())
+        usuarios_asociados = UsuarioEdificio.objects.filter(
+            id_edificio=edificio
+        ).count()
+        Notificacion.objects.filter(
+            id_equipo_monitoreo__id_edificio=edificio
+        ).delete()
+        for eq in equipos:
+            eq.delete()
+        UsuarioEdificio.objects.filter(id_edificio=edificio).delete()
+        edificio.delete()
+        messages.success(
+            request,
+            "Edificio y todos sus datos asociados fueron eliminados correctamente.",
+        )
+        return redirect("seleccionar_edificio", accion="eliminar")
+
+    from apps.users.models import UsuarioEdificio
+    from apps.buildings.models import EquipoMonitoreo
+    from apps.alerts.models import Notificacion
+    equipos = EquipoMonitoreo.objects.filter(id_edificio=edificio)
+    usuarios_asociados = UsuarioEdificio.objects.filter(id_edificio=edificio)
+    notificaciones = Notificacion.objects.filter(
+        id_equipo_monitoreo__id_edificio=edificio
     )
-    return redirect("seleccionar_edificio", accion="eliminar")
+    return render(
+        request,
+        "buildings/confirmar_eliminar_edificio.html",
+        {
+            "edificio": edificio,
+            "equipos": list(equipos),
+            "usuarios_count": usuarios_asociados.count(),
+            "notificaciones_count": notificaciones.count(),
+        },
+    )
 
 
 @_login_required
 @_admin_required
 def seleccionar_edificio_view(request, accion):
+    ACCIONES_VALIDAS = ("editar", "eliminar")
+    if accion not in ACCIONES_VALIDAS:
+        messages.error(request, f"Acción no válida: {accion}")
+        return redirect("lista_edificios")
     edificios = Edificio.objects.all()
     items = [
         {

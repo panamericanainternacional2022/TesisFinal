@@ -60,13 +60,16 @@ def sse_stream(request, edificio_id):
         return _json_error("Edificio no encontrado", 404)
 
     def event_stream():
-        while True:
-            eventlet.sleep(5)
-            payload = build_live_payload_for_sim(sim)
-            yield f"data: {json.dumps(payload)}\n\n"
-            while sim.pending_notifications:
-                notif = sim.pending_notifications.popleft()
-                yield f"event: notification\ndata: {json.dumps(notif)}\n\n"
+        try:
+            while True:
+                eventlet.sleep(5)
+                payload = build_live_payload_for_sim(sim)
+                yield f"data: {json.dumps(payload)}\n\n"
+                while sim.pending_notifications:
+                    notif = sim.pending_notifications.popleft()
+                    yield f"event: notification\ndata: {json.dumps(notif)}\n\n"
+        except (GeneratorExit, IOError, OSError):
+            logger.info("Cliente SSE desconectado del edificio %s", edificio_id)
 
     return StreamingHttpResponse(event_stream(), content_type="text/event-stream")
 
@@ -132,19 +135,21 @@ def api_notifications(request):
     ).order_by("-fecha")[:50]
     data = []
     for n in qs:
-        msg = {}
-        if n.mensaje:
+        msg = n.mensaje or {}
+        if isinstance(msg, str):
             try:
-                msg = json.loads(n.mensaje)
+                msg = json.loads(msg)
             except (json.JSONDecodeError, TypeError):
-                msg = {"raw": n.mensaje}
+                msg = {"raw": msg}
+        elif not isinstance(msg, dict):
+            msg = {"raw": str(msg)}
         data.append({
             "id": n.id_notificacion,
             "timestamp": n.fecha.isoformat() if n.fecha else "",
             "variable": msg.get("variable", ""),
             "value": msg.get("value"),
             "risk": msg.get("risk", ""),
-            "message": msg.get("action", msg.get("raw", n.mensaje or "")),
+            "message": msg.get("action", msg.get("raw", json.dumps(msg, ensure_ascii=False))),
             "edificio": n.id_equipo_monitoreo.id_edificio.nb_edificio
             if n.id_equipo_monitoreo and n.id_equipo_monitoreo.id_edificio
             else None,

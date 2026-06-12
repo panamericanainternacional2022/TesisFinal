@@ -6,6 +6,7 @@ import time as _time
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
+from django.db.models import Q
 
 from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
@@ -14,7 +15,6 @@ from apps.alerts.models import Notificacion
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, RISK_NAMES_ES, DEVICE_NAMES_ES, VALUE_DISPLAY_ES,
 )
-from django.db.models import Q
 from django.core.paginator import Paginator
 
 
@@ -68,23 +68,36 @@ def _parse_notif_for_historial(notif):
             "action": action,
         }
 
-    raw = (notif.mensaje or "").strip()
-    parsed_data = None
+    raw_msg = notif.mensaje
+    raw_str = ""
 
-    if raw.startswith("{"):
-        try:
-            data = json.loads(raw)
-            parsed_data = _make_parsed(
-                risk=data.get("risk", ""),
-                variable=data.get("variable", ""),
-                value=data.get("value") or "",
-                action=data.get("action", ""),
-            )
-        except (ValueError, KeyError):
-            parsed_data = None
+    if isinstance(raw_msg, dict):
+        parsed_data = _make_parsed(
+            risk=raw_msg.get("risk", ""),
+            variable=raw_msg.get("variable", ""),
+            value=raw_msg.get("value") or "",
+            action=raw_msg.get("action", ""),
+        )
+        raw_str = json.dumps(raw_msg)
+    elif isinstance(raw_msg, str):
+        raw_str = raw_msg.strip()
+        if raw_str.startswith("{"):
+            try:
+                data = json.loads(raw_str)
+                parsed_data = _make_parsed(
+                    risk=data.get("risk", ""),
+                    variable=data.get("variable", ""),
+                    value=data.get("value") or "",
+                    action=data.get("action", ""),
+                )
+            except (ValueError, KeyError):
+                parsed_data = None
+    else:
+        raw_str = str(raw_msg or "")
+        parsed_data = None
 
     if parsed_data is None:
-        m = re.match(r"^\[(.*?)\]\s+(.*?)\s+=\s+(.*?)\s+-\s+(.*)$", raw)
+        m = re.match(r"^\[(.*?)\]\s+(.*?)\s+=\s+(.*?)\s+-\s+(.*)$", raw_str)
         if m:
             parsed_data = _make_parsed(
                 risk=m.group(1).strip(),
@@ -96,7 +109,7 @@ def _parse_notif_for_historial(notif):
     if parsed_data is None:
         pm = re.match(
             r"Protecci[oó]n autom[áa]tica activada\s*\(Alerta\s+(\w+)\s+de\s+(\w+)\).+\s*Dispositivos\s+apagados:\s*(.+)",
-            raw,
+            raw_str,
             re.IGNORECASE,
         )
         if pm:
@@ -160,12 +173,9 @@ def notificaciones_view(request):
 
     notificaciones = (
         notificaciones.select_related("id_usuario", "id_equipo_monitoreo__id_edificio")
-        .exclude(mensaje__contains='"risk": "Info"')
-        .exclude(mensaje__contains='"risk":"Info"')
-        .exclude(mensaje__contains='"risk": "Bajo"')
-        .exclude(mensaje__contains='"risk":"Bajo"')
-        .exclude(mensaje__contains='"risk": "Medio"')
-        .exclude(mensaje__contains='"risk":"Medio"')
+        .exclude(Q(mensaje__risk="Info") | Q(mensaje__contains='"risk": "Info"') | Q(mensaje__contains='"risk":"Info"'))
+        .exclude(Q(mensaje__risk="Bajo") | Q(mensaje__contains='"risk": "Bajo"') | Q(mensaje__contains='"risk":"Bajo"'))
+        .exclude(Q(mensaje__risk="Medio") | Q(mensaje__contains='"risk": "Medio"') | Q(mensaje__contains='"risk":"Medio"'))
         .distinct()
         .order_by("-fecha")
     )

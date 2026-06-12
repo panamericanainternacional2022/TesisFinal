@@ -31,7 +31,10 @@ def get_building_emails(edificio_id=None):
                 else:
                     return []
 
-        users = UsuarioEdificio.objects.filter(id_edificio_id=edificio_id).select_related("id_usuario__id_persona")
+        users = UsuarioEdificio.objects.filter(
+            id_edificio_id=edificio_id,
+            id_usuario__registrado=True,
+        ).select_related("id_usuario__id_persona")
         emails = []
         for u in users:
             if u.id_usuario and u.id_usuario.id_persona and u.id_usuario.id_persona.email:
@@ -328,7 +331,7 @@ def send_email_alert(
             )
             msg.attach(part)
 
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT, timeout=15)
         server.starttls()
         server.login(SMTP_USER, SMTP_PASSWORD)
         for rec in recipients:
@@ -343,7 +346,6 @@ def send_email_alert(
 
 
 def persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=None):
-    import json as _json
     try:
         from django.utils import timezone
         from apps.buildings.models import EquipoMonitoreo
@@ -380,18 +382,18 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
             Usuario.objects.filter(rol="SA").first()
             or Usuario.objects.first()
         )
-        mensaje_json = _json.dumps({
+        mensaje_data = {
             "risk": risk_level,
             "variable": variable,
             "value": str(value) if value is not None else None,
             "action": recommended_action,
-        }, ensure_ascii=False)
+        }
         if usuario:
             Notificacion.objects.create(
                 id_usuario=usuario,
                 id_equipo_monitoreo=equipo,
                 fecha=timezone.now(),
-                mensaje=mensaje_json,
+                mensaje=mensaje_data,
             )
     except Exception as e:
         logger.warning("No se pudo guardar notificación en la DB de Django: %s", e)

@@ -12,18 +12,14 @@ def titleize_name(text):
     return " ".join(word.capitalize() for word in text.replace("_", " ").split())
 
 
-def build_live_payload(
-    sensor_data, protection_ends, history,
-    door_close_attempts, pump_on, elevator_on, equipment_types,
-    RATIONING_THRESHOLD, sim_paused, sim_speed,
-    generate_recommendations_fn=None, alert_enabled=True,
-    active_edificio_id=None, DJANGO_CONNECTED=False,
-):
+def _compute_stats(history, max_entries=500):
+    """Calcula estadísticas desde el historial, limitado a max_entries."""
     stats = {}
+    recent = history[-max_entries:] if len(history) > max_entries else history
     for var in STATS_VARS:
         vals = [
             r["value"]
-            for r in history
+            for r in recent
             if r["variable"] == var and isinstance(r["value"], (int, float))
         ]
         if vals:
@@ -32,6 +28,17 @@ def build_live_payload(
                 "min": min(vals),
                 "max": max(vals),
             }
+    return stats
+
+
+def build_live_payload(
+    sensor_data, protection_ends, history,
+    door_close_attempts, pump_on, elevator_on, equipment_types,
+    RATIONING_THRESHOLD, sim_paused, sim_speed,
+    generate_recommendations_fn=None, alert_enabled=True,
+    active_edificio_id=None, DJANGO_CONNECTED=False,
+):
+    stats = _compute_stats(history)
 
     _relevant_vars = set()
     if "bomba" in equipment_types:

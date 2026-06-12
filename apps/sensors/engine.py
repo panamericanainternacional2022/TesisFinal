@@ -73,10 +73,25 @@ def _run_sim_tick(sim: BuildingSimulator):
 def generate_data_and_emit():
     """Loop principal de simulación. Corre en un green thread.
     El SSE drena los payloads desde cada sim.pending_notifications."""
+    _consecutive_failures: dict = {}
+    _MAX_CONSECUTIVE_FAILURES = 5
     while True:
         eventlet.sleep(5)
         for sim in list(simulators.values()):
             try:
                 _run_sim_tick(sim)
+                _consecutive_failures.pop(sim.edificio_id, None)
             except Exception:
-                logger.exception("Error en tick de sim %s (%s)", sim.edificio_id, sim.nombre)
+                fails = _consecutive_failures.get(sim.edificio_id, 0) + 1
+                _consecutive_failures[sim.edificio_id] = fails
+                logger.exception(
+                    "Error en tick de sim %s (%s) — fallo consecutivo #%s",
+                    sim.edificio_id, sim.nombre, fails,
+                )
+                if fails >= _MAX_CONSECUTIVE_FAILURES:
+                    logger.error(
+                        "Removiendo simulador %s (%s) tras %s fallos consecutivos",
+                        sim.edificio_id, sim.nombre, fails,
+                    )
+                    del simulators[sim.edificio_id]
+                    _consecutive_failures.pop(sim.edificio_id, None)

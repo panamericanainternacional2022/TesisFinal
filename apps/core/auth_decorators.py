@@ -1,3 +1,5 @@
+import functools
+
 from django.shortcuts import redirect
 from django.contrib import messages
 
@@ -9,6 +11,7 @@ def _is_admin_role(rol):
 
 
 def _login_required(view_func):
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.session.get("usuario_id"):
             return redirect("login")
@@ -17,6 +20,7 @@ def _login_required(view_func):
 
 
 def _admin_required(view_func):
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not _is_admin_role(request.session.get("usuario_rol")):
             messages.error(request, "No tienes permiso para acceder a esta sección.")

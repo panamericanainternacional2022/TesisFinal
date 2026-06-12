@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 
 from django.shortcuts import render
 from django.http import HttpResponse
@@ -10,6 +11,7 @@ from apps.users.services import _build_beneficiario_data
 from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
 from apps.alerts.models import Notificacion
 from apps.alerts.views import _parse_notif_for_historial
+from django.db.models import Q
 
 
 @_login_required
@@ -63,8 +65,11 @@ def historial_pdf_view(request):
 
     ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
     if severidad and severidad in ALL_SEVERITIES:
-        notificaciones = notificaciones.filter(mensaje__icontains=f'"risk": "{severidad}"') | \
-                         notificaciones.filter(mensaje__icontains=f'"risk":"{severidad}"')
+        notificaciones = notificaciones.filter(
+            Q(mensaje__risk=severidad)
+            | Q(mensaje__contains=f'"risk": "{severidad}"')
+            | Q(mensaje__contains=f'"risk":"{severidad}"')
+        )
 
     now = tz.now()
     DELTA_MAP = {
@@ -126,6 +131,34 @@ def historial_pdf_view(request):
 
         now = dt.datetime.now()
 
+        _UNICODE_FONTS = {}
+        _FONT_SEARCH_PATHS = [
+            "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+            "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+            "/System/Library/Fonts/DejaVuSans.ttf",
+            "C:/Windows/Fonts/DejaVuSans.ttf",
+            "C:/Windows/Fonts/arial.ttf",
+            "C:/Windows/Fonts/ARIAL.TTF",
+        ]
+        for _p in _FONT_SEARCH_PATHS:
+            if os.path.exists(_p):
+                _p_dir = os.path.dirname(_p)
+                _p_name = os.path.splitext(os.path.basename(_p))[0]
+                _UNICODE_FONTS["family"] = "DejaVu" if "DejaVu" in _p_name else "Arial"
+                _UNICODE_FONTS["path"] = _p
+                _UNICODE_FONTS["path_bold"] = os.path.join(_p_dir, _p_name.replace("Sans", "Sans-Bold") + ".ttf")
+                if not os.path.exists(_UNICODE_FONTS.get("path_bold", "")):
+                    _UNICODE_FONTS["path_bold"] = _p
+                break
+
+        def _pdf_font(pdf_obj, style="", size=10):
+            if _UNICODE_FONTS:
+                family = _UNICODE_FONTS["family"]
+                pdf_obj.add_font(family, style, _UNICODE_FONTS["path_bold"] if style == "B" else _UNICODE_FONTS["path"], uni=True)
+                pdf_obj.set_font(family, style, size)
+            else:
+                pdf_obj.set_font("Helvetica", style, size)
+
         class HistorialPDF(FPDF):
             def header(self):
                 if self.page_no() == 1:
@@ -133,7 +166,7 @@ def historial_pdf_view(request):
                     self.rect(10, 10, 190, 2, "F")
                     self.ln(5)
                 else:
-                    self.set_font("Helvetica", "I", 8)
+                    _pdf_font(self, "I", 8)
                     self.set_text_color(95, 95, 95)
                     self.cell(0, 10, "INES - Historial de Eventos", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()}", 0, 1, "R")
@@ -144,7 +177,7 @@ def historial_pdf_view(request):
 
             def footer(self):
                 self.set_y(-15)
-                self.set_font("Helvetica", "I", 8)
+                _pdf_font(self, "I", 8)
                 self.set_text_color(95, 95, 95)
                 self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()}", 0, 0, "C")
 
@@ -152,15 +185,15 @@ def historial_pdf_view(request):
         pdf.set_line_width(0.6)
         pdf.add_page()
 
-        pdf.set_font("Helvetica", "B", 18)
+        _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
         pdf.cell(0, 12, "Historial de Eventos ", ln=1, align="L")
-        pdf.set_font("Helvetica", "B", 11)
+        _pdf_font(pdf, "B", 11)
         pdf.set_text_color(95, 95, 95)
         pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
         pdf.ln(5)
 
-        pdf.set_font("Helvetica", "", 9)
+        _pdf_font(pdf, "", 9)
         pdf.set_text_color(26, 26, 26)
         pdf.cell(0, 6, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
         pdf.cell(0, 6, f"Edificio: {edificio_nombre}", ln=1)
@@ -170,7 +203,7 @@ def historial_pdf_view(request):
         pdf.cell(0, 6, f"Total de eventos: {len(parsed_list)}", ln=1)
         pdf.ln(8)
 
-        pdf.set_font("Helvetica", "B", 10)
+        _pdf_font(pdf, "B", 10)
         pdf.set_text_color(10, 10, 10)
         pdf.cell(0, 7, "LEYENDA DE SEVERIDADES", ln=1)
         pdf.ln(1)
@@ -181,7 +214,7 @@ def historial_pdf_view(request):
             ("Alto", (255, 247, 237), (194, 65, 12), "Fuera de rango seguro"),
             ("Critico", (254, 242, 242), (153, 27, 27), "Estado de peligro, accion inmediata"),
         ]
-        pdf.set_font("Helvetica", "", 8)
+        _pdf_font(pdf, "", 8)
         for lbl, fill, text_c, desc in levels:
             pdf.set_fill_color(*fill)
             pdf.set_text_color(*text_c)
@@ -191,7 +224,7 @@ def historial_pdf_view(request):
             pdf.cell(162, 6, f" {desc}", 1, 1, "L")
         pdf.ln(8)
 
-        pdf.set_font("Helvetica", "B", 10)
+        _pdf_font(pdf, "B", 10)
         pdf.set_text_color(10, 10, 10)
         pdf.cell(0, 7, f"EVENTOS REGISTRADOS ({len(parsed_list)})", ln=1)
         pdf.ln(2)
@@ -210,7 +243,8 @@ def historial_pdf_view(request):
             lines_per_col = []
             for w, text in zip(widths, row_data):
                 t_str = str(text) if text is not None else ""
-                t_str = t_str.encode("latin-1", errors="replace").decode("latin-1")
+                if not _UNICODE_FONTS:
+                    t_str = t_str.encode("latin-1", errors="replace").decode("latin-1")
                 lines = pdf_obj.multi_cell(w, 4, t_str, split_only=True)
                 lines_per_col.append(lines)
 
@@ -257,7 +291,7 @@ def historial_pdf_view(request):
             pdf_obj.set_xy(start_x, start_y + row_height)
 
         if parsed_list:
-            pdf.set_font("Helvetica", "B", 8)
+            _pdf_font(pdf, "B", 8)
             draw_row(
                 pdf,
                 col_widths,
@@ -267,8 +301,15 @@ def historial_pdf_view(request):
                 cell_texts=[(255, 255, 255)] * len(col_widths)
             )
 
-            pdf.set_font("Helvetica", "", 7)
+            _pdf_font(pdf, "", 7)
             pdf.set_draw_color(10, 10, 10)
+
+            MAX_PDF_EVENTS = 200
+            if len(parsed_list) > MAX_PDF_EVENTS:
+                _pdf_font(pdf, "I", 8)
+                pdf.set_text_color(194, 65, 12)
+                pdf.cell(0, 6, f"Mostrando los primeros {MAX_PDF_EVENTS} de {len(parsed_list)} eventos totales.", ln=1)
+                pdf.ln(2)
 
             risk_styles = {
                 "Info":    ((249, 250, 251), (55, 65, 81)),
@@ -278,17 +319,17 @@ def historial_pdf_view(request):
                 "Crítico": ((254, 242, 242), (153, 27, 27)),
             }
 
-            for notif in parsed_list[:200]:
+            for notif in parsed_list[:MAX_PDF_EVENTS]:
                 risk = notif.parsed_data.get("risk", "")
                 fill_c, text_c = risk_styles.get(risk, ((255, 255, 255), (26, 26, 26)))
 
                 fecha_str = notif.fecha.strftime("%d/%m/%Y %H:%M") if notif.fecha else ""
-                variable_str = notif.parsed_data.get("variable", notif.mensaje or "")
+                variable_str = notif.parsed_data.get("variable", "")
                 valor_str = notif.parsed_data.get("value", "")
                 if valor_str and valor_str.lower() not in ("true", "false", "none", ""):
                     unidad = notif.parsed_data.get("unit", "")
                     valor_str = f"{valor_str} {unidad}".strip()
-                accion_str = notif.parsed_data.get("action", notif.mensaje or "")
+                accion_str = notif.parsed_data.get("action", "")
 
                 if mostrar_todos_edificios:
                     edificio_fila = notif.id_equipo_monitoreo.id_edificio.nb_edificio if (notif.id_equipo_monitoreo and notif.id_equipo_monitoreo.id_edificio) else "N/A"
@@ -302,12 +343,12 @@ def historial_pdf_view(request):
 
                 draw_row(pdf, col_widths, col_aligns, row_data, cell_fills, cell_texts)
         else:
-            pdf.set_font("Helvetica", "I", 9)
+            _pdf_font(pdf, "I", 9)
             pdf.set_text_color(95, 95, 95)
             pdf.cell(0, 8, "No se encontraron eventos con los filtros aplicados.", ln=1)
 
         pdf_raw = pdf.output()
-        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("latin-1") if isinstance(pdf_raw, str) else bytes(pdf_raw)
+        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("utf-8") if isinstance(pdf_raw, str) else bytes(pdf_raw)
 
         filename = f"historial_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -333,16 +374,17 @@ def descargar_pdf_view(request):
     try:
         from fpdf import FPDF
 
+        from apps.core.auth_decorators import ADMIN_ROLES
         usuarios = (
             Usuario.objects.select_related("id_persona")
             .prefetch_related("usuarioedificio_set__id_edificio")
-            .all()
+            .exclude(rol__in=ADMIN_ROLES)
         )
         beneficiarios = [_build_beneficiario_data(u) for u in usuarios]
 
         class PDF(FPDF):
             def header(self):
-                self.set_font("Arial", "B", 14)
+                _pdf_font(self, "B", 14)
                 self.cell(0, 10, "INES - Reporte General de Beneficiarios", 0, 1, "C")
                 self.set_draw_color(37, 99, 235)
                 self.set_line_width(0.5)
@@ -351,12 +393,12 @@ def descargar_pdf_view(request):
 
             def footer(self):
                 self.set_y(-15)
-                self.set_font("Arial", "I", 8)
+                _pdf_font(self, "I", 8)
                 self.cell(0, 10, f"Página {self.page_no()}", 0, 0, "C")
 
         pdf = PDF()
         pdf.add_page()
-        pdf.set_font("Arial", "B", 10)
+        _pdf_font(pdf, "B", 10)
         pdf.set_fill_color(240, 244, 248)
 
         pdf.cell(25, 8, "Cedula", 1, 0, "C", True)
@@ -365,7 +407,7 @@ def descargar_pdf_view(request):
         pdf.cell(45, 8, "Email", 1, 0, "C", True)
         pdf.cell(30, 8, "Edificio", 1, 1, "C", True)
 
-        pdf.set_font("Arial", "", 9)
+        _pdf_font(pdf, "", 9)
         for b in beneficiarios:
             pdf.cell(25, 8, str(b["cedula"]), 1, 0, "C")
             pdf.cell(45, 8, b["nombre"][:24], 1)
@@ -374,14 +416,19 @@ def descargar_pdf_view(request):
             pdf.cell(30, 8, b["edificio_nombre"][:18], 1, 1)
 
         pdf_raw = pdf.output()
-        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("latin-1") if isinstance(pdf_raw, str) else bytes(pdf_raw)
+        pdf_bytes = bytes(pdf_raw) if isinstance(pdf_raw, (bytearray, memoryview)) else pdf_raw.encode("utf-8") if isinstance(pdf_raw, str) else bytes(pdf_raw)
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
         response["Content-Disposition"] = 'attachment; filename="reporte_beneficiarios.pdf"'
         return response
 
-    except Exception:
+    except Exception as e:
+        logger = __import__("logging").getLogger(__name__)
+        logger.warning("Error generando PDF de beneficiarios, fallback a CSV: %s", e)
+
         import csv
+
+        from apps.core.auth_decorators import ADMIN_ROLES
 
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = (
@@ -395,7 +442,7 @@ def descargar_pdf_view(request):
         usuarios = (
             Usuario.objects.select_related("id_persona")
             .prefetch_related("usuarioedificio_set__id_edificio")
-            .all()
+            .exclude(rol__in=ADMIN_ROLES)
         )
         for u in usuarios:
             b = _build_beneficiario_data(u)

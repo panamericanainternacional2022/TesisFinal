@@ -62,7 +62,7 @@ def _build_random_username(primer_nombre, primer_apellido):
 
 
 def _send_activation_email(email, user_id, request):
-    token = signing.dumps({"user_id": user_id})
+    token = signing.dumps({"user_id": user_id, "email": email})
     protocol = "https" if request.is_secure() else "http"
     host = request.get_host()
     link = f"{protocol}://{host}{reverse('completar_registro')}?token={token}"

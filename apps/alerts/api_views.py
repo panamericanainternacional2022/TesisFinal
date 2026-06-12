@@ -5,6 +5,7 @@ import threading
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.core.auth_decorators import _login_required, _admin_required
 from apps.alerts.services.threshold_service import get_thresholds, update_threshold
 from apps.alerts.services.alert_service import (
     send_email_alert,
@@ -24,6 +25,8 @@ def _json_ok(extra=None):
     return JsonResponse(resp)
 
 
+@_login_required
+@require_http_methods(["GET"])
 def view_get_thresholds(request):
     return JsonResponse(get_thresholds())
 
@@ -43,8 +46,53 @@ def view_update_thresholds(request):
         value = float(value)
     except (ValueError, TypeError):
         return _json_error("value debe ser numérico")
+
     existing = get_thresholds().get(variable, {"direction": "higher", "low": 0, "medium": 0, "high": 0})
-    existing[risk.lower()] = value
+    direction = existing.get("direction", "higher")
+
+    risk_lower = risk.lower()
+
+    if risk_lower not in ("low", "medium", "high"):
+        return _json_error(f"Riesgo inválido: {risk}")
+
+    if value < 0:
+        return _json_error("El valor del umbral no puede ser negativo.")
+
+    if direction == "range":
+        if risk_lower == "low":
+            high_val = existing.get("high", 240)
+            if value >= high_val:
+                return _json_error(f"El límite inferior ({value}) debe ser menor que el límite superior ({high_val}).")
+        elif risk_lower == "high":
+            low_val = existing.get("low", 200)
+            if value <= low_val:
+                return _json_error(f"El límite superior ({value}) debe ser mayor que el límite inferior ({low_val}).")
+        elif risk_lower in ("medium",):
+            return _json_error("Para variables de rango solo se permiten thresholds 'low' y 'high'.")
+
+    if direction == "higher":
+        thresholds_ordered = {"low": 0, "medium": 0, "high": 0}
+        for k in ("low", "medium", "high"):
+            thresholds_ordered[k] = existing.get(k, 0)
+        thresholds_ordered[risk_lower] = value
+
+        if thresholds_ordered["low"] >= thresholds_ordered["medium"] and thresholds_ordered["medium"] != 0:
+            return _json_error("El umbral 'low' debe ser menor que 'medium'.")
+        if thresholds_ordered["medium"] >= thresholds_ordered["high"] and thresholds_ordered["high"] != 0:
+            return _json_error("El umbral 'medium' debe ser menor que 'high'.")
+
+    if direction == "lower":
+        thresholds_ordered = {"low": 99999, "medium": 99999, "high": 99999}
+        for k in ("low", "medium", "high"):
+            thresholds_ordered[k] = existing.get(k, 99999)
+        thresholds_ordered[risk_lower] = value
+
+        if thresholds_ordered["low"] <= thresholds_ordered["medium"] and thresholds_ordered["medium"] != 99999:
+            return _json_error("El umbral 'low' debe ser mayor que 'medium' (dirección descendente).")
+        if thresholds_ordered["medium"] <= thresholds_ordered["high"] and thresholds_ordered["high"] != 99999:
+            return _json_error("El umbral 'medium' debe ser mayor que 'high' (dirección descendente).")
+
+    existing[risk_lower] = value
     update_threshold(variable, existing)
     return _json_ok({"thresholds": get_thresholds()})
 

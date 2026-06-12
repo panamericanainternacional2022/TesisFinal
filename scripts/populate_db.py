@@ -5,20 +5,33 @@ import django
 # Add the project root directory to python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+# Load .env before Django setup
+_env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
+if os.path.exists(_env_path):
+    with open(_env_path, "r", encoding="utf-8") as _f:
+        for _line in _f:
+            if _line.strip() and not _line.startswith("#") and "=" in _line:
+                _key, _val = _line.strip().split("=", 1)
+                os.environ.setdefault(_key.strip(), _val.strip().strip("'\""))
+
 # Set the Django settings module
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 # Setup Django
 django.setup()
 
-from front.models import (  # noqa: E402
+from django.contrib.auth.hashers import make_password
+
+from apps.users.models import (  # noqa: E402
     Persona,
     Usuario,
+)
+from apps.buildings.models import (
     Edificio,
     UsuarioEdificio,
     EquipoMonitoreo,
-    Notificacion,
 )
+from apps.alerts.models import Notificacion
 
 
 def populate():
@@ -84,25 +97,26 @@ def populate():
     )
 
     print("Creando Usuarios...")
+    _hashed_pw = make_password("password123")
     u1, _ = Usuario.objects.get_or_create(
         username="juanp",
-        defaults={"password": "password123", "id_persona": p1, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p1, "rol": "US", "registrado": True},
     )
     u2, _ = Usuario.objects.get_or_create(
         username="mariag",
-        defaults={"password": "password123", "id_persona": p2, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p2, "rol": "US", "registrado": True},
     )
     u3, _ = Usuario.objects.get_or_create(
         username="tommyt",
-        defaults={"password": "password123", "id_persona": p3, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p3, "rol": "US", "registrado": True},
     )
     u4, _ = Usuario.objects.get_or_create(
         username="admin",
-        defaults={"password": "password123", "id_persona": p4, "rol": "SA", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p4, "rol": "SA", "registrado": True},
     )
     u5, _ = Usuario.objects.get_or_create(
         username="carlosr",
-        defaults={"password": "password123", "id_persona": p5, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p5, "rol": "US", "registrado": True},
     )
 
     print("Creando Edificios...")

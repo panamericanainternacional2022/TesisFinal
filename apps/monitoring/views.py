@@ -33,6 +33,8 @@ def menu_seleccion_view(request):
 @_login_required
 def monitoreo_view(request):
     rol = request.session.get("usuario_rol", "US")
+    import json as _json_mod
+
     if _is_admin_role(rol):
         edificios = list(Edificio.objects.all())
         edificio_id = request.GET.get("edificio")
@@ -43,7 +45,6 @@ def monitoreo_view(request):
                 edificio_id = edificios[0].id_edificio if edificios else 0
         else:
             edificio_id = edificios[0].id_edificio if edificios else 0
-        import json as _json_mod
         config_json = _json_mod.dumps({
             "no_risk_vars": NO_RISK_VARS,
             "bomba_vars": PUMP_VARS,
@@ -79,6 +80,7 @@ def monitoreo_view(request):
         )
 
     data = []
+    edificio_id = 0
     for eq in equipos:
         vars_list = PUMP_VARS if eq.tipo == EquipoMonitoreo.TIPO_BOMBA else ELEVATOR_VARS
         sensores = [
@@ -94,6 +96,17 @@ def monitoreo_view(request):
                 "sensores": sensores,
             }
         )
+        if edificio_id == 0:
+            edificio_id = eq.id_edificio.id_edificio
+
+    config_json = _json_mod.dumps({
+        "no_risk_vars": NO_RISK_VARS,
+        "bomba_vars": PUMP_VARS,
+        "elevador_vars": ELEVATOR_VARS,
+        "var_names": VAR_NAMES,
+        "units": UNITS,
+        "edificio_id": edificio_id,
+    })
 
     return render(
         request,
@@ -102,7 +115,8 @@ def monitoreo_view(request):
             "equipos_data": data,
             "rol": rol,
             "query": query,
-            "edificio_id": data[0]["edificio"].id_edificio if len(data) > 0 else 0,
+            "edificio_id": edificio_id,
+            "config_json": config_json,
         },
     )
 
@@ -172,8 +186,11 @@ def historial_view(request):
 
     ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
     if severidad and severidad in ALL_SEVERITIES:
-        notificaciones = notificaciones.filter(mensaje__icontains=f'"risk": "{severidad}"') | \
-                         notificaciones.filter(mensaje__icontains=f'"risk":"{severidad}"')
+        notificaciones = notificaciones.filter(
+            Q(mensaje__risk=severidad)
+            | Q(mensaje__contains=f'"risk": "{severidad}"')
+            | Q(mensaje__contains=f'"risk":"{severidad}"')
+        )
 
     now = tz.now()
     DELTA_MAP = {

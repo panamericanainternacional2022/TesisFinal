@@ -11,7 +11,7 @@ class Notificacion(models.Model):
         blank=True, null=True,
     )
     fecha = models.DateTimeField()
-    mensaje = models.TextField()
+    mensaje = models.JSONField(default=dict, blank=True)
 
     class Meta:
         db_table = "notificacion"

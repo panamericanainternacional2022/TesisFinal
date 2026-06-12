@@ -4,7 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.core import signing
-from django.db import transaction
+from django.db import transaction, IntegrityError
 
 from apps.core.auth_decorators import _login_required, _admin_required, ADMIN_ROLES
 from apps.users.models import Usuario, Persona
@@ -115,6 +115,7 @@ def lista_usuario_view(request):
 
 @_login_required
 @_admin_required
+@transaction.atomic
 def registro_beneficiario_view(request):
     generated_username = None
     generated_password = None
@@ -176,12 +177,9 @@ def registro_beneficiario_view(request):
                 else:
                     nombre_completo = f"{primer_nombre} {segundo_nombre}".strip()
                     apellido_completo = f"{primer_apellido} {segundo_apellido}".strip()
-                    generated_username = _build_random_username(
-                        primer_nombre, primer_apellido
-                    )
                     generated_password = _generate_random_password(10)
 
-                    if not generated_username:
+                    if not primer_nombre or not primer_apellido:
                         form_error = "No se pudo generar un nombre de usuario. Verifica los datos ingresados."
                     else:
                         persona = Persona.objects.create(
@@ -191,13 +189,29 @@ def registro_beneficiario_view(request):
                             email=email,
                             telefono=telefono,
                         )
-                        usuario = Usuario.objects.create(
-                            username=generated_username,
-                            password=make_password(generated_password),
-                            id_persona=persona,
-                            rol="US",
-                        )
-                        if id_edificio:
+                        _MAX_RETRIES = 10
+                        _created = False
+                        for _attempt in range(_MAX_RETRIES):
+                            generated_username = _build_random_username(
+                                primer_nombre, primer_apellido
+                            )
+                            if not generated_username:
+                                form_error = "No se pudo generar un nombre de usuario."
+                                break
+                            try:
+                                usuario = Usuario.objects.create(
+                                    username=generated_username,
+                                    password=make_password(generated_password),
+                                    id_persona=persona,
+                                    rol="US",
+                                )
+                            except IntegrityError:
+                                continue
+                            _created = True
+                            break
+                        if not _created and not form_error:
+                            form_error = "No se pudo generar un nombre de usuario único tras varios intentos."
+                        if _created and id_edificio:
                             UsuarioEdificio.objects.create(
                                 id_usuario=usuario,
                                 id_edificio_id=id_edificio,
@@ -228,6 +242,7 @@ def registro_beneficiario_view(request):
 
 @_login_required
 @_admin_required
+@transaction.atomic
 def editar_beneficiario_view(request, beneficiario_id):
     usuario = get_object_or_404(Usuario, id_usuario=beneficiario_id)
     persona = usuario.id_persona
@@ -362,6 +377,10 @@ def eliminar_beneficiario_view(request, beneficiario_id):
 @_login_required
 @_admin_required
 def seleccionar_usuario_view(request, accion):
+    ACCIONES_VALIDAS = ("editar", "eliminar")
+    if accion not in ACCIONES_VALIDAS:
+        messages.error(request, f"Acción no válida: {accion}")
+        return redirect("lista_usuario")
     usuarios = (
         Usuario.objects.select_related("id_persona")
         .prefetch_related("usuarioedificio_set__id_edificio")
@@ -402,6 +421,7 @@ def completar_registro_view(request):
     try:
         data = signing.loads(token, max_age=86400)
         user_id = data["user_id"]
+        token_email = data.get("email", "")
         usuario = Usuario.objects.get(id_usuario=user_id)
         if usuario.registrado:
             return render(
@@ -419,19 +439,25 @@ def completar_registro_view(request):
     form_error = None
     form_errors = {}
     username_val = request.POST.get("username", "").strip()
+    email_val = request.POST.get("email", "").strip()
 
     if request.method == "POST":
         password = request.POST.get("password", "").strip()
         confirm_password = request.POST.get("confirm_password", "").strip()
 
-        if not username_val or not password or not confirm_password:
+        if not email_val or not username_val or not password or not confirm_password:
             form_error = "Todos los campos son obligatorios."
+            if not email_val:
+                form_errors["email"] = "Este campo es obligatorio."
             if not username_val:
                 form_errors["username"] = "Este campo es obligatorio."
             if not password:
                 form_errors["password"] = "Este campo es obligatorio."
             if not confirm_password:
                 form_errors["confirm_password"] = "Este campo es obligatorio."
+        elif email_val.lower() != token_email.lower():
+            form_error = "El correo ingresado no coincide con el registrado."
+            form_errors["email"] = "No coincide con el correo registrado."
         elif password != confirm_password:
             form_error = "Las contraseñas no coinciden."
             form_errors["confirm_password"] = "Las contraseñas no coinciden."
@@ -469,6 +495,7 @@ def completar_registro_view(request):
             "usuario": usuario,
             "token": token,
             "username_val": username_val,
+            "email_val": email_val,
             "form_error": form_error,
             "form_errors": form_errors,
         },

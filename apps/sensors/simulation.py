@@ -24,6 +24,8 @@ SIMULTANEOUS_FAIL_PROB = 0.3
 DOOR_CLOSE_SUCCESS_PROB = 0.25
 DOOR_OPEN_PROB = 0.4
 MAX_DOOR_CLOSE_ATTEMPTS = 2
+FAULT_AUTO_CLEAR_SECONDS = 60       # falla aleatoria se limpia sola tras 60s
+RANDOM_FAULT_PROB = 0.001            # probabilidad base por tick
 
 # Constantes del modelo físico de bomba
 PUMP_P0 = 7.0            # presión máxima (shut-off head) en bar
@@ -85,6 +87,7 @@ class BuildingSimulator:
         self.sim_paused = False
         self.sim_speed = 1.0
         self.sim_faults: dict = {}        # variable -> tipo de falla
+        self.fault_injected_at: dict = {} # variable -> timestamp de inyección
 
         # --- Estado del modelo de bomba ---
         self._pump_demand = 20.0           # demanda base (L/s)
@@ -433,6 +436,34 @@ def check_motor_stuck(speed, load, temperature):
     return speed == 0 and (load > 700 or temperature > 90)
 
 
+def _auto_clear_expired_faults(sim):
+    """Limpia fallas aleatorias que hayan excedido FAULT_AUTO_CLEAR_SECONDS."""
+    now = time.time()
+    expired = [
+        device
+        for device, injected_at in sim.fault_injected_at.items()
+        if now - injected_at >= FAULT_AUTO_CLEAR_SECONDS
+    ]
+    for device in expired:
+        sim.sim_faults.pop(device, None)
+        sim.fault_injected_at.pop(device, None)
+        if LOG_SIM:
+            print(f"[SIM] {time.strftime('%H:%M:%S')} AUTO-CLEAR: falla de {device} expirada tras {FAULT_AUTO_CLEAR_SECONDS}s")
+        sd = sim.sensor_data
+        if device == "pump":
+            sd["flow_rate"] = max(sd["flow_rate"], 15.0)
+            sd["pressure"] = max(sd["pressure"], 3.0)
+            sd["vibration"] = min(sd["vibration"], 5.0)
+            sd["voltage"] = _clamp(sd["voltage"], 210, 230)
+        elif device == "elevator":
+            sd["motor_stuck"] = False
+            sd["speed"] = max(sd["speed"], 0.0)
+            sd["load"] = min(sd["load"], 500)
+            sd["door_status"] = "closed"
+            sim.door_close_attempts = 0
+            sim._elev_state = "IDLE"
+
+
 def update_sensor_data(active_sim=None):
     """Actualiza los datos de sensores usando modelos físicos.
     Se ejecuta por cada tick de simulación desde _run_sim_tick.
@@ -446,21 +477,25 @@ def update_sensor_data(active_sim=None):
     if active_sim.sim_paused:
         return
 
+    # Limpiar fallas expiradas automáticamente
+    _auto_clear_expired_faults(active_sim)
+
     if active_sim.has_pump:
         _update_pump(active_sim)
     if active_sim.has_elevator:
         _update_elevator(active_sim)
 
     if not active_sim.sim_faults:
-        if "pump" not in active_sim.protection_ends and active_sim.pump_on and random.random() < 0.001 * dt:
+        if "pump" not in active_sim.protection_ends and active_sim.pump_on and random.random() < RANDOM_FAULT_PROB * dt:
             _inject_random_pump_fault(active_sim)
-        if "elevator" not in active_sim.protection_ends and active_sim.elevator_on and random.random() < 0.001 * dt:
+        if "elevator" not in active_sim.protection_ends and active_sim.elevator_on and random.random() < RANDOM_FAULT_PROB * dt:
             _inject_random_elevator_fault(active_sim)
 
 
 def _inject_random_pump_fault(sim):
     fault_type = random.choice(["cavitation", "overheat", "blocked_discharge"])
     sim.sim_faults["pump"] = fault_type
+    sim.fault_injected_at["pump"] = time.time()
     logger.info("Falla aleatoria de bomba inyectada (vía sim_faults): %s", fault_type)
     if LOG_SIM:
         print(f"[SIM] {time.strftime('%H:%M:%S')} INYECCION: pump {fault_type}")
@@ -470,10 +505,12 @@ def _inject_random_pump_fault(sim):
 
 
 def _inject_random_elevator_fault(sim):
-    sim.sim_faults["elevator"] = "motor_stuck"
-    logger.info("Falla aleatoria de elevador inyectada (vía sim_faults): motor_stuck")
+    fault_type = random.choice(["motor_stuck", "door_blocked", "overspeed"])
+    sim.sim_faults["elevator"] = fault_type
+    sim.fault_injected_at["elevator"] = time.time()
+    logger.info("Falla aleatoria de elevador inyectada (vía sim_faults): %s", fault_type)
     if LOG_SIM:
-        print(f"[SIM] {time.strftime('%H:%M:%S')} INYECCION: elevator motor_stuck")
+        print(f"[SIM] {time.strftime('%H:%M:%S')} INYECCION: elevator {fault_type}")
 
     if "pump" not in sim.protection_ends and sim.pump_on and random.random() < SIMULTANEOUS_FAIL_PROB:
         _inject_random_pump_fault(sim)
@@ -500,6 +537,7 @@ def inject_fault(edificio_id: int, device: str, fault_type: str):
         return False, f"Falla inválida para {device}: {fault_type}"
 
     sim.sim_faults[device] = fault_type
+    sim.fault_injected_at[device] = time.time()
     logger.info(f"Falla inyectada: edificio={edificio_id}, device={device}, tipo={fault_type}")
     return True, f"Falla '{fault_type}' inyectada en {device}"
 
@@ -511,9 +549,11 @@ def clear_fault(edificio_id: int, device: str = None):
         return False, "Edificio no encontrado"
     if device:
         sim.sim_faults.pop(device, None)
+        sim.fault_injected_at.pop(device, None)
         msg = f"Falla limpiada para {device}"
     else:
         sim.sim_faults.clear()
+        sim.fault_injected_at.clear()
         msg = "Todas las fallas limpiadas"
 
     # Restaurar valores gradualmente si estaba en falla
@@ -549,6 +589,7 @@ def reset_simulator(edificio_id: int):
     sim.history.clear()
     sim.pending_notifications.clear()
     sim.sim_faults.clear()
+    sim.fault_injected_at.clear()
     sim.sim_paused = False
     sim.sim_speed = 1.0
     sim._pump_demand = 15.0
