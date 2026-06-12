@@ -35,12 +35,19 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").sp
 # Application definition
 
 INSTALLED_APPS = [
+    "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "front.apps.FrontConfig",
+    "apps.core",
+    "apps.users",
+    "apps.buildings",
+    "apps.sensors",
+    "apps.alerts",
+    "apps.monitoring",
+    "apps.reports",
 ]
 
 MIDDLEWARE = [
@@ -51,7 +58,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "front.middleware.AuthMiddleware",
+    "apps.core.middleware.AuthMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -123,4 +130,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [
+    BASE_DIR / "front" / "static",
+]
 STATIC_ROOT = BASE_DIR / "staticfiles"

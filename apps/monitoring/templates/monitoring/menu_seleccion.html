@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de control central </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/menu.css' %}">
+    <style>
+        .menu-container { padding-top: 0; max-width: 1200px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="menu-container">
+                <div class="admin-info">
+                    <h1>Panel de control central </h1>
+                    <p>Bienvenido al panel de administración, {{ request.session.usuario_username }}. Utiliza las tarjetas inferiores para gestionar la base de datos, configurar alertas o abrir el monitoreo en tiempo real.</p>
+                </div>
+
+                <div class="menu-grid">
+                    {% if rol == 'SA' or rol == 'ADMIN' %}
+                    <a href="{% url 'registro_beneficiario' %}" class="menu-card">
+                        <i class="fa-solid fa-user-plus icon-card"></i>
+                        <span>Registrar usuario</span>
+                    </a>
+                    <a href="{% url 'lista_usuario' %}" class="menu-card">
+                        <i class="fa-solid fa-users icon-card"></i>
+                        <span>Administrar usuarios</span>
+                    </a>
+                    <a href="{% url 'registro_edificio' %}" class="menu-card">
+                        <i class="fa-solid fa-city icon-card"></i>
+                        <span>Registrar edificio</span>
+                    </a>
+                    <a href="{% url 'lista_edificios' %}" class="menu-card">
+                        <i class="fa-solid fa-building icon-card"></i>
+                        <span>Administrar edificios</span>
+                    </a>
+                    <a href="{% url 'monitoreo' %}" class="menu-card">
+                        <i class="fa-solid fa-gauge-high icon-card"></i>
+                        <span>Monitoreo global</span>
+                    </a>
+                    <a href="{% url 'notificaciones' %}" class="menu-card">
+                        <i class="fa-solid fa-bell icon-card"></i>
+                        <span>Alertas</span>
+                    </a>
+                    <a href="{% url 'configuracion' %}" class="menu-card">
+                        <i class="fa-solid fa-gears icon-card"></i>
+                        <span>Configuración</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'notificaciones' %}" class="menu-card">
+                        <i class="fa-solid fa-bell icon-card"></i>
+                        <span>Alertas</span>
+                    </a>
+                    <a href="{% url 'monitoreo' %}" class="menu-card">
+                        <i class="fa-solid fa-gauge-high icon-card"></i>
+                        <span>Monitoreo</span>
+                    </a>
+                    <a href="{% url 'configuracion' %}" class="menu-card">
+                        <i class="fa-solid fa-gears icon-card"></i>
+                        <span>Configuración</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

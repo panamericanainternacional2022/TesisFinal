@@ -42,9 +42,9 @@ if os.path.exists(env_path):
     logger.info(".env cargado")
 
 # ─── Crear simuladores desde la BD ────────────────────────────────
-from simulation import BuildingSimulator, simulators
-from engine import generate_data_and_emit
-from front.models import EquipoMonitoreo
+from apps.sensors.simulation import BuildingSimulator, simulators
+from apps.sensors.engine import generate_data_and_emit
+from apps.buildings.models import EquipoMonitoreo
 
 equipos = EquipoMonitoreo.objects.select_related("id_edificio").all()
 for eq in equipos:

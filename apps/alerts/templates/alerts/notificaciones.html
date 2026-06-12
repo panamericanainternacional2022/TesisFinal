@@ -1,0 +1,366 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alertas </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                 <div class="reportes-card" style="max-width:800px;">
+                    <div class="admin-info">
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
+                            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                                <h1 style="margin:0;">Alertas </h1>
+                                <span id="notificationBadgeCount" class="notif-count-badge">0</span>
+                            </div>
+                        </div>
+                        <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+                        
+                        <!-- Filtro de Edificio y Botón Limpiar en la misma línea -->
+                        <div style="margin-top: var(--sp-3); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
+                            {% if edificios|length > 1 %}
+                            <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <select name="edificio" id="edificio-filter" onchange="this.form.submit()" style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; min-width: 220px; box-shadow: 3px 3px 0px var(--color-ink);">
+                                        <option value="">Todos los edificios</option>
+                                        {% for edif in edificios %}
+                                        <option value="{{ edif.id_edificio }}" {% if selected_edificio_id == edif.id_edificio %}selected{% endif %}>
+                                            {{ edif.nb_edificio }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </form>
+                            {% else %}
+                            <div></div>
+                            {% endif %}
+                            
+                            <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
+                                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alertas_desactivadas %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alertas_desactivadas %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" style="display:none;">
+                                    <!-- Rendered by JS on DOMContentLoaded -->
+                                </button>
+                                <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
+                                    <i class="fa-solid fa-trash-can"></i> Limpiar alertas
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="notif-card">
+                        <div id="live-notifications-list">
+                            {% if notificaciones %}
+                            <ul class="notif-list">
+                            {% for notif in notificaciones %}
+                            <li class="notif-item">
+                                <div class="notif-body">
+                                    {% if notif.parsed_data.parsed %}
+                                        <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                                            <span class="sensor-badge {% if notif.parsed_data.risk == 'Crítico' %}sensor-critical{% elif notif.parsed_data.risk == 'Alto' or notif.parsed_data.risk == 'Medio' %}sensor-warning{% else %}sensor-active{% endif %}">
+                                                {{ notif.parsed_data.risk }}
+                                            </span>
+                                            {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" %}
+                                            <span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">
+                                                {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
+                                            </span>
+                                            {% endif %}
+                                            <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">
+                                                {{ notif.parsed_data.variable }}
+                                            </span>
+                                        </div>
+                                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">
+                                            {{ notif.parsed_data.action }}
+                                        </p>
+                                    {% else %}
+                                        <p style="margin: 0; font-size: var(--text-base); color: var(--color-text-primary); line-height: var(--leading-normal);">
+                                            {{ notif.mensaje }}
+                                        </p>
+                                    {% endif %}
+                                    <div class="notif-meta" style="margin-top: 8px;">
+                                        <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        {% if notif.id_equipo_monitoreo.id_edificio %}
+                                        <span><i class="fa-solid fa-building"></i> {{ notif.id_equipo_monitoreo.id_edificio.nb_edificio }}</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                            {% endfor %}
+                            </ul>
+                            {% else %}
+                            <div class="no-notif" id="live-no-notif">
+                                {% if not alertas_desactivadas %}
+                                <i class="fa-solid fa-bell-slash"></i>
+                                <p>No hay alertas pendientes.</p>
+                                {% else %}
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                <p>Las alertas están desactivadas.</p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Paginación -->
+                    {% if notificaciones.has_other_pages %}
+                    <div class="pagination-container">
+                        {% if notificaciones.has_previous %}
+                            <a href="?page=1{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Primera página">
+                                <i class="fa-solid fa-angles-left"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.previous_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Anterior">
+                                <i class="fa-solid fa-angle-left"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+                        {% endif %}
+
+                        <span class="page-current-info">
+                            Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}
+                        </span>
+
+                        {% if notificaciones.has_next %}
+                            <a href="?page={{ notificaciones.next_page_number }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Siguiente">
+                                <i class="fa-solid fa-angle-right"></i>
+                            </a>
+                            <a href="?page={{ notificaciones.paginator.num_pages }}{% if selected_edificio_id %}&edificio={{ selected_edificio_id }}{% endif %}" class="page-link-btn" title="Última página">
+                                <i class="fa-solid fa-angles-right"></i>
+                            </a>
+                        {% else %}
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
+                            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        /* ── Tarjeta de Notificaciones ── */
+        .notif-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
+        .notif-card .notif-list {
+            border: none;
+            box-shadow: none;
+        }
+        .notif-card .no-notif {
+            border: none;
+            box-shadow: none;
+        }
+        .notif-icon {
+            border: none !important;
+            width: auto !important;
+            height: auto !important;
+            box-shadow: none !important;
+            color: var(--color-ink) !important;
+            font-size: 1.3rem !important;
+            padding-top: 2px;
+        }
+
+        /* ── Paginación Neo-Brutalista ── */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 6px;
+            margin-top: var(--sp-4);
+            flex-wrap: wrap;
+        }
+        .page-link-btn {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            padding: 8px 12px;
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            text-decoration: none;
+            transition: all var(--transition-fast);
+            box-shadow: 3px 3px 0px var(--color-ink);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-link-btn:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.2);
+        }
+        .page-link-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .page-current-info {
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            color: var(--color-ink);
+            padding: 8px var(--sp-2);
+            border: 2px solid transparent;
+        }
+
+        /* ── Botón toggle de alertas custom (para no heredar btn-action !important) ── */
+        .btn-alerts-toggle {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            border-radius: 0px;
+            font-family: var(--font);
+            font-size: var(--text-sm);
+            font-weight: var(--weight-bold);
+            padding: 6px 12px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all var(--transition-fast);
+            letter-spacing: 0.01em;
+            box-shadow: 3px 3px 0px var(--color-ink);
+            margin-top: 0;
+        }
+        .btn-alerts-toggle:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+        }
+        .btn-alerts-toggle.enabled {
+            background: var(--state-ok-bg);
+            color: var(--state-ok);
+            border-color: var(--state-ok);
+            box-shadow: 3px 3px 0px var(--state-ok);
+        }
+        .btn-alerts-toggle.enabled:hover {
+            background: var(--state-ok);
+            color: var(--color-surface);
+        }
+        .btn-alerts-toggle.disabled {
+            background: var(--state-warn-bg);
+            color: var(--state-warn);
+            border-color: var(--state-warn);
+            box-shadow: 3px 3px 0px var(--state-warn);
+        }
+        .btn-alerts-toggle.disabled:hover {
+            background: var(--state-warn);
+            color: var(--color-surface);
+        }
+
+        /* ── Modal Custom (Estilo Suizo sin bordes redondeados) ── */
+        .custom-modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+            opacity: 0;
+            transition: opacity 150ms ease;
+        }
+        .custom-modal-backdrop.active {
+            opacity: 1;
+        }
+        .custom-modal-container {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            padding: var(--sp-3);
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            transform: scale(0.92);
+            transition: transform 150ms ease;
+            box-sizing: border-box;
+            border-radius: 0px !important;
+        }
+        .custom-modal-backdrop.active .custom-modal-container {
+            transform: scale(1);
+        }
+    </style>
+
+    <script>
+        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
+            return new Promise((resolve) => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'custom-modal-backdrop';
+
+                const container = document.createElement('div');
+                container.className = 'custom-modal-container';
+
+                let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+                if (type === 'success') {
+                    iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--state-ok); font-size: var(--text-xl);"></i>';
+                } else if (type === 'error') {
+                    iconHtml = '<i class="fa-solid fa-circle-xmark" style="color: var(--state-critical); font-size: var(--text-xl);"></i>';
+                }
+
+                container.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
+                        ${iconHtml}
+                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
+                    </div>
+                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
+                        ${message}
+                    </div>
+                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
+                        ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: 0px !important;">Cancelar</button>` : ''}
+                        <button id="customModalConfirmBtn" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium); border-radius: 0px !important;">Aceptar</button>
+                    </div>
+                `;
+
+                backdrop.appendChild(container);
+                document.body.appendChild(backdrop);
+
+                setTimeout(() => {
+                    backdrop.classList.add('active');
+                }, 10);
+
+                const cleanUp = (value) => {
+                    backdrop.classList.remove('active');
+                    setTimeout(() => {
+                        backdrop.remove();
+                        resolve(value);
+                    }, 150);
+                };
+
+                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
+                if (showCancel) {
+                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
+                }
+            });
+        }
+
+        window.showAlert = function(message, type = 'info') {
+            let title = 'Notificación';
+            if (type === 'error') title = 'Error';
+            else if (type === 'success') title = 'Éxito';
+            else if (type === 'warn') title = 'Advertencia';
+            return showCustomModal({ title, message, type, showCancel: false });
+        };
+
+        window.showConfirm = function(message) {
+            return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
+        };
+    </script>
+    <script src="{% static 'JS/live_monitoring.js' %}" defer></script>
+</body>
+</html>

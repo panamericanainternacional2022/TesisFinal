@@ -1,0 +1,146 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/perfil.css' %}">
+    <script src="{% static 'JS/validacion.js' %}" defer></script>
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0 !important;">
+                <div style="max-width: 720px; margin: 0 auto;">
+                    <div class="admin-info">
+                        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </h1>
+                        <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
+                    </div>
+
+                    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
+                    {% csrf_token %}
+                    {% if form_error %}
+                        <div class="alert alert-error">
+                            {{ form_error }}
+                        </div>
+                    {% endif %}
+                    {% if email_sent is not None %}
+                        {% if email_sent %}
+                            <div class="credentials-box" style="background-color: #e6f4ea; border-color: #137333; color: #137333; padding: 15px; margin-bottom: 20px; border-left: 5px solid #137333;">
+                                <h3 style="margin-top: 0; color: #137333;">¡Registro Exitoso!</h3>
+                                <p style="margin:0 0 4px;">Se ha enviado un correo de activación a: <strong>{{ sent_to }}</strong></p>
+                                <p style="margin:0; font-size: 0.95rem;">El usuario deberá seguir el enlace enviado para elegir su nombre de usuario y contraseña.</p>
+                            </div>
+                        {% else %}
+                            <div class="credentials-box" style="background-color: #fce8e6; border-color: #c5221f; color: #c5221f; padding: 15px; margin-bottom: 20px; border-left: 5px solid #c5221f;">
+                                <h3 style="margin-top: 0; color: #c5221f;">Usuario registrado (Correo no enviado)</h3>
+                                <p style="margin:0 0 8px;">Las credenciales SMTP no están configuradas correctamente o hubo un error en la red. Copia y entrega el siguiente enlace directamente al usuario:</p>
+                                <p style="margin:0 0 8px; word-break: break-all; background: #fff; padding: 8px; border: 1px solid #c5221f; font-family: monospace;"><a href="{{ activation_link }}" target="_blank">{{ activation_link }}</a></p>
+                                <p style="margin:0; font-size: 0.85rem; color: #5f6368;">El usuario podrá utilizar este enlace para configurar su cuenta (válido por 24 horas).</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                     <div class="profile-form">
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="primerNombre">Primer nombre</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerNombre or form_errors.primerNombre_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.primerNombre %}{{ form_errors.primerNombre }}{% elif form_errors.primerNombre_long %}{{ form_errors.primerNombre_long }}{% endif %}</div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="segundoNombre">Segundo nombre</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoNombre or form_errors.segundoNombre_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.segundoNombre %}{{ form_errors.segundoNombre }}{% elif form_errors.segundoNombre_long %}{{ form_errors.segundoNombre_long }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="primerApellido">Primer apellido</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerApellido or form_errors.primerApellido_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.primerApellido %}{{ form_errors.primerApellido }}{% elif form_errors.primerApellido_long %}{{ form_errors.primerApellido_long }}{% endif %}</div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="segundoApellido">Segundo apellido</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoApellido or form_errors.segundoApellido_long %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.segundoApellido %}{{ form_errors.segundoApellido }}{% elif form_errors.segundoApellido_long %}{{ form_errors.segundoApellido_long }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group half-width">
+                                <label for="email">Correo electrónico</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
+                            </div>
+                            <div class="form-group half-width">
+                                <label for="cedula">Cédula (CI)</label>
+                                <div class="input-with-icon">
+                                    <input placeholder="12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="solo-numeros" maxlength="8" required class="{% if form_errors.cedula or form_errors.cedula_long or form_errors.cedula_unico %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.cedula %}{{ form_errors.cedula }}{% elif form_errors.cedula_long %}{{ form_errors.cedula_long }}{% elif form_errors.cedula_unico %}{{ form_errors.cedula_unico }}{% endif %}</div>
+                            </div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="telefono">Teléfono</label>
+                            <div class="input-with-icon">
+                                <input placeholder="+58 412 123 4567" type="tel" id="telefono" name="telefono" value="{{ user.telefono|default:'' }}" data-validate="telefono" maxlength="25" required class="{% if form_errors.telefono or form_errors.telefono_unico %}input-error{% endif %}" />
+                                <span class="edit-icon">&#9998;</span>
+                            </div>
+                            <div class="validation-error">{% if form_errors.telefono %}{{ form_errors.telefono }}{% elif form_errors.telefono_unico %}{{ form_errors.telefono_unico }}{% endif %}</div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="id_edificio">Elegir edificio</label>
+                            <div class="input-with-icon">
+                                <select id="id_edificio" name="id_edificio" required class="{% if form_errors.id_edificio %}input-error{% endif %}">
+                                    {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
+                                    {% for edificio in edificios %}
+                                        <option value="{{ edificio.id_edificio }}" {% if user.id_edificio == edificio.id_edificio %}selected{% endif %}>{{ edificio.nb_edificio }}</option>
+                                    {% endfor %}
+                                </select>
+                                <span class="edit-icon">&#127970;</span>
+                            </div>
+                            <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>
+                        </div>
+
+                        <div class="actions-row">
+                            {% url 'lista_usuario' as back_url %}
+                            {% include 'core/components/boton.html' with url=back_url class='back-button' text='Volver' %}
+                            {% if editing %}
+                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
+                            {% else %}
+                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Registrar usuario' %}
+                            {% endif %}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    </div>
+</body>
+</html>

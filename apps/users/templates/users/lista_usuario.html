@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración de usuarios </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'CSS/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'CSS/lista_beneficiarios.css' %}">
+</head>
+<body>
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card">
+                    <div class="admin-info">
+                        <h1>Administración de usuarios </h1>
+                        <p>Consulta, busca, edita o elimina la información de los usuarios, residentes y personal técnico autorizados en la plataforma.</p>
+                    </div>
+
+                    <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
+                        <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
+                            <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                            <input type="text" name="q" placeholder="Buscar" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                        </div>
+                        <div class="select-container" style="min-width: 220px;">
+                            <select name="edificio" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                <option value="">Todos los edificios</option>
+                                {% for edf in edificios %}
+                                    <option value="{{ edf.id_edificio }}" {% if edf.id_edificio == selected_edificio_id %}selected{% endif %}>{{ edf.nb_edificio }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+
+                    <div class="table-wrapper">
+                        <div class="table-responsive">
+                            <table class="report-table centered-table">
+                                <thead>
+                                    <tr>
+                                        <th>Cédula</th>
+                                        <th>Nombre</th>
+                                        <th>Apellido</th>
+                                        <th>Edificio</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if beneficiarios %}
+                                        {% for beneficiario in beneficiarios %}
+                                            <tr>
+                                                <td>{{ beneficiario.cedula }}</td>
+                                                <td>{{ beneficiario.nombre }}</td>
+                                                <td>{{ beneficiario.apellido }}</td>
+                                                <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
+                                                <td>
+                                                    {% if beneficiario.registrado %}
+                                                        <span class="sensor-badge sensor-active">Registrado</span>
+                                                     {% else %}
+                                                         <span class="sensor-badge sensor-warning">Por registrar</span>
+                                                     {% endif %}
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
+                                                No hay usuarios registrados.
+                                            </td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="table-actions-row action-buttons-row">
+                        {% url 'registro_beneficiario' as registro_url %}
+                        {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
+                        {% if beneficiarios %}
+                        <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        {% else %}
+                        <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const hasItems = {% if beneficiarios %}true{% else %}false{% endif %};
+            if (!hasItems) {
+                const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
+                btns.forEach(btn => {
+                    btn.removeAttribute('href');
+                    btn.setAttribute('aria-disabled', 'true');
+                    btn.setAttribute('tabindex', '-1');
+                });
+            }
+        });
+    </script>
+</body>
+</html>
