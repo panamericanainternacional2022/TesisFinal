@@ -1,0 +1,122 @@
+/* ==========================================================================
+   menu.css — Swiss Typographic Grid
+   Menú de selección / Dashboard principal
+   ========================================================================== */
+
+/* ── Contenedor ────────────────────────────────────────────────────────────── */
+.menu-container {
+    padding: var(--sp-5) var(--sp-5) var(--sp-5);
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ── Títulos ──────────────────────────────────────────────────────────────── */
+.menu-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin: 0 0 6px;
+    line-height: var(--leading-tight);
+}
+
+.menu-subtitle {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    font-weight: var(--weight-normal);
+    margin-bottom: var(--sp-5);
+    letter-spacing: 0.01em;
+}
+
+/* ── Cuadrícula ────────────────────────────────────────────────────────────── */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 2px;                           /* gap de 2px = efecto cuadrícula de líneas gruesas */
+    background: var(--color-ink);    /* el background "rellena" los gaps de 2px con color negro */
+    border: 2px solid var(--color-ink);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+}
+
+/* ── Tarjeta ───────────────────────────────────────────────────────────────── */
+.menu-card {
+    background: var(--color-surface);
+    padding: var(--sp-5) var(--sp-3);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-base);
+    aspect-ratio: 1 / 1;
+    gap: var(--sp-2);
+    text-align: center;
+}
+
+.menu-card:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.2);
+}
+
+.menu-card:hover .icon-card {
+    color: var(--color-surface);
+}
+
+/* ── Icono ─────────────────────────────────────────────────────────────────── */
+.icon-card {
+    font-size: 1.6rem;
+    color: var(--color-text-secondary);
+    transition: color var(--transition-base);
+    line-height: 1;
+}
+
+/* ── Etiqueta ──────────────────────────────────────────────────────────────── */
+.menu-card span {
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    letter-spacing: 0.02em;
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+    .menu-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .menu-container {
+        padding: var(--sp-4) var(--sp-3) var(--sp-4);
+    }
+
+    .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 500px) {
+    .menu-container {
+        padding: var(--sp-3) var(--sp-2) var(--sp-3);
+    }
+
+    .menu-grid {
+        grid-template-columns: 1fr;
+        max-width: 340px;
+        margin: 0 auto;
+    }
+
+    .menu-card {
+        aspect-ratio: auto;
+        padding: var(--sp-3);
+        flex-direction: row;
+        justify-content: flex-start;
+        gap: var(--sp-2);
+    }
+
+    .icon-card {
+        font-size: 1.2rem;
+    }
+}
