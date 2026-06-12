@@ -1,3 +1,4 @@
+import re
 from typing import Optional
 
 from django.core.exceptions import ValidationError
@@ -37,9 +38,6 @@ def validate_building_form(
     _check_unique_rif(data, exclude_building_id, errors)
 
     return errors
-
-
-import re
 
 
 def _check_field(

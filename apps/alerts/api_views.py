@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 from django.http import JsonResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
 
-from apps.core.auth_decorators import login_required, admin_required
+from apps.core.auth_decorators import login_required
 from apps.alerts.services.threshold_service import get_thresholds, update_threshold, ThresholdPersistenceError
 from apps.alerts.services.alert_service import (
     send_email_alert,

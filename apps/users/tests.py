@@ -18,8 +18,6 @@ from apps.users.validators import (
     _validate_unique_ci,
     validate_user_form,
     REGEX_ONLY_LETTERS,
-    REGEX_ONLY_NUMBERS,
-    REGEX_EMAIL,
     REGEX_USERNAME,
 )
 
@@ -317,7 +315,7 @@ class BeneficiaryListViewTests(TestCase):
             email="n@n.com", phone="04120000000",
         )
         from django.contrib.auth.hashers import make_password
-        us_user = Usuario.objects.create(
+        Usuario.objects.create(
             username="us", password=make_password("abc"),
             id_persona=p, rol="US",
         )

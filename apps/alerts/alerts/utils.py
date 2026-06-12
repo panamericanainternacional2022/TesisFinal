@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.sensors.simulation.models import BuildingSimulator
 
 SMTP_SERVER: str = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT: int = int(os.environ.get("SMTP_PORT", 587))

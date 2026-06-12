@@ -122,7 +122,6 @@ def render_admin_history(request) -> HttpResponse:
 
 @login_required
 def simulator_status_view(request) -> JsonResponse:
-    from json import dumps as json_dumps
     from apps.sensors.simulation.globals import simulators
 
     has_buildings = Building.objects.exists()

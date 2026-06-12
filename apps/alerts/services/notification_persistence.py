@@ -9,7 +9,6 @@ logger = logging.getLogger(__name__)
 
 def _find_equipment(variable: str, edificio_id: Optional[int]) -> Any:
     from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
-    from django.utils import timezone
     from apps.buildings.models import MonitoringEquipment
     from apps.users.models import Usuario
 
@@ -49,8 +48,6 @@ def persist_notification_in_django(
 ) -> None:
     try:
         from django.utils import timezone
-        from apps.buildings.models import MonitoringEquipment
-        from apps.users.models import Usuario
 
         equipo, usuario = _find_equipment(variable, edificio_id)
         if not usuario:

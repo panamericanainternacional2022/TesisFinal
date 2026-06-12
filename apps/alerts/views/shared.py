@@ -1,6 +1,6 @@
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, RISK_NAMES_ES, DEVICE_NAMES_ES, VALUE_DISPLAY_ES,

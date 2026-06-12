@@ -4,7 +4,7 @@ import logging
 
 from apps.sensors.simulation.constants import (
     RANDOM_FAULT_PROB, FAULT_AUTO_CLEAR_SECONDS,
-    SIMULTANEOUS_FAIL_PROB, T_AMBIENT, LOG_SIM,
+    SIMULTANEOUS_FAIL_PROB, LOG_SIM,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 

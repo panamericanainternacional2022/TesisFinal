@@ -1,5 +1,4 @@
 import time as _time
-from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password

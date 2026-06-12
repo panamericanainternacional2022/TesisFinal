@@ -5,6 +5,8 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("alerts", "0002_alter_notificacion_mensaje"),
+        ("buildings", "0002_rename_models_and_fields"),
+        ("users", "0002_alter_persona_apellido_and_more"),
     ]
 
     operations = [

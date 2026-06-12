@@ -1,8 +1,8 @@
-from unittest.mock import patch, Mock
+from unittest.mock import Mock
 from django.test import TestCase, RequestFactory
 from django.http import HttpResponse
 from django.urls import reverse
-from apps.core.auth_decorators import is_admin_role, login_required, admin_required, ADMIN_ROLES
+from apps.core.auth_decorators import is_admin_role, login_required, ADMIN_ROLES
 from apps.core.services.risk_service import classify_risk
 
 

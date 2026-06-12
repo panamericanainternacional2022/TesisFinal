@@ -1,9 +1,10 @@
 import random
 import time
 import logging
+from typing import Optional
 
 from apps.sensors.simulation.constants import (
-    DEFAULT_SENSOR_DATA, FLOOR_COUNT, T_AMBIENT,
+    DEFAULT_SENSOR_DATA, FLOOR_COUNT,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators
@@ -58,10 +59,6 @@ def inject_fault(edificio_id: int, device: str, fault_type: str) -> str:
     sim.fault_injected_at[device] = time.time()
     logger.info("Falla inyectada: edificio=%s, device=%s, tipo=%s", edificio_id, device, fault_type)
     return f"Falla '{fault_type}' inyectada en {device}"
-
-
-from typing import Optional
-
 
 def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
     sim = simulators.get(edificio_id)

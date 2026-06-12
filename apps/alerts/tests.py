@@ -1,11 +1,11 @@
 import json
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 from apps.alerts.models import Notification, ThresholdConfig
 from apps.users.models import Persona, Usuario
-from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
+from apps.buildings.models import Building, MonitoringEquipment
 
 
 # ─── MODEL TESTS ─────────────────────────────────────────────────────

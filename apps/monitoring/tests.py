@@ -1,13 +1,9 @@
-from django.test import TestCase, RequestFactory
+from django.test import TestCase
 from django.urls import reverse
 from django.http import StreamingHttpResponse
 from unittest.mock import patch, MagicMock
-from apps.monitoring.views.dispatch import history_view, monitoring_view
-from apps.monitoring.views.user import selection_menu_view
-from apps.monitoring.simulation.streaming import sse_stream
-from apps.monitoring.simulation.api import api_status
 from apps.users.models import Persona, Usuario
-from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
+from apps.buildings.models import Building, MonitoringEquipment
 from apps.alerts.models import Notification
 
 
@@ -78,7 +74,7 @@ class SseStreamTests(TestCase):
         from apps.users.models import Persona, Usuario
         from django.contrib.auth.hashers import make_password
         p = Persona.objects.create(ci="99999999", name="SSE", last_name="Test", email="sse@test.com", phone="")
-        u = Usuario.objects.create(username="ssetest", password=make_password("pass"), id_persona=p, rol="SA", registered=True)
+        Usuario.objects.create(username="ssetest", password=make_password("pass"), id_persona=p, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "ssetest", "password": "pass"})
         mock_sim = MagicMock()
         mock_sim.sensor_data = {}
@@ -91,5 +87,5 @@ class SseStreamTests(TestCase):
         mock_sim.edificio_id = 1
         mock_sim.history = []
         mock_get_sim.return_value = mock_sim
-        response = self.client.get(f"/sse/1/")
+        response = self.client.get("/sse/1/")
         self.assertIsInstance(response, StreamingHttpResponse)

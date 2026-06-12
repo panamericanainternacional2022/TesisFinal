@@ -1,7 +1,7 @@
 import time
 from typing import Any
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Callable
 
 from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS

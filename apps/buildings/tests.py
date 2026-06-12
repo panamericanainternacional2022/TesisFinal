@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.urls import reverse
 from apps.buildings.validators import validate_unique_rif, validate_building_form
-from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
+from apps.buildings.models import Building, MonitoringEquipment
 from apps.users.models import Persona, Usuario
 
 
@@ -106,6 +106,7 @@ class DeleteBuildingViewTests(BuildingViewTestBase):
     def test_delete_building(self) -> None:
         building = Building.objects.create(name="Test", rif="J-55555555-0", address="Dir")
         response = self.client.post(reverse("delete_building", args=[building.id]), {"confirmed": "1"})
+        self.assertEqual(response.status_code, 302)
         self.assertFalse(Building.objects.filter(id=building.id).exists())
 
     def test_cascade_deletes_equipment(self) -> None:

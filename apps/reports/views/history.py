@@ -20,7 +20,6 @@ from .shared import (
     _parse_and_filter_notifications,
     _parse_query_params,
     _pdf_font,
-    logger,
 )
 
 

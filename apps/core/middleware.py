@@ -1,4 +1,3 @@
-from functools import lru_cache
 import time
 
 from django.shortcuts import redirect

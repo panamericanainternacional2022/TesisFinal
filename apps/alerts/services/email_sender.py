@@ -18,7 +18,6 @@ def get_unit(variable: str) -> str:
 
 def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
     try:
-        from django.utils import timezone
         from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
     except Exception:
         return []

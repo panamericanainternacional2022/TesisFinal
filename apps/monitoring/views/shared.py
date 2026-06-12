@@ -3,8 +3,7 @@ import datetime as dt
 from django.db.models import Q, QuerySet
 from django.utils import timezone as tz
 
-from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
-from apps.alerts.models import Notification
+from apps.buildings.models import UserBuilding, MonitoringEquipment
 
 
 ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]

@@ -3,7 +3,10 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any, Optional
+from typing import Any, Optional, Dict, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.sensors.simulation.models import BuildingSimulator
 
 from .utils import (
     COOLDOWN_SECONDS, get_attribute, set_attribute, translate_device_to_spanish,
@@ -31,7 +34,6 @@ def _send_protection_email(
     last_email_time: float,
 ) -> float:
     from apps.alerts.services.alert_service import send_email_alert
-    from .utils import COOLDOWN_SECONDS
     now_ts = time.time()
     if now_ts - last_email_time <= COOLDOWN_SECONDS:
         return last_email_time

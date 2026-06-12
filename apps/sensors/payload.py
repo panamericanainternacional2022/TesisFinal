@@ -1,6 +1,6 @@
 import logging
 
-from apps.sensors.services.payload_service import PayloadContext, build_live_payload
+from apps.sensors.services.payload_service import PayloadContext, build_live_payload as _build_live_payload
 from apps.sensors.simulation.models import BuildingSimulator
 
 logger = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ def build_live_payload() -> dict:
         active_edificio_id=None,
         django_connected=True,
     )
-    return build_live_payload(ctx)
+    return _build_live_payload(ctx)
 
 
 def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
@@ -52,4 +52,4 @@ def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
         active_edificio_id=sim.edificio_id,
         django_connected=True,
     )
-    return build_live_payload(ctx)
+    return _build_live_payload(ctx)

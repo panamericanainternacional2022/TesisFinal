@@ -1,9 +1,8 @@
 import datetime as dt
 import time as _time
-from typing import Optional
 
 from django.shortcuts import render
-from django.http import HttpRequest, JsonResponse
+from django.http import HttpRequest
 from django.db.models import Q
 
 from apps.core.auth_decorators import login_required

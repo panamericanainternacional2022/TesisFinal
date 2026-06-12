@@ -3,11 +3,14 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from apps.sensors.simulation.models import BuildingSimulator
 
 from .utils import (
     COOLDOWN_SECONDS, get_attribute, set_attribute,
-    translate_variable_to_spanish, translate_device_to_spanish,
+    translate_variable_to_spanish,
 )
 from .protection import enter_protection_mode
 

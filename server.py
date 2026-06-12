@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# ruff: noqa: E402
 """
 Punto de entrada único del sistema PCLogo.
 Reemplaza entry.py + routes.py (Flask) y manage.py runserver.

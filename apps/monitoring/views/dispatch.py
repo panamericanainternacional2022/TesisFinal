@@ -3,16 +3,10 @@ from django.http import HttpRequest, HttpResponse
 from .admin import (
     render_admin_monitoring,
     render_admin_history,
-    building_monitoring_view,
-    simulator_status_view,
-    simulator_start_view,
-    simulator_stop_view,
-    simulator_restart_view,
 )
 from .user import (
     render_user_monitoring,
     render_user_history,
-    selection_menu_view,
 )
 
 

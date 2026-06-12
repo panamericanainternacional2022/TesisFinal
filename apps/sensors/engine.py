@@ -5,7 +5,7 @@ import eventlet
 
 from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
 from apps.sensors.simulation.constants import (
-    MAX_HISTORY_SIZE, LOG_SIM,
+    MAX_HISTORY_SIZE,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators

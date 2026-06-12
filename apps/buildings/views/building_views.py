@@ -213,6 +213,7 @@ def _handle_edit_post(
 
 
 def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
+    from apps.alerts.models import Notification
     equipment = list(building.equipment.all())
     Notification.objects.filter(
         monitoring_equipment__building=building,

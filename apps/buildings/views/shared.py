@@ -1,6 +1,5 @@
 from django.http import HttpRequest
 
-from apps.buildings.models import Building
 from apps.buildings.services import EquipmentConfig
 
 

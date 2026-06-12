@@ -6,6 +6,7 @@ class Migration(migrations.Migration):
     dependencies = [
         ('buildings', '0001_initial'),
         ('users', '0002_alter_persona_apellido_and_more'),
+        ('alerts', '0002_alter_notificacion_mensaje'),
     ]
 
     operations = [

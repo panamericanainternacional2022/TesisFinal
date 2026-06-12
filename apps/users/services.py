@@ -4,12 +4,12 @@ import smtplib
 import string
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Any, Optional
+from typing import Any
 
 from django.core import signing
 from django.urls import reverse
 
-from apps.users.models import Usuario, Persona
+from apps.users.models import Usuario
 
 _ACTIVATION_EMAIL_HTML = """<!DOCTYPE html>
 <html>
