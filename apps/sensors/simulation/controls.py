@@ -77,7 +77,7 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
         msg = "Todas las fallas limpiadas"
     sd = sim.sensor_data
     if device in (None, "pump"):
-        from apps.sensors.simulation.physics import _clamp
+        from apps.sensors.simulation.physics.pump import _clamp
         sd["flow_rate"] = max(sd["flow_rate"], 15.0)
         sd["pressure"] = max(sd["pressure"], 3.0)
         sd["vibration"] = min(sd["vibration"], 5.0)

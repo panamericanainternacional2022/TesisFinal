@@ -5,7 +5,7 @@ import eventlet
 
 from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
 from apps.sensors.simulation.constants import (
-    RATIONING_THRESHOLD, MAX_HISTORY_SIZE, LOG_SIM,
+    MAX_HISTORY_SIZE, LOG_SIM,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 def _run_sim_tick(sim: BuildingSimulator) -> None:
     if sim.sim_paused:
         return
-    from apps.alerts.alerts import update_protection_state
+    from apps.alerts.alerts.protection import update_protection_state
     update_protection_state(sim=sim)
     update_sensor_data(active_sim=sim)
     alert_vars = _get_alert_vars(sim)
@@ -44,14 +44,15 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var == "motor_stuck":
             _handle_motor_stuck_alert(sim, var, value)
             continue
-        from apps.alerts.alerts import send_alert, get_professional_action
+        from apps.alerts.alerts.engine import send_alert
+        from apps.alerts.services.alert_service import get_professional_action
         risk, _ = classify_risk(var, value)
         if risk in ("Alto", "Crítico"):
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action, sim=sim)
         else:
             sim.active_alerts.pop(var, None)
-    from apps.alerts.alerts import check_rationing
+    from apps.alerts.alerts.engine import check_rationing
     check_rationing(sim.sensor_data["flow_rate"], sim=sim)
 
 
@@ -59,7 +60,8 @@ def _handle_motor_stuck_alert(
     sim: BuildingSimulator, var: str, value: object,
 ) -> None:
     if value:
-        from apps.alerts.alerts import send_alert, get_professional_action
+        from apps.alerts.alerts.engine import send_alert
+        from apps.alerts.services.alert_service import get_professional_action
         action = get_professional_action(var, "Crítico", value)
         send_alert(var, value, "Crítico", action, sim=sim)
     else:

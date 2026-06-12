@@ -16,10 +16,10 @@ def update_sensor_data(active_sim: BuildingSimulator) -> None:
         return
     _auto_clear_expired_faults(active_sim)
     if active_sim.has_pump:
-        from apps.sensors.simulation.physics import _update_pump
+        from apps.sensors.simulation.physics.pump import _update_pump
         _update_pump(active_sim)
     if active_sim.has_elevator:
-        from apps.sensors.simulation.physics import _update_elevator
+        from apps.sensors.simulation.physics.elevator import _update_elevator
         _update_elevator(active_sim)
     _inject_random_faults(active_sim)
 
@@ -49,7 +49,7 @@ def _clear_expired_fault_device(sim: BuildingSimulator, device: str) -> None:
         )
     sd = sim.sensor_data
     if device == "pump":
-        from apps.sensors.simulation.physics import _clamp
+        from apps.sensors.simulation.physics.pump import _clamp
         sd["flow_rate"] = max(sd["flow_rate"], 15.0)
         sd["pressure"] = max(sd["pressure"], 3.0)
         sd["vibration"] = min(sd["vibration"], 5.0)

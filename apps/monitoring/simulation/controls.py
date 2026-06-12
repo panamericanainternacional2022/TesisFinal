@@ -62,7 +62,7 @@ def manual_update(request) -> JsonResponse:
 
     if risk in ("Alto", "Crítico") and sim.alert_enabled:
         from apps.alerts.services.alert_service import get_professional_action
-        from apps.alerts.alerts import send_alert
+        from apps.alerts.alerts.engine import send_alert
 
         action = get_professional_action(variable, risk, sensor_data[variable])
         send_alert(
