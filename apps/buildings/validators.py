@@ -1,57 +1,74 @@
-from apps.users.validators import (
-    _validar_campo, _validar_longitud_min, _validar_longitud_max,
-    _validar_rif, REGEX_SOLO_LETRAS, REGEX_DIRECCION,
-)
+from typing import Optional
+
 from apps.buildings.models import Edificio
+from apps.users.validators import (
+    _validate_field,
+    _validate_min_length,
+    _validate_max_length,
+    _validate_rif,
+    REGEX_ONLY_LETTERS,
+    REGEX_ADDRESS,
+)
 
 
-def _validar_unico_rif(rif, exclude_edificio_id=None):
+def _validate_unique_rif(rif: str, exclude_edificio_id: Optional[int] = None) -> str:
     if not rif:
-        return None
+        return ""
     qs = Edificio.objects.filter(rif=rif)
     if exclude_edificio_id:
         qs = qs.exclude(id_edificio=exclude_edificio_id)
     if qs.exists():
         return "El RIF ya está registrado en otro edificio."
-    return None
+    return ""
 
 
-def _validaciones_formulario_edificio(data, exclude_edificio_id=None):
-    errores = {}
-    campo = _validar_campo(
+def validate_building_form(
+    data: dict, exclude_edificio_id: Optional[int] = None
+) -> dict[str, str]:
+    errors: dict[str, str] = {}
+
+    error = _validate_field(
         data.get("nombreEdificio", ""),
-        REGEX_SOLO_LETRAS,
+        REGEX_ONLY_LETTERS,
         "El nombre del edificio solo acepta letras.",
     )
-    if campo:
-        errores["nombreEdificio"] = campo
-    campo = _validar_longitud_min(
+    if error:
+        errors["nombreEdificio"] = error
+
+    error = _validate_min_length(
         data.get("nombreEdificio", ""), 3, "El nombre del edificio"
     )
-    if campo:
-        errores["nombreEdificio_min"] = campo
-    campo = _validar_longitud_max(
+    if error:
+        errors["nombreEdificio_min"] = error
+
+    error = _validate_max_length(
         data.get("nombreEdificio", ""), 20, "El nombre del edificio"
     )
-    if campo:
-        errores["nombreEdificio_long"] = campo
-    campo = _validar_campo(
+    if error:
+        errors["nombreEdificio_long"] = error
+
+    error = _validate_field(
         data.get("direccion", ""),
-        REGEX_DIRECCION,
+        REGEX_ADDRESS,
         "La dirección contiene caracteres no válidos.",
     )
-    if campo:
-        errores["direccion"] = campo
-    campo = _validar_longitud_min(data.get("direccion", ""), 8, "La dirección")
-    if campo:
-        errores["direccion_min"] = campo
-    campo = _validar_longitud_max(data.get("direccion", ""), 50, "La dirección")
-    if campo:
-        errores["direccion_long"] = campo
-    campo = _validar_rif(data.get("rif", ""))
-    if campo:
-        errores["rif"] = campo
-    campo = _validar_unico_rif(data.get("rif", ""), exclude_edificio_id)
-    if campo:
-        errores["rif_unico"] = campo
-    return errores
+    if error:
+        errors["direccion"] = error
+
+    error = _validate_min_length(data.get("direccion", ""), 8, "La dirección")
+    if error:
+        errors["direccion_min"] = error
+
+    error = _validate_max_length(data.get("direccion", ""), 50, "La dirección")
+    if error:
+        errors["direccion_long"] = error
+
+    error = _validate_rif(data.get("rif", ""))
+    if error:
+        errors["rif"] = error
+
+    error = _validate_unique_rif(data.get("rif", ""), exclude_edificio_id)
+    if error:
+        errors["rif_unico"] = error
+
+    return errors

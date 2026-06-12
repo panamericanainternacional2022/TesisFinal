@@ -1,65 +1,65 @@
 from django.test import TestCase
 from django.urls import reverse
-from apps.buildings.validators import _validar_unico_rif, _validaciones_formulario_edificio
+from apps.buildings.validators import _validate_unique_rif, validate_building_form
 from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
 from apps.users.models import Persona, Usuario
 
 
 # ─── VALIDATOR TESTS ──────────────────────────────────────────────────
 
-class ValidarFormularioEdificioTests(TestCase):
+class ValidateBuildingFormTests(TestCase):
     def test_valid_data_returns_empty(self):
         data = {"nombreEdificio": "Edificio Principal", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
-        errores = _validaciones_formulario_edificio(data)
+        errores = validate_building_form(data)
         self.assertEqual(errores, {})
 
     def test_nombre_too_short(self):
         data = {"nombreEdificio": "AB", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
-        errores = _validaciones_formulario_edificio(data)
+        errores = validate_building_form(data)
         self.assertIn("nombreEdificio_min", errores)
 
     def test_invalid_rif(self):
         data = {"nombreEdificio": "Edificio", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "invalid"}
-        errores = _validaciones_formulario_edificio(data)
+        errores = validate_building_form(data)
         self.assertIn("rif", errores)
 
     def test_direccion_too_short(self):
         data = {"nombreEdificio": "Edificio", "direccion": "Corta", "rif": "J-12345678-0"}
-        errores = _validaciones_formulario_edificio(data)
+        errores = validate_building_form(data)
         self.assertIn("direccion_min", errores)
 
     def test_rif_duplicate(self):
         Edificio.objects.create(nb_edificio="Existente", rif="J-11111111-0", direccion="Dir 1")
         data = {"nombreEdificio": "Nuevo", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-11111111-0"}
-        errores = _validaciones_formulario_edificio(data)
+        errores = validate_building_form(data)
         self.assertIn("rif_unico", errores)
 
 
-class ValidarUnicoRifTests(TestCase):
-    def test_unique_rif_returns_none(self):
-        self.assertIsNone(_validar_unico_rif("J-99999999-0"))
+class ValidateUniqueRifTests(TestCase):
+    def test_unique_rif_returns_empty(self):
+        self.assertEqual(_validate_unique_rif("J-99999999-0"), "")
 
     def test_duplicate_rif_returns_error(self):
         Edificio.objects.create(nb_edificio="Test", rif="J-88888888-0", direccion="Dir")
-        msg = _validar_unico_rif("J-88888888-0")
-        self.assertIsNotNone(msg)
+        msg = _validate_unique_rif("J-88888888-0")
+        self.assertNotEqual(msg, "")
 
-    def test_empty_rif_returns_none(self):
-        self.assertIsNone(_validar_unico_rif(""))
+    def test_empty_rif_returns_empty(self):
+        self.assertEqual(_validate_unique_rif(""), "")
 
     def test_exclude_self(self):
         edif = Edificio.objects.create(nb_edificio="Test", rif="J-77777777-0", direccion="Dir")
-        self.assertIsNone(_validar_unico_rif("J-77777777-0", exclude_edificio_id=edif.id_edificio))
+        self.assertEqual(_validate_unique_rif("J-77777777-0", exclude_edificio_id=edif.id_edificio), "")
 
 
 # ─── VIEW TESTS ──────────────────────────────────────────────────────
 
 class BuildingViewTestBase(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(
-            username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True,
+            username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True,
         )
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 

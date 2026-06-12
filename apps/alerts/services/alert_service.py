@@ -33,7 +33,7 @@ def get_building_emails(edificio_id=None):
 
         users = UsuarioEdificio.objects.filter(
             id_edificio_id=edificio_id,
-            id_usuario__registrado=True,
+            id_usuario__registered=True,
         ).select_related("id_usuario__id_persona")
         emails = []
         for u in users:

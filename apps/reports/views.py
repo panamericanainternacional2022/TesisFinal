@@ -7,7 +7,7 @@ from django.utils import timezone as tz
 
 from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
-from apps.users.services import _build_beneficiario_data
+from apps.users.services import build_beneficiary_data
 from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
 from apps.alerts.models import Notificacion
 from apps.alerts.views import _parse_notif_for_historial
@@ -380,7 +380,7 @@ def descargar_pdf_view(request):
             .prefetch_related("usuarioedificio_set__id_edificio")
             .exclude(rol__in=ADMIN_ROLES)
         )
-        beneficiarios = [_build_beneficiario_data(u) for u in usuarios]
+        beneficiarios = [build_beneficiary_data(u) for u in usuarios]
 
         class PDF(FPDF):
             def header(self):
@@ -411,7 +411,7 @@ def descargar_pdf_view(request):
         for b in beneficiarios:
             pdf.cell(25, 8, str(b["cedula"]), 1, 0, "C")
             pdf.cell(45, 8, b["nombre"][:24], 1)
-            pdf.cell(45, 8, b["apellido"][:24], 1)
+            pdf.cell(45, 8, b["last_name"][:24], 1)
             pdf.cell(45, 8, b["email"][:24], 1)
             pdf.cell(30, 8, b["edificio_nombre"][:18], 1, 1)
 
@@ -445,14 +445,14 @@ def descargar_pdf_view(request):
             .exclude(rol__in=ADMIN_ROLES)
         )
         for u in usuarios:
-            b = _build_beneficiario_data(u)
+            b = build_beneficiary_data(u)
             writer.writerow(
                 [
                     b["cedula"],
                     b["nombre"],
-                    b["apellido"],
+                    b["last_name"],
                     b["email"],
-                    b["telefono"],
+                    b["phone"],
                     b["edificio_nombre"],
                 ]
             )

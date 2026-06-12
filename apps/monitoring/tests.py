@@ -11,9 +11,9 @@ from apps.alerts.models import Notificacion
 
 class MenuSeleccionViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True)
+        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_menu_returns_200(self):
@@ -28,9 +28,9 @@ class MenuSeleccionViewTests(TestCase):
 
 class HistorialViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True)
+        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
         self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
@@ -50,9 +50,9 @@ class HistorialViewTests(TestCase):
 
 class MonitorViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True)
+        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_monitoreo_returns_200(self):
@@ -76,8 +76,8 @@ class SseStreamTests(TestCase):
     def test_sse_returns_streaming_response(self, mock_simulators):
         from apps.users.models import Persona, Usuario
         from django.contrib.auth.hashers import make_password
-        p = Persona.objects.create(ci="99999999", name="SSE", apellido="Test", email="sse@test.com", telefono="")
-        u = Usuario.objects.create(username="ssetest", password=make_password("pass"), id_persona=p, rol="SA", registrado=True)
+        p = Persona.objects.create(ci="99999999", name="SSE", last_name="Test", email="sse@test.com", phone="")
+        u = Usuario.objects.create(username="ssetest", password=make_password("pass"), id_persona=p, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "ssetest", "password": "pass"})
         mock_sim = MagicMock()
         mock_sim.sensor_data = {}

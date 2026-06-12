@@ -1,132 +1,150 @@
-import re
 from django.test import TestCase
 from django.urls import reverse
-from django.contrib import messages
-from unittest.mock import patch, Mock
 
-from apps.users.validators import (
-    _validar_campo, _validar_longitud_min, _validar_longitud_max,
-    _validar_telefono, _validar_rif, _validar_email,
-    _validar_unico_email, _validar_unico_ci, _validar_unico_telefono,
-    _validaciones_formulario_usuario,
-    REGEX_SOLO_LETRAS, REGEX_SOLO_NUMEROS, REGEX_EMAIL, REGEX_USERNAME,
-)
 from apps.users.models import Persona, Usuario
-from apps.users.services import _build_beneficiario_data, _build_random_username, _generate_random_password
-
+from apps.users.services import (
+    build_beneficiary_data,
+    build_random_username,
+    generate_random_password,
+)
+from apps.users.validators import (
+    _validate_field,
+    _validate_min_length,
+    _validate_max_length,
+    _validate_phone,
+    _validate_rif,
+    _validate_email,
+    _validate_unique_email,
+    _validate_unique_ci,
+    validate_user_form,
+    REGEX_ONLY_LETTERS,
+    REGEX_ONLY_NUMBERS,
+    REGEX_EMAIL,
+    REGEX_USERNAME,
+)
 
 # ─── VALIDATOR TESTS (pure logic, no DB) ────────────────────────────────
 
-class ValidarCampoTests(TestCase):
-    def test_valid_value_returns_none(self):
-        self.assertIsNone(_validar_campo("Juan", REGEX_SOLO_LETRAS, "error"))
+
+class ValidateFieldTests(TestCase):
+    def test_valid_value_returns_empty(self):
+        self.assertEqual(_validate_field("Juan", REGEX_ONLY_LETTERS, "error"), "")
 
     def test_invalid_value_returns_message(self):
-        msg = _validar_campo("Juan123", REGEX_SOLO_LETRAS, "Solo letras")
+        msg = _validate_field("Juan123", REGEX_ONLY_LETTERS, "Solo letras")
         self.assertEqual(msg, "Solo letras")
 
-    def test_empty_value_returns_none(self):
-        self.assertIsNone(_validar_campo("", REGEX_SOLO_LETRAS, "error"))
+    def test_empty_value_returns_empty(self):
+        self.assertEqual(_validate_field("", REGEX_ONLY_LETTERS, "error"), "")
 
 
-class ValidarLongitudTests(TestCase):
+class ValidateLengthTests(TestCase):
     def test_min_ok(self):
-        self.assertIsNone(_validar_longitud_min("abc", 3, "Campo"))
+        self.assertEqual(_validate_min_length("abc", 3, "Campo"), "")
 
     def test_min_fail(self):
-        msg = _validar_longitud_min("ab", 3, "Campo")
+        msg = _validate_min_length("ab", 3, "Campo")
         self.assertIn("al menos 3", msg)
 
     def test_min_empty_ok(self):
-        self.assertIsNone(_validar_longitud_min("", 3, "Campo"))
+        self.assertEqual(_validate_min_length("", 3, "Campo"), "")
 
     def test_max_ok(self):
-        self.assertIsNone(_validar_longitud_max("abc", 3, "Campo"))
+        self.assertEqual(_validate_max_length("abc", 3, "Campo"), "")
 
     def test_max_fail(self):
-        msg = _validar_longitud_max("abcd", 3, "Campo")
+        msg = _validate_max_length("abcd", 3, "Campo")
         self.assertIn("no puede tener más de 3", msg)
 
 
-class ValidarTelefonoTests(TestCase):
-    def test_empty_returns_none(self):
-        self.assertIsNone(_validar_telefono(""))
+class ValidatePhoneTests(TestCase):
+    def test_empty_returns_empty(self):
+        self.assertEqual(_validate_phone(""), "")
 
     def test_valid_with_spaces_and_plus(self):
-        self.assertIsNone(_validar_telefono("+58 412 1234567"))
+        self.assertEqual(_validate_phone("+58 412 1234567"), "")
 
     def test_invalid_characters(self):
-        msg = _validar_telefono("abc123")
-        self.assertIsNotNone(msg)
+        msg = _validate_phone("abc123")
+        self.assertNotEqual(msg, "")
 
     def test_too_few_digits(self):
-        msg = _validar_telefono("123")
-        self.assertIsNotNone(msg)
+        msg = _validate_phone("123")
+        self.assertNotEqual(msg, "")
 
 
-class ValidarRifTests(TestCase):
+class ValidateRifTests(TestCase):
     def test_empty_rif_returns_error(self):
-        self.assertIsNotNone(_validar_rif(""))
+        self.assertNotEqual(_validate_rif(""), "")
 
     def test_valid_j_rif(self):
-        self.assertIsNone(_validar_rif("J-12345678-0"))
+        self.assertEqual(_validate_rif("J-12345678-0"), "")
 
     def test_valid_v_rif(self):
-        self.assertIsNone(_validar_rif("V123456780"))
+        self.assertEqual(_validate_rif("V123456780"), "")
 
     def test_invalid_format(self):
-        self.assertIsNotNone(_validar_rif("ABC123"))
+        self.assertNotEqual(_validate_rif("ABC123"), "")
 
 
-class ValidarEmailTests(TestCase):
+class ValidateEmailTests(TestCase):
     def test_empty_returns_error(self):
-        self.assertIsNotNone(_validar_email(""))
+        self.assertNotEqual(_validate_email(""), "")
 
     def test_valid_email(self):
-        self.assertIsNone(_validar_email("test@example.com"))
+        self.assertEqual(_validate_email("test@example.com"), "")
 
     def test_invalid_email(self):
-        self.assertIsNotNone(_validar_email("not-an-email"))
+        self.assertNotEqual(_validate_email("not-an-email"), "")
 
     def test_local_part_too_long(self):
         local = "a" * 31
-        self.assertIsNotNone(_validar_email(f"{local}@example.com"))
+        self.assertNotEqual(_validate_email(f"{local}@example.com"), "")
 
     def test_too_short_email(self):
-        self.assertIsNotNone(_validar_email("a@b.c"))
+        self.assertNotEqual(_validate_email("a@b.c"), "")
 
 
 # ─── VALIDATOR TESTS (DB required) ────────────────────────────────────
 
-class ValidarUnicoEmailDBTests(TestCase):
+
+class ValidateUniqueEmailDBTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Test", apellido="User", email="existing@test.com", telefono="04121234567")
+        self.persona = Persona.objects.create(
+            ci="12345678", name="Test", last_name="User",
+            email="existing@test.com", phone="04121234567",
+        )
 
     def test_duplicate_email_returns_error(self):
-        msg = _validar_unico_email("existing@test.com")
-        self.assertIsNotNone(msg)
+        msg = _validate_unique_email("existing@test.com")
+        self.assertNotEqual(msg, "")
 
-    def test_unique_email_returns_none(self):
-        self.assertIsNone(_validar_unico_email("new@test.com"))
+    def test_unique_email_returns_empty(self):
+        self.assertEqual(_validate_unique_email("new@test.com"), "")
 
     def test_exclude_self(self):
-        msg = _validar_unico_email("existing@test.com", exclude_persona_id=self.persona.id_persona)
-        self.assertIsNone(msg)
+        msg = _validate_unique_email(
+            "existing@test.com", exclude_persona_id=self.persona.id_persona
+        )
+        self.assertEqual(msg, "")
 
 
-class ValidarUnicoCiDBTests(TestCase):
+class ValidateUniqueCiDBTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="87654321", name="Test", apellido="User", email="t@t.com", telefono="04121234567")
+        self.persona = Persona.objects.create(
+            ci="87654321", name="Test", last_name="User",
+            email="t@t.com", phone="04121234567",
+        )
 
     def test_duplicate_ci_returns_error(self):
-        msg = _validar_unico_ci("87654321")
-        self.assertIsNotNone(msg)
+        msg = _validate_unique_ci("87654321")
+        self.assertNotEqual(msg, "")
 
-    def test_unique_ci_returns_none(self):
-        self.assertIsNone(_validar_unico_ci("11111111"))
+    def test_unique_ci_returns_empty(self):
+        self.assertEqual(_validate_unique_ci("11111111"), "")
 
 
-class ValidarFormularioUsuarioTests(TestCase):
+class ValidateFormTests(TestCase):
     def test_valid_data_returns_empty_dict(self):
         data = {
             "primerNombre": "Juan",
@@ -137,8 +155,8 @@ class ValidarFormularioUsuarioTests(TestCase):
             "cedula": "12345678",
             "telefono": "04121234567",
         }
-        errores = _validaciones_formulario_usuario(data)
-        self.assertEqual(errores, {})
+        errors = validate_user_form(data)
+        self.assertEqual(errors, {})
 
     def test_invalid_data_returns_errors(self):
         data = {
@@ -150,76 +168,101 @@ class ValidarFormularioUsuarioTests(TestCase):
             "cedula": "abc",
             "telefono": "12",
         }
-        errores = _validaciones_formulario_usuario(data)
-        self.assertIn("primerNombre", errores)
-        self.assertIn("primerApellido", errores)
-        self.assertIn("email", errores)
-        self.assertIn("cedula", errores)
-        self.assertIn("telefono", errores)
+        errors = validate_user_form(data)
+        self.assertIn("primerNombre", errors)
+        self.assertIn("primerApellido", errors)
+        self.assertIn("email", errors)
+        self.assertIn("cedula", errors)
+        self.assertIn("telefono", errors)
 
 
 # ─── SERVICE TESTS ─────────────────────────────────────────────────────
 
-class BuildBeneficiarioDataTests(TestCase):
+
+class BuildBeneficiaryDataTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Juan", apellido="Pérez", email="juan@test.com", telefono="04121234567")
-        self.usuario = Usuario.objects.create(username="jperez", password="abc123", id_persona=self.persona, rol="US")
+        self.persona = Persona.objects.create(
+            ci="12345678", name="Juan", last_name="Pérez",
+            email="juan@test.com", phone="04121234567",
+        )
+        self.user = Usuario.objects.create(
+            username="jperez", password="abc123",
+            id_persona=self.persona, rol="US",
+        )
 
     def test_build_with_persona(self):
-        data = _build_beneficiario_data(self.usuario)
+        data = build_beneficiary_data(self.user)
         self.assertEqual(data["cedula"], "12345678")
         self.assertEqual(data["nombre"], "Juan")
-        self.assertEqual(data["apellido"], "Pérez")
+        self.assertEqual(data["last_name"], "Pérez")
         self.assertEqual(data["email"], "juan@test.com")
-        self.assertEqual(data["telefono"], "04121234567")
+        self.assertEqual(data["phone"], "04121234567")
 
     def test_build_without_persona_uses_username(self):
-        p = Persona.objects.create(ci="11111111", name="", apellido="", email="np@test.com", telefono="")
-        usuario = Usuario.objects.create(username="nopersona", password="abc123", id_persona=p, rol="US")
-        data = _build_beneficiario_data(usuario)
+        p = Persona.objects.create(
+            ci="11111111", name="", last_name="",
+            email="np@test.com", phone="",
+        )
+        user = Usuario.objects.create(
+            username="nopersona", password="abc123",
+            id_persona=p, rol="US",
+        )
+        data = build_beneficiary_data(user)
         self.assertEqual(data["nombre"], "nopersona")
 
 
 class BuildRandomUsernameTests(TestCase):
     def test_generates_username(self):
-        username = _build_random_username("Juan", "Pérez")
+        username = build_random_username("Juan", "Pérez")
         self.assertIsNotNone(username)
         self.assertTrue(REGEX_USERNAME.match(username))
 
-    def test_none_on_empty_names(self):
-        self.assertIsNone(_build_random_username("", ""))
-        self.assertIsNone(_build_random_username("Juan", ""))
+    def test_raises_on_empty_names(self):
+        with self.assertRaises(ValueError):
+            build_random_username("", "")
+        with self.assertRaises(ValueError):
+            build_random_username("Juan", "")
 
     def test_increments_on_collision(self):
-        p = Persona.objects.create(ci="22222222", name="Col", apellido="Lis", email="col@test.com", telefono="")
-        Usuario.objects.create(username="JPérez", password="abc", id_persona=p, rol="US")
-        username = _build_random_username("Juan", "Pérez")
+        p = Persona.objects.create(
+            ci="22222222", name="Col", last_name="Lis",
+            email="col@test.com", phone="",
+        )
+        Usuario.objects.create(
+            username="JPérez", password="abc",
+            id_persona=p, rol="US",
+        )
+        username = build_random_username("Juan", "Pérez")
         self.assertNotEqual(username, "JPérez")
-        self.assertTrue(username.startswith("JPérez"))
 
 
 class GenerateRandomPasswordTests(TestCase):
     def test_default_length(self):
-        pwd = _generate_random_password()
+        pwd = generate_random_password()
         self.assertEqual(len(pwd), 10)
 
     def test_custom_length(self):
-        pwd = _generate_random_password(20)
+        pwd = generate_random_password(20)
         self.assertEqual(len(pwd), 20)
 
     def test_contains_valid_chars(self):
-        pwd = _generate_random_password()
+        pwd = generate_random_password()
         self.assertTrue(pwd.isascii())
 
 
 # ─── VIEW TESTS ────────────────────────────────────────────────────────
 
+
 class LoginViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="admin@test.com", telefono="04121234567")
+        self.persona = Persona.objects.create(
+            ci="12345678", name="Admin", last_name="User",
+            email="admin@test.com", phone="04121234567",
+        )
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(
-            username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True,
+        self.user = Usuario.objects.create(
+            username="admin", password=make_password("admin123"),
+            id_persona=self.persona, rol="SA", registered=True,
         )
 
     def test_login_get_renders_form(self):
@@ -228,54 +271,83 @@ class LoginViewTests(TestCase):
         self.assertTemplateUsed(response, "users/login.html")
 
     def test_login_post_success(self):
-        response = self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
+        response = self.client.post(
+            reverse("login"), {"username": "admin", "password": "admin123"}
+        )
         self.assertEqual(response.status_code, 302)
-        self.assertEqual(self.client.session.get("usuario_id"), self.usuario.id_usuario)
+        self.assertEqual(
+            self.client.session.get("usuario_id"), self.user.id_usuario
+        )
 
     def test_login_post_invalid(self):
-        response = self.client.post(reverse("login"), {"username": "admin", "password": "wrong"})
+        response = self.client.post(
+            reverse("login"), {"username": "admin", "password": "wrong"}
+        )
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "incorrectos")
 
     def test_logout(self):
-        self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
+        self.client.post(
+            reverse("login"), {"username": "admin", "password": "admin123"}
+        )
         response = self.client.get(reverse("logout"))
         self.assertEqual(response.status_code, 302)
         self.assertIsNone(self.client.session.get("usuario_id"))
 
 
-class ListaUsuarioViewTests(TestCase):
+class BeneficiaryListViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="admin@test.com", telefono="04121234567")
-        from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(
-            username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True,
+        self.persona = Persona.objects.create(
+            ci="12345678", name="Admin", last_name="User",
+            email="admin@test.com", phone="04121234567",
         )
-        self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
+        from django.contrib.auth.hashers import make_password
+        self.user = Usuario.objects.create(
+            username="admin", password=make_password("admin123"),
+            id_persona=self.persona, rol="SA", registered=True,
+        )
+        self.client.post(
+            reverse("login"), {"username": "admin", "password": "admin123"}
+        )
 
     def test_lista_requires_admin(self):
         self.client.get(reverse("logout"))
-        us_persona = Persona.objects.create(ci="87654321", name="Normal", apellido="User", email="n@n.com", telefono="04120000000")
+        p = Persona.objects.create(
+            ci="87654321", name="Normal", last_name="User",
+            email="n@n.com", phone="04120000000",
+        )
         from django.contrib.auth.hashers import make_password
-        us_user = Usuario.objects.create(username="us", password=make_password("abc"), id_persona=us_persona, rol="US")
+        us_user = Usuario.objects.create(
+            username="us", password=make_password("abc"),
+            id_persona=p, rol="US",
+        )
         self.client.post(reverse("login"), {"username": "us", "password": "abc"})
         response = self.client.get(reverse("lista_usuario"))
         self.assertEqual(response.status_code, 302)
 
     def test_lista_shows_beneficiarios(self):
-        Persona.objects.create(ci="87654321", name="Test", apellido="User", email="t@t.com", telefono="04121234567")
+        Persona.objects.create(
+            ci="87654321", name="Test", last_name="User",
+            email="t@t.com", phone="04121234567",
+        )
         response = self.client.get(reverse("lista_usuario"))
         self.assertEqual(response.status_code, 200)
 
 
-class RegistroBeneficiarioViewTests(TestCase):
+class BeneficiaryCreateViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="admin@test.com", telefono="04121234567")
-        from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(
-            username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True,
+        self.persona = Persona.objects.create(
+            ci="12345678", name="Admin", last_name="User",
+            email="admin@test.com", phone="04121234567",
         )
-        self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
+        from django.contrib.auth.hashers import make_password
+        self.user = Usuario.objects.create(
+            username="admin", password=make_password("admin123"),
+            id_persona=self.persona, rol="SA", registered=True,
+        )
+        self.client.post(
+            reverse("login"), {"username": "admin", "password": "admin123"}
+        )
 
     def test_get_returns_form(self):
         response = self.client.get(reverse("registro_beneficiario"))

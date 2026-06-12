@@ -122,7 +122,7 @@ def api_usuarios_edificio(request, edificio_id):
         p = ue.id_usuario.id_persona if ue.id_usuario else None
         data.append({
             "id": ue.id_usuario.id_usuario if ue.id_usuario else None,
-            "nombre": f"{p.name} {p.apellido}" if p else "Desconocido",
+            "nombre": f"{p.name} {p.last_name}" if p else "Desconocido",
             "email": p.email if p else "",
         })
     return JsonResponse(data, safe=False)

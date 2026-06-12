@@ -6,10 +6,10 @@ from apps.core.auth_decorators import _login_required, _admin_required
 from apps.users.models import Usuario
 from apps.buildings.models import Edificio, EquipoMonitoreo
 from apps.buildings.services import _crear_equipos_para_edificio, _sincronizar_equipos_para_edificio
-from apps.buildings.validators import _validaciones_formulario_edificio
+from apps.buildings.validators import validate_building_form
 from apps.users.validators import (
-    _validar_campo, _validar_email, _validar_unico_email,
-    _validar_longitud_min, _validar_longitud_max, REGEX_USERNAME,
+    _validate_field, _validate_email, _validate_unique_email,
+    _validate_min_length, _validate_max_length, REGEX_USERNAME,
 )
 from django.db.models import Q
 
@@ -51,7 +51,7 @@ def registro_edificio_view(request):
             if not parroquia:
                 form_errors["direccion"] = "Este campo es obligatorio."
         else:
-            form_errors = _validaciones_formulario_edificio(
+            form_errors = validate_building_form(
                 {
                     "nombreEdificio": nombre,
                     "direccion": parroquia,
@@ -121,7 +121,7 @@ def editar_edificio_view(request, edificio_id):
             if not parroquia:
                 form_errors["direccion"] = "Este campo es obligatorio."
         else:
-            form_errors = _validaciones_formulario_edificio(
+            form_errors = validate_building_form(
                 {
                     "nombreEdificio": nombre,
                     "direccion": parroquia,
@@ -186,7 +186,7 @@ def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
 
     if request.method == "POST" and request.POST.get("confirmed") == "1":
-        from apps.users.models import UsuarioEdificio
+        from apps.buildings.models import UsuarioEdificio
         from apps.alerts.models import Notificacion
         equipos = list(edificio.equipomonitoreo_set.all())
         usuarios_asociados = UsuarioEdificio.objects.filter(
@@ -205,8 +205,7 @@ def eliminar_edificio_view(request, edificio_id):
         )
         return redirect("seleccionar_edificio", accion="eliminar")
 
-    from apps.users.models import UsuarioEdificio
-    from apps.buildings.models import EquipoMonitoreo
+    from apps.buildings.models import EquipoMonitoreo, UsuarioEdificio
     from apps.alerts.models import Notificacion
     equipos = EquipoMonitoreo.objects.filter(id_edificio=edificio)
     usuarios_asociados = UsuarioEdificio.objects.filter(id_edificio=edificio)
@@ -282,17 +281,17 @@ def configuracion_view(request):
             form_errors["current_password"] = "La contraseña actual no es correcta."
         else:
             if email:
-                err_email = _validar_email(email)
+                err_email = _validate_email(email)
                 if err_email:
                     form_errors["email"] = err_email
                 else:
-                    err_email_unico = _validar_unico_email(
+                    err_email_unico = _validate_unique_email(
                         email, exclude_persona_id=persona.id_persona
                     )
                     if err_email_unico:
                         form_errors["email_unico"] = err_email_unico
             if username:
-                err_user = _validar_campo(
+                err_user = _validate_field(
                     username,
                     REGEX_USERNAME,
                     "El nombre de usuario solo acepta letras y números, sin espacios.",
@@ -300,13 +299,13 @@ def configuracion_view(request):
                 if err_user:
                     form_errors["username"] = err_user
                 else:
-                    err_user_min = _validar_longitud_min(
+                    err_user_min = _validate_min_length(
                         username, 4, "El nombre de usuario"
                     )
                     if err_user_min:
                         form_errors["username"] = err_user_min
                     else:
-                        err_user_max = _validar_longitud_max(
+                        err_user_max = _validate_max_length(
                             username, 20, "El nombre de usuario"
                         )
                         if err_user_max:

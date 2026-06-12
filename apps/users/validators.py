@@ -1,199 +1,191 @@
 import re
+from typing import Optional
+
+from django.utils.translation import gettext_lazy as _
 
 from apps.users.models import Persona
 
-REGEX_SOLO_LETRAS = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$")
-REGEX_SOLO_NUMEROS = re.compile(r"^\d+$")
-REGEX_EMAIL = re.compile(
+REGEX_ONLY_LETTERS: re.Pattern = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$")
+REGEX_ONLY_NUMBERS: re.Pattern = re.compile(r"^\d+$")
+REGEX_EMAIL: re.Pattern = re.compile(
     r"^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$"
 )
-REGEX_TELEFONO = re.compile(r"^[\d\s\+\-]+$")
-REGEX_RIF = re.compile(r"^[VJEGP]\-?\d{7,9}\-?\d$")
-REGEX_DIRECCION = re.compile(r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]+$")
-REGEX_USERNAME = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9]+$")
+REGEX_PHONE: re.Pattern = re.compile(r"^[\d\s\+\-]+$")
+REGEX_RIF: re.Pattern = re.compile(r"^[VJEGP]\-?\d{7,9}\-?\d$")
+REGEX_ADDRESS: re.Pattern = re.compile(
+    r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]+$"
+)
+REGEX_USERNAME: re.Pattern = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9]+$")
 
 
-def _validar_campo(valor, regex, mensaje):
-    if valor and not regex.match(valor):
-        return mensaje
-    return None
+FIELD_SPECS = [
+    {
+        "key": "primerNombre",
+        "label": _("El primer nombre"),
+        "regex": REGEX_ONLY_LETTERS,
+        "regex_msg": _("El primer nombre solo acepta letras."),
+        "min": 2,
+        "max": 20,
+    },
+    {
+        "key": "segundoNombre",
+        "label": _("El segundo nombre"),
+        "regex": REGEX_ONLY_LETTERS,
+        "regex_msg": _("El segundo nombre solo acepta letras."),
+        "min": 2,
+        "max": 20,
+    },
+    {
+        "key": "primerApellido",
+        "label": _("El primer apellido"),
+        "regex": REGEX_ONLY_LETTERS,
+        "regex_msg": _("El primer apellido solo acepta letras."),
+        "min": 2,
+        "max": 20,
+    },
+    {
+        "key": "segundoApellido",
+        "label": _("El segundo apellido"),
+        "regex": REGEX_ONLY_LETTERS,
+        "regex_msg": _("El segundo apellido solo acepta letras."),
+        "min": 2,
+        "max": 20,
+    },
+    {
+        "key": "cedula",
+        "label": _("La cédula"),
+        "regex": REGEX_ONLY_NUMBERS,
+        "regex_msg": _("La cédula solo acepta números."),
+        "min": 6,
+        "max": 8,
+    },
+]
 
 
-def _validar_longitud_min(valor, minimo, campo):
-    if valor and len(valor) < minimo:
-        return f"{campo} debe tener al menos {minimo} caracteres."
-    return None
+def _validate_field(value: str, regex: re.Pattern, message: str) -> str:
+    if value and not regex.match(value):
+        return message
+    return ""
 
 
-def _validar_longitud_max(valor, maximo, campo):
-    if valor and len(valor) > maximo:
-        return f"{campo} no puede tener más de {maximo} caracteres."
-    return None
+def _validate_min_length(value: str, minimum: int, label: str) -> str:
+    if value and len(value) < minimum:
+        return f"{label} debe tener al menos {minimum} caracteres."
+    return ""
 
 
-def _validar_telefono(valor):
-    if not valor:
-        return None
-    if not REGEX_TELEFONO.match(valor):
-        return "El teléfono contiene caracteres no válidos."
-    digitos = re.sub(r"[\s\+\-]", "", valor)
-    if len(digitos) < 10:
-        return "El teléfono debe tener al menos 10 dígitos reales."
-    if len(digitos) > 20:
-        return "El teléfono no puede tener más de 20 dígitos."
-    return None
+def _validate_max_length(value: str, maximum: int, label: str) -> str:
+    if value and len(value) > maximum:
+        return f"{label} no puede tener más de {maximum} caracteres."
+    return ""
 
 
-def _validar_rif(valor):
-    if not valor:
-        return "El RIF es obligatorio."
-    if not REGEX_RIF.match(valor.upper()):
-        return "El RIF debe tener formato: letra (V,J,E,G) + 7-9 dígitos + dígito de control. Ej: J-12345678-0"
-    return None
+def _validate_phone(value: str) -> str:
+    if not value:
+        return ""
+    if not REGEX_PHONE.match(value):
+        return _("El teléfono contiene caracteres no válidos.")
+    digits = re.sub(r"[\s\+\-]", "", value)
+    if len(digits) < 10:
+        return _("El teléfono debe tener al menos 10 dígitos reales.")
+    if len(digits) > 20:
+        return _("El teléfono no puede tener más de 20 dígitos.")
+    return ""
 
 
-def _validar_email(valor):
-    if not valor:
-        return "El email es obligatorio."
-    if not REGEX_EMAIL.match(valor):
-        return "Ingresa un correo electrónico válido."
-    local = valor.split("@")[0]
+def _validate_rif(value: str) -> str:
+    if not value:
+        return _("El RIF es obligatorio.")
+    if not REGEX_RIF.match(value.upper()):
+        return _(
+            "El RIF debe tener formato: letra (V,J,E,G) + 7-9 dígitos + dígito de control. Ej: J-12345678-0"
+        )
+    return ""
+
+
+def _validate_email(value: str) -> str:
+    if not value:
+        return _("El email es obligatorio.")
+    if not REGEX_EMAIL.match(value):
+        return _("Ingresa un correo electrónico válido.")
+    local = value.split("@")[0]
     if len(local) > 30:
-        return "La parte antes del @ no puede tener más de 30 caracteres."
-    if len(valor) < 6:
-        return "El correo debe tener al menos 6 caracteres."
-    return None
+        return _("La parte antes del @ no puede tener más de 30 caracteres.")
+    if len(value) < 6:
+        return _("El correo debe tener al menos 6 caracteres.")
+    return ""
 
 
-def _validar_unico_email(email, exclude_persona_id=None):
+def _validate_unique_email(email: str, exclude_persona_id: Optional[int] = None) -> str:
     qs = Persona.objects.filter(email=email)
     if exclude_persona_id:
         qs = qs.exclude(id_persona=exclude_persona_id)
     if qs.exists():
-        return "El correo electrónico ya está registrado por otro usuario."
-    return None
+        return _("El correo electrónico ya está registrado por otro usuario.")
+    return ""
 
 
-def _validar_unico_ci(ci, exclude_persona_id=None):
+def _validate_unique_ci(ci: str, exclude_persona_id: Optional[int] = None) -> str:
     try:
         ci_int = int(ci)
     except (ValueError, TypeError):
-        return None
+        return ""
     qs = Persona.objects.filter(ci=ci_int)
     if exclude_persona_id:
         qs = qs.exclude(id_persona=exclude_persona_id)
     if qs.exists():
-        return "La cédula ya está registrada por otro usuario."
-    return None
+        return _("La cédula ya está registrada por otro usuario.")
+    return ""
 
 
-def _validar_unico_telefono(telefono, exclude_persona_id=None):
-    if not telefono:
-        return None
-    qs = Persona.objects.filter(telefono=telefono)
+def _validate_unique_phone(phone: str, exclude_persona_id: Optional[int] = None) -> str:
+    if not phone:
+        return ""
+    qs = Persona.objects.filter(phone=phone)
     if exclude_persona_id:
         qs = qs.exclude(id_persona=exclude_persona_id)
     if qs.exists():
-        return "El teléfono ya está registrado por otro usuario."
-    return None
+        return _("El teléfono ya está registrado por otro usuario.")
+    return ""
 
 
-def _validaciones_formulario_usuario(data, exclude_persona_id=None):
-    errores = {}
+def validate_user_form(data: dict, exclude_persona_id: Optional[int] = None) -> dict:
+    errors: dict[str, str] = {}
 
-    campo = _validar_campo(
-        data.get("primerNombre", ""),
-        REGEX_SOLO_LETRAS,
-        "El primer nombre solo acepta letras.",
-    )
-    if campo:
-        errores["primerNombre"] = campo
-    campo = _validar_longitud_min(data.get("primerNombre", ""), 2, "El primer nombre")
-    if campo:
-        errores["primerNombre_min"] = campo
-    campo = _validar_longitud_max(data.get("primerNombre", ""), 20, "El primer nombre")
-    if campo:
-        errores["primerNombre_long"] = campo
+    for spec in FIELD_SPECS:
+        key = spec["key"]
+        value = data.get(key, "")
 
-    campo = _validar_campo(
-        data.get("segundoNombre", ""),
-        REGEX_SOLO_LETRAS,
-        "El segundo nombre solo acepta letras.",
-    )
-    if campo:
-        errores["segundoNombre"] = campo
-    campo = _validar_longitud_min(data.get("segundoNombre", ""), 2, "El segundo nombre")
-    if campo:
-        errores["segundoNombre_min"] = campo
-    campo = _validar_longitud_max(
-        data.get("segundoNombre", ""), 20, "El segundo nombre"
-    )
-    if campo:
-        errores["segundoNombre_long"] = campo
+        error = _validate_field(value, spec["regex"], spec["regex_msg"])
+        if error:
+            errors[key] = error
 
-    campo = _validar_campo(
-        data.get("primerApellido", ""),
-        REGEX_SOLO_LETRAS,
-        "El primer apellido solo acepta letras.",
-    )
-    if campo:
-        errores["primerApellido"] = campo
-    campo = _validar_longitud_min(
-        data.get("primerApellido", ""), 2, "El primer apellido"
-    )
-    if campo:
-        errores["primerApellido_min"] = campo
-    campo = _validar_longitud_max(
-        data.get("primerApellido", ""), 20, "El primer apellido"
-    )
-    if campo:
-        errores["primerApellido_long"] = campo
+        error = _validate_min_length(value, spec["min"], spec["label"])
+        if error:
+            errors[f"{key}_min"] = error
 
-    campo = _validar_campo(
-        data.get("segundoApellido", ""),
-        REGEX_SOLO_LETRAS,
-        "El segundo apellido solo acepta letras.",
-    )
-    if campo:
-        errores["segundoApellido"] = campo
-    campo = _validar_longitud_min(
-        data.get("segundoApellido", ""), 2, "El segundo apellido"
-    )
-    if campo:
-        errores["segundoApellido_min"] = campo
-    campo = _validar_longitud_max(
-        data.get("segundoApellido", ""), 20, "El segundo apellido"
-    )
-    if campo:
-        errores["segundoApellido_long"] = campo
+        error = _validate_max_length(value, spec["max"], spec["label"])
+        if error:
+            errors[f"{key}_long"] = error
 
-    campo = _validar_campo(
-        data.get("cedula", ""), REGEX_SOLO_NUMEROS, "La cédula solo acepta números."
-    )
-    if campo:
-        errores["cedula"] = campo
-    campo = _validar_longitud_min(data.get("cedula", ""), 6, "La cédula")
-    if campo:
-        errores["cedula_min"] = campo
-    campo = _validar_longitud_max(data.get("cedula", ""), 8, "La cédula")
-    if campo:
-        errores["cedula_long"] = campo
+    error = _validate_email(data.get("email", ""))
+    if error:
+        errors["email"] = error
 
-    campo = _validar_email(data.get("email", ""))
-    if campo:
-        errores["email"] = campo
+    error = _validate_phone(data.get("telefono", ""))
+    if error:
+        errors["telefono"] = error
 
-    campo = _validar_telefono(data.get("telefono", ""))
-    if campo:
-        errores["telefono"] = campo
+    error = _validate_unique_email(data.get("email", ""), exclude_persona_id)
+    if error:
+        errors["email_unico"] = error
 
-    campo = _validar_unico_email(data.get("email", ""), exclude_persona_id)
-    if campo:
-        errores["email_unico"] = campo
-    campo = _validar_unico_ci(data.get("cedula", ""), exclude_persona_id)
-    if campo:
-        errores["cedula_unico"] = campo
-    campo = _validar_unico_telefono(data.get("telefono", ""), exclude_persona_id)
-    if campo:
-        errores["telefono_unico"] = campo
-    return errores
+    error = _validate_unique_ci(data.get("cedula", ""), exclude_persona_id)
+    if error:
+        errors["cedula_unico"] = error
+
+    error = _validate_unique_phone(data.get("telefono", ""), exclude_persona_id)
+    if error:
+        errors["telefono_unico"] = error
+
+    return errors

@@ -12,7 +12,7 @@ from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
 
 class NotificacionModelTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Test", apellido="User", email="t@t.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Test", last_name="User", email="t@t.com", phone="04121234567")
         self.usuario = Usuario.objects.create(username="testuser", password="abc", id_persona=self.persona, rol="US")
         self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
         self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
@@ -37,9 +37,9 @@ class NotificacionModelTests(TestCase):
 
 class NotificacionesViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True)
+        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.edificio = Edificio.objects.create(nb_edificio="Test", rif="J-11111111-0", direccion="Dir")
         self.equipo = EquipoMonitoreo.objects.create(nb_equipo="Bomba", id_edificio=self.edificio, tipo="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
@@ -67,9 +67,9 @@ class NotificacionesViewTests(TestCase):
 
 class AlertApiViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", apellido="User", email="a@a.com", telefono="04121234567")
+        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com", phone="04121234567")
         from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registrado=True)
+        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     @patch("apps.alerts.api_views.get_thresholds")

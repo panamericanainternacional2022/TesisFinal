@@ -54,45 +54,45 @@ def populate():
         ci=12345678,
         defaults={
             "name": "Juan",
-            "apellido": "Perez",
+            "last_name": "Perez",
             "email": "juan@example.com",
-            "telefono": "04141234567",
+            "phone": "04141234567",
         },
     )
     p2, _ = Persona.objects.get_or_create(
         ci=87654321,
         defaults={
             "name": "Maria",
-            "apellido": "Gomez",
+            "last_name": "Gomez",
             "email": "maria@example.com",
-            "telefono": "04121234567",
+            "phone": "04121234567",
         },
     )
     p3, _ = Persona.objects.get_or_create(
         ci=11223344,
         defaults={
             "name": "Tommy",
-            "apellido": "Tupiza",
+            "last_name": "Tupiza",
             "email": "tjta3105@gmail.com",
-            "telefono": "04241234567",
+            "phone": "04241234567",
         },
     )
     p4, _ = Persona.objects.get_or_create(
         ci=44332211,
         defaults={
             "name": "Admin",
-            "apellido": "Sistema",
+            "last_name": "Sistema",
             "email": "admin@example.com",
-            "telefono": "04161234567",
+            "phone": "04161234567",
         },
     )
     p5, _ = Persona.objects.get_or_create(
         ci=55667788,
         defaults={
             "name": "Carlos",
-            "apellido": "Rodriguez",
+            "last_name": "Rodriguez",
             "email": "carlos@example.com",
-            "telefono": "04149876543",
+            "phone": "04149876543",
         },
     )
 
@@ -100,23 +100,23 @@ def populate():
     _hashed_pw = make_password("password123")
     u1, _ = Usuario.objects.get_or_create(
         username="juanp",
-        defaults={"password": _hashed_pw, "id_persona": p1, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p1, "rol": "US", "registered": True},
     )
     u2, _ = Usuario.objects.get_or_create(
         username="mariag",
-        defaults={"password": _hashed_pw, "id_persona": p2, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p2, "rol": "US", "registered": True},
     )
     u3, _ = Usuario.objects.get_or_create(
         username="tommyt",
-        defaults={"password": _hashed_pw, "id_persona": p3, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p3, "rol": "US", "registered": True},
     )
     u4, _ = Usuario.objects.get_or_create(
         username="admin",
-        defaults={"password": _hashed_pw, "id_persona": p4, "rol": "SA", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p4, "rol": "SA", "registered": True},
     )
     u5, _ = Usuario.objects.get_or_create(
         username="carlosr",
-        defaults={"password": _hashed_pw, "id_persona": p5, "rol": "US", "registrado": True},
+        defaults={"password": _hashed_pw, "id_persona": p5, "rol": "US", "registered": True},
     )
 
     print("Creando Edificios...")
