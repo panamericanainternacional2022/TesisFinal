@@ -15,13 +15,24 @@ def _build_beneficiario_data(usuario):
     persona = usuario.id_persona
     ue = usuario.usuarioedificio_set.first()
     edificio = ue.id_edificio if ue else None
+    nombre = usuario.username
+    apellido = ""
+    cedula = ""
+    email = ""
+    telefono = ""
+    if persona:
+        cedula = persona.ci
+        nombre = persona.name or usuario.username
+        apellido = persona.apellido or ""
+        email = persona.email or ""
+        telefono = persona.telefono or ""
     return {
         "id": usuario.id_usuario,
-        "cedula": persona.ci if persona else "",
-        "nombre": persona.name if persona else usuario.username,
-        "apellido": persona.apellido if persona else "",
-        "email": persona.email if persona else "",
-        "telefono": persona.telefono if persona else "",
+        "cedula": cedula,
+        "nombre": nombre,
+        "apellido": apellido,
+        "email": email,
+        "telefono": telefono,
         "edificio_nombre": edificio.nb_edificio if edificio else "",
         "edificio_rif": edificio.rif if edificio else "",
         "edificio_direccion": edificio.direccion if edificio else "",

@@ -73,7 +73,7 @@ def _parse_notif_for_historial(notif):
 
     if raw.startswith("{"):
         try:
-            data = _json.loads(raw)
+            data = json.loads(raw)
             parsed_data = _make_parsed(
                 risk=data.get("risk", ""),
                 variable=data.get("variable", ""),

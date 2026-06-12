@@ -10,7 +10,6 @@ import time as time_module
 import eventlet
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 
 from apps.sensors.simulation import simulators
 from apps.sensors.simulation import (
@@ -54,7 +53,6 @@ def _json_ok(extra=None):
 
 # ─── SSE / REAL-TIME ──────────────────────────────────────────────
 
-@login_required
 def sse_stream(request, edificio_id):
     """Streaming SSE para un edificio específico."""
     sim = _get_sim(edificio_id)
@@ -75,7 +73,6 @@ def sse_stream(request, edificio_id):
 
 # ─── DATA API ─────────────────────────────────────────────────────
 
-@login_required
 def api_status(request):
     """Estado actual del simulador activo (primer edificio o por ?edificio_id)."""
     eid = request.GET.get("edificio_id")
@@ -92,7 +89,6 @@ def api_status(request):
     return JsonResponse(build_live_payload_for_sim(sim))
 
 
-@login_required
 def api_edificios(request):
     """Lista de edificios con sus equipos de monitoreo."""
     data = []
@@ -113,7 +109,6 @@ def api_edificios(request):
     return JsonResponse(data, safe=False)
 
 
-@login_required
 def api_usuarios_edificio(request, edificio_id):
     """Usuarios asociados a un edificio."""
     usuarios = UsuarioEdificio.objects.filter(
@@ -130,7 +125,6 @@ def api_usuarios_edificio(request, edificio_id):
     return JsonResponse(data, safe=False)
 
 
-@login_required
 def api_notifications(request):
     """Últimas 50 notificaciones desde la BD."""
     qs = Notificacion.objects.select_related(
@@ -160,7 +154,6 @@ def api_notifications(request):
 
 # ─── ACCIONES MANUALES ────────────────────────────────────────────
 
-@login_required
 @require_http_methods(["POST"])
 def manual_update(request):
     """Actualiza manualmente una variable de sensor."""
@@ -230,7 +223,6 @@ def manual_update(request):
 
 # ─── CONTROL DEL SIMULADOR ───────────────────────────────────────
 
-@login_required
 def sim_status(request, edificio_id):
     sim = _get_sim(edificio_id)
     if not sim:
@@ -251,7 +243,6 @@ def sim_status(request, edificio_id):
     })
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_pause(request, edificio_id):
     sim = _get_sim(edificio_id)
@@ -269,7 +260,6 @@ def sim_pause(request, edificio_id):
     return _json_ok({"paused": sim.sim_paused})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_reset(request, edificio_id):
     ok, msg = reset_simulator(edificio_id)
@@ -278,7 +268,6 @@ def sim_reset(request, edificio_id):
     return _json_ok({"message": msg})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_inject_fault(request, edificio_id):
     try:
@@ -295,7 +284,6 @@ def sim_inject_fault(request, edificio_id):
     return _json_ok({"message": msg})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_clear_fault(request, edificio_id):
     try:
@@ -309,7 +297,6 @@ def sim_clear_fault(request, edificio_id):
     return _json_ok({"message": msg})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_set_speed(request, edificio_id):
     sim = _get_sim(edificio_id)
@@ -324,7 +311,6 @@ def sim_set_speed(request, edificio_id):
     return _json_ok({"speed": sim.sim_speed})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_toggle_pump(request, edificio_id):
     sim = _get_sim(edificio_id)
@@ -342,7 +328,6 @@ def sim_toggle_pump(request, edificio_id):
     return _json_ok({"pump_on": sim.pump_on})
 
 
-@login_required
 @require_http_methods(["POST"])
 def sim_toggle_elevator(request, edificio_id):
     sim = _get_sim(edificio_id)

@@ -4,7 +4,6 @@ import threading
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.contrib.auth.decorators import login_required
 
 from apps.alerts.services.threshold_service import get_thresholds, update_threshold
 from apps.alerts.services.alert_service import (
@@ -25,12 +24,10 @@ def _json_ok(extra=None):
     return JsonResponse(resp)
 
 
-@login_required
 def view_get_thresholds(request):
     return JsonResponse(get_thresholds())
 
 
-@login_required
 @require_http_methods(["POST"])
 def view_update_thresholds(request):
     try:
@@ -52,14 +49,12 @@ def view_update_thresholds(request):
     return _json_ok({"thresholds": get_thresholds()})
 
 
-@login_required
 @require_http_methods(["POST"])
 def view_clear_alerts(request):
     request.session["alerts_cleared_at"] = time_module.time()
     return _json_ok()
 
 
-@login_required
 @require_http_methods(["POST"])
 def view_toggle_alerts(request):
     try:
@@ -78,7 +73,6 @@ def view_toggle_alerts(request):
     return _json_ok({"alert_enabled": sim.alert_enabled})
 
 
-@login_required
 @require_http_methods(["POST"])
 def send_test_email(request):
     try:
@@ -101,7 +95,6 @@ def send_test_email(request):
     return _json_ok({"message": f"Correo de prueba enviado a {email}"})
 
 
-@login_required
 @require_http_methods(["POST"])
 def send_all_subscribers(request):
     try:
