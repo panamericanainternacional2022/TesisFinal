@@ -1,31 +1,32 @@
 from django.http import HttpRequest, HttpResponse
 
-from apps.core.auth_decorators import is_admin_role
 from .admin import (
-    render_admin_monitoreo,
-    render_admin_historial,
-    monitoreo_edificio_view,
-    simulador_status_view,
-    simulador_start_view,
-    simulador_stop_view,
-    simulador_restart_view,
+    render_admin_monitoring,
+    render_admin_history,
+    building_monitoring_view,
+    simulator_status_view,
+    simulator_start_view,
+    simulator_stop_view,
+    simulator_restart_view,
 )
 from .user import (
-    render_user_monitoreo,
-    render_user_historial,
-    menu_seleccion_view,
+    render_user_monitoring,
+    render_user_history,
+    selection_menu_view,
 )
 
 
-def monitoreo_view(request: HttpRequest) -> HttpResponse:
+def monitoring_view(request: HttpRequest) -> HttpResponse:
+    from apps.core.auth_decorators import is_admin_role
     rol = request.session.get("usuario_rol", "US")
     if is_admin_role(rol):
-        return render_admin_monitoreo(request)
-    return render_user_monitoreo(request)
+        return render_admin_monitoring(request)
+    return render_user_monitoring(request)
 
 
-def historial_view(request: HttpRequest) -> HttpResponse:
+def history_view(request: HttpRequest) -> HttpResponse:
+    from apps.core.auth_decorators import is_admin_role
     rol = request.session.get("usuario_rol", "US")
     if is_admin_role(rol):
-        return render_admin_historial(request)
-    return render_user_historial(request)
+        return render_admin_history(request)
+    return render_user_history(request)

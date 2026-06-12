@@ -14,7 +14,7 @@ from .shared import (
 
 
 @login_required
-def render_admin_monitoreo(request) -> HttpResponse:
+def render_admin_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
 
@@ -41,7 +41,7 @@ def render_admin_monitoreo(request) -> HttpResponse:
 
 @login_required
 @admin_required
-def monitoreo_edificio_view(request, building_id: int) -> HttpResponse:
+def building_monitoring_view(request, building_id: int) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     building = get_object_or_404(Building, pk=building_id)
     return render(
@@ -58,7 +58,7 @@ def monitoreo_edificio_view(request, building_id: int) -> HttpResponse:
 
 
 @login_required
-def render_admin_historial(request) -> HttpResponse:
+def render_admin_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     building_id = request.GET.get("edificio", "").strip()
     severity = request.GET.get("severidad", "").strip()
@@ -121,7 +121,7 @@ def render_admin_historial(request) -> HttpResponse:
 
 
 @login_required
-def simulador_status_view(request) -> JsonResponse:
+def simulator_status_view(request) -> JsonResponse:
     from json import dumps as json_dumps
     from apps.sensors.simulation.globals import simulators
 
@@ -132,7 +132,7 @@ def simulador_status_view(request) -> JsonResponse:
 
 @login_required
 @admin_required
-def simulador_start_view(request) -> JsonResponse:
+def simulator_start_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.models import BuildingSimulator
     from apps.buildings.models import MonitoringEquipment
@@ -164,7 +164,7 @@ def simulador_start_view(request) -> JsonResponse:
 
 @login_required
 @admin_required
-def simulador_stop_view(request) -> JsonResponse:
+def simulator_stop_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
 
     if not simulators:
@@ -176,7 +176,7 @@ def simulador_stop_view(request) -> JsonResponse:
 
 @login_required
 @admin_required
-def simulador_restart_view(request) -> JsonResponse:
+def simulator_restart_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.controls import reset_simulator
 

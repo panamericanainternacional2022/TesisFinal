@@ -3,12 +3,12 @@ import logging
 from typing import Any, Dict, List, Optional
 
 from apps.alerts.models import Notification
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
 
 logger = logging.getLogger(__name__)
 
 
 def _find_equipment(variable: str, edificio_id: Optional[int]) -> Any:
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
     from django.utils import timezone
     from apps.buildings.models import MonitoringEquipment
     from apps.users.models import Usuario

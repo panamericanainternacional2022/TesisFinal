@@ -8,9 +8,7 @@ from django.db.models import Q, QuerySet
 from django.utils import timezone
 
 from apps.alerts.models import Notification
-from apps.alerts.views.shared import parse_notification_for_display
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
-from apps.core.auth_decorators import is_admin_role
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +85,7 @@ def _filter_by_role_and_building(
     role: str,
     building_id: str,
 ) -> tuple[QuerySet, str]:
+    from apps.core.auth_decorators import is_admin_role
     if is_admin_role(role):
         notifications = Notification.objects.all()
         building_name: str = "Todos los edificios"
@@ -164,6 +163,8 @@ def _apply_period_filter(
 def _parse_and_filter_notifications(
     notifications: QuerySet, variable: str
 ) -> list[Any]:
+    from apps.alerts.views.shared import parse_notification_for_display
+
     notifications = (
         notifications.select_related("monitoring_equipment__building")
         .distinct()

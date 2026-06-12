@@ -5,10 +5,6 @@ from typing import Any
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
-from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
-from apps.sensors.simulation.exceptions import SimulatorError
-
 from .shared import get_simulator, get_first_simulator, json_error_response, json_success_response, parse_json_body
 
 
@@ -17,6 +13,9 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["POST"])
 def manual_update(request) -> JsonResponse:
+    from apps.sensors.simulation.exceptions import SimulatorError
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
+    from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
     try:
         body = parse_json_body(request)
     except SimulatorError as e:

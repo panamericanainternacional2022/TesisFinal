@@ -1,12 +1,10 @@
+from __future__ import annotations
+
 import logging
 import threading
 import time
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Optional
 
-from apps.sensors.simulation.models import BuildingSimulator
-from apps.sensors.simulation.constants import PROTECTION_HOLD_SECONDS
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
-from apps.alerts.services.alert_service import send_email_alert, persist_notification_in_django
 from .utils import (
     COOLDOWN_SECONDS, get_attribute, set_attribute, translate_device_to_spanish,
 )
@@ -32,6 +30,8 @@ def _send_protection_email(
     targets_text_raw: str,
     last_email_time: float,
 ) -> float:
+    from apps.alerts.services.alert_service import send_email_alert
+    from .utils import COOLDOWN_SECONDS
     now_ts = time.time()
     if now_ts - last_email_time <= COOLDOWN_SECONDS:
         return last_email_time
@@ -61,9 +61,10 @@ def _send_protection_email(
 
 def enter_protection_mode(
     reason: Optional[str] = None,
-    targets: Optional[Set[str]] = None,
-    sim: Optional[BuildingSimulator] = None,
+    targets: Optional[set[str]] = None,
+    sim: Optional['BuildingSimulator'] = None,
 ) -> None:
+    from apps.sensors.simulation.constants import PROTECTION_HOLD_SECONDS
     if not targets:
         logger.warning("Protection requested without targets; nothing will be done.")
         return
@@ -86,6 +87,7 @@ def enter_protection_mode(
 
     alert_enabled = sim.alert_enabled if sim else True
     if alert_enabled:
+        from apps.alerts.services.alert_service import persist_notification_in_django
         eid = sim.edificio_id if sim else None
         persist_notification_in_django(
             "auto_protection", targets_text_es, "Critical",
@@ -101,7 +103,7 @@ def _get_expired_devices(protection_ends_dict: dict[str, float]) -> list[str]:
     return [d for d, end in protection_ends_dict.items() if end and now >= end]
 
 
-def _reset_device(device: str, sim: Optional[BuildingSimulator]) -> None:
+def _reset_device(device: str, sim: Optional['BuildingSimulator']) -> None:
     from apps.sensors.simulation.controls import reset_critical_values
 
     try:
@@ -111,6 +113,7 @@ def _reset_device(device: str, sim: Optional[BuildingSimulator]) -> None:
 
 
 def _clear_device_alerts(device: str, active_alerts_dict: dict[str, str]) -> None:
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
     try:
         if device == "pump":
             for v in PUMP_VARS + ["rationing"]:
@@ -122,7 +125,8 @@ def _clear_device_alerts(device: str, active_alerts_dict: dict[str, str]) -> Non
         pass
 
 
-def _notify_protection_ended(device: str, sim: Optional[BuildingSimulator], pn: list) -> None:
+def _notify_protection_ended(device: str, sim: Optional['BuildingSimulator'], pn: list) -> None:
+    from apps.alerts.services.alert_service import persist_notification_in_django
     device_es = "the water pump" if device == "pump" else "the elevator"
     alert_enabled = sim.alert_enabled if sim else True
     if alert_enabled:
@@ -144,7 +148,7 @@ def _notify_protection_ended(device: str, sim: Optional[BuildingSimulator], pn: 
     pn.append(notification_payload)
 
 
-def update_protection_state(sim: Optional[BuildingSimulator] = None) -> None:
+def update_protection_state(sim: Optional['BuildingSimulator'] = None) -> None:
     pe = get_attribute(sim, "protection_ends")
     aa = get_attribute(sim, "active_alerts")
     pn = get_attribute(sim, "pending_notifications")

@@ -4,7 +4,6 @@ from typing import Any
 
 from django.http import JsonResponse
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS
 from apps.buildings.models import MonitoringEquipment, UserBuilding
 from apps.alerts.models import Notification
 

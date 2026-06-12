@@ -5,10 +5,6 @@ from django.utils import timezone as tz
 
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
-from apps.alerts.views.shared import parse_notification_for_display
-from apps.sensors.sensor_config import (
-    VAR_NAMES, UNITS, NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS,
-)
 
 
 ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
@@ -24,6 +20,7 @@ DELTA_MAP = {
 
 def build_monitoring_config(building_id: int) -> str:
     import json
+    from apps.sensors.sensor_config import NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS
     return json.dumps({
         "no_risk_vars": NO_RISK_VARS,
         "pump_vars": PUMP_VARS,
@@ -35,6 +32,7 @@ def build_monitoring_config(building_id: int) -> str:
 
 
 def get_equipment_sensors(equipment: MonitoringEquipment) -> list[dict]:
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS
     variable_list = PUMP_VARS if equipment.equipment_type == MonitoringEquipment.TYPE_PUMP else ELEVATOR_VARS
     return [
         {"nombre": VAR_NAMES.get(v, v), "unidad": UNITS.get(v, "")}
@@ -82,6 +80,7 @@ def get_user_building_ids(user_id: int) -> list[int]:
 
 
 def parse_notifications(notifications: QuerySet) -> list:
+    from apps.alerts.views.shared import parse_notification_for_display
     parsed = []
     for notif in notifications:
         parsed.append(parse_notification_for_display(notif))

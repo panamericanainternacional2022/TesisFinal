@@ -8,7 +8,7 @@ from django.db.models import Q
 
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, UserBuilding
-from apps.core.auth_decorators import login_required, admin_required, ADMIN_ROLES
+from apps.core.auth_decorators import login_required, admin_required
 from apps.users.models import Usuario, Persona
 from apps.users.services import (
     build_beneficiary_data,
@@ -34,6 +34,7 @@ def user_register_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @admin_required
 def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
+    from apps.core.auth_decorators import ADMIN_ROLES
     query = request.GET.get("q", "").strip()
     building_id = request.GET.get("edificio", "").strip()
 
@@ -217,6 +218,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
 @login_required
 @admin_required
 def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
+    from apps.core.auth_decorators import ADMIN_ROLES
     VALID_ACTIONS = ("editar", "eliminar")
     if action not in VALID_ACTIONS:
         messages.error(request, f"Acción no válida: {action}")

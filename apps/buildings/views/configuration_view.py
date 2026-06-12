@@ -6,10 +6,6 @@ from typing import Any
 
 from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
-from apps.users.validators import (
-    _validate_field, _validate_email, _validate_unique_email,
-    _validate_min_length, _validate_max_length, REGEX_USERNAME,
-)
 from apps.buildings.views.shared import build_message
 
 
@@ -88,6 +84,7 @@ def _migrate_plaintext_password(user: Usuario, plaintext: str) -> bool:
 def _validate_config_email(
     email: str, person: Any, form_errors: dict[str, str],
 ) -> None:
+    from apps.users.validators import _validate_email, _validate_unique_email
     if not email:
         return
     err = _validate_email(email)
@@ -102,6 +99,7 @@ def _validate_config_email(
 def _validate_config_username(
     username: str, form_errors: dict[str, str],
 ) -> None:
+    from apps.users.validators import _validate_field, _validate_min_length, _validate_max_length, REGEX_USERNAME
     if not username:
         return
     err = _validate_field(

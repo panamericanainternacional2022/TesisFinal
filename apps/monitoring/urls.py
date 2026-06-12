@@ -1,14 +1,14 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from .views.dispatch import monitoreo_view, historial_view
-from .views.user import menu_seleccion_view
+from .views.dispatch import monitoring_view, history_view
+from .views.user import selection_menu_view
 from .views.admin import (
-    monitoreo_edificio_view,
-    simulador_status_view,
-    simulador_start_view,
-    simulador_stop_view,
-    simulador_restart_view,
+    building_monitoring_view,
+    simulator_status_view,
+    simulator_start_view,
+    simulator_stop_view,
+    simulator_restart_view,
 )
 from .simulation.streaming import sse_stream
 from .simulation.api import api_status, api_buildings, api_building_users, api_notifications
@@ -26,32 +26,32 @@ from .simulation.controls import (
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/login/", permanent=False), name="home"),
-    path("menu/", menu_seleccion_view, name="menu"),
-    path("history/", historial_view, name="history"),
-    path("monitor/", monitoreo_view, name="monitor"),
+    path("menu/", selection_menu_view, name="menu"),
+    path("history/", history_view, name="history"),
+    path("monitor/", monitoring_view, name="monitor"),
     path(
         "monitor/building/<int:building_id>/",
-        monitoreo_edificio_view,
+        building_monitoring_view,
         name="monitor_building",
     ),
     path(
         "monitor/simulator/status/",
-        simulador_status_view,
+        simulator_status_view,
         name="simulator_status",
     ),
     path(
         "monitor/simulator/start/",
-        simulador_start_view,
+        simulator_start_view,
         name="simulator_start",
     ),
     path(
         "monitor/simulator/stop/",
-        simulador_stop_view,
+        simulator_stop_view,
         name="simulator_stop",
     ),
     path(
         "monitor/simulator/restart/",
-        simulador_restart_view,
+        simulator_restart_view,
         name="simulator_restart",
     ),
     # ─── SIMULACIÓN API (reemplaza routes.py Flask) ─────

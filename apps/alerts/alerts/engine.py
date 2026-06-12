@@ -1,14 +1,10 @@
+from __future__ import annotations
+
 import logging
 import threading
 import time
 from typing import Optional
 
-from apps.sensors.simulation.models import BuildingSimulator
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, RISK_NAMES_ES
-from apps.alerts.services.alert_service import (
-    get_unit, send_email_alert, generate_recommendations,
-    get_professional_action, persist_notification_in_django,
-)
 from .utils import (
     COOLDOWN_SECONDS, get_attribute, set_attribute,
     translate_variable_to_spanish, translate_device_to_spanish,
@@ -19,6 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def _determine_device_target(variable: str) -> Optional[str]:
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
     try:
         if variable in PUMP_VARS or variable == "rationing":
             return "pump"
@@ -37,6 +34,7 @@ def _build_alert_email_subject(variable: str, risk_level: str) -> str:
 def _build_alert_email_body(
     variable: str, value: float, risk_level: str, recommended_action: str
 ) -> str:
+    from apps.alerts.services.alert_service import get_unit
     var_display = translate_variable_to_spanish(variable)
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     unit = get_unit(variable)
@@ -64,8 +62,9 @@ def _send_alert_email(
     risk_level: str,
     recommended_action: str,
     last_email_time: float,
-    sim: Optional[BuildingSimulator],
+    sim: Optional['BuildingSimulator'],
 ) -> float:
+    from apps.alerts.services.alert_service import send_email_alert
     new_les = last_email_time
     send_email = risk_level in ("Alto", "Critical")
     now = time.time()
@@ -84,7 +83,7 @@ def send_alert(
     value: float,
     risk_level: str,
     recommended_action: str,
-    sim: Optional[BuildingSimulator] = None,
+    sim: Optional['BuildingSimulator'] = None,
 ) -> None:
     aa = get_attribute(sim, "active_alerts")
     les = get_attribute(sim, "last_email_sent_time")
@@ -108,6 +107,7 @@ def send_alert(
 
     if risk_level in ("Alto", "Critical"):
         if device_target:
+            from apps.sensors.sensor_config import RISK_NAMES_ES
             enter_protection_mode(
                 f"alert {RISK_NAMES_ES.get(risk_level, risk_level.lower())} of {translate_variable_to_spanish(variable).lower()}",
                 targets={device_target},
@@ -132,12 +132,14 @@ def send_alert(
     }
     pn.append(notification_payload)
 
+    from apps.alerts.services.alert_service import persist_notification_in_django
     eid = sim.edificio_id if sim else None
     persist_notification_in_django(variable, value, risk_level, recommended_action, edificio_id=eid)
 
 
-def check_rationing(flow_rate: float, sim: Optional[BuildingSimulator] = None) -> None:
+def check_rationing(flow_rate: float, sim: Optional['BuildingSimulator'] = None) -> None:
     from apps.sensors.simulation.constants import RATIONING_THRESHOLD
+    from apps.alerts.services.alert_service import get_professional_action
     if flow_rate < RATIONING_THRESHOLD:
         action = get_professional_action("rationing", "Critical", flow_rate)
         send_alert("rationing", flow_rate, "Critical", action, sim=sim)

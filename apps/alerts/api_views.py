@@ -12,7 +12,7 @@ from apps.alerts.services.alert_service import (
     send_email_alert,
     get_building_emails,
 )
-from apps.sensors.sensor_config import VAR_NAMES, UNITS
+
 
 
 def _json_error(msg: str, status: int = 400) -> JsonResponse:
@@ -196,6 +196,7 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     if not emails:
         return _json_error("No subscribers for this building")
 
+    from apps.sensors.sensor_config import VAR_NAMES, UNITS
     timestamp = time_module.strftime("%Y-%m-%d %H:%M:%S")
     subject = f"[PCLogo Report] Monitoring summary - {timestamp}"
     body_lines = [f"PERIODIC MONITORING REPORT\n\nDate/Time: {timestamp}\n\nMonitored variables:\n"]

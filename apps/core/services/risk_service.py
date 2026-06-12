@@ -1,10 +1,9 @@
 from typing import Optional
 
-from apps.sensors.sensor_config import NO_RISK_VARS
-
 
 def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tuple[str, str]:
     from apps.alerts.services.threshold_service import get_thresholds
+    from apps.sensors.sensor_config import NO_RISK_VARS
     if variable == "motor_stuck":
         return ("Crítico", "red") if value else ("Bajo", "green")
     if variable in NO_RISK_VARS:

@@ -3,14 +3,6 @@ from typing import Optional
 from django.core.exceptions import ValidationError
 
 from apps.buildings.models import Building
-from apps.users.validators import (
-    _validate_field,
-    _validate_min_length,
-    _validate_max_length,
-    _validate_rif,
-    REGEX_ONLY_LETTERS,
-    REGEX_ADDRESS,
-)
 
 
 def validate_unique_rif(rif: str, exclude_building_id: Optional[int] = None) -> None:
@@ -26,6 +18,7 @@ def validate_unique_rif(rif: str, exclude_building_id: Optional[int] = None) -> 
 def validate_building_form(
     data: dict, exclude_building_id: Optional[int] = None
 ) -> dict[str, str]:
+    from apps.users.validators import REGEX_ONLY_LETTERS, REGEX_ADDRESS
     errors: dict[str, str] = {}
 
     _check_field(data, "nombreEdificio", REGEX_ONLY_LETTERS,
@@ -53,6 +46,7 @@ def _check_field(
     data: dict, key: str, regex: re.Pattern, msg: str,
     errors: dict[str, str], error_key: str,
 ) -> None:
+    from apps.users.validators import _validate_field
     error = _validate_field(data.get(key, ""), regex, msg)
     if error:
         errors[error_key] = error
@@ -62,6 +56,7 @@ def _check_min_length(
     data: dict, key: str, minimum: int, label: str,
     errors: dict[str, str], error_key: str,
 ) -> None:
+    from apps.users.validators import _validate_min_length
     error = _validate_min_length(data.get(key, ""), minimum, label)
     if error:
         errors[error_key] = error
@@ -71,12 +66,14 @@ def _check_max_length(
     data: dict, key: str, maximum: int, label: str,
     errors: dict[str, str], error_key: str,
 ) -> None:
+    from apps.users.validators import _validate_max_length
     error = _validate_max_length(data.get(key, ""), maximum, label)
     if error:
         errors[error_key] = error
 
 
 def _check_rif(data: dict, errors: dict[str, str]) -> None:
+    from apps.users.validators import _validate_rif
     error = _validate_rif(data.get("rif", ""))
     if error:
         errors["rif"] = error

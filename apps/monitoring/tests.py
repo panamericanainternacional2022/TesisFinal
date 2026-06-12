@@ -2,8 +2,8 @@ from django.test import TestCase, RequestFactory
 from django.urls import reverse
 from django.http import StreamingHttpResponse
 from unittest.mock import patch, MagicMock
-from apps.monitoring.views.dispatch import historial_view, monitoreo_view
-from apps.monitoring.views.user import menu_seleccion_view
+from apps.monitoring.views.dispatch import history_view, monitoring_view
+from apps.monitoring.views.user import selection_menu_view
 from apps.monitoring.simulation.streaming import sse_stream
 from apps.monitoring.simulation.api import api_status
 from apps.users.models import Persona, Usuario

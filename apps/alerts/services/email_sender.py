@@ -6,12 +6,13 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from typing import Any, Dict, List, Optional
 
-from apps.sensors.sensor_config import VAR_NAMES, UNITS, DEVICE_NAMES_ES
+
 
 logger = logging.getLogger(__name__)
 
 
 def get_unit(variable: str) -> str:
+    from apps.sensors.sensor_config import UNITS
     return UNITS.get(variable, "")
 
 

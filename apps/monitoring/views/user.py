@@ -16,7 +16,7 @@ from .shared import (
 
 
 @login_required
-def render_user_monitoreo(request) -> HttpResponse:
+def render_user_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session["usuario_id"]
     query = request.GET.get("q", "").strip()
@@ -59,7 +59,7 @@ def render_user_monitoreo(request) -> HttpResponse:
 
 
 @login_required
-def render_user_historial(request) -> HttpResponse:
+def render_user_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session["usuario_id"]
 
@@ -139,6 +139,6 @@ def render_user_historial(request) -> HttpResponse:
 
 
 @login_required
-def menu_seleccion_view(request) -> HttpResponse:
+def selection_menu_view(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     return render(request, "monitoring/menu_seleccion.html", {"rol": rol})
