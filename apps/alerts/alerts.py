@@ -14,24 +14,20 @@ import time
 import logging
 
 from apps.sensors.simulation import (
-    BuildingSimulator,
-    LOG_SIM, RATIONING_THRESHOLD,
-    MAX_DOOR_CLOSE_ATTEMPTS, PROTECTION_HOLD_SECONDS,
-    simulators,
-    sensor_data, pump_on, elevator_on, protection_ends, active_alerts,
-    door_close_attempts, history, pending_notifications,
-    last_email_sent_time,
+    LOG_SIM, RATIONING_THRESHOLD, PROTECTION_HOLD_SECONDS,
+    sensor_data, protection_ends, active_alerts,
+    pending_notifications, last_email_sent_time,
     reset_critical_values,
 )
 
 logger = logging.getLogger(__name__)
 
 from apps.sensors.sensor_config import (
-    VAR_NAMES, UNITS, PUMP_VARS, ELEVATOR_VARS,
+    VAR_NAMES, PUMP_VARS, ELEVATOR_VARS,
     RISK_NAMES_ES, DEVICE_NAMES_ES,
 )
 
-from apps.alerts.services.alert_service import (        # noqa: F401
+from apps.alerts.services.alert_service import (
     get_unit,
     get_building_emails,
     generate_recommendations,
@@ -44,9 +40,6 @@ SMTP_SERVER = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT = int(os.environ.get("SMTP_PORT", 587))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
-
-subscribers = {"email": {"Bajo": [], "Medio": [], "Alto": [], "Crítico": []}}
-
 
 def _es_device(d):
     return DEVICE_NAMES_ES.get(d, d)

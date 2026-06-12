@@ -12,27 +12,21 @@ from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.contrib.auth.decorators import login_required
 
-from apps.sensors.simulation import simulators, BuildingSimulator
+from apps.sensors.simulation import simulators
 from apps.sensors.simulation import (
-    RATIONING_THRESHOLD, MAX_HISTORY_SIZE, PROTECTION_HOLD_SECONDS,
-    inject_fault, clear_fault, reset_simulator,
+    MAX_HISTORY_SIZE, inject_fault, clear_fault, reset_simulator,
 )
 from apps.sensors.payload import build_live_payload_for_sim
 from apps.sensors.sensor_config import (
-    STATS_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
+    PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
 )
 from apps.core.services.risk_service import classify_risk
-from apps.alerts.services.threshold_service import get_thresholds, update_threshold
 from apps.alerts.services.alert_service import (
-    generate_recommendations,
-    get_professional_action,
-    get_alert_log,
-    send_email_alert,
-    get_building_emails,
+    get_professional_action, get_alert_log,
 )
 from apps.alerts.alerts import send_alert
 
-from apps.buildings.models import Edificio, EquipoMonitoreo, UsuarioEdificio
+from apps.buildings.models import EquipoMonitoreo, UsuarioEdificio
 from apps.alerts.models import Notificacion
 
 logger = logging.getLogger(__name__)

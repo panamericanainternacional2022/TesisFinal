@@ -6,6 +6,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 from django.core import signing
+from django.urls import reverse
 
 from apps.users.models import Usuario, Persona
 
@@ -26,12 +27,6 @@ def _build_beneficiario_data(usuario):
         "edificio_direccion": edificio.direccion if edificio else "",
         "registrado": usuario.registrado,
     }
-
-
-def _next_usuario_edificio_pk():
-    from apps.buildings.models import UsuarioEdificio
-    ultimo = UsuarioEdificio.objects.order_by("-id_usuario_beneficiario").first()
-    return (ultimo.id_usuario_beneficiario + 1) if ultimo else 1
 
 
 def _generate_random_password(length=10):
@@ -59,7 +54,7 @@ def _send_activation_email(email, user_id, request):
     token = signing.dumps({"user_id": user_id})
     protocol = "https" if request.is_secure() else "http"
     host = request.get_host()
-    link = f"{protocol}://{host}/completar_registro/?token={token}"
+    link = f"{protocol}://{host}{reverse('completar_registro')}?token={token}"
 
     env_path = os.path.join(
         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),

@@ -1,4 +1,6 @@
 import json
+import re
+import datetime as dt
 import time as _time
 
 from django.shortcuts import render, get_object_or_404
@@ -17,8 +19,6 @@ from django.core.paginator import Paginator
 
 
 def _parse_notif_for_historial(notif):
-    import re
-    import json as _json
 
     var_names = VAR_NAMES
     units = UNITS
@@ -123,7 +123,9 @@ def _parse_notif_for_historial(notif):
 
 @_login_required
 def notificaciones_view(request):
-    usuario_id = request.session["usuario_id"]
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return render(request, "alerts/notificaciones.html", {"notificaciones": None, "edificios": [], "rol": "US", "alertas_desactivadas": False, "alerts_disabled_until_ms": None})
     rol = request.session.get("usuario_rol", "US")
     edificio_id = request.GET.get("edificio", "").strip()
 
@@ -153,7 +155,6 @@ def notificaciones_view(request):
 
     alerts_cleared_at = request.session.get("alerts_cleared_at")
     if alerts_cleared_at:
-        import datetime as dt
         cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
         notificaciones = notificaciones.filter(fecha__gt=cleared_dt)
 

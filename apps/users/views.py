@@ -1,5 +1,6 @@
+import time as _time
+
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 from django.core import signing
@@ -7,16 +8,14 @@ from django.db import transaction
 
 from apps.core.auth_decorators import _login_required, _admin_required, ADMIN_ROLES
 from apps.users.models import Usuario, Persona
-from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
+from apps.buildings.models import Edificio, UsuarioEdificio
 from apps.alerts.models import Notificacion
 from apps.users.validators import (
-    _validaciones_formulario_usuario, REGEX_USERNAME, _validar_campo,
-    _validar_longitud_min, _validar_longitud_max, _validar_email,
-    _validar_unico_email,
+    _validaciones_formulario_usuario, REGEX_USERNAME,
 )
 from apps.users.services import (
-    _build_beneficiario_data, _next_usuario_edificio_pk,
-    _build_random_username, _generate_random_password, _send_activation_email,
+    _build_beneficiario_data, _build_random_username,
+    _generate_random_password, _send_activation_email,
 )
 from django.db.models import Q
 
@@ -43,7 +42,6 @@ def login_view(request):
                     if usuario_rol == "ADMIN":
                         usuario_rol = "SA"
                     request.session["usuario_rol"] = usuario_rol
-                    import time as _time
                     _alerts_dis = usuario.alerts_disabled
                     _alerts_until = usuario.alerts_disabled_until
                     if _alerts_dis and _alerts_until and _time.time() > _alerts_until:
@@ -111,7 +109,6 @@ def lista_usuario_view(request):
             "beneficiarios": beneficiarios,
             "edificios": edificios,
             "selected_edificio_id": int(edificio_id) if edificio_id.isdigit() else None,
-            "request": request,
         },
     )
 
@@ -202,7 +199,6 @@ def registro_beneficiario_view(request):
                         )
                         if id_edificio:
                             UsuarioEdificio.objects.create(
-                                id_usuario_beneficiario=_next_usuario_edificio_pk(),
                                 id_usuario=usuario,
                                 id_edificio_id=id_edificio,
                             )
@@ -210,6 +206,7 @@ def registro_beneficiario_view(request):
                             email, usuario.id_usuario, request
                         )
 
+    email_sent = None
     edificios = Edificio.objects.all()
     context = {
         "user": user_data,
@@ -217,7 +214,7 @@ def registro_beneficiario_view(request):
         "form_error": form_error,
         "form_errors": form_errors,
     }
-    if "email_sent" in locals():
+    if email_sent is not None:
         context["email_sent"] = email_sent
         context["activation_link"] = activation_link
         context["sent_to"] = email
@@ -297,7 +294,6 @@ def editar_beneficiario_view(request, beneficiario_id):
                 if id_edificio:
                     UsuarioEdificio.objects.filter(id_usuario=usuario).delete()
                     UsuarioEdificio.objects.create(
-                        id_usuario_beneficiario=_next_usuario_edificio_pk(),
                         id_usuario=usuario,
                         id_edificio_id=id_edificio,
                     )
@@ -355,9 +351,10 @@ def eliminar_beneficiario_view(request, beneficiario_id):
     with transaction.atomic():
         Notificacion.objects.filter(id_usuario=usuario).delete()
         UsuarioEdificio.objects.filter(id_usuario=usuario).delete()
+        persona_id = usuario.id_persona_id
         usuario.delete()
-        if usuario.id_persona:
-            Persona.objects.filter(id_persona=usuario.id_persona.id_persona).delete()
+        if persona_id:
+            Persona.objects.filter(id_persona=persona_id).delete()
     messages.success(request, "Beneficiario eliminado correctamente.")
     return redirect("seleccionar_usuario", accion="eliminar")
 

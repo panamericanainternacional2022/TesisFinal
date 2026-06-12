@@ -2,6 +2,7 @@ import datetime as dt
 
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.utils import timezone as tz
 
 from apps.core.auth_decorators import _login_required, _is_admin_role
 from apps.users.models import Usuario
@@ -9,16 +10,13 @@ from apps.users.services import _build_beneficiario_data
 from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
 from apps.alerts.models import Notificacion
 from apps.alerts.views import _parse_notif_for_historial
-from apps.sensors.sensor_config import (
-    VAR_NAMES, UNITS, RISK_NAMES_ES, DEVICE_NAMES_ES,
-)
 
 
 @_login_required
 def historial_pdf_view(request):
-    import datetime as dt
-
-    usuario_id = request.session["usuario_id"]
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return HttpResponse("No autorizado", status=401)
     rol = request.session.get("usuario_rol", "US")
 
     edificio_id = request.GET.get("edificio", "").strip()
@@ -29,11 +27,6 @@ def historial_pdf_view(request):
     periodo_seleccionado = request.GET.get("periodo", "24h").strip()
     fecha_desde_raw = request.GET.get("fecha_desde", "").strip()
     fecha_hasta_raw = request.GET.get("fecha_hasta", "").strip()
-
-    var_names = VAR_NAMES
-    units = UNITS
-    risk_names_es = RISK_NAMES_ES
-    device_names_es = DEVICE_NAMES_ES
 
     if _is_admin_role(rol):
         notificaciones = Notificacion.objects.all()
@@ -72,8 +65,6 @@ def historial_pdf_view(request):
     if severidad and severidad in ALL_SEVERITIES:
         notificaciones = notificaciones.filter(mensaje__icontains=f'"risk": "{severidad}"') | \
                          notificaciones.filter(mensaje__icontains=f'"risk":"{severidad}"')
-
-    from django.utils import timezone as tz
 
     now = tz.now()
     DELTA_MAP = {

@@ -1,20 +1,17 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password, check_password
 
 from apps.core.auth_decorators import _login_required, _admin_required
-from apps.users.models import Usuario, Persona
-from apps.buildings.models import Edificio, UsuarioEdificio, EquipoMonitoreo
+from apps.users.models import Usuario
+from apps.buildings.models import Edificio, EquipoMonitoreo
 from apps.buildings.services import _crear_equipos_para_edificio, _sincronizar_equipos_para_edificio
 from apps.buildings.validators import _validaciones_formulario_edificio
 from apps.users.validators import (
     _validar_campo, _validar_email, _validar_unico_email,
     _validar_longitud_min, _validar_longitud_max, REGEX_USERNAME,
 )
-from apps.users.services import _build_beneficiario_data
 from django.db.models import Q
-from django.db import transaction
 
 
 @_login_required
@@ -178,7 +175,6 @@ def lista_edificios_view(request):
         "buildings/lista_edificios.html",
         {
             "edificios": list(edificios),
-            "request": request,
             "page_messages": bld_msgs,
         },
     )
@@ -188,16 +184,7 @@ def lista_edificios_view(request):
 @_admin_required
 def eliminar_edificio_view(request, edificio_id):
     edificio = get_object_or_404(Edificio, id_edificio=edificio_id)
-    with transaction.atomic():
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 0")
-
-        edificio.delete()
-
-        with connection.cursor() as cursor:
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 1")
-
+    edificio.delete()
     messages.success(
         request, "Edificio y todos sus datos asociados fueron eliminados correctamente."
     )
@@ -228,7 +215,9 @@ def seleccionar_edificio_view(request, accion):
 
 @_login_required
 def configuracion_view(request):
-    usuario_id = request.session["usuario_id"]
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return redirect("login")
     usuario = get_object_or_404(Usuario, id_usuario=usuario_id)
     persona = usuario.id_persona
     page_messages = request.session.pop("_cfg_msg", [])
@@ -241,10 +230,12 @@ def configuracion_view(request):
         new_password = request.POST.get("new_password", "")
         confirm_password = request.POST.get("confirm_password", "")
 
-        password_ok = check_password(current_password, usuario.password)
-        if not password_ok and usuario.password == current_password:
-            usuario.password = make_password(current_password)
-            password_ok = True
+        password_ok = False
+        if current_password:
+            password_ok = check_password(current_password, usuario.password)
+            if not password_ok and usuario.password == current_password:
+                usuario.password = make_password(current_password)
+                password_ok = True
 
         if not password_ok:
             page_messages.append(
