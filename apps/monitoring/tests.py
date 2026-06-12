@@ -19,12 +19,12 @@ class MenuSeleccionViewTests(TestCase):
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_menu_returns_200(self):
-        response = self.client.get(reverse("menu_seleccion"))
+        response = self.client.get(reverse("menu"))
         self.assertEqual(response.status_code, 200)
 
     def test_redirects_to_login_if_not_authenticated(self):
         self.client.get(reverse("logout"))
-        response = self.client.get(reverse("menu_seleccion"))
+        response = self.client.get(reverse("menu"))
         self.assertEqual(response.status_code, 302)
 
 
@@ -38,7 +38,7 @@ class HistorialViewTests(TestCase):
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_historial_empty(self):
-        response = self.client.get(reverse("historial"))
+        response = self.client.get(reverse("history"))
         self.assertEqual(response.status_code, 200)
 
     def test_historial_with_data(self):
@@ -46,7 +46,7 @@ class HistorialViewTests(TestCase):
             user=self.usuario, monitoring_equipment=self.equipo,
             date="2026-01-01 12:00:00+00", message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
         )
-        response = self.client.get(reverse("historial"))
+        response = self.client.get(reverse("history"))
         self.assertEqual(response.status_code, 200)
 
 
@@ -58,23 +58,23 @@ class MonitorViewTests(TestCase):
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     def test_monitoreo_returns_200(self):
-        response = self.client.get(reverse("monitoreo"))
+        response = self.client.get(reverse("monitor"))
         self.assertEqual(response.status_code, 200)
 
     @patch("apps.sensors.payload.build_live_payload_for_sim")
-    @patch("apps.monitoring.simulation.shared.simulators")
-    def test_api_status_returns_json(self, mock_simulators, mock_payload):
+    @patch("apps.monitoring.simulation.api.get_simulator")
+    def test_api_status_returns_json(self, mock_get_sim, mock_payload):
         mock_payload.return_value = {"status": "ok"}
         mock_sim = MagicMock()
         mock_sim.edificio_id = 1
-        mock_simulators.get.return_value = mock_sim
+        mock_get_sim.return_value = mock_sim
         response = self.client.get(reverse("api_status"), {"edificio_id": 1})
         self.assertEqual(response.status_code, 200)
 
 
 class SseStreamTests(TestCase):
-    @patch("apps.monitoring.simulation.shared.simulators")
-    def test_sse_returns_streaming_response(self, mock_simulators):
+    @patch("apps.monitoring.simulation.streaming.get_simulator")
+    def test_sse_returns_streaming_response(self, mock_get_sim):
         from apps.users.models import Persona, Usuario
         from django.contrib.auth.hashers import make_password
         p = Persona.objects.create(ci="99999999", name="SSE", last_name="Test", email="sse@test.com", phone="")
@@ -90,6 +90,6 @@ class SseStreamTests(TestCase):
         mock_sim.alert_enabled = True
         mock_sim.edificio_id = 1
         mock_sim.history = []
-        mock_simulators.get.return_value = mock_sim
+        mock_get_sim.return_value = mock_sim
         response = self.client.get(f"/sse/1/")
         self.assertIsInstance(response, StreamingHttpResponse)

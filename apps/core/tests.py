@@ -39,17 +39,17 @@ class LoginRequiredDecoratorTests(TestCase):
 
 class AdminRequiredDecoratorTests(TestCase):
     def test_redirects_when_not_admin(self):
-        response = self.client.get(reverse("lista_usuario"))
+        response = self.client.get(reverse("beneficiary_list"))
         self.assertEqual(response.status_code, 302)
 
     def test_calls_view_when_admin(self):
         from apps.users.models import Persona
-        p = Persona.objects.create(ci="12345678", name="Admin", apellido="U", email="a@a.com", telefono="")
+        p = Persona.objects.create(ci="12345678", name="Admin", last_name="U", email="a@a.com", phone="")
         from django.contrib.auth.hashers import make_password
         from apps.users.models import Usuario
-        Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=p, rol="SA", registrado=True)
+        Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=p, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
-        response = self.client.get(reverse("lista_usuario"))
+        response = self.client.get(reverse("beneficiary_list"))
         self.assertEqual(response.status_code, 200)
 
 
@@ -85,25 +85,22 @@ class ClassifyRiskTests(TestCase):
         self.assertEqual(risk, "Desconocido")
         self.assertEqual(color, "gray")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
-    def test_range_direction(self, mock_get_thresholds):
-        mock_get_thresholds.return_value = {
+    def test_range_direction(self):
+        thresholds = {
             "temperature": {"direction": "range", "low": 20, "high": 80},
         }
-        risk, color = classify_risk("temperature", 50, thresholds=mock_get_thresholds.return_value)
+        risk, color = classify_risk("temperature", 50, thresholds=thresholds)
         self.assertEqual(risk, "Bajo")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
-    def test_range_direction_high(self, mock_get_thresholds):
-        mock_get_thresholds.return_value = {
+    def test_range_direction_high(self):
+        thresholds = {
             "temperature": {"direction": "range", "low": 20, "high": 80},
         }
-        risk, color = classify_risk("temperature", 99, thresholds=mock_get_thresholds.return_value)
+        risk, color = classify_risk("temperature", 99, thresholds=thresholds)
         self.assertEqual(risk, "Alto")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
-    def test_higher_direction(self, mock_get_thresholds):
-        mock_get_thresholds.return_value = {
+    def test_higher_direction(self):
+        thresholds = {
             "flow_rate": {"direction": "higher", "low": 10, "medium": 20, "high": 30},
         }
         test_cases = [
@@ -113,13 +110,12 @@ class ClassifyRiskTests(TestCase):
             (35, "Crítico", "red"),
         ]
         for value, expected_risk, expected_color in test_cases:
-            risk, color = classify_risk("flow_rate", value, thresholds=mock_get_thresholds.return_value)
+            risk, color = classify_risk("flow_rate", value, thresholds=thresholds)
             self.assertEqual(risk, expected_risk, f"flow_rate={value}")
             self.assertEqual(color, expected_color, f"flow_rate={value}")
 
-    @patch("apps.core.services.risk_service.get_thresholds")
-    def test_lower_direction(self, mock_get_thresholds):
-        mock_get_thresholds.return_value = {
+    def test_lower_direction(self):
+        thresholds = {
             "tank_level": {"direction": "lower", "low": 80, "medium": 60, "high": 40},
         }
         test_cases = [
@@ -129,6 +125,6 @@ class ClassifyRiskTests(TestCase):
             (30, "Crítico", "red"),
         ]
         for value, expected_risk, expected_color in test_cases:
-            risk, color = classify_risk("tank_level", value, thresholds=mock_get_thresholds.return_value)
+            risk, color = classify_risk("tank_level", value, thresholds=thresholds)
             self.assertEqual(risk, expected_risk, f"tank_level={value}")
             self.assertEqual(color, expected_color, f"tank_level={value}")

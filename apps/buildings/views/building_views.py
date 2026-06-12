@@ -4,14 +4,17 @@ from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
 from apps.core.auth_decorators import login_required, admin_required
-from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.buildings.services import (
     create_equipment_for_building, sync_equipment_for_building,
     EquipmentConfig,
 )
 from apps.buildings.validators import validate_building_form
-from apps.buildings.views.shared import build_message, pop_messages
+from apps.buildings.views.shared import (
+    build_message, pop_messages, extract_building_data,
+    extract_equipment_config, build_required_errors,
+    count_notifications_for_building,
+)
 
 
 # ─── SELECT (READ) ──────────────────────────────────────────────────
@@ -112,37 +115,11 @@ def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse
 # ─── PRIVATE HELPERS ────────────────────────────────────────────────
 
 
-def _extract_building_data(request: HttpRequest) -> dict:
-    return {
-        "name": request.POST.get("nombreEdificio", "").strip(),
-        "address": request.POST.get("parroquia", "").strip(),
-        "rif": request.POST.get("rif", "").strip(),
-    }
-
-
-def _extract_equipment_config(request: HttpRequest) -> EquipmentConfig:
-    return EquipmentConfig(
-        has_pump=request.POST.get("con_bomba") == "true",
-        has_elevator=request.POST.get("con_elevador") == "true",
-    )
-
-
-def _build_required_errors(data: dict) -> dict[str, str]:
-    errors = {}
-    if not data["name"]:
-        errors["nombreEdificio"] = "Este campo es obligatorio."
-    if not data["rif"]:
-        errors["rif"] = "Este campo es obligatorio."
-    if not data["address"]:
-        errors["direccion"] = "Este campo es obligatorio."
-    return errors
-
-
 def _handle_register_post(
     request: HttpRequest, msgs: list,
 ) -> HttpResponse:
-    data = _extract_building_data(request)
-    config = _extract_equipment_config(request)
+    data = extract_building_data(request)
+    config = extract_equipment_config(request)
 
     if not (data["name"] and data["rif"] and data["address"]):
         msgs.append(build_message(
@@ -150,7 +127,7 @@ def _handle_register_post(
             "error",
         ))
         return _render_register_form(
-            request, msgs, _build_required_errors(data), data, config,
+            request, msgs, build_required_errors(data), data, config,
         )
 
     form_errors = validate_building_form({
@@ -196,8 +173,8 @@ def _render_register_form(
 def _handle_edit_post(
     request: HttpRequest, building: Building, msgs: list,
 ) -> HttpResponse:
-    data = _extract_building_data(request)
-    config = _extract_equipment_config(request)
+    data = extract_building_data(request)
+    config = extract_equipment_config(request)
 
     building.name = data["name"]
     building.address = data["address"]
@@ -209,7 +186,7 @@ def _handle_edit_post(
             "error",
         ))
         return _render_register_form(
-            request, msgs, _build_required_errors(data), data, config,
+            request, msgs, build_required_errors(data), data, config,
         )
 
     form_errors = validate_building_form(
@@ -236,7 +213,6 @@ def _handle_edit_post(
 
 
 def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
-    from apps.alerts.models import Notification
     equipment = list(building.equipment.all())
     Notification.objects.filter(
         monitoring_equipment__building=building,
@@ -257,7 +233,7 @@ def _render_delete_confirmation(
 ) -> HttpResponse:
     equipment = MonitoringEquipment.objects.filter(building=building)
     user_assignments = UserBuilding.objects.filter(building=building)
-    notifications = _count_notifications_for_building(building)
+    notifications = count_notifications_for_building(building.id)
     return render(
         request,
         "buildings/confirmar_eliminar_edificio.html",
@@ -268,10 +244,3 @@ def _render_delete_confirmation(
             "notifications_count": notifications,
         },
     )
-
-
-def _count_notifications_for_building(building: Building) -> int:
-    from apps.alerts.models import Notification
-    return Notification.objects.filter(
-        monitoring_equipment__building=building,
-    ).count()

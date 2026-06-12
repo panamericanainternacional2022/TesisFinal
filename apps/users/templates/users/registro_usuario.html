@@ -128,7 +128,7 @@
                         </div>
 
                         <div class="actions-row">
-                            {% url 'lista_usuario' as back_url %}
+                            {% url 'beneficiary_list' as back_url %}
                             {% include 'core/components/boton.html' with url=back_url class='back-button' text='Volver' %}
                             {% if editing %}
                                 {% include 'core/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}

@@ -17,7 +17,7 @@ from apps.sensors.simulation.exceptions import (
 logger = logging.getLogger(__name__)
 
 
-def reset_critical_values(targets: set, sim: BuildingSimulator) -> None:
+def reset_critical_values(targets: set[str], sim: BuildingSimulator) -> None:
     if not targets:
         return
     sd = sim.sensor_data
@@ -60,7 +60,10 @@ def inject_fault(edificio_id: int, device: str, fault_type: str) -> str:
     return f"Falla '{fault_type}' inyectada en {device}"
 
 
-def clear_fault(edificio_id: int, device: str = None) -> str:
+from typing import Optional
+
+
+def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
     sim = simulators.get(edificio_id)
     if not sim:
         raise SimulatorNotFoundError(edificio_id)

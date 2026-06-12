@@ -9,22 +9,22 @@ from apps.buildings.views.building_views import (
 from apps.buildings.views.configuration_view import configuration_view
 
 urlpatterns = [
-    path("registro_edificio/", register_building_view, name="register_building"),
-    path("lista_edificios/", building_list_view, name="building_list"),
+    path("buildings/create/", register_building_view, name="register_building"),
+    path("buildings/", building_list_view, name="building_list"),
     path(
-        "editar_edificio/<int:building_id>/",
+        "buildings/<int:building_id>/edit/",
         edit_building_view,
         name="edit_building",
     ),
     path(
-        "eliminar_edificio/<int:building_id>/",
+        "buildings/<int:building_id>/delete/",
         delete_building_view,
         name="delete_building",
     ),
     path(
-        "seleccionar/edificio/<str:action>/",
+        "buildings/select/<str:action>/",
         select_building_view,
         name="select_building",
     ),
-    path("configuracion/", configuration_view, name="configuration"),
+    path("settings/", configuration_view, name="configuration"),
 ]

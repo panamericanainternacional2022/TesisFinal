@@ -6,7 +6,7 @@ from apps.users.views.auth import (
     complete_registration_view,
 )
 from apps.users.views.admin import (
-    user_registration_view,
+    user_register_view,
     beneficiary_list_view,
     beneficiary_create_view,
     beneficiary_update_view,
@@ -17,27 +17,27 @@ from apps.users.views.admin import (
 urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
-    path("usuario/", user_registration_view, name="usuario"),
-    path("lista_usuario/", beneficiary_list_view, name="lista_usuario"),
+    path("register/", user_register_view, name="user_register"),
+    path("beneficiaries/", beneficiary_list_view, name="beneficiary_list"),
     path(
-        "registro_beneficiario/",
+        "beneficiaries/create/",
         beneficiary_create_view,
-        name="registro_beneficiario",
+        name="beneficiary_create",
     ),
     path(
-        "editar_beneficiario/<int:beneficiario_id>/",
+        "beneficiaries/<int:beneficiario_id>/edit/",
         beneficiary_update_view,
-        name="editar_beneficiario",
+        name="beneficiary_edit",
     ),
     path(
-        "eliminar_beneficiario/<int:beneficiario_id>/",
+        "beneficiaries/<int:beneficiario_id>/delete/",
         beneficiary_delete_view,
-        name="eliminar_beneficiario",
+        name="beneficiary_delete",
     ),
     path(
-        "seleccionar/usuario/<str:accion>/",
+        "select/user/<str:accion>/",
         user_select_view,
-        name="seleccionar_usuario",
+        name="user_select",
     ),
-    path("completar_registro/", complete_registration_view, name="completar_registro"),
+    path("complete-registration/", complete_registration_view, name="complete_registration"),
 ]

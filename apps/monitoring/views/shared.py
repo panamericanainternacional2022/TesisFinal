@@ -26,8 +26,8 @@ def build_monitoring_config(building_id: int) -> str:
     import json
     return json.dumps({
         "no_risk_vars": NO_RISK_VARS,
-        "bomba_vars": PUMP_VARS,
-        "elevador_vars": ELEVATOR_VARS,
+        "pump_vars": PUMP_VARS,
+        "elevator_vars": ELEVATOR_VARS,
         "var_names": VAR_NAMES,
         "units": UNITS,
         "edificio_id": building_id,

@@ -79,11 +79,11 @@
                     </div>
 
                     <div class="table-actions-row action-buttons-row">
-                        {% url 'registro_beneficiario' as registro_url %}
+                        {% url 'beneficiary_create' as registro_url %}
                         {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
                         {% if beneficiarios %}
-                        <a href="{% url 'seleccionar_usuario' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
-                        <a href="{% url 'seleccionar_usuario' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        <a href="{% url 'user_select' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                        <a href="{% url 'user_select' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                         {% else %}
                         <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>

@@ -4,7 +4,7 @@ import smtplib
 import string
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import Optional
+from typing import Any, Optional
 
 from django.core import signing
 from django.urls import reverse
@@ -76,7 +76,7 @@ Si usted no solicito este registro, por favor ignore este correo.
 """
 
 
-def build_beneficiary_data(user: Usuario) -> dict:
+def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
     person = user.id_persona
     ue = user.building_assignments.first()
     building = ue.id_edificio if ue else None
@@ -140,7 +140,7 @@ def _load_env_file() -> None:
                         os.environ[key.strip()] = val.strip().strip("'\"")
 
 
-def _get_smtp_config() -> dict:
+def _get_smtp_config() -> dict[str, str | int]:
     _load_env_file()
     return {
         "server": os.environ.get("SMTP_SERVER", "smtp.gmail.com"),

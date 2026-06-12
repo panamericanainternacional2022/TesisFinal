@@ -43,16 +43,16 @@
 
     <nav class="sidebar-nav">
         {% if request.session.usuario_rol == 'SA' or request.session.usuario_rol == 'ADMIN' %}
-        <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
+        <a href="{% url 'menu' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high"></i> Panel de control
         </a>
-        <a href="{% url 'lista_usuario' %}" class="sidebar-link">
+        <a href="{% url 'beneficiary_list' %}" class="sidebar-link">
             <i class="fa-solid fa-users"></i> Usuarios
         </a>
         <a href="{% url 'building_list' %}" class="sidebar-link">
             <i class="fa-solid fa-building"></i> Edificios
         </a>
-        <a href="{% url 'monitoreo' %}" class="sidebar-link">
+        <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-chart-line"></i> Monitoreo global
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
@@ -60,14 +60,14 @@
             <span>Alertas</span>
             <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer"></span>
         </a>
-        <a href="{% url 'historial' %}" class="sidebar-link">
+        <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Historial
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
             <i class="fa-solid fa-gears"></i> Configuración
         </a>
         {% else %}
-        <a href="{% url 'menu_seleccion' %}" class="sidebar-link">
+        <a href="{% url 'menu' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high"></i> Panel de control
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
@@ -75,10 +75,10 @@
             <span>Alertas</span>
             <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer"></span>
         </a>
-        <a href="{% url 'historial' %}" class="sidebar-link">
+        <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Historial
         </a>
-        <a href="{% url 'monitoreo' %}" class="sidebar-link">
+        <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-chart-line"></i> Monitoreo
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">

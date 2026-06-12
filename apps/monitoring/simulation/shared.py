@@ -4,7 +4,6 @@ from typing import Any
 
 from django.http import JsonResponse
 
-from apps.sensors.simulation.globals import simulators
 from apps.sensors.simulation.exceptions import SimulatorError
 from apps.sensors.simulation.models import BuildingSimulator
 
@@ -13,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_simulator(building_id: int) -> BuildingSimulator:
+    from apps.sensors.simulation.globals import simulators
     sim = simulators.get(building_id)
     if not sim:
         raise SimulatorError(f"Simulador no encontrado para edificio {building_id}", 404)
@@ -20,6 +20,7 @@ def get_simulator(building_id: int) -> BuildingSimulator:
 
 
 def get_first_simulator() -> BuildingSimulator | None:
+    from apps.sensors.simulation.globals import simulators
     return next(iter(simulators.values()), None)
 
 

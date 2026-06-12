@@ -322,7 +322,7 @@ class BeneficiaryListViewTests(TestCase):
             id_persona=p, rol="US",
         )
         self.client.post(reverse("login"), {"username": "us", "password": "abc"})
-        response = self.client.get(reverse("lista_usuario"))
+        response = self.client.get(reverse("beneficiary_list"))
         self.assertEqual(response.status_code, 302)
 
     def test_lista_shows_beneficiarios(self):
@@ -330,7 +330,7 @@ class BeneficiaryListViewTests(TestCase):
             ci="87654321", name="Test", last_name="User",
             email="t@t.com", phone="04121234567",
         )
-        response = self.client.get(reverse("lista_usuario"))
+        response = self.client.get(reverse("beneficiary_list"))
         self.assertEqual(response.status_code, 200)
 
 
@@ -350,11 +350,11 @@ class BeneficiaryCreateViewTests(TestCase):
         )
 
     def test_get_returns_form(self):
-        response = self.client.get(reverse("registro_beneficiario"))
+        response = self.client.get(reverse("beneficiary_create"))
         self.assertEqual(response.status_code, 200)
 
     def test_post_requires_edificio_first(self):
-        response = self.client.post(reverse("registro_beneficiario"), {
+        response = self.client.post(reverse("beneficiary_create"), {
             "primerNombre": "Test", "primerApellido": "User",
             "email": "test@test.com", "cedula": "99999999",
             "telefono": "04121234567", "id_edificio": "1",

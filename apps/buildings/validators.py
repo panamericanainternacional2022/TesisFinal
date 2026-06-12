@@ -46,8 +46,11 @@ def validate_building_form(
     return errors
 
 
+import re
+
+
 def _check_field(
-    data: dict, key: str, regex, msg: str,
+    data: dict, key: str, regex: re.Pattern, msg: str,
     errors: dict[str, str], error_key: str,
 ) -> None:
     error = _validate_field(data.get(key, ""), regex, msg)

@@ -26,33 +26,33 @@ from .simulation.controls import (
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/login/", permanent=False), name="home"),
-    path("menu_seleccion/", menu_seleccion_view, name="menu_seleccion"),
-    path("historial/", historial_view, name="historial"),
-    path("monitoreo/", monitoreo_view, name="monitoreo"),
+    path("menu/", menu_seleccion_view, name="menu"),
+    path("history/", historial_view, name="history"),
+    path("monitor/", monitoreo_view, name="monitor"),
     path(
-        "monitoreo/edificio/<int:building_id>/",
+        "monitor/building/<int:building_id>/",
         monitoreo_edificio_view,
-        name="monitoreo_edificio",
+        name="monitor_building",
     ),
     path(
-        "monitoreo/simulador/status/",
+        "monitor/simulator/status/",
         simulador_status_view,
-        name="simulador_status",
+        name="simulator_status",
     ),
     path(
-        "monitoreo/simulador/start/",
+        "monitor/simulator/start/",
         simulador_start_view,
-        name="simulador_start",
+        name="simulator_start",
     ),
     path(
-        "monitoreo/simulador/stop/",
+        "monitor/simulator/stop/",
         simulador_stop_view,
-        name="simulador_stop",
+        name="simulator_stop",
     ),
     path(
-        "monitoreo/simulador/restart/",
+        "monitor/simulator/restart/",
         simulador_restart_view,
-        name="simulador_restart",
+        name="simulator_restart",
     ),
     # ─── SIMULACIÓN API (reemplaza routes.py Flask) ─────
     path("sse/<int:building_id>/", sse_stream, name="sse_stream"),

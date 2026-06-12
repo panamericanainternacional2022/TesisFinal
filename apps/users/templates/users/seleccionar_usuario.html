@@ -89,9 +89,9 @@
                                         <td>{{ item.edificio }}</td>
                                         <td style="text-align: right; padding-right: var(--sp-4);">
                                             {% if accion == 'editar' %}
-                                            <a href="{% url 'editar_beneficiario' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                                            <a href="{% url 'beneficiary_edit' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                                             {% else %}
-                                            <a href="{% url 'eliminar_beneficiario' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                                            <a href="{% url 'beneficiary_delete' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -107,7 +107,7 @@
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'lista_usuario' %}" class="back-link">
+                    <a href="{% url 'beneficiary_list' %}" class="back-link">
                         <i class="fa-solid fa-arrow-left"></i> Volver a lista de usuarios
                     </a>
                 </div>

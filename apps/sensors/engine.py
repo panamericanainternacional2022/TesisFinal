@@ -10,7 +10,6 @@ from apps.sensors.simulation.constants import (
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators
 from apps.sensors.simulation.simulation_engine import update_sensor_data
-from apps.core.services.risk_service import classify_risk
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +26,7 @@ def _run_sim_tick(sim: BuildingSimulator) -> None:
     _build_history_records(sim, alert_vars)
 
 
-def _get_alert_vars(sim: BuildingSimulator) -> set:
+def _get_alert_vars(sim: BuildingSimulator) -> set[str]:
     alert_vars = set()
     if "bomba" in sim.equipment_types:
         alert_vars.update(PUMP_VARS)
@@ -37,7 +36,8 @@ def _get_alert_vars(sim: BuildingSimulator) -> set:
     return alert_vars
 
 
-def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set) -> None:
+def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None:
+    from apps.core.services.risk_service import classify_risk
     for var, value in sim.sensor_data.items():
         if var not in alert_vars:
             continue
@@ -56,7 +56,7 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set) -> None:
 
 
 def _handle_motor_stuck_alert(
-    sim: BuildingSimulator, var: str, value,
+    sim: BuildingSimulator, var: str, value: object,
 ) -> None:
     if value:
         from apps.alerts.alerts import send_alert, get_professional_action
@@ -66,7 +66,8 @@ def _handle_motor_stuck_alert(
         sim.active_alerts.pop(var, None)
 
 
-def _build_history_records(sim: BuildingSimulator, alert_vars: set) -> None:
+def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None:
+    from apps.core.services.risk_service import classify_risk
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     new_readings = []
     for var, value in sim.sensor_data.items():

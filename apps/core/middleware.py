@@ -17,13 +17,13 @@ class AuthMiddleware:
         now = time.time()
         if self._admin_paths_cache is None or now - self._admin_paths_ts > self._admin_paths_ttl:
             paths = [
-                reverse("usuario"),
-                reverse("lista_usuario"),
-                reverse("registro_beneficiario"),
+                reverse("user_register"),
+                reverse("beneficiary_list"),
+                reverse("beneficiary_create"),
                 reverse("building_list"),
                 reverse("register_building"),
-                reverse("editar_beneficiario", args=[0]).rstrip("0/"),
-                reverse("eliminar_beneficiario", args=[0]).rstrip("0/"),
+                reverse("beneficiary_edit", args=[0]).rstrip("0/"),
+                reverse("beneficiary_delete", args=[0]).rstrip("0/"),
                 reverse("edit_building", args=[0]).rstrip("0/"),
                 reverse("delete_building", args=[0]).rstrip("0/"),
             ]
@@ -35,7 +35,7 @@ class AuthMiddleware:
         path = request.path_info
         login_url = reverse("login")
 
-        public_paths = [login_url, "/static/", "/admin/", "/completar_registro/"]
+        public_paths = [login_url, "/static/", "/admin/", "/complete-registration/"]
 
         is_public = any(path.startswith(p) for p in public_paths if p)
         is_logged_in = request.session.get("usuario_id") is not None
@@ -44,7 +44,7 @@ class AuthMiddleware:
             return redirect(login_url)
 
         if is_logged_in and path == login_url:
-            return redirect("menu_seleccion")
+            return redirect("menu")
 
         if is_logged_in:
             rol = request.session.get("usuario_rol", "US")
@@ -52,7 +52,7 @@ class AuthMiddleware:
 
             if any(path.startswith(p) for p in admin_paths if p):
                 if rol not in ("SA", "ADMIN"):
-                    return redirect("menu_seleccion")
+                    return redirect("menu")
 
         response = self.get_response(request)
 

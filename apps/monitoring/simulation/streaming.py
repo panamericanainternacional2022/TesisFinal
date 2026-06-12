@@ -4,8 +4,6 @@ import logging
 import eventlet
 from django.http import StreamingHttpResponse
 
-from apps.sensors.payload import build_live_payload_for_sim
-
 from .shared import get_simulator, json_error_response
 
 
@@ -19,6 +17,7 @@ def sse_stream(request, building_id: int) -> StreamingHttpResponse | StreamingHt
         return json_error_response(str(e), 404)
 
     def event_stream():
+        from apps.sensors.payload import build_live_payload_for_sim
         try:
             while True:
                 eventlet.sleep(5)

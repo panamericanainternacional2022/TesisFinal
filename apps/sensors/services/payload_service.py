@@ -1,12 +1,10 @@
 import time
+from typing import Any
 import logging
 from dataclasses import dataclass, field
 from typing import Callable
 
 from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS
-from apps.core.services.risk_service import classify_risk
-from apps.alerts.services.threshold_service import get_thresholds
-from apps.alerts.services.alert_service import get_alert_log
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +35,7 @@ def titleize_name(variable_name: str) -> str:
     return " ".join(word.capitalize() for word in variable_name.replace("_", " ").split())
 
 
-def _compute_stats(history: list, max_entries: int = 500) -> dict:
+def _compute_stats(history: list, max_entries: int = 500) -> dict[str, Any]:
     stats = {}
     recent = history[-max_entries:] if len(history) > max_entries else history
     for var in STATS_VARS:
@@ -55,7 +53,9 @@ def _compute_stats(history: list, max_entries: int = 500) -> dict:
     return stats
 
 
-def build_live_payload(ctx: PayloadContext) -> dict:
+def build_live_payload(ctx: PayloadContext) -> dict[str, Any]:
+    from apps.alerts.services.threshold_service import get_thresholds
+    from apps.alerts.services.alert_service import get_alert_log
     stats = _compute_stats(ctx.history)
     relevant_vars = _build_relevant_vars(ctx.equipment_types)
     thresholds = get_thresholds()
@@ -94,7 +94,7 @@ def build_live_payload(ctx: PayloadContext) -> dict:
     }
 
 
-def _build_relevant_vars(equipment_types: set) -> set:
+def _build_relevant_vars(equipment_types: set) -> set[str]:
     relevant_vars = set()
     if "bomba" in equipment_types:
         relevant_vars.update(PUMP_VARS)
@@ -104,7 +104,8 @@ def _build_relevant_vars(equipment_types: set) -> set:
     return relevant_vars
 
 
-def _build_sensors_list(sensor_data: dict, relevant_vars: set, thresholds: dict) -> list:
+def _build_sensors_list(sensor_data: dict, relevant_vars: set[str], thresholds: dict) -> list[dict[str, Any]]:
+    from apps.core.services.risk_service import classify_risk
     sensors = []
     for var, value in sensor_data.items():
         if var not in relevant_vars:

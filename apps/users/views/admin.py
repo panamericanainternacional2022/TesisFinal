@@ -1,10 +1,10 @@
 from typing import Any
 
 from django.contrib import messages
-from django.contrib.auth.hashers import make_password
-from django.db import transaction, IntegrityError
+from django.db import transaction
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
 
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, UserBuilding
@@ -12,17 +12,22 @@ from apps.core.auth_decorators import login_required, admin_required, ADMIN_ROLE
 from apps.users.models import Usuario, Persona
 from apps.users.services import (
     build_beneficiary_data,
-    build_random_username,
     generate_random_password,
     send_activation_email,
 )
 from apps.users.validators import validate_user_form
-from django.db.models import Q
+from .shared import (
+    extract_post_data,
+    has_required_fields,
+    build_required_field_errors,
+    create_user_with_retry,
+    build_edit_initial_data,
+)
 
 
 @login_required
 @admin_required
-def user_registration_view(request: HttpRequest) -> HttpResponse:
+def user_register_view(request: HttpRequest) -> HttpResponse:
     return render(request, "users/registro_usuario.html", {"user": {}})
 
 
@@ -67,9 +72,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @admin_required
-@transaction.atomic
 def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
-    generated_username = None
     generated_password = None
     user_data: dict[str, Any] = {}
     form_error: str | None = None
@@ -81,12 +84,12 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
         if Building.objects.count() == 0:
             form_error = "Debe registrar al menos un edificio antes de crear un beneficiario."
         else:
-            post_data = _extract_post_data(request)
+            post_data = extract_post_data(request)
             user_data = post_data
 
-            if not _has_required_fields(post_data):
+            if not has_required_fields(post_data):
                 form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio."
-                form_errors = _build_required_field_errors(post_data)
+                form_errors = build_required_field_errors(post_data)
             else:
                 form_errors = validate_user_form(post_data)
                 if form_errors:
@@ -102,7 +105,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                     generated_password = generate_random_password(10)
 
                     try:
-                        user = _create_user_with_retry(
+                        user = create_user_with_retry(
                             post_data["primerNombre"],
                             post_data["primerApellido"],
                             generated_password,
@@ -118,16 +121,11 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                         )
 
                     if "user" in locals():
-                        protocol = "https" if request.is_secure() else "http"
-                        host = request.get_host()
-                        base_url = f"{protocol}://{host}"
-                        try:
-                            activation_link = send_activation_email(
-                                post_data["email"], user.id_usuario, base_url
-                            )
-                            email_sent = True
-                        except RuntimeError as e:
-                            activation_link = str(e)
+                        activation_link = send_activation_email(
+                            post_data["email"], user.id_usuario,
+                            f"{'https' if request.is_secure() else 'http'}://{request.get_host()}",
+                        )
+                        email_sent = True
 
     buildings = Building.objects.all()
     context: dict[str, Any] = {
@@ -154,11 +152,11 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
     form_errors: dict[str, str] = {}
 
     if request.method == "POST":
-        post_data = _extract_post_data(request)
+        post_data = extract_post_data(request)
 
-        if not _has_required_fields(post_data):
+        if not has_required_fields(post_data):
             form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula, teléfono y edificio para actualizar."
-            form_errors = _build_required_field_errors(post_data)
+            form_errors = build_required_field_errors(post_data)
         else:
             form_errors = validate_user_form(post_data, exclude_persona_id=person.id_persona)
             if form_errors:
@@ -179,9 +177,9 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                     )
 
                 messages.success(request, "Beneficiario actualizado correctamente.")
-                return redirect("lista_usuario")
+                return redirect("beneficiary_list")
 
-    data = _build_edit_initial_data(user, person)
+    data = build_edit_initial_data(user, person)
     current_ue = UserBuilding.objects.filter(user=user).first()
     current_building = current_ue.building if current_ue else None
     buildings = Building.objects.all()
@@ -213,7 +211,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
     messages.success(request, "Beneficiario eliminado correctamente.")
-    return redirect("seleccionar_usuario", accion="eliminar")
+    return redirect("user_select", accion="eliminar")
 
 
 @login_required
@@ -222,7 +220,7 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
     VALID_ACTIONS = ("editar", "eliminar")
     if action not in VALID_ACTIONS:
         messages.error(request, f"Acción no válida: {action}")
-        return redirect("lista_usuario")
+        return redirect("beneficiary_list")
 
     users = (
         Usuario.objects.select_related("id_persona")
@@ -251,92 +249,3 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
             "accion": action,
         },
     )
-
-
-# ═══════════════════════════════════════════════════════════════════════
-# Private helpers
-# ═══════════════════════════════════════════════════════════════════════
-
-def _extract_post_data(request: HttpRequest) -> dict[str, Any]:
-    return {
-        "primerNombre": request.POST.get("primerNombre", "").strip(),
-        "segundoNombre": request.POST.get("segundoNombre", "").strip(),
-        "primerApellido": request.POST.get("primerApellido", "").strip(),
-        "segundoApellido": request.POST.get("segundoApellido", "").strip(),
-        "email": request.POST.get("email", "").strip(),
-        "cedula": request.POST.get("cedula", "").strip(),
-        "telefono": request.POST.get("telefono", "").strip(),
-        "id_edificio": request.POST.get("id_edificio", "").strip(),
-    }
-
-
-def _has_required_fields(data: dict[str, Any]) -> bool:
-    return bool(
-        data.get("primerNombre")
-        and data.get("primerApellido")
-        and data.get("email")
-        and data.get("cedula")
-        and data.get("id_edificio")
-        and data.get("telefono")
-    )
-
-
-def _build_required_field_errors(data: dict[str, Any]) -> dict[str, str]:
-    errors: dict[str, str] = {}
-    required = (
-        "primerNombre",
-        "primerApellido",
-        "email",
-        "cedula",
-        "telefono",
-        "id_edificio",
-    )
-    for key in required:
-        if not data.get(key):
-            errors[key] = "Este campo es obligatorio."
-    return errors
-
-
-def _create_user_with_retry(
-    first_name: str,
-    last_name: str,
-    password: str,
-    person: Persona,
-    max_retries: int = 10,
-) -> Usuario:
-    for _ in range(max_retries):
-        username = build_random_username(first_name, last_name)
-        try:
-            return Usuario.objects.create(
-                username=username,
-                password=make_password(password),
-                id_persona=person,
-                rol="US",
-            )
-        except IntegrityError:
-            continue
-    raise ValueError(
-        "No se pudo generar un nombre de usuario único tras varios intentos."
-    )
-
-
-def _build_edit_initial_data(user: Usuario, person: Persona) -> dict[str, Any]:
-    current_ue = UserBuilding.objects.filter(user=user).first()
-    current_building = current_ue.building if current_ue else None
-
-    return {
-        "primerNombre": person.name.split(" ")[0] if person and person.name else "",
-        "segundoNombre": " ".join(person.name.split(" ")[1:])
-        if person and person.name
-        else "",
-        "primerApellido": person.last_name.split(" ")[0]
-        if person and person.last_name
-        else "",
-        "segundoApellido": " ".join(person.last_name.split(" ")[1:])
-        if person and person.last_name
-        else "",
-        "email": person.email if person else "",
-        "cedula": person.ci if person else "",
-        "telefono": person.phone if person else "",
-        "id_edificio": current_building.id if current_building else None,
-    }

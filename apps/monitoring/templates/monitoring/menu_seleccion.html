@@ -26,11 +26,11 @@
 
                 <div class="menu-grid">
                     {% if rol == 'SA' or rol == 'ADMIN' %}
-                    <a href="{% url 'registro_beneficiario' %}" class="menu-card">
+                    <a href="{% url 'beneficiary_create' %}" class="menu-card">
                         <i class="fa-solid fa-user-plus icon-card"></i>
                         <span>Registrar usuario</span>
                     </a>
-                    <a href="{% url 'lista_usuario' %}" class="menu-card">
+                    <a href="{% url 'beneficiary_list' %}" class="menu-card">
                         <i class="fa-solid fa-users icon-card"></i>
                         <span>Administrar usuarios</span>
                     </a>
@@ -42,7 +42,7 @@
                         <i class="fa-solid fa-building icon-card"></i>
                         <span>Administrar edificios</span>
                     </a>
-                    <a href="{% url 'monitoreo' %}" class="menu-card">
+                    <a href="{% url 'monitor' %}" class="menu-card">
                         <i class="fa-solid fa-gauge-high icon-card"></i>
                         <span>Monitoreo global</span>
                     </a>
@@ -59,7 +59,7 @@
                         <i class="fa-solid fa-bell icon-card"></i>
                         <span>Alertas</span>
                     </a>
-                    <a href="{% url 'monitoreo' %}" class="menu-card">
+                    <a href="{% url 'monitor' %}" class="menu-card">
                         <i class="fa-solid fa-gauge-high icon-card"></i>
                         <span>Monitoreo</span>
                     </a>
