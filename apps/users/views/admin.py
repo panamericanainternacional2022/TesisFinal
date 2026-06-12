@@ -212,7 +212,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
     messages.success(request, "Beneficiario eliminado correctamente.")
-    return redirect("user_select", accion="eliminar")
+    return redirect("user_select", action="eliminar")
 
 
 @login_required

@@ -35,7 +35,7 @@ urlpatterns = [
         name="beneficiary_delete",
     ),
     path(
-        "select/user/<str:accion>/",
+        "select/user/<str:action>/",
         user_select_view,
         name="user_select",
     ),
