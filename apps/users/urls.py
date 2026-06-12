@@ -25,12 +25,12 @@ urlpatterns = [
         name="beneficiary_create",
     ),
     path(
-        "beneficiaries/<int:beneficiario_id>/edit/",
+        "beneficiaries/<int:beneficiary_id>/edit/",
         beneficiary_update_view,
         name="beneficiary_edit",
     ),
     path(
-        "beneficiaries/<int:beneficiario_id>/delete/",
+        "beneficiaries/<int:beneficiary_id>/delete/",
         beneficiary_delete_view,
         name="beneficiary_delete",
     ),
