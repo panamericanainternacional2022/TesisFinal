@@ -363,7 +363,7 @@ def persist_notification_in_django(variable, value, risk_level, recommended_acti
 
         eid = edificio_id
         if eid is None:
-            from apps.sensors.simulation import simulators
+            from apps.sensors.simulation.globals import simulators
             eid = next(iter(simulators.keys()), None)
         if _tipo and eid:
             equipo = MonitoringEquipment.objects.filter(

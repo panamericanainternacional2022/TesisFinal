@@ -1,26 +1,20 @@
-"""
-Módulo de construcción del payload en vivo para SSE.
-"""
-
 import logging
 
-from apps.sensors.services.payload_service import (  # noqa: F401
-    titleize_name,
-    build_live_payload as _build_live_payload,
-)
-from apps.alerts.services.alert_service import generate_recommendations
+from apps.sensors.services.payload_service import PayloadContext, build_live_payload
+from apps.sensors.simulation.models import BuildingSimulator
 
 logger = logging.getLogger(__name__)
 
 
-def build_live_payload():
-    """Legacy: construye payload desde globales (usa active_sim)."""
-    from apps.sensors.simulation import (
+def build_live_payload() -> dict:
+    from apps.sensors.simulation.globals import (
         sensor_data, protection_ends, history,
         door_close_attempts, pump_on, elevator_on, equipment_types,
-        RATIONING_THRESHOLD, sim_paused, sim_speed,
+        sim_paused, sim_speed,
     )
-    return _build_live_payload(
+    from apps.sensors.simulation.constants import RATIONING_THRESHOLD
+    from apps.alerts.services.alert_service import generate_recommendations
+    ctx = PayloadContext(
         sensor_data=sensor_data,
         protection_ends=protection_ends,
         history=history,
@@ -28,20 +22,21 @@ def build_live_payload():
         pump_on=pump_on,
         elevator_on=elevator_on,
         equipment_types=equipment_types,
-        RATIONING_THRESHOLD=RATIONING_THRESHOLD,
+        rationing_threshold=RATIONING_THRESHOLD,
         sim_paused=sim_paused,
         sim_speed=sim_speed,
         generate_recommendations_fn=generate_recommendations,
         alert_enabled=True,
         active_edificio_id=None,
-        DJANGO_CONNECTED=True,
+        django_connected=True,
     )
+    return build_live_payload(ctx)
 
 
-def build_live_payload_for_sim(sim):
-    """Construye payload directamente desde un BuildingSimulator."""
-    from apps.sensors.simulation import RATIONING_THRESHOLD
-    return _build_live_payload(
+def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
+    from apps.sensors.simulation.constants import RATIONING_THRESHOLD
+    from apps.alerts.services.alert_service import generate_recommendations
+    ctx = PayloadContext(
         sensor_data=sim.sensor_data,
         protection_ends=sim.protection_ends,
         history=sim.history,
@@ -49,11 +44,12 @@ def build_live_payload_for_sim(sim):
         pump_on=sim.pump_on,
         elevator_on=sim.elevator_on,
         equipment_types=sim.equipment_types,
-        RATIONING_THRESHOLD=RATIONING_THRESHOLD,
+        rationing_threshold=RATIONING_THRESHOLD,
         sim_paused=sim.sim_paused,
         sim_speed=sim.sim_speed,
         generate_recommendations_fn=generate_recommendations,
         alert_enabled=sim.alert_enabled,
         active_edificio_id=sim.edificio_id,
-        DJANGO_CONNECTED=True,
+        django_connected=True,
     )
+    return build_live_payload(ctx)

@@ -1,4 +1,7 @@
+import time
 import logging
+from dataclasses import dataclass, field
+from typing import Callable
 
 from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS
 from apps.core.services.risk_service import classify_risk
@@ -8,12 +11,33 @@ from apps.alerts.services.alert_service import get_alert_log
 logger = logging.getLogger(__name__)
 
 
-def titleize_name(text):
-    return " ".join(word.capitalize() for word in text.replace("_", " ").split())
+def _noop_recommendations(sensor_data: dict, stats: dict) -> list:
+    return []
 
 
-def _compute_stats(history, max_entries=500):
-    """Calcula estadísticas desde el historial, limitado a max_entries."""
+@dataclass
+class PayloadContext:
+    sensor_data: dict
+    protection_ends: dict
+    history: list
+    door_close_attempts: int
+    pump_on: bool
+    elevator_on: bool
+    equipment_types: set
+    rationing_threshold: float
+    sim_paused: bool
+    sim_speed: float
+    generate_recommendations_fn: Callable = _noop_recommendations
+    alert_enabled: bool = True
+    active_edificio_id: int = None
+    django_connected: bool = False
+
+
+def titleize_name(variable_name: str) -> str:
+    return " ".join(word.capitalize() for word in variable_name.replace("_", " ").split())
+
+
+def _compute_stats(history: list, max_entries: int = 500) -> dict:
     stats = {}
     recent = history[-max_entries:] if len(history) > max_entries else history
     for var in STATS_VARS:
@@ -31,98 +55,103 @@ def _compute_stats(history, max_entries=500):
     return stats
 
 
-def build_live_payload(
-    sensor_data, protection_ends, history,
-    door_close_attempts, pump_on, elevator_on, equipment_types,
-    RATIONING_THRESHOLD, sim_paused, sim_speed,
-    generate_recommendations_fn=None, alert_enabled=True,
-    active_edificio_id=None, DJANGO_CONNECTED=False,
-):
-    stats = _compute_stats(history)
-
-    _relevant_vars = set()
-    if "bomba" in equipment_types:
-        _relevant_vars.update(PUMP_VARS)
-    if "elevador" in equipment_types:
-        _relevant_vars.update(ELEVATOR_VARS)
-    _relevant_vars.update(["rationing", "auto_protection", "protection_pump", "protection_elevator"])
-
+def build_live_payload(ctx: PayloadContext) -> dict:
+    stats = _compute_stats(ctx.history)
+    relevant_vars = _build_relevant_vars(ctx.equipment_types)
     thresholds = get_thresholds()
+    sensors = _build_sensors_list(ctx.sensor_data, relevant_vars, thresholds)
+    recommendations = ctx.generate_recommendations_fn(ctx.sensor_data, stats)
+    pump_status, elevator_status = _fetch_equipment_status(
+        ctx.django_connected, ctx.active_edificio_id,
+    )
+    protection_pump, protection_elevator = _compute_protection_info(ctx.protection_ends)
+    now = time.time()
+    return {
+        "current": {k: v for k, v in ctx.sensor_data.items() if k in relevant_vars},
+        "sensors": sensors,
+        "history": [h for h in ctx.history[-200:] if h.get("variable") in relevant_vars],
+        "thresholds": thresholds,
+        "alert_enabled": ctx.alert_enabled,
+        "alert_log": get_alert_log(ctx.active_edificio_id, 50),
+        "stats": stats,
+        "recommendations": recommendations,
+        "rationing": ctx.sensor_data.get("flow_rate", 0) < ctx.rationing_threshold,
+        "door_close_attempts": ctx.door_close_attempts,
+        "protection_active": bool(ctx.protection_ends),
+        "pump_on": ctx.pump_on,
+        "elevator_on": ctx.elevator_on,
+        "protection_remaining": int(max(0, max(ctx.protection_ends.values()) - now))
+        if ctx.protection_ends
+        else 0,
+        "protection_targets": list(ctx.protection_ends.keys()),
+        "equipment_types": list(ctx.equipment_types),
+        "protection_pump": protection_pump,
+        "protection_elevator": protection_elevator,
+        "pump_status": pump_status,
+        "elevator_status": elevator_status,
+        "sim_paused": ctx.sim_paused,
+        "sim_speed": ctx.sim_speed,
+    }
 
+
+def _build_relevant_vars(equipment_types: set) -> set:
+    relevant_vars = set()
+    if "bomba" in equipment_types:
+        relevant_vars.update(PUMP_VARS)
+    if "elevador" in equipment_types:
+        relevant_vars.update(ELEVATOR_VARS)
+    relevant_vars.update(["rationing", "auto_protection", "protection_pump", "protection_elevator"])
+    return relevant_vars
+
+
+def _build_sensors_list(sensor_data: dict, relevant_vars: set, thresholds: dict) -> list:
     sensors = []
     for var, value in sensor_data.items():
-        if var not in _relevant_vars:
+        if var not in relevant_vars:
             continue
         if var == "motor_stuck":
             risk, color = ("Crítico", "red") if value else ("Bajo", "green")
         else:
             risk, color = classify_risk(var, value, thresholds)
-        sensors.append(
-            {
-                "id": var,
-                "nombre": titleize_name(var),
-                "riesgo": risk,
-                "color": color,
-            }
-        )
+        sensors.append({
+            "id": var,
+            "nombre": titleize_name(var),
+            "riesgo": risk,
+            "color": color,
+        })
+    return sensors
 
-    recommendations = []
-    if generate_recommendations_fn:
-        recommendations = generate_recommendations_fn(sensor_data, stats)
 
-    _pump_status = None
-    _elevator_status = None
-    if DJANGO_CONNECTED and active_edificio_id:
+def _fetch_equipment_status(django_connected: bool, active_edificio_id: int) -> tuple:
+    pump_status = None
+    elevator_status = None
+    if django_connected and active_edificio_id:
         try:
             from apps.buildings.models import MonitoringEquipment
             for eq in MonitoringEquipment.objects.filter(building_id=active_edificio_id):
                 if eq.equipment_type == "bomba":
-                    _pump_status = eq.status
+                    pump_status = eq.status
                 elif eq.equipment_type == "elevador":
-                    _elevator_status = eq.status
+                    elevator_status = eq.status
         except Exception as e:
             logger.warning("Error fetching equipment status: %s", e)
+    return pump_status, elevator_status
 
-    import time
+
+def _compute_protection_info(protection_ends: dict) -> tuple:
     now = time.time()
-    _protection_pump = None
-    _protection_elevator = None
+    protection_pump = None
+    protection_elevator = None
     if "pump" in protection_ends:
         remaining = int(max(0, protection_ends["pump"] - now))
-        _protection_pump = {
+        protection_pump = {
             "message": "protección activa por alerta...",
             "remaining": remaining,
         }
     if "elevator" in protection_ends:
         remaining = int(max(0, protection_ends["elevator"] - now))
-        _protection_elevator = {
+        protection_elevator = {
             "message": "protección activa por alerta...",
             "remaining": remaining,
         }
-
-    return {
-        "current": {k: v for k, v in sensor_data.items() if k in _relevant_vars},
-        "sensors": sensors,
-        "history": [h for h in history[-200:] if h.get("variable") in _relevant_vars],
-        "thresholds": thresholds,
-        "alert_enabled": alert_enabled,
-        "alert_log": get_alert_log(active_edificio_id, 50),
-        "stats": stats,
-        "recommendations": recommendations,
-        "rationing": sensor_data.get("flow_rate", 0) < RATIONING_THRESHOLD,
-        "door_close_attempts": door_close_attempts,
-        "protection_active": bool(protection_ends),
-        "pump_on": pump_on,
-        "elevator_on": elevator_on,
-        "protection_remaining": int(max(0, max(protection_ends.values()) - now))
-        if protection_ends
-        else 0,
-        "protection_targets": list(protection_ends.keys()),
-        "equipment_types": list(equipment_types),
-        "protection_pump": _protection_pump,
-        "protection_elevator": _protection_elevator,
-        "pump_status": _pump_status,
-        "elevator_status": _elevator_status,
-        "sim_paused": sim_paused,
-        "sim_speed": sim_speed,
-    }
+    return protection_pump, protection_elevator

@@ -42,7 +42,8 @@ import django
 django.setup()
 
 # ─── Crear simuladores desde la BD ────────────────────────────────
-from apps.sensors.simulation import BuildingSimulator, simulators
+from apps.sensors.simulation.models import BuildingSimulator
+from apps.sensors.simulation.globals import simulators
 from apps.sensors.engine import generate_data_and_emit
 from apps.buildings.models import MonitoringEquipment
 
@@ -82,19 +83,19 @@ if not simulators:
 logger.info("Simuladores activos: %s", list(simulators.keys()))
 
 # ─── Sincronizar variables globales legacy con el primer simulador ─
-import apps.sensors.simulation as _sim_mod
+import apps.sensors.simulation.globals as _sim_globals
 _first = next(iter(simulators.values()), None)
 if _first:
-    _sim_mod.sensor_data.update(_first.sensor_data)
-    _sim_mod.pump_on = _first.pump_on
-    _sim_mod.elevator_on = _first.elevator_on
-    _sim_mod.equipment_types.clear()
-    _sim_mod.equipment_types.update(_first.equipment_types)
-    _sim_mod.protection_ends.update(_first.protection_ends)
-    _sim_mod.active_alerts.update(_first.active_alerts)
-    _sim_mod.door_close_attempts = _first.door_close_attempts
-    _sim_mod.sim_paused = _first.sim_paused
-    _sim_mod.sim_speed = _first.sim_speed
+    _sim_globals.sensor_data.update(_first.sensor_data)
+    _sim_globals.pump_on = _first.pump_on
+    _sim_globals.elevator_on = _first.elevator_on
+    _sim_globals.equipment_types.clear()
+    _sim_globals.equipment_types.update(_first.equipment_types)
+    _sim_globals.protection_ends.update(_first.protection_ends)
+    _sim_globals.active_alerts.update(_first.active_alerts)
+    _sim_globals.door_close_attempts = _first.door_close_attempts
+    _sim_globals.sim_paused = _first.sim_paused
+    _sim_globals.sim_speed = _first.sim_speed
     logger.info("Variables globales legacy sincronizadas con simulador #%s", _first.edificio_id)
 
 # ─── Verificar SMTP ───────────────────────────────────────────────

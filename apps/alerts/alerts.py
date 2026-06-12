@@ -13,12 +13,14 @@ import threading
 import time
 import logging
 
-from apps.sensors.simulation import (
+from apps.sensors.simulation.constants import (
     LOG_SIM, RATIONING_THRESHOLD, PROTECTION_HOLD_SECONDS,
+)
+from apps.sensors.simulation.globals import (
     sensor_data, protection_ends, active_alerts,
     pending_notifications, last_email_sent_time,
-    reset_critical_values,
 )
+from apps.sensors.simulation.controls import reset_critical_values
 
 logger = logging.getLogger(__name__)
 

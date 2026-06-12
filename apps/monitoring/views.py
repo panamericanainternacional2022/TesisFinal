@@ -289,7 +289,7 @@ def historial_view(request):
 @_login_required
 def simulador_status_view(request):
     from django.http import JsonResponse
-    from apps.sensors.simulation import simulators
+    from apps.sensors.simulation.globals import simulators
     has_edificios = Building.objects.exists()
     tiene_sim = len(simulators) > 0
     return JsonResponse({"running": tiene_sim, "has_edificios": has_edificios})
@@ -299,7 +299,8 @@ def simulador_status_view(request):
 @_admin_required
 def simulador_start_view(request):
     from django.http import JsonResponse
-    from apps.sensors.simulation import simulators, BuildingSimulator
+    from apps.sensors.simulation.globals import simulators
+    from apps.sensors.simulation.models import BuildingSimulator
     from apps.buildings.models import MonitoringEquipment
     if not simulators:
         _creados = 0
@@ -328,7 +329,7 @@ def simulador_start_view(request):
 @_admin_required
 def simulador_stop_view(request):
     from django.http import JsonResponse
-    from apps.sensors.simulation import simulators
+    from apps.sensors.simulation.globals import simulators
     if not simulators:
         return JsonResponse({"status": "ok", "message": "No hay simuladores activos."})
     for sim in simulators.values():
@@ -340,7 +341,8 @@ def simulador_stop_view(request):
 @_admin_required
 def simulador_restart_view(request):
     from django.http import JsonResponse
-    from apps.sensors.simulation import simulators, reset_simulator
+    from apps.sensors.simulation.globals import simulators
+    from apps.sensors.simulation.controls import reset_simulator
     if not simulators:
         return JsonResponse({"status": "error", "message": "No hay simuladores activos."})
     reiniciados = 0

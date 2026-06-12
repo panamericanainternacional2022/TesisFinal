@@ -113,7 +113,7 @@ def view_toggle_alerts(request):
     enabled = data.get("enabled")
     if enabled is None:
         return _json_error("Falta campo 'enabled'")
-    from apps.sensors.simulation import simulators
+    from apps.sensors.simulation.globals import simulators
     sim = simulators.get(edificio_id) if edificio_id else next(iter(simulators.values()), None)
     if not sim:
         return _json_error("Simulador no encontrado", 404)
@@ -150,7 +150,7 @@ def send_all_subscribers(request):
     except Exception:
         return _json_error("JSON inválido")
     edificio_id = data.get("edificio_id")
-    from apps.sensors.simulation import simulators
+    from apps.sensors.simulation.globals import simulators
     sim = simulators.get(edificio_id) if edificio_id else next(iter(simulators.values()), None)
     if not sim:
         return _json_error("Simulador no encontrado", 404)

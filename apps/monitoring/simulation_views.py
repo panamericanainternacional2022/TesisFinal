@@ -11,10 +11,10 @@ import eventlet
 from django.http import StreamingHttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 
-from apps.sensors.simulation import simulators
-from apps.sensors.simulation import (
-    MAX_HISTORY_SIZE, inject_fault, clear_fault, reset_simulator,
-)
+from apps.sensors.simulation.globals import simulators
+from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
+from apps.sensors.simulation.controls import inject_fault, clear_fault, reset_simulator
+from apps.sensors.simulation.exceptions import SimulatorError
 from apps.sensors.payload import build_live_payload_for_sim
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
@@ -267,10 +267,11 @@ def sim_pause(request, edificio_id):
 
 @require_http_methods(["POST"])
 def sim_reset(request, edificio_id):
-    ok, msg = reset_simulator(edificio_id)
-    if not ok:
-        return _json_error(msg, 404)
-    return _json_ok({"message": msg})
+    try:
+        msg = reset_simulator(edificio_id)
+        return _json_ok({"message": msg})
+    except SimulatorError as e:
+        return _json_error(e.message, e.status_code)
 
 
 @require_http_methods(["POST"])
@@ -283,10 +284,11 @@ def sim_inject_fault(request, edificio_id):
     fault_type = data.get("fault_type")
     if not device or not fault_type:
         return _json_error("Faltan campos: device, fault_type")
-    ok, msg = inject_fault(edificio_id, device, fault_type)
-    if not ok:
-        return _json_error(msg)
-    return _json_ok({"message": msg})
+    try:
+        msg = inject_fault(edificio_id, device, fault_type)
+        return _json_ok({"message": msg})
+    except SimulatorError as e:
+        return _json_error(e.message)
 
 
 @require_http_methods(["POST"])
@@ -296,10 +298,11 @@ def sim_clear_fault(request, edificio_id):
     except Exception:
         return _json_error("JSON inválido")
     device = data.get("device")
-    ok, msg = clear_fault(edificio_id, device)
-    if not ok:
-        return _json_error(msg, 404)
-    return _json_ok({"message": msg})
+    try:
+        msg = clear_fault(edificio_id, device)
+        return _json_ok({"message": msg})
+    except SimulatorError as e:
+        return _json_error(e.message, e.status_code)
 
 
 @require_http_methods(["POST"])
