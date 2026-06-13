@@ -12,6 +12,10 @@
             window.location.reload();
         }
     });
+    // ─── REMOVER PRELOAD DE TRANSICIONES AL CARGAR ──────────
+    window.addEventListener('load', function () {
+        document.body.classList.remove('preload');
+    });
 })();
 </script>
 <aside class="sidebar" id="sidebar">

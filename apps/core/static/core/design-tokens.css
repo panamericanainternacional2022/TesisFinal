@@ -135,3 +135,12 @@ button { font-family: var(--font); }
     line-height: var(--leading-normal);
 }
 
+/* Prevent transition flicker on page load */
+.preload, .preload * {
+    -webkit-transition: none !important;
+    -moz-transition: none !important;
+    -ms-transition: none !important;
+    -o-transition: none !important;
+    transition: none !important;
+}
+

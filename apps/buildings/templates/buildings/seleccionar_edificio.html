@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'core/lista_beneficiarios.css' %}">
+    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+    <script src="{% static 'core/modal.js' %}" defer></script>
     <style>
         .select-card {
             background: var(--color-surface);
@@ -58,7 +60,7 @@
         }
     </style>
 </head>
-<body>
+<body class="preload">
     <div class="main-layout">
         {% include 'core/components/sidebar.html' %}
         <main class="main-content">
@@ -114,41 +116,7 @@
         </main>
     </div>
 
-    <style>
-        /* ── Modal Custom ── */
-        .custom-modal-backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(10, 10, 10, 0.4);
-            backdrop-filter: blur(4px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-            opacity: 0;
-            transition: opacity 150ms ease;
-        }
-        .custom-modal-backdrop.active {
-            opacity: 1;
-        }
-        .custom-modal-container {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            padding: var(--sp-3);
-            width: 90%;
-            max-width: 440px;
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            transform: scale(0.92);
-            transition: transform 150ms ease;
-            box-sizing: border-box;
-        }
-        .custom-modal-backdrop.active .custom-modal-container {
-            transform: scale(1);
-        }
-    </style>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -173,52 +141,6 @@
             });
 
         });
-
-        function showCustomModal({ title, message, type = 'info', showCancel = false }) {
-            return new Promise((resolve) => {
-                const backdrop = document.createElement('div');
-                backdrop.className = 'custom-modal-backdrop';
-
-                const container = document.createElement('div');
-                container.className = 'custom-modal-container';
-
-                let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
-
-                container.innerHTML = `
-                    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2);">
-                        ${iconHtml}
-                        <span style="font-size: var(--text-lg); font-weight: var(--weight-bold); color: var(--color-ink); text-transform: uppercase; letter-spacing: var(--tracking-wide);">${title}</span>
-                    </div>
-                    <div style="font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal); margin-bottom: var(--sp-3); word-break: break-word;">
-                        ${message}
-                    </div>
-                    <div style="display: flex; justify-content: flex-end; gap: var(--sp-2);">
-                        ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Cancelar</button>` : ''}
-                        <button id="customModalConfirmBtn" style="background: var(--color-ink); color: var(--color-surface); border: 1px solid var(--color-ink); padding: 8px var(--sp-2); cursor: pointer; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-medium);">Aceptar</button>
-                    </div>
-                `;
-
-                backdrop.appendChild(container);
-                document.body.appendChild(backdrop);
-
-                setTimeout(() => {
-                    backdrop.classList.add('active');
-                }, 10);
-
-                const cleanUp = (value) => {
-                    backdrop.classList.remove('active');
-                    setTimeout(() => {
-                        backdrop.remove();
-                        resolve(value);
-                    }, 150);
-                };
-
-                container.querySelector('#customModalConfirmBtn').addEventListener('click', () => cleanUp(true));
-                if (showCancel) {
-                    container.querySelector('#customModalCancelBtn').addEventListener('click', () => cleanUp(false));
-                }
-            });
-        }
     </script>
 </body>
 </html>
