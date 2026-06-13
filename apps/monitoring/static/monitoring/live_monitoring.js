@@ -702,8 +702,28 @@ function fetchInitialData() {
 }
 
 window.addEventListener('DOMContentLoaded', async () => {
-    setNotificationBadge(0);
-    initCharts();
+    const isMonitoringPage = document.getElementById('live-monitoring-content') !== null;
+    const isNotificationsPage = document.getElementById('live-notifications-list') !== null;
+
+    if (isMonitoringPage) {
+        setNotificationBadge(0);
+        initCharts();
+
+        monitorConnectionTimeout = setTimeout(() => {
+            renderConnectionStatus(false, 'El simulador de monitoreo está apagado.');
+            monitorConnectionTimeout = null;
+        }, 3500);
+
+        initLiveMonitoring();
+    }
+
+    if (isNotificationsPage) {
+        const badgeCountEl = document.getElementById('notificationBadgeCount');
+        if (badgeCountEl) {
+            unreadNotificationCount = parseInt(badgeCountEl.textContent, 10) || 0;
+        }
+        initLiveNotifications();
+    }
 
     const toggleBtn = document.getElementById('toggleAlertsBtn');
     if (toggleBtn) {
@@ -724,12 +744,4 @@ window.addEventListener('DOMContentLoaded', async () => {
             toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
         }
     }
-
-    monitorConnectionTimeout = setTimeout(() => {
-        renderConnectionStatus(false, 'El simulador de monitoreo está apagado.');
-        monitorConnectionTimeout = null;
-    }, 3500);
-
-    initLiveMonitoring();
-    initLiveNotifications();
 });

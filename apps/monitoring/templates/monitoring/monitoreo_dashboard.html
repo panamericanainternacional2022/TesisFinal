@@ -444,21 +444,6 @@
             border-color: var(--state-critical);
         }
 
-        /* ── Racionamiento ── */
-        #rationingIndicator {
-            display: none;
-            background: var(--state-critical);
-            color: #fff;
-            padding: 4px var(--sp-1);
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            text-transform: uppercase;
-            letter-spacing: var(--tracking-wide);
-            border: 2px solid var(--color-ink);
-        }
-
-        #rationingIndicator.visible { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 44px; padding: 0 var(--sp-2); }
-
         /* ── Suscriptores ── */
         .subs-table { font-size: var(--text-sm); width: 100%; border-collapse: collapse; }
         .subs-table th { font-size: var(--text-xs); text-transform: uppercase; letter-spacing: var(--tracking-wide); color: var(--color-ink); font-weight: var(--weight-bold); padding: 8px var(--sp-2); border-bottom: 2px solid var(--color-ink); text-align: left; }
@@ -528,7 +513,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div id="rationingIndicator"><i class="fas fa-droplet-slash"></i> Racionamiento activo</div>
+            <div id="inlineRec" style="flex:1; min-width:200px; font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</div>
             <div class="spacer"></div>
         </div>
 
@@ -545,57 +530,40 @@
 
         <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
-            <div class="status-cell">
-                <div class="status-cell-label">Protección</div>
-                <div class="status-cell-value" id="protectionStatus">INACTIVA</div>
-            </div>
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
-                    <span id="pumpStatus">ENCENDIDA</span>
-                    <span id="pumpStatusBadge" class="badge" style="margin-left: 5px; display: none;"></span>
+                    <span id="pumpStatusBadge" class="badge" style="display: none;"></span>
+                    <span id="pumpStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
                 </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
-                    <span id="elevatorStatus">ENCENDIDO</span>
-                    <span id="elevatorStatusBadge" class="badge" style="margin-left: 5px; display: none;"></span>
+                    <span id="elevatorStatusBadge" class="badge" style="display: none;"></span>
+                    <span id="elevatorStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
+                </div>
+            </div>
+            <div id="simStatusRow" class="status-cell">
+                <div class="status-cell-label">Simulación</div>
+                <div class="status-cell-value">
+                    <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
                 </div>
             </div>
             <div class="status-cell">
                 <div class="status-cell-label">Última actualización</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
-            <div id="simStatusRow" class="status-cell">
-                <div class="status-cell-label">Simulación</div>
-                <div class="status-cell-value">
-                    <span id="simActiveStatus">ACTIVA</span>
-                    <span id="simSpeedDisplay" class="badge badge-info" style="margin-left:5px;">1.0x</span>
-                </div>
-            </div>
         </div>
 
-        <!-- Stats + Recomendaciones -->
-        <div class="grid-3" style="margin-bottom: var(--sp-3);">
-            <div class="panel">
-                <h2 class="panel-title"><i class="fa-solid fa-oil-can"></i> Estadísticas de Bomba</h2>
-                <div id="statsBombaPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
-            </div>
-            <div class="panel">
-                <h2 class="panel-title"><i class="fa-solid fa-elevator"></i> Estadísticas de Elevador</h2>
-                <div id="statsElevadorPanel" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando...</div>
-            </div>
-            <div class="panel">
-                <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones</h2>
-                <div id="doorAttemptsInfo" style="font-size:var(--text-xs); color:var(--color-text-secondary); margin-bottom:8px;"></div>
-                <div id="recommendationsPanel" style="font-size:var(--text-sm);">Cargando...</div>
-            </div>
+        <div class="grid-2" style="margin-bottom: var(--sp-3);">
+            <div id="statsBombaPanel"></div>
+            <div id="statsElevadorPanel"></div>
         </div>
 
         <!-- Suscriptores -->
         <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de Alertas por Correo</h2>
+            <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de alertas por correo</h2>
             <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
                 <div id="activeBuildingNameContainer" class="form-group" style="flex: 1; min-width: 250px;">
                     <span class="form-label">Edificio activo</span>
@@ -655,7 +623,7 @@
 
         <!-- Control de simulación -->
         <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-gamepad"></i> Control de Simulación</h2>
+            <h2 class="panel-title"><i class="fa-solid fa-gamepad"></i> Control de simulación</h2>
             <div id="simControls" style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
                 <div class="form-group" style="min-width:100px;">
                     <label class="form-label">Estado</label>
@@ -927,40 +895,40 @@
             chart2.update();
         }
 
-        function renderStatsTable(entries, containerId){
+        function renderStatsTable(entries, containerId, firstColLabel, accentColor){
             const div = document.getElementById(containerId);
             if(entries.length){
                 const rows = entries.map(([k,v])=>
-                    `<tr><td style="padding:4px 8px; font-weight:var(--weight-medium);">${getVariableName(k).toUpperCase()}</td>`+
-                    `<td style="padding:4px 8px;">${v.avg.toFixed(1)}</td>`+
-                    `<td style="padding:4px 8px;">${v.min}</td>`+
-                    `<td style="padding:4px 8px;">${v.max}</td></tr>`).join('');
-                div.innerHTML=`<table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
+                    `<tr><td style="padding:8px 10px; font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); font-size:var(--text-xs); border-bottom:1px solid var(--color-border); color:var(--color-ink);">${getVariableName(k).toUpperCase()}</td>`+
+                    `<td style="padding:8px 10px; font-weight:var(--weight-bold); text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-ink);">${v.avg.toFixed(1)}</td>`+
+                    `<td style="padding:8px 10px; text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-text-secondary);">${v.min}</td>`+
+                    `<td style="padding:8px 10px; text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-text-secondary);">${v.max}</td></tr>`).join('');
+                div.innerHTML=`<div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15); border-left:6px solid ${accentColor};">
+                <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
                     <thead><tr>
-                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Variable</th>
-                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Prom.</th>
-                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Mín.</th>
-                        <th style="text-align:left;padding:4px 8px;border-bottom:1px solid var(--color-border);">Máx.</th>
-                    </tr></thead><tbody>${rows}</tbody></table>`;
+                        <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">${firstColLabel}</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Prom.</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Mín.</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Máx.</th>
+                    </tr></thead><tbody>${rows}</tbody></table></div>`;
             } else {
-                div.innerHTML='<p style="color:var(--color-text-secondary);">No hay datos.</p>';
+                div.innerHTML='<p style="color:var(--color-text-secondary);font-size:var(--text-sm);">No hay datos.</p>';
             }
         }
 
         function updateStatsAndRecs(stats, recs, attempts){
             const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
-            renderStatsTable(entries.filter(([k])=>BOMBA_VARS.includes(k)), 'statsBombaPanel');
-            renderStatsTable(entries.filter(([k])=>ELEVADOR_VARS.includes(k)), 'statsElevadorPanel');
-            let recDiv=document.getElementById('recommendationsPanel');
+            renderStatsTable(entries.filter(([k])=>BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba', '#2563eb');
+            renderStatsTable(entries.filter(([k])=>ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador', '#7c3aed');
+            let inlineEl=document.getElementById('inlineRec');
             if(recs&&recs.length){
-                recDiv.innerHTML='<ul style="padding-left:var(--sp-2); margin:0;">'+recs.map(r=>`<li style="margin-bottom:4px;">${r}</li>`).join('')+'</ul>';
+                let doorNote = (typeof attempts==='number' && attempts>0) ? ` | 🚪 ${attempts} intentos` : '';
+                inlineEl.innerHTML = '⚠️ ' + recs[0] + doorNote;
+                inlineEl.style.color = 'var(--state-warn)';
             } else {
-                recDiv.innerHTML='<p style="color:var(--color-text-secondary);">Sin recomendaciones activas.</p>';
+                inlineEl.innerHTML = '✅ Todo normal';
+                inlineEl.style.color = 'var(--color-text-secondary)';
             }
-            let attDiv=document.getElementById('doorAttemptsInfo');
-            if(typeof attempts==='number' && attempts>0){
-                attDiv.innerHTML=`<span class="badge badge-high">Intentos cierre de puerta: ${attempts}</span>`;
-            } else { attDiv.innerHTML=''; }
         }
 
         function renderThresholdsPanel(th){
@@ -1334,18 +1302,14 @@
             if(data.history){ updateCharts(data.history); }
             updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
             document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-            let ri = document.getElementById('rationingIndicator');
-            if(data.rationing) ri.classList.add('visible'); else ri.classList.remove('visible');
-            document.getElementById('protectionStatus').innerText = data.protection_active ? 'ACTIVA' : 'INACTIVA';
-            document.getElementById('pumpStatus').innerText = data.pump_on ? 'ENCENDIDA' : 'APAGADA';
-            document.getElementById('elevatorStatus').innerText = data.elevator_on ? 'ENCENDIDO' : 'APAGADO';
-
-            const updateBadge = (badgeId, statusVal) => {
+            const updateBadge = (badgeId, emptyId, statusVal) => {
                 const badgeEl = document.getElementById(badgeId);
-                if (badgeEl) {
+                const emptyEl = document.getElementById(emptyId);
+                if (badgeEl && emptyEl) {
                     if (statusVal) {
                         badgeEl.style.display = 'inline-block';
                         badgeEl.textContent = statusVal.toUpperCase();
+                        emptyEl.style.display = 'none';
                         if (statusVal === 'falla') {
                             badgeEl.className = 'badge badge-crit';
                         } else if (statusVal === 'mantenimiento') {
@@ -1355,11 +1319,12 @@
                         }
                     } else {
                         badgeEl.style.display = 'none';
+                        emptyEl.style.display = 'inline';
                     }
                 }
             };
-            updateBadge('pumpStatusBadge', data.pump_status);
-            updateBadge('elevatorStatusBadge', data.elevator_status);
+            updateBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
+            updateBadge('elevatorStatusBadge', 'elevatorStatusEmpty', data.elevator_status);
             // Ocultar secciones según equipamiento del edificio
             const et = data.equipment_types || [];
             const hasPump = et.includes('bomba');
@@ -1373,13 +1338,8 @@
                 if (el) el.style.display = hasElev ? '' : 'none';
             });
             // Sim status
-            const simActive = document.getElementById('simActiveStatus');
             const simSpd = document.getElementById('simSpeedDisplay');
             if (data.sim_paused !== undefined) {
-                if (simActive) {
-                    simActive.textContent = data.sim_paused ? 'PAUSADA' : 'ACTIVA';
-                    simActive.style.color = data.sim_paused ? 'var(--state-warn)' : 'var(--state-ok)';
-                }
                 updatePauseBtn(data.sim_paused);
             }
             if (data.sim_speed !== undefined && simSpd) {

@@ -119,7 +119,7 @@
                                         </p>
                                     {% endif %}
                                     <div class="notif-meta" style="margin-top:8px;">
-                                        <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                                         {% if notif.monitoring_equipment.building %}
                                         <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
                                         {% endif %}

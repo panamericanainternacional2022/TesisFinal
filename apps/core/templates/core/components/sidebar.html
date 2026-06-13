@@ -62,7 +62,7 @@
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell"></i>
             <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer"></span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Historial
@@ -77,7 +77,7 @@
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell"></i>
             <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer"></span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Historial
