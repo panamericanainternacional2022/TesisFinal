@@ -26,11 +26,6 @@ class ReportViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")
 
-    def test_beneficiary_csv_returns_file(self):
-        response = self.client.get(reverse("beneficiary_csv"))
-        self.assertEqual(response.status_code, 200)
-
-
 class ReportViewNonAdminTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", name="User", last_name="Test", email="u@u.com")

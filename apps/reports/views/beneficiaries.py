@@ -1,4 +1,3 @@
-import csv
 import logging
 from typing import Any
 
@@ -86,31 +85,3 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
             status=500,
         )
 
-
-@login_required
-def beneficiary_csv_view(request: Any) -> HttpResponse:
-    response = HttpResponse(content_type="text/csv")
-    response["Content-Disposition"] = 'attachment; filename="reporte_beneficiarios.csv"'
-    response.write("\ufeff".encode("utf8"))
-    writer = csv.writer(response)
-    writer.writerow(["Cedula", "Nombre", "Apellido", "Email", "Edificio"])
-
-    usuarios = (
-        Usuario.objects.select_related("id_persona")
-        .prefetch_related("building_assignments__building")
-        .exclude(rol__in=ADMIN_ROLES)
-    )
-    from apps.users.services import build_beneficiary_data
-
-    for u in usuarios:
-        b = build_beneficiary_data(u)
-        writer.writerow(
-            [
-                b["cedula"],
-                b["nombre"],
-                b["last_name"],
-                b["email"],
-                b["edificio_nombre"],
-            ]
-        )
-    return response
