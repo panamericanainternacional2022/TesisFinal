@@ -14,29 +14,29 @@ def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str,
     _pdf_font(pdf, "B", 18)
     pdf.set_text_color(10, 10, 10)
     pdf.cell(0, 12, "Historial de Eventos ", ln=1, align="L")
-    _pdf_font(pdf, "B", 11)
+    _pdf_font(pdf, "B", 12)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
+    pdf.cell(0, 9, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
     pdf.ln(5)
 
-    _pdf_font(pdf, "", 9)
+    _pdf_font(pdf, "", 11)
     pdf.set_text_color(26, 26, 26)
-    pdf.cell(0, 6, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
-    pdf.cell(0, 6, f"Edificio: {building_name}", ln=1)
-    pdf.cell(0, 6, f"Severidad: {severity if severity else 'Todas'}", ln=1)
-    pdf.cell(0, 6, f"Variable: {variable if variable else 'Todas'}", ln=1)
-    pdf.cell(0, 6, f"Rango: {range_label}", ln=1)
-    pdf.cell(0, 6, f"Total de eventos: {total}", ln=1)
+    pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
+    pdf.cell(0, 7, f"Edificio: {building_name}", ln=1)
+    pdf.cell(0, 7, f"Severidad: {severity if severity else 'Todas'}", ln=1)
+    pdf.cell(0, 7, f"Variable: {variable if variable else 'Todas'}", ln=1)
+    pdf.cell(0, 7, f"Rango: {range_label}", ln=1)
+    pdf.cell(0, 7, f"Total de eventos: {total}", ln=1)
     pdf.ln(8)
 
 
 def render_severity_legend(pdf: Any) -> None:
-    _pdf_font(pdf, "B", 10)
+    _pdf_font(pdf, "B", 11)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 7, "LEYENDA DE SEVERIDADES", ln=1)
+    pdf.cell(0, 8, "LEYENDA DE SEVERIDADES", ln=1)
     pdf.ln(1)
 
-    _pdf_font(pdf, "", 8)
+    _pdf_font(pdf, "", 10)
     for lbl, fill, text_c, desc in SEVERITY_DISPLAY_LEVELS:
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
@@ -62,7 +62,7 @@ def get_column_config(show_all_buildings: bool) -> tuple[list[int], list[str], l
 
 
 def render_table_header(pdf: Any, column_widths: list[int], column_aligns: list[str], column_headers: list[str]) -> None:
-    _pdf_font(pdf, "B", 8)
+    _pdf_font(pdf, "B", 10)
     draw_row(
         pdf,
         column_widths,
@@ -74,11 +74,11 @@ def render_table_header(pdf: Any, column_widths: list[int], column_aligns: list[
 
 
 def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int], column_aligns: list[str], show_all_buildings: bool) -> None:
-    _pdf_font(pdf, "", 7)
+    _pdf_font(pdf, "", 9)
     pdf.set_draw_color(10, 10, 10)
 
     if len(parsed_list) > MAX_PDF_EVENTS:
-        _pdf_font(pdf, "I", 8)
+        _pdf_font(pdf, "I", 9)
         pdf.set_text_color(194, 65, 12)
         pdf.cell(0, 6, f"Mostrando los primeros {MAX_PDF_EVENTS} de {len(parsed_list)} eventos totales.", ln=1)
         pdf.ln(2)

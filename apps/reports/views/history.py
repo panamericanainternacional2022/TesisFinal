@@ -54,7 +54,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
                     self.rect(10, 10, 190, 2, "F")
                     self.ln(5)
                 else:
-                    _pdf_font(self, "I", 8)
+                    _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
                     self.cell(0, 10, "INES - Historial de Eventos", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()}", 0, 1, "R")
@@ -65,7 +65,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
 
             def footer(self) -> None:
                 self.set_y(-15)
-                _pdf_font(self, "I", 8)
+                _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
                 self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()}", 0, 0, "C")
 
@@ -81,18 +81,18 @@ def history_pdf_view(request: Any) -> HttpResponse:
         show_all_buildings = building_name == "Todos los edificios"
         column_widths, column_headers, column_aligns = get_column_config(show_all_buildings)
 
-        _pdf_font(pdf, "B", 10)
+        _pdf_font(pdf, "B", 11)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 7, f"EVENTOS REGISTRADOS ({len(parsed_list)})", ln=1)
+        pdf.cell(0, 8, f"EVENTOS REGISTRADOS ({len(parsed_list)})", ln=1)
         pdf.ln(2)
 
         if parsed_list:
             render_table_header(pdf, column_widths, column_aligns, column_headers)
             render_event_rows(pdf, parsed_list, column_widths, column_aligns, show_all_buildings)
         else:
-            _pdf_font(pdf, "I", 9)
+            _pdf_font(pdf, "I", 10)
             pdf.set_text_color(95, 95, 95)
-            pdf.cell(0, 8, "No se encontraron eventos con los filtros aplicados.", ln=1)
+            pdf.cell(0, 9, "No se encontraron eventos con los filtros aplicados.", ln=1)
 
         pdf_raw = pdf.output()
         pdf_bytes = (

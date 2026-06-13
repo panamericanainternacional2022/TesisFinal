@@ -65,7 +65,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                     self.rect(10, 10, 190, 2, "F")
                     self.ln(5)
                 else:
-                    _pdf_font(self, "I", 8)
+                    _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
                     self.cell(0, 10, "INES - Reporte de Beneficiarios", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()}", 0, 1, "R")
@@ -76,7 +76,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
 
             def footer(self) -> None:
                 self.set_y(-15)
-                _pdf_font(self, "I", 8)
+                _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
                 self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()}", 0, 0, "C")
 
@@ -88,26 +88,26 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
         pdf.cell(0, 12, "Reporte de Beneficiarios", ln=1, align="L")
-        _pdf_font(pdf, "B", 11)
+        _pdf_font(pdf, "B", 12)
         pdf.set_text_color(95, 95, 95)
-        pdf.cell(0, 8, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
+        pdf.cell(0, 9, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
         pdf.ln(5)
-        _pdf_font(pdf, "", 9)
+        _pdf_font(pdf, "", 11)
         pdf.set_text_color(26, 26, 26)
-        pdf.cell(0, 6, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
+        pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
         if building_name:
-            pdf.cell(0, 6, f"Edificio: {building_name}", ln=1)
+            pdf.cell(0, 7, f"Edificio: {building_name}", ln=1)
         if estado:
             estado_label = "Registrados" if estado == "registrado" else "Por registrar"
-            pdf.cell(0, 6, f"Estado: {estado_label}", ln=1)
+            pdf.cell(0, 7, f"Estado: {estado_label}", ln=1)
         if query:
-            pdf.cell(0, 6, f"Busqueda: {query}", ln=1)
-        pdf.cell(0, 6, f"Total de beneficiarios: {len(beneficiaries)}", ln=1)
+            pdf.cell(0, 7, f"Busqueda: {query}", ln=1)
+        pdf.cell(0, 7, f"Total de beneficiarios: {len(beneficiaries)}", ln=1)
         pdf.ln(8)
 
-        _pdf_font(pdf, "B", 10)
+        _pdf_font(pdf, "B", 11)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 7, f"BENEFICIARIOS REGISTRADOS ({len(beneficiaries)})", ln=1)
+        pdf.cell(0, 8, f"BENEFICIARIOS REGISTRADOS ({len(beneficiaries)})", ln=1)
         pdf.ln(2)
 
         col_widths = [25, 45, 45, 45, 30]
@@ -115,7 +115,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         col_aligns = ["C", "L", "L", "L", "C"]
 
         if beneficiaries:
-            _pdf_font(pdf, "B", 8)
+            _pdf_font(pdf, "B", 10)
             draw_row(
                 pdf,
                 col_widths,
@@ -124,7 +124,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                 fills=[(10, 10, 10)] * len(col_widths),
                 colors=[(255, 255, 255)] * len(col_widths),
             )
-            _pdf_font(pdf, "", 7)
+            _pdf_font(pdf, "", 9)
             pdf.set_draw_color(10, 10, 10)
             for b in beneficiaries:
                 row_data = [
@@ -136,9 +136,9 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                 ]
                 draw_row(pdf, col_widths, col_aligns, row_data)
         else:
-            _pdf_font(pdf, "I", 9)
+            _pdf_font(pdf, "I", 10)
             pdf.set_text_color(95, 95, 95)
-            pdf.cell(0, 8, "No se encontraron beneficiarios con los filtros aplicados.", ln=1)
+            pdf.cell(0, 9, "No se encontraron beneficiarios con los filtros aplicados.", ln=1)
 
         pdf_raw = pdf.output()
         pdf_bytes = (

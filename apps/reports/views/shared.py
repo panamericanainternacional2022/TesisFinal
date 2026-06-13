@@ -237,7 +237,7 @@ def draw_row(
         lines_per_col.append(lines)
 
     max_lines = max(len(lines) for lines in lines_per_col) if lines_per_col else 1
-    line_height: float = 4.5
+    line_height: float = 5.5
     row_height: float = max_lines * line_height
 
     if pdf.get_y() + row_height > 270:
