@@ -70,7 +70,7 @@ def api_building_users(request, building_id: int) -> JsonResponse:
         person = ub.user.id_persona if ub.user else None
         data.append({
             "id": ub.user.pk if ub.user else None,
-            "nombre": f"{person.name} {person.last_name}" if person else "Desconocido",
+            "nombre": " ".join(x for x in [person.first_name, person.middle_name, person.first_last_name, person.second_last_name] if x) if person else "Desconocido",
             "email": person.email if person else "",
         })
     return JsonResponse(data, safe=False)

@@ -57,7 +57,7 @@ class ValidateUniqueRifTests(TestCase):
 
 class BuildingViewTestBase(TestCase):
     def setUp(self) -> None:
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(
             username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True,

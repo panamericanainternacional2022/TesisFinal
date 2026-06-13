@@ -92,7 +92,7 @@ class ValidateEmailTests(TestCase):
 class ValidateUniqueEmailDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-12345678", name="Test", last_name="User",
+            ci="V-12345678", first_name="Test", first_last_name="User",
             email="existing@test.com",
         )
 
@@ -113,7 +113,7 @@ class ValidateUniqueEmailDBTests(TestCase):
 class ValidateUniqueCiDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-87654321", name="Test", last_name="User",
+            ci="V-87654321", first_name="Test", first_last_name="User",
             email="t@t.com",
         )
 
@@ -159,7 +159,7 @@ class ValidateFormTests(TestCase):
 class BuildUserDataTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-12345678", name="Juan", last_name="Pérez",
+            ci="V-12345678", first_name="Juan", first_last_name="Pérez",
             email="juan@test.com",
         )
         self.user = Usuario.objects.create(
@@ -176,7 +176,7 @@ class BuildUserDataTests(TestCase):
 
     def test_build_without_persona_uses_username(self):
         p = Persona.objects.create(
-            ci="V-11111111", name="", last_name="",
+            ci="V-11111111", first_name="", first_last_name="",
             email="np@test.com",
         )
         user = Usuario.objects.create(
@@ -201,7 +201,7 @@ class BuildRandomUsernameTests(TestCase):
 
     def test_increments_on_collision(self):
         p = Persona.objects.create(
-            ci="V-22222222", name="Col", last_name="Lis",
+            ci="V-22222222", first_name="Col", first_last_name="Lis",
             email="col@test.com",
         )
         Usuario.objects.create(
@@ -232,7 +232,7 @@ class GenerateRandomPasswordTests(TestCase):
 class LoginViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-12345678", name="Admin", last_name="User",
+            ci="V-12345678", first_name="Admin", first_last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -274,7 +274,7 @@ class LoginViewTests(TestCase):
 class UserListViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-12345678", name="Admin", last_name="User",
+            ci="V-12345678", first_name="Admin", first_last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -289,7 +289,7 @@ class UserListViewTests(TestCase):
     def test_lista_requires_admin(self):
         self.client.get(reverse("logout"))
         p = Persona.objects.create(
-            ci="V-87654321", name="Normal", last_name="User",
+            ci="V-87654321", first_name="Normal", first_last_name="User",
             email="n@n.com",
         )
         from django.contrib.auth.hashers import make_password
@@ -303,7 +303,7 @@ class UserListViewTests(TestCase):
 
     def test_lista_shows_usuarios(self):
         Persona.objects.create(
-            ci="V-87654321", name="Test", last_name="User",
+            ci="V-87654321", first_name="Test", first_last_name="User",
             email="t@t.com",
         )
         response = self.client.get(reverse("user_list"))
@@ -313,7 +313,7 @@ class UserListViewTests(TestCase):
 class UserCreateViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
-            ci="V-12345678", name="Admin", last_name="User",
+            ci="V-12345678", first_name="Admin", first_last_name="User",
             email="admin@test.com",
         )
         from django.contrib.auth.hashers import make_password

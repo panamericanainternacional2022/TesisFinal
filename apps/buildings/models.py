@@ -53,7 +53,7 @@ class MonitoringEquipment(models.Model):
 
 
 class UserBuilding(models.Model):
-    id = models.AutoField(primary_key=True, db_column="id_usuario_usuario")
+    id = models.AutoField(primary_key=True, db_column="id_asignacion")
     user = models.ForeignKey(
         "users.Usuario", on_delete=models.CASCADE, db_column="id_usuario",
         related_name="building_assignments",
@@ -65,6 +65,12 @@ class UserBuilding(models.Model):
 
     class Meta:
         db_table = "usuario_edificio"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "building"],
+                name="uq_usuario_edificio",
+            ),
+        ]
 
     def __str__(self) -> str:
         b_name = self.building.name if self.building else "?"

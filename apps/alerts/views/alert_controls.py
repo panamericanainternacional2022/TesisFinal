@@ -1,8 +1,10 @@
 import json
 import time as _time
+from datetime import timedelta
 from typing import Optional
 
 from django.http import HttpRequest, JsonResponse
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
 from apps.core.auth_decorators import login_required
@@ -53,10 +55,11 @@ def _disable_alerts(
 ) -> Optional[float]:
     until_ts: Optional[float] = None
     if duration_minutes is not None:
-        until_ts = _time.time() + float(duration_minutes) * 60
+        dt_val = timezone.now() + timedelta(minutes=float(duration_minutes))
+        until_ts = dt_val.timestamp()
     if usuario_obj:
         usuario_obj.alerts_disabled = True
-        usuario_obj.alerts_disabled_until = until_ts
+        usuario_obj.alerts_disabled_until = timezone.now() + timedelta(minutes=float(duration_minutes)) if duration_minutes is not None else None
         usuario_obj.save(update_fields=["alerts_disabled", "alerts_disabled_until"])
     request.session["alerts_disabled"] = True
     if until_ts:

@@ -22,6 +22,7 @@ class Notification(models.Model):
 
 
 class ThresholdConfig(models.Model):
+    id = models.AutoField(primary_key=True)
     variable = models.CharField(max_length=50, unique=True)
     direction = models.CharField(max_length=10, default="higher")
     low = models.FloatField()

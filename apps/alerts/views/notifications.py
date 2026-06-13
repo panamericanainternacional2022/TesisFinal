@@ -1,16 +1,14 @@
-import datetime as dt
-import time as _time
-
 from django.shortcuts import render
 from django.http import HttpRequest
 from django.db.models import Q
+from django.utils import timezone
+from django.core.paginator import Paginator
 
 from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
 from apps.alerts.views.shared import parse_notification_for_display
-from django.core.paginator import Paginator
 
 
 @login_required
@@ -56,7 +54,7 @@ def notifications_view(request: HttpRequest):
 
     alerts_cleared_at = request.session.get("alerts_cleared_at")
     if alerts_cleared_at:
-        cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
+        cleared_dt = timezone.datetime.fromtimestamp(alerts_cleared_at, tz=timezone.utc)
         notifications = notifications.filter(date__gt=cleared_dt)
 
     notifications = (
@@ -101,17 +99,20 @@ def _update_alert_disabled_state(request: HttpRequest, usuario_id: int) -> None:
     except Exception:
         user_obj = None
 
+    alerts_disabled_until_dt = None
     if not user_obj:
         alerts_disabled = request.session.get("alerts_disabled", False)
         alerts_disabled_until_ts = request.session.get("alerts_disabled_until_ts", None)
     else:
         alerts_disabled = user_obj.alerts_disabled
-        alerts_disabled_until_ts = user_obj.alerts_disabled_until
+        alerts_disabled_until_dt = user_obj.alerts_disabled_until
+        alerts_disabled_until_ts = alerts_disabled_until_dt.timestamp() if alerts_disabled_until_dt else None
 
-    if alerts_disabled and alerts_disabled_until_ts:
-        if _time.time() > alerts_disabled_until_ts:
+    if alerts_disabled and alerts_disabled_until_dt:
+        if timezone.now() > alerts_disabled_until_dt:
             alerts_disabled = False
             alerts_disabled_until_ts = None
+            alerts_disabled_until_dt = None
             if user_obj:
                 user_obj.alerts_disabled = False
                 user_obj.alerts_disabled_until = None

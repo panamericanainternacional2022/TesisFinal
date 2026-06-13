@@ -56,8 +56,10 @@ def user_list_view(request: HttpRequest) -> HttpResponse:
     if query:
         users = users.filter(
             Q(id_persona__ci__icontains=query)
-            | Q(id_persona__name__icontains=query)
-            | Q(id_persona__last_name__icontains=query)
+            | Q(id_persona__first_name__icontains=query)
+            | Q(id_persona__middle_name__icontains=query)
+            | Q(id_persona__first_last_name__icontains=query)
+            | Q(id_persona__second_last_name__icontains=query)
             | Q(id_persona__email__icontains=query)
             | Q(username__icontains=query)
             | Q(building_assignments__building__name__icontains=query)
@@ -115,8 +117,10 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
                 else:
                     person = Persona.objects.create(
                         ci=post_data["cedula"],
-                        name=f"{post_data['primerNombre']} {post_data['segundoNombre']}".strip(),
-                        last_name=f"{post_data['primerApellido']} {post_data['segundoApellido']}".strip(),
+                        first_name=post_data["primerNombre"],
+                        middle_name=post_data["segundoNombre"],
+                        first_last_name=post_data["primerApellido"],
+                        second_last_name=post_data["segundoApellido"],
                         email=post_data["email"],
                     )
                     generated_password = generate_random_password(10)
@@ -151,7 +155,8 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
                             token = signing.dumps({"user_id": user.id_usuario, "email": post_data["email"]})
                             activation_link = f"{'https' if request.is_secure() else 'http'}://{request.get_host()}{reverse('complete_registration')}?token={token}"
 
-                        person_name = f"{person.name} {person.last_name}".strip()
+                        p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
+                        person_name = " ".join(p for p in p_parts if p)
                         if email_sent:
                             msg_html = f"""
                             <h3 style="margin: 0 0 6px; color: #137333; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">¡Registro exitoso!</h3>
@@ -204,8 +209,10 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
             if form_errors:
                 messages.error(request, "Por favor, corrige los errores en el formulario.")
             else:
-                person.name = f"{post_data['primerNombre']} {post_data['segundoNombre']}".strip()
-                person.last_name = f"{post_data['primerApellido']} {post_data['segundoApellido']}".strip()
+                person.first_name = post_data["primerNombre"]
+                person.middle_name = post_data["segundoNombre"]
+                person.first_last_name = post_data["primerApellido"]
+                person.second_last_name = post_data["segundoApellido"]
                 person.email = post_data["email"]
                 person.ci = post_data["cedula"]
                 person.save()
@@ -217,7 +224,8 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
                         building_id=post_data["id_edificio"],
                     )
 
-                full_name = f"{person.name} {person.last_name}".strip() or user.username
+                p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
+                full_name = " ".join(p for p in p_parts if p) or user.username
                 messages.success(request, f"Usuario <strong>{full_name}</strong> actualizado correctamente.")
                 return redirect("user_list")
     else:
@@ -246,7 +254,8 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
 def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=user_id)
     person = user.id_persona
-    full_name = f"{person.name} {person.last_name}".strip() if person else user.username
+    p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
+    full_name = " ".join(p for p in p_parts if p) if person else user.username
     with transaction.atomic():
         Notification.objects.filter(user=user).delete()
         UserBuilding.objects.filter(user=user).delete()
@@ -280,7 +289,7 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
         items.append(
             {
                 "id": u.id_usuario,
-                "nombre": f"{p.name} {p.last_name}".strip() if p else u.username,
+                "nombre": " ".join(x for x in [p.first_name, p.middle_name, p.first_last_name, p.second_last_name] if x) if p else u.username,
                 "cedula": p.ci if p else "",
                 "edificio": building.name if building else "",
             }

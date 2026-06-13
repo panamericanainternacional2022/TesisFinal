@@ -86,8 +86,10 @@ def build_user_data(user: Usuario) -> dict[str, Any]:
     email = ""
     if person:
         id_number = person.ci
-        name = person.name or user.username
-        last_name = person.last_name or ""
+        parts = [person.first_name, person.middle_name]
+        name = " ".join(p for p in parts if p) or user.username
+        parts_l = [person.first_last_name, person.second_last_name]
+        last_name = " ".join(p for p in parts_l if p)
         email = person.email or ""
     return {
         "id": user.id_usuario,

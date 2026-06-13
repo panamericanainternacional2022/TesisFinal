@@ -75,16 +75,10 @@ def build_edit_initial_data(user: Usuario, person: Persona) -> dict[str, Any]:
     current_building = current_ue.building if current_ue else None
 
     return {
-        "primerNombre": person.name.split(" ")[0] if person and person.name else "",
-        "segundoNombre": " ".join(person.name.split(" ")[1:])
-        if person and person.name
-        else "",
-        "primerApellido": person.last_name.split(" ")[0]
-        if person and person.last_name
-        else "",
-        "segundoApellido": " ".join(person.last_name.split(" ")[1:])
-        if person and person.last_name
-        else "",
+        "primerNombre": person.first_name if person else "",
+        "segundoNombre": person.middle_name if person else "",
+        "primerApellido": person.first_last_name if person else "",
+        "segundoApellido": person.second_last_name if person else "",
         "email": person.email if person else "",
         "cedula": person.ci if person else "",
         "id_edificio": current_building.id if current_building else None,

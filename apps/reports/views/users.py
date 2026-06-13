@@ -54,8 +54,10 @@ def user_pdf_view(request: Any) -> HttpResponse:
         if query:
             usuarios = usuarios.filter(
                 Q(id_persona__ci__icontains=query)
-                | Q(id_persona__name__icontains=query)
-                | Q(id_persona__last_name__icontains=query)
+                | Q(id_persona__first_name__icontains=query)
+                | Q(id_persona__middle_name__icontains=query)
+                | Q(id_persona__first_last_name__icontains=query)
+                | Q(id_persona__second_last_name__icontains=query)
                 | Q(id_persona__email__icontains=query)
                 | Q(username__icontains=query)
                 | Q(building_assignments__building__name__icontains=query)

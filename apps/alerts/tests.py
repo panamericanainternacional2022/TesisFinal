@@ -12,7 +12,7 @@ from apps.buildings.models import Building, MonitoringEquipment
 
 class NotificationModelTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Test", last_name="User", email="t@t.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="Test", first_last_name="User", email="t@t.com")
         self.usuario = Usuario.objects.create(username="testuser", password="abc", id_persona=self.persona, rol="US")
         self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
         self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
@@ -37,7 +37,7 @@ class NotificationModelTests(TestCase):
 
 class NotificationsViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
@@ -67,7 +67,7 @@ class NotificationsViewTests(TestCase):
 
 class AlertApiViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})

@@ -6,7 +6,7 @@ from apps.users.models import Persona, Usuario
 
 class ReportViewTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="Admin", last_name="User", email="a@a.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
@@ -28,7 +28,7 @@ class ReportViewTests(TestCase):
 
 class ReportViewNonAdminTests(TestCase):
     def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", name="User", last_name="Test", email="u@u.com")
+        self.persona = Persona.objects.create(ci="12345678", first_name="User", first_last_name="Test", email="u@u.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="normal", password=make_password("pass123"), id_persona=self.persona, rol="US", registered=True)
         self.client.post(reverse("login"), {"username": "normal", "password": "pass123"})

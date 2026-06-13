@@ -53,40 +53,50 @@ def populate():
     p1, _ = Persona.objects.get_or_create(
         ci=12345678,
         defaults={
-            "name": "Juan",
-            "last_name": "Perez",
+            "first_name": "Juan",
+            "middle_name": "",
+            "first_last_name": "Perez",
+            "second_last_name": "",
             "email": "juan@example.com",
         },
     )
     p2, _ = Persona.objects.get_or_create(
         ci=87654321,
         defaults={
-            "name": "Maria",
-            "last_name": "Gomez",
+            "first_name": "Maria",
+            "middle_name": "",
+            "first_last_name": "Gomez",
+            "second_last_name": "",
             "email": "maria@example.com",
         },
     )
     p3, _ = Persona.objects.get_or_create(
         ci=11223344,
         defaults={
-            "name": "Tommy",
-            "last_name": "Tupiza",
+            "first_name": "Tommy",
+            "middle_name": "",
+            "first_last_name": "Tupiza",
+            "second_last_name": "",
             "email": "tjta3105@gmail.com",
         },
     )
     p4, _ = Persona.objects.get_or_create(
         ci=44332211,
         defaults={
-            "name": "Admin",
-            "last_name": "Sistema",
+            "first_name": "Admin",
+            "middle_name": "",
+            "first_last_name": "Sistema",
+            "second_last_name": "",
             "email": "admin@example.com",
         },
     )
     p5, _ = Persona.objects.get_or_create(
         ci=55667788,
         defaults={
-            "name": "Carlos",
-            "last_name": "Rodriguez",
+            "first_name": "Carlos",
+            "middle_name": "",
+            "first_last_name": "Rodriguez",
+            "second_last_name": "",
             "email": "carlos@example.com",
         },
     )

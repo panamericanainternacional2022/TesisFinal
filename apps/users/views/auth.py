@@ -1,6 +1,5 @@
-import time as _time
-
 from django.contrib import messages
+from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
 from django.core import signing
 from django.http import HttpRequest, HttpResponse
@@ -144,7 +143,7 @@ def _check_alert_cooldown(user: Usuario) -> None:
     if (
         user.alerts_disabled
         and user.alerts_disabled_until
-        and _time.time() > user.alerts_disabled_until
+        and timezone.now() > user.alerts_disabled_until
     ):
         user.alerts_disabled = False
         user.alerts_disabled_until = None
@@ -154,11 +153,11 @@ def _check_alert_cooldown(user: Usuario) -> None:
 def _setup_alert_session(request: HttpRequest, user: Usuario) -> None:
     alerts_disabled = user.alerts_disabled
     alerts_until = user.alerts_disabled_until
-    if alerts_disabled and alerts_until and _time.time() > alerts_until:
+    if alerts_disabled and alerts_until and timezone.now() > alerts_until:
         alerts_disabled = False
         alerts_until = None
     request.session["alerts_disabled"] = alerts_disabled
     if alerts_until:
-        request.session["alerts_disabled_until_ts"] = alerts_until
+        request.session["alerts_disabled_until_ts"] = alerts_until.timestamp()
     else:
         request.session.pop("alerts_disabled_until_ts", None)
