@@ -34,6 +34,7 @@ def configuration_view(request: HttpRequest) -> HttpResponse:
 def _handle_config_post(
     request: HttpRequest, user: Usuario, person: Any,
 ) -> HttpResponse:
+    action = request.POST.get("action", "").strip()
     email = request.POST.get("email", "").strip()
     username = request.POST.get("username", "").strip()
     current_password = request.POST.get("current_password", "")
@@ -41,21 +42,90 @@ def _handle_config_post(
     confirm_password = request.POST.get("confirm_password", "")
     form_errors = {}
 
-    if not _verify_password(user, current_password):
-        messages.error(request, "La contraseña actual no es correcta.")
-        form_errors["current_password"] = "La contraseña actual no es correcta."
-        return _render_config_error(request, form_errors, email, username)
+    if action == "update_profile":
+        if email == person.email and username == user.username:
+            messages.error(request, "No se detectaron cambios en los datos del perfil.")
+            return render(
+                request,
+                "buildings/configuracion.html",
+                {
+                    "usuario": user,
+                    "persona": person,
+                    "form_errors": {},
+                },
+            )
 
-    _validate_config_email(email, person, form_errors)
-    _validate_config_username(username, form_errors)
-    _validate_config_new_password(new_password, confirm_password, form_errors)
+        _validate_config_email(email, person, form_errors)
+        _validate_config_username(username, form_errors)
 
-    if not form_errors:
-        return _apply_config_changes(request, user, person,
-                                     email, username, new_password)
+        if not form_errors:
+            if email:
+                person.email = email
+            if username:
+                user.username = username
+            person.save()
+            user.save()
+            request.session["usuario_username"] = user.username
+            messages.success(request, "Datos de perfil actualizados correctamente.")
+            return redirect("configuration")
 
-    messages.error(request, "Por favor, corrige los errores en el formulario.")
-    return _render_config_error(request, form_errors, email, username)
+        messages.error(request, "Por favor, corrige los errores en los datos del perfil.")
+        return render(
+            request,
+            "buildings/configuracion.html",
+            {
+                "usuario": {"username": username},
+                "persona": {"email": email},
+                "form_errors": form_errors,
+            },
+        )
+
+    elif action == "change_password":
+        if not current_password.strip() or not new_password.strip() or not confirm_password.strip():
+            messages.error(request, "Todos los campos de contraseña son obligatorios.")
+            return render(
+                request,
+                "buildings/configuracion.html",
+                {
+                    "usuario": user,
+                    "persona": person,
+                    "form_errors": {},
+                },
+            )
+
+        if not _verify_password(user, current_password):
+            messages.error(request, "La contraseña actual no es correcta.")
+            form_errors["current_password"] = "La contraseña actual no es correcta."
+            return render(
+                request,
+                "buildings/configuracion.html",
+                {
+                    "usuario": user,
+                    "persona": person,
+                    "form_errors": form_errors,
+                },
+            )
+
+        _validate_config_new_password(new_password, confirm_password, form_errors)
+
+        if not form_errors:
+            user.password = make_password(new_password)
+            user.save()
+            messages.success(request, "Contraseña actualizada correctamente.")
+            return redirect("configuration")
+
+        messages.error(request, "Por favor, corrige los errores en el formulario de contraseña.")
+        return render(
+            request,
+            "buildings/configuracion.html",
+            {
+                "usuario": user,
+                "persona": person,
+                "form_errors": form_errors,
+            },
+        )
+
+    return redirect("configuration")
 
 
 def _verify_password(user: Usuario, current_password: str) -> bool:
@@ -124,33 +194,3 @@ def _validate_config_new_password(
         form_errors["confirm_password"] = \
             "Las contraseñas nuevas no coinciden."
 
-
-def _apply_config_changes(
-    request: HttpRequest, user: Usuario, person,
-    email: str, username: str, new_password: str,
-) -> HttpResponse:
-    if email:
-        person.email = email
-    if username:
-        user.username = username
-    if new_password:
-        user.password = make_password(new_password)
-    person.save()
-    user.save()
-    request.session["usuario_username"] = user.username
-    messages.success(request, "Configuración actualizada correctamente.")
-    return redirect("configuration")
-
-
-def _render_config_error(
-    request: HttpRequest, form_errors: dict, email: str, username: str,
-) -> HttpResponse:
-    return render(
-        request,
-        "buildings/configuracion.html",
-        {
-            "usuario": {"username": username},
-            "persona": {"email": email},
-            "form_errors": form_errors,
-        },
-    )

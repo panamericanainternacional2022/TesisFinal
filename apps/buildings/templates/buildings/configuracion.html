@@ -28,32 +28,54 @@
 
                     {% include 'core/components/toast_messages.html' %}
 
+                    <!-- Tarjeta 1: Datos de Perfil -->
+                    <form class="perfil-card config-card" method="post" novalidate style="margin-top: 0; margin-bottom: 24px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+
+                        <div class="profile-header" style="margin-bottom: var(--sp-2);">
+                            <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
+                                Datos del perfil
+                            </h2>
+                        </div>
+
+                        <div class="profile-form">
+                            <div class="form-group full-width">
+                                <label for="username">Nombre de usuario</label>
+                                <div class="input-with-icon">
+                                    <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="{% if form_errors.username %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="email">Correo electrónico</label>
+                                <div class="input-with-icon">
+                                    <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
+                                    <span class="edit-icon">&#9998;</span>
+                                </div>
+                                <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
+                            </div>
+
+                            <div class="actions-row">
+                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Actualizar Perfil' %}
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Tarjeta 2: Seguridad y Contraseña -->
                     <form class="perfil-card config-card" method="post" novalidate style="margin-top: 0;">
-                    {% csrf_token %}
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
 
-                    <div class="profile-form">
-                        <div class="form-group full-width">
-                            <label for="username">Nombre de usuario</label>
-                            <div class="input-with-icon">
-                                <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="{% if form_errors.username %}input-error{% endif %}" />
-                                <span class="edit-icon">&#9998;</span>
-                            </div>
-                            <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
+                        <div class="profile-header" style="margin-bottom: var(--sp-2);">
+                            <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
+                                Seguridad y contraseña
+                            </h2>
                         </div>
 
-                        <div class="form-group full-width">
-                            <label for="email">Correo electrónico</label>
-                            <div class="input-with-icon">
-                                <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
-                                <span class="edit-icon">&#9998;</span>
-                            </div>
-                            <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
-                        </div>
-
-                        <div class="password-section">
-                            <h3>Cambiar contraseña</h3>
-                            <p style="color:#5f6368;font-size:0.85rem;margin-bottom:16px;">Deja los campos de contraseña en blanco si no deseas cambiarla.</p>
-
+                        <div class="profile-form">
                             <div class="form-group full-width">
                                 <label for="current_password">Contraseña actual</label>
                                 <div class="input-with-icon">
@@ -67,7 +89,7 @@
                                 <div class="form-group half-width">
                                     <label for="new_password">Nueva contraseña</label>
                                     <div class="input-with-icon">
-                                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" class="{% if form_errors.new_password %}input-error{% endif %}" />
+                                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" required class="{% if form_errors.new_password %}input-error{% endif %}" />
                                         <span class="edit-icon">&#128274;</span>
                                     </div>
                                     <div class="validation-error">{% if form_errors.new_password %}{{ form_errors.new_password }}{% endif %}</div>
@@ -75,22 +97,107 @@
                                 <div class="form-group half-width">
                                     <label for="confirm_password">Confirmar contraseña</label>
                                     <div class="input-with-icon">
-                                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" class="{% if form_errors.confirm_password %}input-error{% endif %}" />
+                                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" required class="{% if form_errors.confirm_password %}input-error{% endif %}" />
                                         <span class="edit-icon">&#128274;</span>
                                     </div>
                                     <div class="validation-error">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="actions-row">
-                            {% include 'core/components/boton.html' with type='submit' class='save-button' text='Guardar Cambios' %}
+                            <div class="actions-row">
+                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Actualizar Contraseña' %}
+                            </div>
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-    </main>
+        </main>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profileForm = document.querySelector('input[name="action"][value="update_profile"]').form;
+            if (profileForm) {
+                const usernameInput = profileForm.querySelector('#username');
+                const emailInput = profileForm.querySelector('#email');
+                const submitBtn = profileForm.querySelector('button[type="submit"]');
+
+                const initialUsername = usernameInput.value.trim();
+                const initialEmail = emailInput.value.trim();
+
+                function checkChanges() {
+                    const currentUsername = usernameInput.value.trim();
+                    const currentEmail = emailInput.value.trim();
+
+                    const hasChanges = (currentUsername !== initialUsername || currentEmail !== initialEmail);
+                    const hasErrors = profileForm.querySelectorAll('.input-error').length > 0;
+
+                    if (!hasChanges || hasErrors) {
+                        submitBtn.disabled = true;
+                        submitBtn.style.opacity = '0.5';
+                        submitBtn.style.cursor = 'not-allowed';
+                    } else {
+                        submitBtn.disabled = false;
+                        submitBtn.style.opacity = '1';
+                        submitBtn.style.cursor = 'pointer';
+                    }
+                }
+
+                // Run check initially
+                setTimeout(checkChanges, 0);
+
+                // Setup listener that executes after validation.js finishes updating the UI
+                const onInput = () => {
+                    setTimeout(checkChanges, 0);
+                };
+
+                usernameInput.addEventListener('input', onInput);
+                emailInput.addEventListener('input', onInput);
+                usernameInput.addEventListener('blur', onInput);
+                emailInput.addEventListener('blur', onInput);
+            }
+
+            const passwordForm = document.querySelector('input[name="action"][value="change_password"]').form;
+            if (passwordForm) {
+                const currentPassInput = passwordForm.querySelector('#current_password');
+                const newPassInput = passwordForm.querySelector('#new_password');
+                const confirmPassInput = passwordForm.querySelector('#confirm_password');
+                const passSubmitBtn = passwordForm.querySelector('button[type="submit"]');
+
+                function checkPassChanges() {
+                    const currentVal = currentPassInput.value.trim();
+                    const newVal = newPassInput.value.trim();
+                    const confirmVal = confirmPassInput.value.trim();
+
+                    const hasAllFields = (currentVal !== "" && newVal !== "" && confirmVal !== "");
+                    const hasErrors = passwordForm.querySelectorAll('.input-error').length > 0;
+
+                    if (!hasAllFields || hasErrors) {
+                        passSubmitBtn.disabled = true;
+                        passSubmitBtn.style.opacity = '0.5';
+                        passSubmitBtn.style.cursor = 'not-allowed';
+                    } else {
+                        passSubmitBtn.disabled = false;
+                        passSubmitBtn.style.opacity = '1';
+                        passSubmitBtn.style.cursor = 'pointer';
+                    }
+                }
+
+                // Run check initially
+                setTimeout(checkPassChanges, 0);
+
+                const onPassInput = () => {
+                    setTimeout(checkPassChanges, 0);
+                };
+
+                currentPassInput.addEventListener('input', onPassInput);
+                newPassInput.addEventListener('input', onPassInput);
+                confirmPassInput.addEventListener('input', onPassInput);
+                currentPassInput.addEventListener('blur', onPassInput);
+                newPassInput.addEventListener('blur', onPassInput);
+                confirmPassInput.addEventListener('blur', onPassInput);
+            }
+        });
+    </script>
 </body>
 </html>
