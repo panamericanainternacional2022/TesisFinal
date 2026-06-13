@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
         const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/;
-        
+
         let minimo = 2;
         if (input.id === 'nombreEdificio') {
             minimo = 3;
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
         const soloDigitos = /^\d*$/;
-        
+
         let minimo = 1;
         if (input.id === 'cedula') {
             minimo = 6;
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     toggleSubmit(input.form);
                 })
-                .catch(() => {});
+                .catch(() => { });
         } else {
             limpiarError(input);
         }
@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                     toggleSubmit(input.form);
                 })
-                .catch(() => {});
+                .catch(() => { });
         } else {
             limpiarError(input);
         }

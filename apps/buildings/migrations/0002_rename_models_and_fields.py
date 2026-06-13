@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
             model_name='monitoringequipment', old_name='id_edificio', new_name='building',
         ),
         migrations.RenameField(
-            model_name='userbuilding', old_name='id_usuario_beneficiario', new_name='id',
+            model_name='userbuilding', old_name='id_usuario_usuario', new_name='id',
         ),
         migrations.RenameField(
             model_name='userbuilding', old_name='id_edificio', new_name='building',

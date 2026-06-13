@@ -53,7 +53,7 @@ class MonitoringEquipment(models.Model):
 
 
 class UserBuilding(models.Model):
-    id = models.AutoField(primary_key=True, db_column="id_usuario_beneficiario")
+    id = models.AutoField(primary_key=True, db_column="id_usuario_usuario")
     user = models.ForeignKey(
         "users.Usuario", on_delete=models.CASCADE, db_column="id_usuario",
         related_name="building_assignments",

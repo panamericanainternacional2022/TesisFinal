@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
-    <link rel="stylesheet" href="{% static 'core/lista_beneficiarios.css' %}">
+    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
     <link rel="stylesheet" href="{% static 'core/modal.css' %}">
     <script src="{% static 'core/modal.js' %}" defer></script>
     <style>
@@ -93,9 +93,9 @@
                                         <td>{{ item.edificio }}</td>
                                         <td style="text-align: right; padding-right: var(--sp-4);">
                                             {% if accion == 'editar' %}
-                                            <a href="{% url 'beneficiary_edit' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
+                                            <a href="{% url 'user_edit' item.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                                             {% else %}
-                                            <a href="{% url 'beneficiary_delete' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                                            <a href="{% url 'user_delete' item.id %}" class="register-button-react delete-btn btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ item.nombre }}?" style="box-shadow: 2px 2px 0px var(--state-critical); margin: 0; padding: 4px 10px !important;"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                                             {% endif %}
                                         </td>
                                     </tr>
@@ -107,12 +107,12 @@
                     {% else %}
                     <div class="no-data">
                         <i class="fa-solid fa-folder-open"></i>
-                        <p>No hay beneficiaros registrados.</p>
+                        <p>No hay usuarios registrados.</p>
                     </div>
                     {% endif %}
 
-                    <a href="{% url 'beneficiary_list' %}" class="back-link">
-                        <i class="fa-solid fa-arrow-left"></i> Volver a lista de beneficiaros
+                    <a href="{% url 'user_list' %}" class="back-link">
+                        <i class="fa-solid fa-arrow-left"></i> Volver a lista de usuarios
                     </a>
                 </div>
             </div>

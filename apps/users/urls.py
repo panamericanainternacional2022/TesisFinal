@@ -7,10 +7,10 @@ from apps.users.views.auth import (
 )
 from apps.users.views.admin import (
     user_register_view,
-    beneficiary_list_view,
-    beneficiary_create_view,
-    beneficiary_update_view,
-    beneficiary_delete_view,
+    user_list_view,
+    user_create_view,
+    user_update_view,
+    user_delete_view,
     user_select_view,
     check_cedula_uniqueness_view,
 )
@@ -19,21 +19,21 @@ urlpatterns = [
     path("login/", login_view, name="login"),
     path("logout/", logout_view, name="logout"),
     path("register/", user_register_view, name="user_register"),
-    path("beneficiaries/", beneficiary_list_view, name="beneficiary_list"),
+    path("users/", user_list_view, name="user_list"),
     path(
-        "beneficiaries/create/",
-        beneficiary_create_view,
-        name="beneficiary_create",
+        "users/create/",
+        user_create_view,
+        name="user_create",
     ),
     path(
-        "beneficiaries/<int:beneficiary_id>/edit/",
-        beneficiary_update_view,
-        name="beneficiary_edit",
+        "users/<int:user_id>/edit/",
+        user_update_view,
+        name="user_edit",
     ),
     path(
-        "beneficiaries/<int:beneficiary_id>/delete/",
-        beneficiary_delete_view,
-        name="beneficiary_delete",
+        "users/<int:user_id>/delete/",
+        user_delete_view,
+        name="user_delete",
     ),
     path(
         "select/user/<str:action>/",

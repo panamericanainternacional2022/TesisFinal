@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='userbuilding',
             name='id',
-            field=models.AutoField(db_column='id_usuario_beneficiario', primary_key=True, serialize=False),
+            field=models.AutoField(db_column='id_usuario_usuario', primary_key=True, serialize=False),
         ),
         migrations.AlterField(
             model_name='userbuilding',

@@ -11,7 +11,7 @@ from apps.buildings.models import Building, UserBuilding
 from apps.core.auth_decorators import login_required, admin_required
 from apps.users.models import Usuario, Persona
 from apps.users.services import (
-    build_beneficiary_data,
+    build_user_data,
     generate_random_password,
     send_activation_email,
 )
@@ -33,7 +33,7 @@ def user_register_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @admin_required
-def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
+def user_list_view(request: HttpRequest) -> HttpResponse:
     from apps.core.auth_decorators import ADMIN_ROLES
     query = request.GET.get("q", "").strip()
     building_id = request.GET.get("edificio", "").strip()
@@ -63,7 +63,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
             | Q(building_assignments__building__name__icontains=query)
         ).distinct()
 
-    beneficiaries = [build_beneficiary_data(u) for u in users]
+    users = [build_user_data(u) for u in users]
     buildings = Building.objects.all()
 
     filter_params = {}
@@ -80,7 +80,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
         request,
         "users/lista_usuario.html",
         {
-            "beneficiarios": beneficiaries,
+            "usuarios": users,
             "edificios": buildings,
             "selected_edificio_id": int(building_id) if building_id.isdigit() else None,
             "current_estado": estado,
@@ -91,7 +91,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @admin_required
-def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
+def user_create_view(request: HttpRequest) -> HttpResponse:
     generated_password = None
     user_data: dict[str, Any] = {}
     form_errors: dict[str, str] = {}
@@ -100,7 +100,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
 
     if request.method == "POST":
         if Building.objects.count() == 0:
-            messages.error(request, "Debe registrar al menos un edificio antes de crear un beneficiario.")
+            messages.error(request, "Debe registrar al menos un edificio antes de crear un usuario.")
         else:
             post_data = extract_post_data(request)
             user_data = post_data
@@ -168,7 +168,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                             """
                             messages.warning(request, msg_html)
 
-                        return redirect("beneficiary_list")
+                        return redirect("user_list")
 
     buildings = Building.objects.all()
     context: dict[str, Any] = {
@@ -183,8 +183,8 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @admin_required
 @transaction.atomic
-def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
-    user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
+def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
+    user = get_object_or_404(Usuario, id_usuario=user_id)
     person = user.id_persona
     form_errors: dict[str, str] = {}
 
@@ -218,8 +218,8 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
                     )
 
                 full_name = f"{person.name} {person.last_name}".strip() or user.username
-                messages.success(request, f"Beneficiario <strong>{full_name}</strong> actualizado correctamente.")
-                return redirect("beneficiary_list")
+                messages.success(request, f"Usuario <strong>{full_name}</strong> actualizado correctamente.")
+                return redirect("user_list")
     else:
         data = build_edit_initial_data(user, person)
 
@@ -233,7 +233,7 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         {
             "user": data,
             "editing": True,
-            "beneficiario_id": beneficiary_id,
+            "usuario_id": user_id,
             "edificios": buildings,
             "edificio_actual": current_building,
             "form_errors": form_errors,
@@ -243,8 +243,8 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
 
 @login_required
 @admin_required
-def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
-    user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
+def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
+    user = get_object_or_404(Usuario, id_usuario=user_id)
     person = user.id_persona
     full_name = f"{person.name} {person.last_name}".strip() if person else user.username
     with transaction.atomic():
@@ -254,7 +254,7 @@ def beneficiary_delete_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
         user.delete()
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
-    messages.success(request, f"Beneficiario <strong>{full_name}</strong> eliminado correctamente.")
+    messages.success(request, f"Usuario <strong>{full_name}</strong> eliminado correctamente.")
     return redirect("user_select", action="eliminar")
 
 
@@ -265,7 +265,7 @@ def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
     VALID_ACTIONS = ("editar", "eliminar")
     if action not in VALID_ACTIONS:
         messages.error(request, f"Acción no válida: {action}")
-        return redirect("beneficiary_list")
+        return redirect("user_list")
 
     users = (
         Usuario.objects.select_related("id_persona")

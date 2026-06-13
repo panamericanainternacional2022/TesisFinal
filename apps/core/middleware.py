@@ -17,12 +17,12 @@ class AuthMiddleware:
         if self._admin_paths_cache is None or now - self._admin_paths_ts > self._admin_paths_ttl:
             paths = [
                 reverse("user_register"),
-                reverse("beneficiary_list"),
-                reverse("beneficiary_create"),
+                reverse("user_list"),
+                reverse("user_create"),
                 reverse("building_list"),
                 reverse("register_building"),
-                reverse("beneficiary_edit", args=[0]).rstrip("0/"),
-                reverse("beneficiary_delete", args=[0]).rstrip("0/"),
+                reverse("user_edit", args=[0]).rstrip("0/"),
+                reverse("user_delete", args=[0]).rstrip("0/"),
                 reverse("edit_building", args=[0]).rstrip("0/"),
                 reverse("delete_building", args=[0]).rstrip("0/"),
             ]

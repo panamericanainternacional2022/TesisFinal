@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='UsuarioEdificio',
             fields=[
-                ('id_usuario_beneficiario', models.AutoField(primary_key=True, serialize=False)),
+                ('id_usuario_usuario', models.AutoField(primary_key=True, serialize=False)),
                 ('id_edificio', models.ForeignKey(db_column='id_edificio', on_delete=django.db.models.deletion.CASCADE, to='buildings.edificio')),
                 ('id_usuario', models.ForeignKey(db_column='id_usuario', on_delete=django.db.models.deletion.CASCADE, to='users.usuario')),
             ],

@@ -26,13 +26,13 @@
 
                 <div class="menu-grid">
                     {% if rol == 'SA' or rol == 'ADMIN' %}
-                    <a href="{% url 'beneficiary_create' %}" class="menu-card">
+                    <a href="{% url 'user_create' %}" class="menu-card">
                         <i class="fa-solid fa-user-plus icon-card"></i>
                         <span>Registrar usuario</span>
                     </a>
-                    <a href="{% url 'beneficiary_list' %}" class="menu-card">
+                    <a href="{% url 'user_list' %}" class="menu-card">
                         <i class="fa-solid fa-users icon-card"></i>
-                        <span>Administrar beneficiaros</span>
+                        <span>Administrar usuarios</span>
                     </a>
                     <a href="{% url 'register_building' %}" class="menu-card">
                         <i class="fa-solid fa-city icon-card"></i>

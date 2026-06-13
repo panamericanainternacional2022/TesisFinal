@@ -1,5 +1,5 @@
 /* ==========================================================================
-   lista_beneficiarios.css — Swiss Typographic Grid
+   lista_usuarios.css — Swiss Typographic Grid
    Tablas de datos, búsqueda, modales y botones de acción
    Usado por: lista_usuario, lista_edificios, notificaciones, monitoreo
    ========================================================================== */
@@ -120,7 +120,8 @@
     font-weight: var(--weight-medium);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
-    border-bottom: 2px solid var(--color-ink); /* línea gruesa cabecera/cuerpo */
+    border-bottom: 2px solid var(--color-ink);
+    /* línea gruesa cabecera/cuerpo */
 }
 
 .report-table td {

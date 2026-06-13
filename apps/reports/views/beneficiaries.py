@@ -11,7 +11,7 @@ from .shared import _pdf_font, draw_row
 logger = logging.getLogger(__name__)
 
 
-def _render_beneficiary_logo(pdf: Any) -> None:
+def _render_user_logo(pdf: Any) -> None:
     _pdf_font(pdf, "B", 28)
     pdf.set_text_color(10, 10, 10)
     pdf.cell(0, 16, "INES", ln=1, align="L")
@@ -27,7 +27,7 @@ def _render_beneficiary_logo(pdf: Any) -> None:
 
 
 @login_required
-def beneficiary_pdf_view(request: Any) -> HttpResponse:
+def user_pdf_view(request: Any) -> HttpResponse:
     try:
         import datetime as dt
         from fpdf import FPDF
@@ -37,22 +37,22 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         building_id = request.GET.get("edificio", "").strip()
         estado = request.GET.get("estado", "").strip()
 
-        beneficiaros = (
+        usuarios = (
             Usuario.objects.select_related("id_persona")
             .prefetch_related("building_assignments__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
 
         if building_id:
-            beneficiaros = beneficiaros.filter(building_assignments__building_id=building_id)
+            usuarios = usuarios.filter(building_assignments__building_id=building_id)
 
         if estado == "registrado":
-            beneficiaros = beneficiaros.filter(registered=True)
+            usuarios = usuarios.filter(registered=True)
         elif estado == "por_registrar":
-            beneficiaros = beneficiaros.filter(registered=False)
+            usuarios = usuarios.filter(registered=False)
 
         if query:
-            beneficiaros = beneficiaros.filter(
+            usuarios = usuarios.filter(
                 Q(id_persona__ci__icontains=query)
                 | Q(id_persona__name__icontains=query)
                 | Q(id_persona__last_name__icontains=query)
@@ -61,20 +61,20 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                 | Q(building_assignments__building__name__icontains=query)
             ).distinct()
 
-        from apps.users.services import build_beneficiary_data
+        from apps.users.services import build_user_data
 
-        beneficiaries = [build_beneficiary_data(u) for u in beneficiaros]
+        users = [build_user_data(u) for u in usuarios]
 
         # Group by building
         from collections import OrderedDict
         groups: OrderedDict[str, list[Any]] = OrderedDict()
-        for b in beneficiaries:
+        for b in users:
             key = b["edificio_nombre"] or "Sin edificio"
             if key not in groups:
                 groups[key] = []
             groups[key].append(b)
 
-        class BeneficiaryPDF(FPDF):
+        class UserPDF(FPDF):
             def header(self) -> None:
                 if self.page_no() == 1:
                     self.set_fill_color(10, 10, 10)
@@ -83,7 +83,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                 else:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
-                    self.cell(0, 10, "INES - Reporte de Beneficiarios", 0, 0, "L")
+                    self.cell(0, 10, "INES - Reporte de Usuarios", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
@@ -96,20 +96,20 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
                 self.set_text_color(95, 95, 95)
                 self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()} / {{nb}}", 0, 0, "C")
 
-        pdf = BeneficiaryPDF()
+        pdf = UserPDF()
         pdf.alias_nb_pages()
         pdf.set_line_width(0.6)
         pdf.add_page()
 
         now = dt.datetime.now()
-        _render_beneficiary_logo(pdf)
+        _render_user_logo(pdf)
         _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 12, "Reporte de Beneficiarios", ln=1, align="L")
+        pdf.cell(0, 12, "Reporte de Usuarios", ln=1, align="L")
         _pdf_font(pdf, "", 11)
         pdf.set_text_color(26, 26, 26)
         pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
-        pdf.cell(0, 7, f"Total de beneficiarios: {len(beneficiaries)}", ln=1)
+        pdf.cell(0, 7, f"Total de usuarios: {len(users)}", ln=1)
         pdf.cell(0, 7, f"Edificios: {len(groups)}", ln=1)
         pdf.ln(8)
 
@@ -167,7 +167,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = 'attachment; filename="reporte_beneficiarios.pdf"'
+        response["Content-Disposition"] = 'attachment; filename="reporte_usuarios.pdf"'
         return response
 
     except ImportError:
@@ -177,7 +177,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
             status=500,
         )
     except Exception as e:
-        logger.warning("Beneficiary PDF generation failed: %s", e)
+        logger.warning("User PDF generation failed: %s", e)
         return HttpResponse(
             f"Error generando PDF: {e}",
             content_type="text/plain",

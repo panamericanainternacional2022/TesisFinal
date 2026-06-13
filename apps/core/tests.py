@@ -39,7 +39,7 @@ class LoginRequiredDecoratorTests(TestCase):
 
 class AdminRequiredDecoratorTests(TestCase):
     def test_redirects_when_not_admin(self):
-        response = self.client.get(reverse("beneficiary_list"))
+        response = self.client.get(reverse("user_list"))
         self.assertEqual(response.status_code, 302)
 
     def test_calls_view_when_admin(self):
@@ -49,7 +49,7 @@ class AdminRequiredDecoratorTests(TestCase):
         from apps.users.models import Usuario
         Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=p, rol="SA", registered=True)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
-        response = self.client.get(reverse("beneficiary_list"))
+        response = self.client.get(reverse("user_list"))
         self.assertEqual(response.status_code, 200)
 
 

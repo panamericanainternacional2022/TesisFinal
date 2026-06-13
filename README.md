@@ -13,7 +13,7 @@ El usuario abre la página y ve la pantalla de inicio de sesión. Ingresa usuari
 3. Menú principal
 Aquí el usuario ve tarjetas con opciones. Lo que ve depende de su rol:
 Si es Administrador (SA/ADMIN):
-- Registrar usuario, Administrar beneficiaros
+- Registrar usuario, Administrar usuarios
 - Registrar edificio, Administrar edificios
 - Monitoreo global
 - Alertas
@@ -24,7 +24,7 @@ Si es Usuario normal (US):
 - Configuración
 4. Gestión de edificios (solo admin)
 El admin llena un formulario con: nombre del edificio, dirección, RIF. Marca si tiene bomba de agua y/o elevador. El sistema guarda el edificio y crea los equipos de monitoreo correspondientes. Estos equipos son los que el simulador usará después para generar datos.
-5. Gestión de beneficiaros (solo admin)
+5. Gestión de usuarios (solo admin)
 El admin llena los datos de una persona: nombres, apellidos, cédula, correo, teléfono. Selecciona a qué edificio pertenece. El sistema:
 - Genera automáticamente un nombre de usuario y contraseña temporal.
 - Envía un correo de activación con un enlace que vence en 24 horas.
@@ -58,7 +58,7 @@ Nivel tanque	≥30%	≥15%
 Cuando una variable llega a "Alto" o "Crítico":
 1. Se registra una notificación en la base de datos.
 2. Se activa la protección automática: el dispositivo (bomba o elevador) se apaga forzadamente durante 30 segundos para evitar daños.
-3. Se envía un correo electrónico a todos los beneficiarios del edificio afectado (con detalles del evento y medidas correctivas).
+3. Se envía un correo electrónico a todos los usuarios del edificio afectado (con detalles del evento y medidas correctivas).
 4. Los correos se envían como máximo cada 5 minutos para no saturar.
 5. Cuando termina la protección, se restaura el dispositivo a valores normales.
 9. Historial de eventos
@@ -73,6 +73,6 @@ Similar al historial pero filtra solo lo importante (Alto y Crítico). Aquí el 
 11. Reportes PDF
 Se pueden descargar dos tipos:
 - Historial de eventos: PDF profesional con encabezado, leyenda de colores, tabla de eventos y medidas correctivas.
-- Lista de beneficiarios: PDF con cédula, nombre, email y edificio (o CSV si falla).
+- Lista de usuarios: PDF con cédula, nombre, email y edificio (o CSV si falla).
 12. Configuración de perfil
 Cualquier usuario puede cambiar su correo, nombre de usuario y contraseña.

@@ -76,7 +76,7 @@ Si usted no solicito este registro, por favor ignore este correo.
 """
 
 
-def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
+def build_user_data(user: Usuario) -> dict[str, Any]:
     person = user.id_persona
     ue = user.building_assignments.first()
     building = ue.building if ue else None

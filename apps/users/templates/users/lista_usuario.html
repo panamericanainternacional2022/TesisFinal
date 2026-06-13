@@ -4,11 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de beneficiaros </title>
+    <title>Administración de usuarios </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
-    <link rel="stylesheet" href="{% static 'core/lista_beneficiarios.css' %}">
+    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
 </head>
 <body class="preload">
     <div class="main-layout">
@@ -18,8 +18,8 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card">
                     <div class="admin-info">
-                        <h1>Administración de beneficiaros </h1>
-                        <p>Consulta, busca, edita o elimina la información de los beneficiaros, residentes y personal técnico autorizados en la plataforma.</p>
+                        <h1>Administración de usuarios </h1>
+                        <p>Consulta, busca, edita o elimina la información de los usuarios, residentes y personal técnico autorizados en la plataforma.</p>
                     </div>
 
                     {% include 'core/components/toast_messages.html' %}
@@ -58,19 +58,19 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {% if beneficiarios %}
-                                        {% for beneficiario in beneficiarios %}
+                                    {% if usuarios %}
+                                        {% for usuario in usuarios %}
                                             <tr>
-                                                <td>{{ beneficiario.cedula }}</td>
-                                                <td>{{ beneficiario.nombre }}</td>
-                                                <td>{{ beneficiario.last_name }}</td>
-                                                <td title="{{ beneficiario.edificio_nombre }}">{{ beneficiario.edificio_nombre }}</td>
+                                                <td>{{ usuario.cedula }}</td>
+                                                <td>{{ usuario.nombre }}</td>
+                                                <td>{{ usuario.last_name }}</td>
+                                                <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
                                             <td colspan="4" style="text-align: center; padding: 24px 0;">
-                                                No hay beneficiaros registrados.
+                                                No hay usuarios registrados.
                                             </td>
                                         </tr>
                                     {% endif %}
@@ -80,12 +80,12 @@
                     </div>
 
                     <div class="table-actions-row action-buttons-row">
-                        {% url 'beneficiary_create' as registro_url %}
+                        {% url 'user_create' as registro_url %}
                         {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
-                        {% if beneficiarios %}
+                        {% if usuarios %}
                         <a href="{% url 'user_select' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a href="{% url 'user_select' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
-                        <a href="{% url 'beneficiary_pdf' %}?{{ filter_query_string }}"
+                        <a href="{% url 'user_pdf' %}?{{ filter_query_string }}"
                            class="register-button-react"
                            style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink);"
                            title="Descargar PDF con los filtros actuales">
@@ -102,7 +102,7 @@
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', ()=>{
-            const hasItems = {% if beneficiarios %}true{% else %}false{% endif %};
+            const hasItems = {% if usuarios %}true{% else %}false{% endif %};
             if (!hasItems) {
                 const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
                 btns.forEach(btn => {

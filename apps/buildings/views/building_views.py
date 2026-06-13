@@ -225,7 +225,7 @@ def _render_delete_confirmation(
         {
             "building": building,
             "equipment": list(equipment),
-            "beneficiaros_count": user_assignments.count(),
+            "usuarios_count": user_assignments.count(),
             "notifications_count": notifications,
         },
      )

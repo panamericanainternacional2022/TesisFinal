@@ -3,7 +3,7 @@ from django.urls import reverse
 
 from apps.users.models import Persona, Usuario
 from apps.users.services import (
-    build_beneficiary_data,
+    build_user_data,
     build_random_username,
     generate_random_password,
 )
@@ -156,7 +156,7 @@ class ValidateFormTests(TestCase):
 # ─── SERVICE TESTS ─────────────────────────────────────────────────────
 
 
-class BuildBeneficiaryDataTests(TestCase):
+class BuildUserDataTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="V-12345678", name="Juan", last_name="Pérez",
@@ -168,7 +168,7 @@ class BuildBeneficiaryDataTests(TestCase):
         )
 
     def test_build_with_persona(self):
-        data = build_beneficiary_data(self.user)
+        data = build_user_data(self.user)
         self.assertEqual(data["cedula"], "V-12345678")
         self.assertEqual(data["nombre"], "Juan")
         self.assertEqual(data["last_name"], "Pérez")
@@ -183,7 +183,7 @@ class BuildBeneficiaryDataTests(TestCase):
             username="nopersona", password="abc123",
             id_persona=p, rol="US",
         )
-        data = build_beneficiary_data(user)
+        data = build_user_data(user)
         self.assertEqual(data["nombre"], "nopersona")
 
 
@@ -271,7 +271,7 @@ class LoginViewTests(TestCase):
         self.assertIsNone(self.client.session.get("usuario_id"))
 
 
-class BeneficiaryListViewTests(TestCase):
+class UserListViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="V-12345678", name="Admin", last_name="User",
@@ -298,19 +298,19 @@ class BeneficiaryListViewTests(TestCase):
             id_persona=p, rol="US",
         )
         self.client.post(reverse("login"), {"username": "us", "password": "abc"})
-        response = self.client.get(reverse("beneficiary_list"))
+        response = self.client.get(reverse("user_list"))
         self.assertEqual(response.status_code, 302)
 
-    def test_lista_shows_beneficiarios(self):
+    def test_lista_shows_usuarios(self):
         Persona.objects.create(
             ci="V-87654321", name="Test", last_name="User",
             email="t@t.com",
         )
-        response = self.client.get(reverse("beneficiary_list"))
+        response = self.client.get(reverse("user_list"))
         self.assertEqual(response.status_code, 200)
 
 
-class BeneficiaryCreateViewTests(TestCase):
+class UserCreateViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
             ci="V-12345678", name="Admin", last_name="User",
@@ -326,11 +326,11 @@ class BeneficiaryCreateViewTests(TestCase):
         )
 
     def test_get_returns_form(self):
-        response = self.client.get(reverse("beneficiary_create"))
+        response = self.client.get(reverse("user_create"))
         self.assertEqual(response.status_code, 200)
 
     def test_post_requires_edificio_first(self):
-        response = self.client.post(reverse("beneficiary_create"), {
+        response = self.client.post(reverse("user_create"), {
             "primerNombre": "Test", "primerApellido": "User",
             "email": "test@test.com", "cedula": "V-99999999",
             "id_edificio": "1",
