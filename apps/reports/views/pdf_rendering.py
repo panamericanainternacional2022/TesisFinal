@@ -10,10 +10,26 @@ from .shared import (
 )
 
 
-def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str, variable: str, range_label: str, total: int) -> None:
+def render_logo(pdf: Any) -> None:
+    _pdf_font(pdf, "B", 28)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 16, "INES", ln=1, align="L")
+    _pdf_font(pdf, "", 10)
+    pdf.set_text_color(95, 95, 95)
+    pdf.cell(0, 6, "Sistema Inteligente de Automatizacion", ln=1, align="L")
+    pdf.ln(2)
+    pdf.set_draw_color(10, 10, 10)
+    pdf.set_line_width(0.8)
+    y = pdf.get_y()
+    pdf.line(10, y, 200, y)
+    pdf.ln(6)
+
+
+def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str, variable: str, range_label: str, total: int, date_from: str = "", date_to: str = "") -> None:
+    render_logo(pdf)
     _pdf_font(pdf, "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, "Historial de Eventos ", ln=1, align="L")
+    pdf.cell(0, 12, "Historial de Eventos", ln=1, align="L")
     _pdf_font(pdf, "B", 12)
     pdf.set_text_color(95, 95, 95)
     pdf.cell(0, 9, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
@@ -26,7 +42,38 @@ def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str,
     pdf.cell(0, 7, f"Severidad: {severity if severity else 'Todas'}", ln=1)
     pdf.cell(0, 7, f"Variable: {variable if variable else 'Todas'}", ln=1)
     pdf.cell(0, 7, f"Rango: {range_label}", ln=1)
+    if date_from and date_to:
+        pdf.cell(0, 7, f"Desde: {date_from}  Hasta: {date_to}", ln=1)
     pdf.cell(0, 7, f"Total de eventos: {total}", ln=1)
+    pdf.ln(8)
+
+
+def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
+    stats: dict[str, int] = {"Info": 0, "Bajo": 0, "Medio": 0, "Alto": 0, "Critico": 0}
+    for n in parsed_list:
+        risk = n.parsed_data.get("risk", "")
+        label = risk
+        if risk == "Crítico":
+            label = "Critico"
+        if label in stats:
+            stats[label] += 1
+
+    _pdf_font(pdf, "B", 11)
+    pdf.set_text_color(10, 10, 10)
+    pdf.cell(0, 8, "RESUMEN POR SEVERIDAD", ln=1)
+    pdf.ln(1)
+
+    col_w = 38
+    _pdf_font(pdf, "", 9)
+    for lbl, fill, text_c, _desc in SEVERITY_DISPLAY_LEVELS:
+        key = lbl
+        if lbl == "Crítico":
+            key = "Critico"
+        count = stats.get(key, 0)
+        pdf.set_fill_color(*fill)
+        pdf.set_text_color(*text_c)
+        pdf.set_draw_color(10, 10, 10)
+        pdf.cell(col_w, 6, f"  {lbl}: {count}", 1, 0, "L", True)
     pdf.ln(8)
 
 
@@ -50,14 +97,14 @@ def render_severity_legend(pdf: Any) -> None:
 def get_column_config(show_all_buildings: bool) -> tuple[list[int], list[str], list[str]]:
     if show_all_buildings:
         return (
-            [26, 26, 20, 30, 20, 68],
-            ["Fecha / Hora", "Edificio", "Severidad", "Variable", "Valor", "Accion recomendada"],
-            ["L", "L", "C", "L", "C", "L"],
+            [20, 18, 20, 16, 22, 16, 78],
+            ["Fecha / Hora", "Edificio", "Equipo", "Severidad", "Variable", "Valor", "Accion recomendada"],
+            ["L", "L", "L", "C", "L", "C", "L"],
         )
     return (
-        [38, 26, 40, 24, 62],
-        ["Fecha / Hora", "Severidad", "Variable", "Valor", "Accion recomendada"],
-        ["L", "C", "L", "C", "L"],
+        [28, 22, 18, 30, 18, 74],
+        ["Fecha / Hora", "Equipo", "Severidad", "Variable", "Valor", "Accion recomendada"],
+        ["L", "L", "C", "L", "C", "L"],
     )
 
 
@@ -71,6 +118,12 @@ def render_table_header(pdf: Any, column_widths: list[int], column_aligns: list[
         fills=[(10, 10, 10)] * len(column_widths),
         colors=[(255, 255, 255)] * len(column_widths),
     )
+
+
+def _get_equipment_name(notif: Any) -> str:
+    if notif.monitoring_equipment:
+        return notif.monitoring_equipment.name
+    return "N/A"
 
 
 def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int], column_aligns: list[str], show_all_buildings: bool) -> None:
@@ -94,17 +147,18 @@ def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int]
             unit = notif.parsed_data.get("unit", "")
             value_str = f"{value_str} {unit}".strip()
         action_str = notif.parsed_data.get("action", "")
+        equip_str = _get_equipment_name(notif)
 
         if show_all_buildings:
             building_row = notif.monitoring_equipment.building.name if (
                 notif.monitoring_equipment and notif.monitoring_equipment.building
             ) else "N/A"
-            row_data = [date_str, building_row, risk, variable_str, value_str, action_str]
+            row_data = [date_str, building_row, equip_str, risk, variable_str, value_str, action_str]
+            cell_fills = [None, None, None, fill_c, None, None, None]
+            cell_colors = [None, None, None, text_c, None, None, None]
+        else:
+            row_data = [date_str, equip_str, risk, variable_str, value_str, action_str]
             cell_fills = [None, None, fill_c, None, None, None]
             cell_colors = [None, None, text_c, None, None, None]
-        else:
-            row_data = [date_str, risk, variable_str, value_str, action_str]
-            cell_fills = [None, fill_c, None, None, None]
-            cell_colors = [None, text_c, None, None, None]
 
         draw_row(pdf, column_widths, column_aligns, row_data, cell_fills, cell_colors)

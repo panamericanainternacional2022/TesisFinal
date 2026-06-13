@@ -95,6 +95,7 @@ def build_beneficiary_data(user: Usuario) -> dict[str, Any]:
         "nombre": name,
         "last_name": last_name,
         "email": email,
+        "username": user.username,
         "edificio_nombre": building.name if building else "",
         "edificio_rif": building.rif if building else "",
         "edificio_direccion": building.address if building else "",

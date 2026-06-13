@@ -9,6 +9,7 @@ from .pdf_rendering import (
     render_event_rows,
     render_header,
     render_severity_legend,
+    render_stats_summary,
     render_table_header,
 )
 from .shared import (
@@ -57,7 +58,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
                     self.cell(0, 10, "INES - Historial de Eventos", 0, 0, "L")
-                    self.cell(0, 10, f"Pagina {self.page_no()}", 0, 1, "R")
+                    self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
                     self.line(10, 18, 200, 18)
@@ -67,16 +68,25 @@ def history_pdf_view(request: Any) -> HttpResponse:
                 self.set_y(-15)
                 _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
-                self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()}", 0, 0, "C")
+                self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()} / {{nb}}", 0, 0, "C")
 
         pdf = HistoryPDF()
+        pdf.alias_nb_pages()
         pdf.set_line_width(0.6)
         pdf.add_page()
 
         import datetime as dt
         now = dt.datetime.now()
-        render_header(pdf, now, building_name, params["severity"], params["variable"], range_label, len(parsed_list))
+        render_header(
+            pdf, now, building_name,
+            params["severity"], params["variable"],
+            range_label, len(parsed_list),
+            date_from=params["date_from"], date_to=params["date_to"],
+        )
         render_severity_legend(pdf)
+
+        if parsed_list:
+            render_stats_summary(pdf, parsed_list)
 
         show_all_buildings = building_name == "Todos los edificios"
         column_widths, column_headers, column_aligns = get_column_config(show_all_buildings)
