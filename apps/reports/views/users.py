@@ -85,7 +85,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
                 else:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
-                    self.cell(0, 10, "INES - Reporte de Usuarios", 0, 0, "L")
+                    self.cell(0, 10, "INES - Reporte de usuarios", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
@@ -107,7 +107,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
         _render_user_logo(pdf)
         _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 12, "Reporte de Usuarios", ln=1, align="L")
+        pdf.cell(0, 12, "Reporte de usuarios", ln=1, align="L")
         _pdf_font(pdf, "", 11)
         pdf.set_text_color(26, 26, 26)
         pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)

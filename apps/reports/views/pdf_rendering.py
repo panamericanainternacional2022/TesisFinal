@@ -29,7 +29,7 @@ def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str,
     render_logo(pdf)
     _pdf_font(pdf, "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, "Historial de Eventos", ln=1, align="L")
+    pdf.cell(0, 12, "Historial de eventos", ln=1, align="L")
     _pdf_font(pdf, "", 11)
     pdf.set_text_color(26, 26, 26)
     pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)

@@ -57,7 +57,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
                 else:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
-                    self.cell(0, 10, "INES - Historial de Eventos", 0, 0, "L")
+                    self.cell(0, 10, "INES - Historial de eventos", 0, 0, "L")
                     self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
