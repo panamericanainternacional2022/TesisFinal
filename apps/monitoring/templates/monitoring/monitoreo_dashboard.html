@@ -767,8 +767,8 @@
         // ── Helper de Modales Personalizados ──
         const CONFIG = JSON.parse(document.getElementById('dashConfig').textContent);
         const NO_RISK_VARS = CONFIG.no_risk_vars;
-        const BOMBA_VARS = CONFIG.bomba_vars;
-        const ELEVADOR_VARS = CONFIG.elevador_vars;
+        const BOMBA_VARS = CONFIG.pump_vars || [];
+        const ELEVADOR_VARS = CONFIG.elevator_vars || [];
         const VAR_NAMES_MAP = CONFIG.var_names;
         const UNITS_MAP = CONFIG.units;
         let EDIFICIO_ID = CONFIG.edificio_id || 0;
@@ -829,6 +829,10 @@
 
 
         function initCharts(){
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js no está definido. Desactivando gráficos.');
+                return;
+            }
             const chartDefaults = {
                 responsive:true,
                 plugins:{ 
@@ -869,6 +873,7 @@
         }
 
         function updateCharts(hist){
+            if (typeof Chart === 'undefined' || !chart1) return;
             if(!hist||hist.length===0) return;
             let getLatestReading = (v) => {
                 return hist.filter(item => item.variable === v).pop();
@@ -1225,7 +1230,7 @@
             let rows = '';
             activeUsers.forEach(u => {
                 rows += `<tr>
-                    <td>${u.nombre} ${u.apellido}</td>
+                    <td>${u.nombre}</td>
                     <td>${u.email}</td>
                     <td><button class="btn-test-sub test-subscriber" data-email="${u.email}">Enviar prueba</button></td>
                 </tr>`;

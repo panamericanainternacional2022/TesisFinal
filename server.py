@@ -14,6 +14,12 @@ Arquitectura unificada: Django + eventlet WSGI en un solo proceso.
 
 import eventlet
 eventlet.monkey_patch()
+import eventlet.wsgi
+try:
+    import eventlet.support.psycopg2_patcher
+    eventlet.support.psycopg2_patcher.make_psycopg_green()
+except ImportError:
+    pass
 
 import os
 import sys
@@ -123,8 +129,9 @@ logger.info("Loop de simulación iniciado")
 
 # ─── Servir Django con eventlet WSGI ──────────────────────────────
 from django.core.handlers.wsgi import WSGIHandler
+from django.contrib.staticfiles.handlers import StaticFilesHandler
 
-application = WSGIHandler()
+application = StaticFilesHandler(WSGIHandler())
 host = os.environ.get("SIM_HOST", "0.0.0.0")
 port = int(os.environ.get("SIM_PORT", 8000))
 

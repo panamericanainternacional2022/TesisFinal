@@ -48,7 +48,7 @@
                             {% endif %}
                             
                             <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
-                                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alertas_desactivadas %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alertas_desactivadas %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" style="display:none;">
+                                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alerts_disabled %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" style="display:none;">
                                     <!-- Rendered by JS on DOMContentLoaded -->
                                 </button>
                                 <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
@@ -88,7 +88,7 @@
                                         </p>
                                     {% endif %}
                                     <div class="notif-meta" style="margin-top: 8px;">
-                                        <span><i class="fa-solid fa-clock"></i> {{ notif.fecha|date:"d/m/Y H:i" }}</span>
+                                        <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                                         {% if notif.monitoring_equipment.building %}
                                         <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
                                         {% endif %}
@@ -99,7 +99,7 @@
                             </ul>
                             {% else %}
                             <div class="no-notif" id="live-no-notif">
-                                {% if not alertas_desactivadas %}
+                                {% if not alerts_disabled %}
                                 <i class="fa-solid fa-bell-slash"></i>
                                 <p>No hay alertas pendientes.</p>
                                 {% else %}

@@ -113,6 +113,10 @@ function setNotificationBadge(count) {
 }
 
 function initCharts() {
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js no se ha cargado. Los gráficos estarán desactivados.');
+        return;
+    }
     const chartDefaults = {
         responsive: true,
         plugins: {
@@ -155,6 +159,7 @@ function initCharts() {
 }
 
 function updateCharts(history) {
+    if (typeof Chart === 'undefined' || !chart1) return;
     if (!history || !history.length) return;
 
     const getLatestReading = (v) => {
@@ -598,7 +603,7 @@ async function reEnableAlerts() {
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
     await Promise.allSettled([
-        csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
+        csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
         csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
     ]);
     await window.showAlert('Alertas reactivadas.', 'success');
@@ -622,7 +627,7 @@ function initLiveNotifications() {
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
 
                 await Promise.allSettled([
-                    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
+                    csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
                     csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
                 ]);
                 await window.showAlert('Alertas activadas con éxito.', 'success');
@@ -645,7 +650,7 @@ function initLiveNotifications() {
                 }
 
                 await Promise.allSettled([
-                    csrfFetch('/notificaciones/toggle_alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }),
+                    csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }),
                     csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, edificio_id: EDIFICIO_ID }) }),
                 ]);
 
@@ -665,7 +670,7 @@ function initLiveNotifications() {
             const shouldClear = await window.showConfirm('¿Estás seguro de que deseas limpiar todas las alertas?');
             if (shouldClear) {
                 try {
-                    const resp = await csrfFetch('/notificaciones/limpiar/', { method: 'POST' });
+                    const resp = await csrfFetch('/notifications/clear/', { method: 'POST' });
                     if (resp.ok) {
                         await window.showAlert('Alertas limpiadas con éxito.', 'success');
                         window.location.href = window.location.pathname;
