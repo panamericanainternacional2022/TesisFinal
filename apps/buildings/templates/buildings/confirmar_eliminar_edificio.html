@@ -114,7 +114,7 @@
                     {% for eq in equipment %}
                     <li>
                         <span class="detail-label">Equipo de monitoreo</span>
-                        <span class="detail-value">{{ eq.name|default:eq.equipment_type|title }}</span>
+                        <span class="detail-value">{{ eq.get_equipment_type_display }}</span>
                     </li>
                     {% endfor %}
                     {% if usuarios_count > 0 %}

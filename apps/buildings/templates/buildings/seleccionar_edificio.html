@@ -65,9 +65,10 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card" style="max-width: 800px;">
                     <div class="admin-info">
-                        <h1>{% if action == 'edit' %}Seleccionar edificio para Editar{% else %}Seleccionar edificio para eliminar{% endif %} </h1>
+                        <h1>{% if action == 'edit' %}Seleccionar edificio para editar{% else %}Seleccionar edificio para eliminar{% endif %} </h1>
                         <p>Selecciona una de las edificaciones de la lista de registros activos para proceder a actualizar sus datos o removerla permanentemente de la base de datos.</p>
                     </div>
+                    {% include 'core/components/toast_messages.html' %}
 
                     {% if items %}
                     <div class="table-wrapper">
@@ -170,6 +171,7 @@
                     });
                 });
             });
+
         });
 
         function showCustomModal({ title, message, type = 'info', showCancel = false }) {

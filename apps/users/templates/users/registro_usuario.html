@@ -23,13 +23,9 @@
                         <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
                     </div>
 
+                    {% include 'core/components/toast_messages.html' %}
                     <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
                     {% csrf_token %}
-                    {% if form_error %}
-                        <div class="alert alert-error">
-                            {{ form_error }}
-                        </div>
-                    {% endif %}
                      <div class="profile-form">
                         <div class="form-row">
                             <div class="form-group half-width">

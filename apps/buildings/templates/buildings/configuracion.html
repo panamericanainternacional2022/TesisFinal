@@ -26,9 +26,7 @@
                         <p>Gestiona y actualiza los datos de tu perfil de usuario, dirección de correo electrónico institucional y opciones de seguridad o contraseña de acceso.</p>
                     </div>
 
-                    {% for msg in page_messages %}
-                        <div class="alert alert-{{ msg.type }}">{{ msg.text }}</div>
-                    {% endfor %}
+                    {% include 'core/components/toast_messages.html' %}
 
                     <form class="perfil-card config-card" method="post" novalidate style="margin-top: 0;">
                     {% csrf_token %}

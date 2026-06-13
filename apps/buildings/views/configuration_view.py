@@ -1,4 +1,5 @@
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 
@@ -6,7 +7,6 @@ from typing import Any
 
 from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
-from apps.buildings.views.shared import build_message
 
 
 @login_required
@@ -16,10 +16,9 @@ def configuration_view(request: HttpRequest) -> HttpResponse:
         return redirect("login")
     user = get_object_or_404(Usuario, id_usuario=user_id)
     person = user.id_persona
-    page_messages = request.session.pop("_cfg_msg", [])
 
     if request.method == "POST":
-        return _handle_config_post(request, user, person, page_messages)
+        return _handle_config_post(request, user, person)
 
     return render(
         request,
@@ -27,7 +26,6 @@ def configuration_view(request: HttpRequest) -> HttpResponse:
         {
             "usuario": user,
             "persona": person,
-            "page_messages": page_messages,
             "form_errors": {},
         },
     )
@@ -35,7 +33,6 @@ def configuration_view(request: HttpRequest) -> HttpResponse:
 
 def _handle_config_post(
     request: HttpRequest, user: Usuario, person: Any,
-    page_messages: list,
 ) -> HttpResponse:
     email = request.POST.get("email", "").strip()
     username = request.POST.get("username", "").strip()
@@ -45,11 +42,9 @@ def _handle_config_post(
     form_errors = {}
 
     if not _verify_password(user, current_password):
-        page_messages.append(
-            build_message("La contraseña actual no es correcta.", "error"))
+        messages.error(request, "La contraseña actual no es correcta.")
         form_errors["current_password"] = "La contraseña actual no es correcta."
-        return _render_config_error(request, page_messages, form_errors,
-                                    email, username)
+        return _render_config_error(request, form_errors, email, username)
 
     _validate_config_email(email, person, form_errors)
     _validate_config_username(username, form_errors)
@@ -59,10 +54,8 @@ def _handle_config_post(
         return _apply_config_changes(request, user, person,
                                      email, username, new_password)
 
-    page_messages.append(
-        build_message("Por favor, corrige los errores en el formulario.", "error"))
-    return _render_config_error(request, page_messages, form_errors,
-                                email, username)
+    messages.error(request, "Por favor, corrige los errores en el formulario.")
+    return _render_config_error(request, form_errors, email, username)
 
 
 def _verify_password(user: Usuario, current_password: str) -> bool:
@@ -145,15 +138,12 @@ def _apply_config_changes(
     person.save()
     user.save()
     request.session["usuario_username"] = user.username
-    request.session["_cfg_msg"] = [
-        build_message("Configuración actualizada correctamente.", "success"),
-    ]
+    messages.success(request, "Configuración actualizada correctamente.")
     return redirect("configuration")
 
 
 def _render_config_error(
-    request: HttpRequest, page_messages: list,
-    form_errors: dict, email: str, username: str,
+    request: HttpRequest, form_errors: dict, email: str, username: str,
 ) -> HttpResponse:
     return render(
         request,
@@ -161,7 +151,6 @@ def _render_config_error(
         {
             "usuario": {"username": username},
             "persona": {"email": email},
-            "page_messages": page_messages,
             "form_errors": form_errors,
         },
     )

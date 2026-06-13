@@ -44,18 +44,32 @@ def select_building_view(request: HttpRequest, action: str) -> HttpResponse:
 @admin_required
 def building_list_view(request: HttpRequest) -> HttpResponse:
     query = request.GET.get("q", "").strip()
+    equipamiento = request.GET.get("equipamiento", "").strip()
+
     buildings = Building.objects.all().prefetch_related("equipment")
+
+    if equipamiento == "bomba":
+        buildings = buildings.filter(equipment__equipment_type="bomba")
+    elif equipamiento == "elevador":
+        buildings = buildings.filter(equipment__equipment_type="elevador")
+
     if query:
         buildings = buildings.filter(
             Q(name__icontains=query)
             | Q(rif__icontains=query)
             | Q(address__icontains=query)
         )
+
+    buildings = buildings.distinct()
     msgs = pop_messages(request)
     return render(
         request,
         "buildings/lista_edificios.html",
-        {"buildings": list(buildings), "page_messages": msgs},
+        {
+            "buildings": list(buildings),
+            "page_messages": msgs,
+            "current_equipamiento": equipamiento,
+        },
     )
 
 
@@ -65,10 +79,47 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
 @login_required
 @admin_required
 def register_building_view(request: HttpRequest) -> HttpResponse:
-    msgs = pop_messages(request)
+    building_data = {}
+    form_errors = {}
+    config = EquipmentConfig()
+
     if request.method == "POST":
-        return _handle_register_post(request, msgs)
-    return _render_register_form(request, msgs, {}, {}, EquipmentConfig())
+        data = extract_building_data(request)
+        if data.get("rif"):
+            data["rif"] = normalize_rif(data["rif"])
+        building_data = data
+        config = extract_equipment_config(request)
+
+        if not (data["name"] and data["rif"] and data["address"]):
+            messages.error(request, "Complete el nombre, la dirección y el RIF del edificio.")
+            form_errors = build_required_errors(data)
+        else:
+            form_errors = validate_building_form({
+                "nombreEdificio": data["name"],
+                "direccion": data["address"],
+                "rif": data["rif"],
+            })
+            if form_errors:
+                messages.error(request, "Por favor, corrige los errores en el formulario.")
+            else:
+                building = Building.objects.create(
+                    name=data["name"], rif=data["rif"], address=data["address"],
+                )
+                create_equipment_for_building(building, config)
+                messages.success(request, "Edificio registrado correctamente.")
+                return redirect("building_list")
+
+    return render(
+        request,
+        "buildings/registro_edificio.html",
+        {
+            "editing": False,
+            "form_errors": form_errors,
+            "building": building_data,
+            "has_pump": config.has_pump,
+            "has_elevator": config.has_elevator,
+        },
+    )
 
 
 # ─── UPDATE ─────────────────────────────────────────────────────────
@@ -78,25 +129,54 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
 @admin_required
 def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, id=building_id)
-    msgs = pop_messages(request)
-    if request.method == "POST":
-        return _handle_edit_post(request, building, msgs)
+    form_errors = {}
 
     equipment_types = set(building.equipment.values_list("equipment_type", flat=True))
-    config = EquipmentConfig(
-        has_pump=MonitoringEquipment.TYPE_PUMP in equipment_types,
-        has_elevator=MonitoringEquipment.TYPE_ELEVATOR in equipment_types,
-    )
+    has_pump = MonitoringEquipment.TYPE_PUMP in equipment_types
+    has_elevator = MonitoringEquipment.TYPE_ELEVATOR in equipment_types
+
+    if request.method == "POST":
+        data = extract_building_data(request)
+        if data.get("rif"):
+            data["rif"] = normalize_rif(data["rif"])
+
+        building.name = data["name"]
+        building.address = data["address"]
+        building.rif = data["rif"]
+
+        has_pump = request.POST.get("con_bomba") == "true"
+        has_elevator = request.POST.get("con_elevador") == "true"
+        config = EquipmentConfig(has_pump=has_pump, has_elevator=has_elevator)
+
+        if not (data["name"] and data["rif"] and data["address"]):
+            messages.error(request, "Complete el nombre, la dirección y el RIF del edificio.")
+            form_errors = build_required_errors(data)
+        else:
+            form_errors = validate_building_form(
+                {
+                    "nombreEdificio": data["name"],
+                    "direccion": data["address"],
+                    "rif": data["rif"],
+                },
+                exclude_building_id=building.id,
+            )
+            if form_errors:
+                messages.error(request, "Por favor, corrige los errores en el formulario.")
+            else:
+                building.save()
+                sync_equipment_for_building(building, config)
+                messages.success(request, "Edificio actualizado correctamente.")
+                return redirect("building_list")
+
     return render(
         request,
         "buildings/registro_edificio.html",
         {
             "editing": True,
             "building": building,
-            "page_messages": msgs,
-            "form_errors": {},
-            "has_pump": config.has_pump,
-            "has_elevator": config.has_elevator,
+            "form_errors": form_errors,
+            "has_pump": has_pump,
+            "has_elevator": has_elevator,
         },
     )
 
@@ -114,107 +194,6 @@ def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse
 
 
 # ─── PRIVATE HELPERS ────────────────────────────────────────────────
-
-
-def _handle_register_post(
-    request: HttpRequest, msgs: list,
-) -> HttpResponse:
-    data = extract_building_data(request)
-    if data.get("rif"):
-        data["rif"] = normalize_rif(data["rif"])
-    config = extract_equipment_config(request)
-
-    if not (data["name"] and data["rif"] and data["address"]):
-        msgs.append(build_message(
-            "Complete el nombre, la dirección y el RIF del edificio.",
-            "error",
-        ))
-        return _render_register_form(
-            request, msgs, build_required_errors(data), data, config,
-        )
-
-    form_errors = validate_building_form({
-        "nombreEdificio": data["name"],
-        "direccion": data["address"],
-        "rif": data["rif"],
-    })
-    if form_errors:
-        msgs.append(build_message(
-            "Por favor, corrige los errores en el formulario.", "error",
-        ))
-        return _render_register_form(
-            request, msgs, form_errors, data, config,
-        )
-
-    building = Building.objects.create(
-        name=data["name"], rif=data["rif"], address=data["address"],
-    )
-    create_equipment_for_building(building, config)
-    request.session["_bld_msg"] = [
-        build_message("Edificio registrado correctamente.", "success")]
-    return redirect("building_list")
-
-
-def _render_register_form(
-    request: HttpRequest, msgs: list, form_errors: dict,
-    data: dict, config: EquipmentConfig,
-) -> HttpResponse:
-    return render(
-        request,
-        "buildings/registro_edificio.html",
-        {
-            "editing": False,
-            "page_messages": msgs,
-            "form_errors": form_errors,
-            "building": data,
-            "has_pump": config.has_pump,
-            "has_elevator": config.has_elevator,
-        },
-    )
-
-
-def _handle_edit_post(
-    request: HttpRequest, building: Building, msgs: list,
-) -> HttpResponse:
-    data = extract_building_data(request)
-    if data.get("rif"):
-        data["rif"] = normalize_rif(data["rif"])
-    config = extract_equipment_config(request)
-
-    building.name = data["name"]
-    building.address = data["address"]
-    building.rif = data["rif"]
-
-    if not (data["name"] and data["rif"] and data["address"]):
-        msgs.append(build_message(
-            "Complete el nombre, la dirección y el RIF del edificio.",
-            "error",
-        ))
-        return _render_register_form(
-            request, msgs, build_required_errors(data), data, config,
-        )
-
-    form_errors = validate_building_form(
-        {
-            "nombreEdificio": data["name"],
-            "direccion": data["address"],
-            "rif": data["rif"],
-        },
-        exclude_building_id=building.id,
-    )
-    if form_errors:
-        msgs.append(build_message(
-            "Por favor, corrige los errores en el formulario.", "error",
-        ))
-        return _render_register_form(
-            request, msgs, form_errors, data, config,
-        )
-
-    building.save()
-    sync_equipment_for_building(building, config)
-    request.session["_bld_msg"] = [
-        build_message("Edificio actualizado correctamente.", "success")]
-    return redirect("building_list")
 
 
 def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:

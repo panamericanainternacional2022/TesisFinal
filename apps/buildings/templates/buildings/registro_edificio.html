@@ -23,11 +23,7 @@
                         <p>{% if editing %}Actualiza los datos de infraestructura, RIF y dirección física del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la información básica para registrar una nueva edificación y permitir la asignación posterior de sensores.{% endif %}</p>
                     </div>
 
-                    {% if page_messages %}
-                        {% for msg in page_messages %}
-                            <div class="alert alert-{{ msg.type }}">{{ msg.text }}</div>
-                        {% endfor %}
-                    {% endif %}
+                    {% include 'core/components/toast_messages.html' %}
                     <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
                     {% csrf_token %}
 

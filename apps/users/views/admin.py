@@ -83,25 +83,24 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
 def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
     generated_password = None
     user_data: dict[str, Any] = {}
-    form_error: str | None = None
     form_errors: dict[str, str] = {}
     email_sent = False
     activation_link = ""
 
     if request.method == "POST":
         if Building.objects.count() == 0:
-            form_error = "Debe registrar al menos un edificio antes de crear un beneficiario."
+            messages.error(request, "Debe registrar al menos un edificio antes de crear un beneficiario.")
         else:
             post_data = extract_post_data(request)
             user_data = post_data
 
             if not has_required_fields(post_data):
-                form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio."
+                messages.error(request, "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio.")
                 form_errors = build_required_field_errors(post_data)
             else:
                 form_errors = validate_user_form(post_data)
                 if form_errors:
-                    form_error = "Por favor, corrige los errores en el formulario."
+                    messages.error(request, "Por favor, corrige los errores en el formulario.")
                 else:
                     person = Persona.objects.create(
                         ci=post_data["cedula"],
@@ -119,7 +118,7 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
                             person,
                         )
                     except ValueError:
-                        form_error = "No se pudo generar un nombre de usuario. Verifica los datos ingresados."
+                        messages.error(request, "No se pudo generar un nombre de usuario. Verifica los datos ingresados.")
 
                     if "user" in locals() and post_data.get("id_edificio"):
                         UserBuilding.objects.create(
@@ -164,7 +163,6 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
     context: dict[str, Any] = {
         "user": user_data,
         "edificios": buildings,
-        "form_error": form_error,
         "form_errors": form_errors,
     }
 
@@ -177,7 +175,6 @@ def beneficiary_create_view(request: HttpRequest) -> HttpResponse:
 def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpResponse:
     user = get_object_or_404(Usuario, id_usuario=beneficiary_id)
     person = user.id_persona
-    form_error: str | None = None
     form_errors: dict[str, str] = {}
 
     if request.method == "POST":
@@ -189,12 +186,12 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
             data["id_edificio"] = int(data["id_edificio"])
 
         if not has_required_fields(post_data):
-            form_error = "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio para actualizar."
+            messages.error(request, "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio para actualizar.")
             form_errors = build_required_field_errors(post_data)
         else:
             form_errors = validate_user_form(post_data, exclude_persona_id=person.id_persona)
             if form_errors:
-                form_error = "Por favor, corrige los errores en el formulario."
+                messages.error(request, "Por favor, corrige los errores en el formulario.")
             else:
                 person.name = f"{post_data['primerNombre']} {post_data['segundoNombre']}".strip()
                 person.last_name = f"{post_data['primerApellido']} {post_data['segundoApellido']}".strip()
@@ -228,7 +225,6 @@ def beneficiary_update_view(request: HttpRequest, beneficiary_id: int) -> HttpRe
             "beneficiario_id": beneficiary_id,
             "edificios": buildings,
             "edificio_actual": current_building,
-            "form_error": form_error,
             "form_errors": form_errors,
         },
     )
