@@ -88,8 +88,17 @@ def history_pdf_view(request: Any) -> HttpResponse:
         if parsed_list:
             render_stats_summary(pdf, parsed_list)
 
-        show_all_buildings = building_name == "Todos los edificios"
-        column_widths, column_headers, column_aligns = get_column_config(show_all_buildings)
+        from collections import OrderedDict
+        groups: OrderedDict[str, list[Any]] = OrderedDict()
+        for n in parsed_list:
+            bld = (
+                n.monitoring_equipment.building.name
+                if (n.monitoring_equipment and n.monitoring_equipment.building)
+                else "Sin edificio"
+            )
+            groups.setdefault(bld, []).append(n)
+
+        column_widths, column_headers, column_aligns = get_column_config()
 
         _pdf_font(pdf, "B", 11)
         pdf.set_text_color(10, 10, 10)
@@ -97,8 +106,22 @@ def history_pdf_view(request: Any) -> HttpResponse:
         pdf.ln(2)
 
         if parsed_list:
-            render_table_header(pdf, column_widths, column_aligns, column_headers)
-            render_event_rows(pdf, parsed_list, column_widths, column_aligns, show_all_buildings)
+            for group_name, group_events in groups.items():
+                if pdf.get_y() > 240:
+                    pdf.add_page()
+
+                pdf.set_draw_color(10, 10, 10)
+                pdf.set_fill_color(245, 245, 245)
+                pdf.rect(10, pdf.get_y(), 190, 8, "F")
+                pdf.set_line_width(0.6)
+                _pdf_font(pdf, "B", 10)
+                pdf.set_text_color(10, 10, 10)
+                pdf.cell(0, 8, f"  {group_name}", ln=1)
+                pdf.ln(2)
+
+                render_table_header(pdf, column_widths, column_aligns, column_headers)
+                render_event_rows(pdf, group_events, column_widths, column_aligns)
+                pdf.ln(4)
         else:
             _pdf_font(pdf, "I", 10)
             pdf.set_text_color(95, 95, 95)

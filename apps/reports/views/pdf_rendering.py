@@ -84,16 +84,10 @@ def render_severity_legend(pdf: Any) -> None:
     pdf.ln(8)
 
 
-def get_column_config(show_all_buildings: bool) -> tuple[list[int], list[str], list[str]]:
-    if show_all_buildings:
-        return (
-            [20, 18, 20, 16, 22, 16, 78],
-            ["Fecha / Hora", "Edificio", "Equipo", "Severidad", "Variable", "Valor", "Acción recomendada"],
-            ["L", "L", "L", "C", "L", "C", "L"],
-        )
+def get_column_config() -> tuple[list[int], list[str], list[str]]:
     return (
         [28, 22, 18, 30, 18, 74],
-        ["Fecha / Hora", "Equipo", "Severidad", "Variable", "Valor", "Acción recomendada"],
+        ["Fecha y hora", "Equipo", "Severidad", "Variable", "Valor", "Acción recomendada"],
         ["L", "L", "C", "L", "C", "L"],
     )
 
@@ -116,7 +110,7 @@ def _get_equipment_name(notif: Any) -> str:
     return "N/A"
 
 
-def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int], column_aligns: list[str], show_all_buildings: bool) -> None:
+def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int], column_aligns: list[str]) -> None:
     _pdf_font(pdf, "", 9)
     pdf.set_draw_color(10, 10, 10)
 
@@ -139,16 +133,8 @@ def render_event_rows(pdf: Any, parsed_list: list[Any], column_widths: list[int]
         action_str = notif.parsed_data.get("action", "")
         equip_str = _get_equipment_name(notif)
 
-        if show_all_buildings:
-            building_row = notif.monitoring_equipment.building.name if (
-                notif.monitoring_equipment and notif.monitoring_equipment.building
-            ) else "N/A"
-            row_data = [date_str, building_row, equip_str, risk, variable_str, value_str, action_str]
-            cell_fills = [None, None, None, fill_c, None, None, None]
-            cell_colors = [None, None, None, text_c, None, None, None]
-        else:
-            row_data = [date_str, equip_str, risk, variable_str, value_str, action_str]
-            cell_fills = [None, None, fill_c, None, None, None]
-            cell_colors = [None, None, text_c, None, None, None]
+        row_data = [date_str, equip_str, risk, variable_str, value_str, action_str]
+        cell_fills = [None, None, fill_c, None, None, None]
+        cell_colors = [None, None, text_c, None, None, None]
 
         draw_row(pdf, column_widths, column_aligns, row_data, cell_fills, cell_colors)
