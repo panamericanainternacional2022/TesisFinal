@@ -1,0 +1,67 @@
+{% if messages %}
+    <div class="messages-container" style="position: fixed; top: 24px; right: 24px; z-index: 10000; display: flex; flex-direction: column; gap: 12px; pointer-events: none; max-width: 380px; width: calc(100% - 48px);">
+        {% for message in messages %}
+            <div class="credentials-box toast-item {% if message.tags == 'success' %}alert-fadeable{% endif %}" 
+                 style="pointer-events: auto; padding: 15px; position: relative; border-radius: 0px; box-sizing: border-box;
+                        border: 2px solid var(--color-ink);
+                        box-shadow: 4px 4px 0px var(--color-ink);
+                        transform: translateX(120%);
+                        opacity: 0;
+                        transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 350ms ease;
+                    {% if message.tags == 'success' %}
+                        background-color: #e6f4ea; color: #137333; border-left: 6px solid #137333;
+                    {% elif message.tags == 'warning' or message.tags == 'error' %}
+                        background-color: #fce8e6; color: #c5221f; border-left: 6px solid #c5221f;
+                    {% else %}
+                        background-color: #f1f3f4; color: #5f6368; border-left: 6px solid #5f6368;
+                    {% endif %}
+                 ">
+                <button type="button" class="close-msg-btn" style="position: absolute; right: 12px; top: 12px; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; line-height: 1; font-weight: bold; padding: 2px;">&times;</button>
+                <div class="toast-body-content" style="padding-right: 15px;">
+                    {{ message.message|safe }}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Toast Notifications Slide-in
+            const toastItems = document.querySelectorAll('.toast-item');
+            toastItems.forEach((toast, idx) => {
+                setTimeout(() => {
+                    toast.style.transform = 'translateX(0)';
+                    toast.style.opacity = '1';
+                }, idx * 100 + 100);
+            });
+
+            // Helper to close and slide out toast
+            function closeToast(toast) {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toast.remove();
+                }, 350);
+            }
+
+            // Auto-fade/slide out alert-fadeable messages after 5 seconds
+            toastItems.forEach(toast => {
+                if (toast.classList.contains('alert-fadeable')) {
+                    setTimeout(() => {
+                        closeToast(toast);
+                    }, 5000);
+                }
+            });
+
+            // Close button handler for toast notifications
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('close-msg-btn')) {
+                    const toast = e.target.closest('.toast-item');
+                    if (toast) {
+                        closeToast(toast);
+                    }
+                }
+            });
+        });
+    </script>
+{% endif %}
