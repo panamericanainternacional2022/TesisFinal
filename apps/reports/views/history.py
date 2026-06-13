@@ -58,7 +58,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
                     self.cell(0, 10, "INES - Historial de eventos", 0, 0, "L")
-                    self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
+                    self.cell(0, 10, f"Página {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
                     self.line(10, 18, 200, 18)
@@ -68,7 +68,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
                 self.set_y(-15)
                 _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
-                self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()} / {{nb}}", 0, 0, "C")
+                self.cell(0, 10, f"Generado por INES - Página {self.page_no()} / {{nb}}", 0, 0, "C")
 
         pdf = HistoryPDF()
         pdf.alias_nb_pages()
@@ -93,7 +93,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
 
         _pdf_font(pdf, "B", 11)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 8, f"EVENTOS REGISTRADOS ({len(parsed_list)})", ln=1)
+        pdf.cell(0, 8, f"Eventos registrados ({len(parsed_list)})", ln=1)
         pdf.ln(2)
 
         if parsed_list:

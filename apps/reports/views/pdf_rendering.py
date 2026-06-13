@@ -16,7 +16,7 @@ def render_logo(pdf: Any) -> None:
     pdf.cell(0, 16, "INES", ln=1, align="L")
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 6, "Sistema Inteligente de Automatizacion", ln=1, align="L")
+    pdf.cell(0, 6, "Sistema inteligente de automatización", ln=1, align="L")
     pdf.ln(2)
     pdf.set_draw_color(10, 10, 10)
     pdf.set_line_width(0.8)
@@ -44,26 +44,21 @@ def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str,
 
 
 def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
-    stats: dict[str, int] = {"Info": 0, "Bajo": 0, "Medio": 0, "Alto": 0, "Critico": 0}
+    stats: dict[str, int] = {"Info": 0, "Bajo": 0, "Medio": 0, "Alto": 0, "Crítico": 0}
     for n in parsed_list:
         risk = n.parsed_data.get("risk", "")
-        label = risk
-        if risk == "Crítico":
-            label = "Critico"
-        if label in stats:
-            stats[label] += 1
+        if risk in stats:
+            stats[risk] += 1
 
     _pdf_font(pdf, "B", 11)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 8, "RESUMEN POR SEVERIDAD", ln=1)
+    pdf.cell(0, 8, "Resumen por severidad", ln=1)
     pdf.ln(1)
 
     col_w = 38
     _pdf_font(pdf, "", 9)
     for lbl, fill, text_c, _desc in SEVERITY_DISPLAY_LEVELS:
-        key = lbl
-        if lbl == "Crítico":
-            key = "Critico"
+        key = "Info" if lbl == "Informativo" else lbl
         count = stats.get(key, 0)
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
@@ -75,7 +70,7 @@ def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
 def render_severity_legend(pdf: Any) -> None:
     _pdf_font(pdf, "B", 11)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 8, "LEYENDA DE SEVERIDADES", ln=1)
+    pdf.cell(0, 8, "Leyenda de severidades", ln=1)
     pdf.ln(1)
 
     _pdf_font(pdf, "", 10)
@@ -93,12 +88,12 @@ def get_column_config(show_all_buildings: bool) -> tuple[list[int], list[str], l
     if show_all_buildings:
         return (
             [20, 18, 20, 16, 22, 16, 78],
-            ["Fecha / Hora", "Edificio", "Equipo", "Severidad", "Variable", "Valor", "Accion recomendada"],
+            ["Fecha / Hora", "Edificio", "Equipo", "Severidad", "Variable", "Valor", "Acción recomendada"],
             ["L", "L", "L", "C", "L", "C", "L"],
         )
     return (
         [28, 22, 18, 30, 18, 74],
-        ["Fecha / Hora", "Equipo", "Severidad", "Variable", "Valor", "Accion recomendada"],
+        ["Fecha / Hora", "Equipo", "Severidad", "Variable", "Valor", "Acción recomendada"],
         ["L", "L", "C", "L", "C", "L"],
     )
 

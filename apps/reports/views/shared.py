@@ -42,11 +42,11 @@ FONT_SEARCH_PATHS: list[str] = [
 MAX_PDF_EVENTS: int = 200
 
 SEVERITY_DISPLAY_LEVELS: list[tuple[str, tuple[int, int, int], tuple[int, int, int], str]] = [
-    ("Info", (249, 250, 251), (55, 65, 81), "Eventos informativos del sistema"),
+    ("Informativo", (249, 250, 251), (55, 65, 81), "Eventos informativos del sistema"),
     ("Bajo", (240, 253, 244), (22, 101, 52), "Valores normales de funcionamiento"),
-    ("Medio", (255, 251, 235), (146, 64, 14), "Cerca del limite sugerido"),
+    ("Medio", (255, 251, 235), (146, 64, 14), "Cerca del límite sugerido"),
     ("Alto", (255, 247, 237), (194, 65, 12), "Fuera de rango seguro"),
-    ("Crítico", (254, 242, 242), (153, 27, 27), "Estado de peligro, accion inmediata"),
+    ("Crítico", (254, 242, 242), (153, 27, 27), "Estado de peligro, acción inmediata"),
 ]
 
 RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {

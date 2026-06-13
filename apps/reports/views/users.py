@@ -17,7 +17,7 @@ def _render_user_logo(pdf: Any) -> None:
     pdf.cell(0, 16, "INES", ln=1, align="L")
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 6, "Sistema Inteligente de Automatizacion", ln=1, align="L")
+    pdf.cell(0, 6, "Sistema inteligente de automatización", ln=1, align="L")
     pdf.ln(2)
     pdf.set_draw_color(10, 10, 10)
     pdf.set_line_width(0.8)
@@ -85,8 +85,8 @@ def user_pdf_view(request: Any) -> HttpResponse:
                 else:
                     _pdf_font(self, "I", 9)
                     self.set_text_color(95, 95, 95)
-                    self.cell(0, 10, "INES - Reporte de usuarios", 0, 0, "L")
-                    self.cell(0, 10, f"Pagina {self.page_no()} / {{nb}}", 0, 1, "R")
+                    self.cell(0, 10, "INES - Informe de usuarios", 0, 0, "L")
+                    self.cell(0, 10, f"Página {self.page_no()} / {{nb}}", 0, 1, "R")
                     self.set_draw_color(10, 10, 10)
                     self.set_line_width(0.6)
                     self.line(10, 18, 200, 18)
@@ -96,7 +96,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
                 self.set_y(-15)
                 _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
-                self.cell(0, 10, f"Generado por INES - Pagina {self.page_no()} / {{nb}}", 0, 0, "C")
+                self.cell(0, 10, f"Generado por INES - Página {self.page_no()} / {{nb}}", 0, 0, "C")
 
         pdf = UserPDF()
         pdf.alias_nb_pages()
@@ -107,7 +107,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
         _render_user_logo(pdf)
         _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 12, "Reporte de usuarios", ln=1, align="L")
+        pdf.cell(0, 12, "Informe de usuarios", ln=1, align="L")
         _pdf_font(pdf, "", 11)
         pdf.set_text_color(26, 26, 26)
         pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
@@ -116,7 +116,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
         pdf.ln(8)
 
         col_widths = [20, 35, 35, 48, 28, 24]
-        col_headers = ["Cedula", "Nombre", "Apellido", "Email", "Usuario", "Estado"]
+        col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Estado"]
         col_aligns = ["C", "L", "L", "L", "L", "C"]
 
         for group_idx, (building_name, members) in enumerate(groups.items()):
