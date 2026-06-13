@@ -15,12 +15,36 @@ logger = logging.getLogger(__name__)
 def beneficiary_pdf_view(request: Any) -> HttpResponse:
     try:
         from fpdf import FPDF
+        from django.db.models import Q
+
+        query = request.GET.get("q", "").strip()
+        building_id = request.GET.get("edificio", "").strip()
+        estado = request.GET.get("estado", "").strip()
 
         usuarios = (
             Usuario.objects.select_related("id_persona")
             .prefetch_related("building_assignments__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
+
+        if building_id:
+            usuarios = usuarios.filter(building_assignments__building_id=building_id)
+
+        if estado == "registrado":
+            usuarios = usuarios.filter(registered=True)
+        elif estado == "por_registrar":
+            usuarios = usuarios.filter(registered=False)
+
+        if query:
+            usuarios = usuarios.filter(
+                Q(id_persona__ci__icontains=query)
+                | Q(id_persona__name__icontains=query)
+                | Q(id_persona__last_name__icontains=query)
+                | Q(id_persona__email__icontains=query)
+                | Q(username__icontains=query)
+                | Q(building_assignments__building__name__icontains=query)
+            ).distinct()
+
         from apps.users.services import build_beneficiary_data
 
         beneficiaries = [build_beneficiary_data(u) for u in usuarios]

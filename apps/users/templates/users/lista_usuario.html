@@ -85,6 +85,12 @@
                         {% if beneficiarios %}
                         <a href="{% url 'user_select' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a href="{% url 'user_select' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
+                        <a href="{% url 'beneficiary_pdf' %}?{{ filter_query_string }}"
+                           class="register-button-react"
+                           style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink);"
+                           title="Descargar PDF con los filtros actuales">
+                            <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                        </a>
                         {% else %}
                         <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>

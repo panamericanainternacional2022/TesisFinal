@@ -66,6 +66,16 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
     beneficiaries = [build_beneficiary_data(u) for u in users]
     buildings = Building.objects.all()
 
+    filter_params = {}
+    if query:
+        filter_params["q"] = query
+    if building_id:
+        filter_params["edificio"] = building_id
+    if estado:
+        filter_params["estado"] = estado
+    from urllib.parse import urlencode
+    filter_query_string = urlencode(filter_params)
+
     return render(
         request,
         "users/lista_usuario.html",
@@ -74,6 +84,7 @@ def beneficiary_list_view(request: HttpRequest) -> HttpResponse:
             "edificios": buildings,
             "selected_edificio_id": int(building_id) if building_id.isdigit() else None,
             "current_estado": estado,
+            "filter_query_string": filter_query_string,
         },
     )
 
