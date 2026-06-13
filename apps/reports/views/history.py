@@ -100,23 +100,14 @@ def history_pdf_view(request: Any) -> HttpResponse:
 
         column_widths, column_headers, column_aligns = get_column_config()
 
-        _pdf_font(pdf, "B", 11)
-        pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 8, f"Eventos registrados ({len(parsed_list)})", ln=1)
-        pdf.ln(2)
-
         if parsed_list:
             for group_name, group_events in groups.items():
                 if pdf.get_y() > 240:
                     pdf.add_page()
 
-                pdf.set_draw_color(10, 10, 10)
-                pdf.set_fill_color(245, 245, 245)
-                pdf.rect(10, pdf.get_y(), 190, 8, "F")
-                pdf.set_line_width(0.6)
-                _pdf_font(pdf, "B", 10)
+                _pdf_font(pdf, "B", 11)
                 pdf.set_text_color(10, 10, 10)
-                pdf.cell(0, 8, f"  {group_name}", ln=1)
+                pdf.cell(0, 8, f"{group_name} ({len(group_events)})", ln=1)
                 pdf.ln(2)
 
                 render_table_header(pdf, column_widths, column_aligns, column_headers)
