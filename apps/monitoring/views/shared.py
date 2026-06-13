@@ -17,17 +17,16 @@ DELTA_MAP = {
 }
 
 
-def build_monitoring_config(building_id: int) -> str:
-    import json
+def build_monitoring_config(building_id: int) -> dict:
     from apps.sensors.sensor_config import NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS
-    return json.dumps({
+    return {
         "no_risk_vars": NO_RISK_VARS,
         "pump_vars": PUMP_VARS,
         "elevator_vars": ELEVATOR_VARS,
         "var_names": VAR_NAMES,
         "units": UNITS,
         "edificio_id": building_id,
-    })
+    }
 
 
 def get_equipment_sensors(equipment: MonitoringEquipment) -> list[dict]:
