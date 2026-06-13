@@ -1,0 +1,40 @@
+/* ==========================================================================
+   modal.css — Custom Neobrutalist Dialog Modals
+   ========================================================================== */
+
+.custom-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(10, 10, 10, 0.4);
+    backdrop-filter: blur(4px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 99999;
+    opacity: 0;
+    transition: opacity 150ms ease;
+}
+
+.custom-modal-backdrop.active {
+    opacity: 1;
+}
+
+.custom-modal-container {
+    background: var(--color-surface, #ffffff);
+    border: 2px solid var(--color-ink, #0a0a0a);
+    padding: var(--sp-3, 24px);
+    width: 90%;
+    max-width: 440px;
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    transform: scale(0.92);
+    transition: transform 150ms ease;
+    box-sizing: border-box;
+    border-radius: 0px !important;
+}
+
+.custom-modal-backdrop.active .custom-modal-container {
+    transform: scale(1);
+}
