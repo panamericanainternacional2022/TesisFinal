@@ -25,7 +25,6 @@
                     {% include 'core/components/toast_messages.html' %}
 
                     <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
-                        <input type="hidden" name="estado" id="estadoInput" value="{{ current_estado|default:'' }}">
                         <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
                             <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
                             <input type="text" name="q" placeholder="Buscar por nombre, cédula o edificio" class="search-input" value="{{ request.GET.q|default:'' }}" />
@@ -38,16 +37,12 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="state-filter-group" style="display: flex; border: 2px solid var(--color-ink); height: 44px; align-items: stretch; box-shadow: 3px 3px 0px var(--color-ink);">
-                            <button type="button" onclick="setEstado('')" class="state-btn" style="border: none; border-right: 2px solid var(--color-ink); padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if not current_estado %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if not current_estado %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Todos
-                            </button>
-                            <button type="button" onclick="setEstado('registrado')" class="state-btn" style="border: none; border-right: 2px solid var(--color-ink); padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if current_estado == 'registrado' %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if current_estado == 'registrado' %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Registrados
-                            </button>
-                            <button type="button" onclick="setEstado('por_registrar')" class="state-btn" style="border: none; padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if current_estado == 'por_registrar' %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if current_estado == 'por_registrar' %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Por registrar
-                            </button>
+                        <div class="select-container" style="min-width: 200px;">
+                            <select name="estado" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
+                                <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
+                                <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
+                            </select>
                         </div>
                     </form>
 
@@ -100,11 +95,6 @@
         </main>
     </div>
     <script>
-        function setEstado(value) {
-            document.getElementById('estadoInput').value = value;
-            document.getElementById('estadoInput').form.submit();
-        }
-
         document.addEventListener('DOMContentLoaded', ()=>{
             const hasItems = {% if beneficiarios %}true{% else %}false{% endif %};
             if (!hasItems) {

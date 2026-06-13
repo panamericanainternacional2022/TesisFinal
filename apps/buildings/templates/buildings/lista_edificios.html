@@ -25,21 +25,16 @@
                     {% include 'core/components/toast_messages.html' %}
 
                     <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
-                        <input type="hidden" name="equipamiento" id="equipamientoInput" value="{{ current_equipamiento|default:'' }}">
                         <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
                             <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
                             <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                         </div>
-                        <div class="state-filter-group" style="display: flex; border: 2px solid var(--color-ink); height: 44px; align-items: stretch; box-shadow: 3px 3px 0px var(--color-ink);">
-                            <button type="button" onclick="setEquipamiento('')" class="state-btn" style="border: none; border-right: 2px solid var(--color-ink); padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if not current_equipamiento %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if not current_equipamiento %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Todos
-                            </button>
-                            <button type="button" onclick="setEquipamiento('bomba')" class="state-btn" style="border: none; border-right: 2px solid var(--color-ink); padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if current_equipamiento == 'bomba' %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if current_equipamiento == 'bomba' %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Bombas de agua
-                            </button>
-                            <button type="button" onclick="setEquipamiento('elevador')" class="state-btn" style="border: none; padding: 0 16px; font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); cursor: pointer; background: {% if current_equipamiento == 'elevador' %}var(--color-ink){% else %}var(--color-surface){% endif %}; color: {% if current_equipamiento == 'elevador' %}var(--color-surface){% else %}var(--color-ink){% endif %}; height: 100%; transition: all var(--transition-fast);">
-                                Elevadores
-                            </button>
+                        <div class="select-container" style="min-width: 220px;">
+                            <select name="equipamiento" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
+                                <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
+                                <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
+                            </select>
                         </div>
                     </form>
 
@@ -101,11 +96,6 @@
         </main>
     </div>
     <script>
-        function setEquipamiento(value) {
-            document.getElementById('equipamientoInput').value = value;
-            document.getElementById('equipamientoInput').form.submit();
-        }
-
         document.addEventListener('DOMContentLoaded', ()=>{
             const hasItems = {% if buildings %}true{% else %}false{% endif %};
             if (!hasItems) {
