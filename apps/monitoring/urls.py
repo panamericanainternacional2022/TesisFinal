@@ -59,9 +59,9 @@ urlpatterns = [
     path("api/status/", api_status, name="api_status"),
     path("api/edificios/", api_buildings, name="api_edificios"),
     path(
-        "api/usuarios_edificio/<int:building_id>/",
+        "api/beneficiaros_edificio/<int:building_id>/",
         api_building_users,
-        name="api_usuarios_edificio",
+        name="api_beneficiaros_edificio",
     ),
     path("api/notifications/", api_notifications, name="api_notifications"),
     path("api/manual-update/", manual_update, name="manual_update"),

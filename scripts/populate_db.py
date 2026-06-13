@@ -91,7 +91,7 @@ def populate():
         },
     )
 
-    print("Creando Usuarios...")
+    print("Creando Beneficiaros...")
     _hashed_pw = make_password("password123")
     u1, _ = Usuario.objects.get_or_create(
         username="juanp",
@@ -130,7 +130,7 @@ def populate():
         },
     )
 
-    print("Asignando Usuarios a Edificios...")
+    print("Asignando Beneficiaros a Edificios...")
     UserBuilding.objects.get_or_create(user=u1, building=e1)
     UserBuilding.objects.get_or_create(user=u2, building=e2)
     UserBuilding.objects.get_or_create(user=u3, building=e1)

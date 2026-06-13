@@ -13,7 +13,7 @@ El usuario abre la página y ve la pantalla de inicio de sesión. Ingresa usuari
 3. Menú principal
 Aquí el usuario ve tarjetas con opciones. Lo que ve depende de su rol:
 Si es Administrador (SA/ADMIN):
-- Registrar usuario, Administrar usuarios
+- Registrar usuario, Administrar beneficiaros
 - Registrar edificio, Administrar edificios
 - Monitoreo global
 - Alertas
@@ -24,7 +24,7 @@ Si es Usuario normal (US):
 - Configuración
 4. Gestión de edificios (solo admin)
 El admin llena un formulario con: nombre del edificio, dirección, RIF. Marca si tiene bomba de agua y/o elevador. El sistema guarda el edificio y crea los equipos de monitoreo correspondientes. Estos equipos son los que el simulador usará después para generar datos.
-5. Gestión de usuarios (solo admin)
+5. Gestión de beneficiaros (solo admin)
 El admin llena los datos de una persona: nombres, apellidos, cédula, correo, teléfono. Selecciona a qué edificio pertenece. El sistema:
 - Genera automáticamente un nombre de usuario y contraseña temporal.
 - Envía un correo de activación con un enlace que vence en 24 horas.

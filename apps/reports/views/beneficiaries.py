@@ -37,22 +37,22 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         building_id = request.GET.get("edificio", "").strip()
         estado = request.GET.get("estado", "").strip()
 
-        usuarios = (
+        beneficiaros = (
             Usuario.objects.select_related("id_persona")
             .prefetch_related("building_assignments__building")
             .exclude(rol__in=ADMIN_ROLES)
         )
 
         if building_id:
-            usuarios = usuarios.filter(building_assignments__building_id=building_id)
+            beneficiaros = beneficiaros.filter(building_assignments__building_id=building_id)
 
         if estado == "registrado":
-            usuarios = usuarios.filter(registered=True)
+            beneficiaros = beneficiaros.filter(registered=True)
         elif estado == "por_registrar":
-            usuarios = usuarios.filter(registered=False)
+            beneficiaros = beneficiaros.filter(registered=False)
 
         if query:
-            usuarios = usuarios.filter(
+            beneficiaros = beneficiaros.filter(
                 Q(id_persona__ci__icontains=query)
                 | Q(id_persona__name__icontains=query)
                 | Q(id_persona__last_name__icontains=query)
@@ -63,7 +63,7 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
 
         from apps.users.services import build_beneficiary_data
 
-        beneficiaries = [build_beneficiary_data(u) for u in usuarios]
+        beneficiaries = [build_beneficiary_data(u) for u in beneficiaros]
 
         # Group by building
         from collections import OrderedDict
@@ -106,10 +106,6 @@ def beneficiary_pdf_view(request: Any) -> HttpResponse:
         _pdf_font(pdf, "B", 18)
         pdf.set_text_color(10, 10, 10)
         pdf.cell(0, 12, "Reporte de Beneficiarios", ln=1, align="L")
-        _pdf_font(pdf, "B", 12)
-        pdf.set_text_color(95, 95, 95)
-        pdf.cell(0, 9, "SISTEMA DE TELEMETRIA Y CONTROL", ln=1, align="L")
-        pdf.ln(5)
         _pdf_font(pdf, "", 11)
         pdf.set_text_color(26, 26, 26)
         pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de usuarios </title>
+    <title>Administración de beneficiaros </title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
@@ -18,8 +18,8 @@
             <div class="perfil-page" style="padding-top: 0;">
                 <div class="reportes-card">
                     <div class="admin-info">
-                        <h1>Administración de usuarios </h1>
-                        <p>Consulta, busca, edita o elimina la información de los usuarios, residentes y personal técnico autorizados en la plataforma.</p>
+                        <h1>Administración de beneficiaros </h1>
+                        <p>Consulta, busca, edita o elimina la información de los beneficiaros, residentes y personal técnico autorizados en la plataforma.</p>
                     </div>
 
                     {% include 'core/components/toast_messages.html' %}
@@ -70,7 +70,7 @@
                                     {% else %}
                                         <tr>
                                             <td colspan="4" style="text-align: center; padding: 24px 0;">
-                                                No hay usuarios registrados.
+                                                No hay beneficiaros registrados.
                                             </td>
                                         </tr>
                                     {% endif %}

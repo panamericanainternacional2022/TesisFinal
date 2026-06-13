@@ -50,7 +50,7 @@ El mapa de módulos del monolito define los límites conceptuales de cada contex
 
 ### Módulo: buildings
 
-* **Responsabilidad:** Gestión de edificios, registro de equipos de monitoreo (bombas y elevadores) y asignación de usuarios a inmuebles.
+* **Responsabilidad:** Gestión de edificios, registro de equipos de monitoreo (bombas y elevadores) y asignación de beneficiaros a inmuebles.
 
 ### Módulo: sensors
 
