@@ -63,7 +63,7 @@ def render_user_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session["usuario_id"]
 
-    building_id = request.GET.get("edificio", "").strip()
+    building_id = (request.GET.get("edificio") or request.GET.get("edificio_id") or "").strip()
     if building_id.lower() in ("", "none", "null"):
         building_id = ""
     severity = request.GET.get("severidad", "").strip()

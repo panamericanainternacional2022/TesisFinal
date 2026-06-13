@@ -37,13 +37,17 @@ def api_status(request) -> JsonResponse:
 
 def api_buildings(request) -> JsonResponse:
     data: list[dict[str, Any]] = []
-    from apps.sensors.simulation.globals import simulators
+    from .shared import get_simulator
 
     for equipment in MonitoringEquipment.objects.select_related("building").all():
         if not equipment.building:
             continue
         building = equipment.building
-        sim = simulators.get(building.pk)
+        try:
+            sim = get_simulator(building.pk)
+        except Exception:
+            sim = None
+
         data.append({
             "id": building.pk,
             "nombre": building.name,

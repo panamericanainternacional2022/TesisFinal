@@ -148,11 +148,14 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
         return _json_error("Missing field 'enabled'")
 
     from apps.sensors.simulation.globals import simulators
-    sim = simulators.get(edificio_id) if edificio_id else next(iter(simulators.values()), None)
-    if not sim:
-        return _json_error("Simulator not found", 404)
-    sim.alert_enabled = bool(enabled)
-    return _json_ok({"alert_enabled": sim.alert_enabled})
+    if edificio_id and edificio_id in simulators:
+        sim = simulators[edificio_id]
+        sim.alert_enabled = bool(enabled)
+        return _json_ok({"alert_enabled": sim.alert_enabled})
+    else:
+        for sim in simulators.values():
+            sim.alert_enabled = bool(enabled)
+        return _json_ok({"alert_enabled": bool(enabled)})
 
 
 @require_http_methods(["POST"])

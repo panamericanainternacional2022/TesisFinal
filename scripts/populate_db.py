@@ -38,15 +38,14 @@ from apps.alerts.models import Notification
 def populate():
     print("Iniciando limpieza de la base de datos...")
     
-    # Eliminar en orden inverso de dependencias para evitar errores de llave foránea
-    Notification.objects.all().delete()
-    MonitoringEquipment.objects.all().delete()
-    UserBuilding.objects.all().delete()
-    Usuario.objects.all().delete()
-    Persona.objects.all().delete()
-    Building.objects.all().delete()
+    from django.db import connection
+    with connection.cursor() as cursor:
+        cursor.execute(
+            "TRUNCATE TABLE edificio, equipo_monitoreo, notificacion, persona, "
+            "umbral_config, usuario, usuario_edificio RESTART IDENTITY CASCADE;"
+        )
     
-    print("Base de datos limpia.")
+    print("Base de datos limpia y secuencias reiniciadas desde 0.")
 
     print("Iniciando población de base de datos...")
 

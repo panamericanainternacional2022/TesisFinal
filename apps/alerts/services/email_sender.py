@@ -36,6 +36,7 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
         users = UserBuilding.objects.filter(
             building_id=edificio_id,
             user__registered=True,
+            user__alerts_disabled=False,
         ).select_related("user__id_persona")
         emails: List[str] = []
         for u in users:

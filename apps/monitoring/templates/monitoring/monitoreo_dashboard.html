@@ -759,6 +759,7 @@
 
     {{ config_json|json_script:"dashConfig" }}
     <script>
+        window.CSRF_TOKEN = "{{ csrf_token }}";
         let chart1, chart2;
         let currentThresholds = {};
         let subscribers = {};
@@ -988,7 +989,10 @@
 
         function csrfFetch(url, opts = {}) {
             const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
-            const token = csrf ? csrf.split('=')[1] : '';
+            let token = csrf ? csrf.split('=')[1] : '';
+            if (!token && window.CSRF_TOKEN) {
+                token = window.CSRF_TOKEN;
+            }
             opts.headers = { ...opts.headers, 'X-CSRFToken': token };
             opts.credentials = 'same-origin';
             return fetch(url, opts);
@@ -1403,7 +1407,13 @@
             fetch(url)
                 .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
                 .then(data => applyPayload(data))
-                .catch(() => {});
+                .catch((error) => {
+                    console.warn('Error al obtener estado inicial:', error);
+                    ['statsBombaPanel', 'statsElevadorPanel', 'recommendationsPanel'].forEach(id => {
+                        let el = document.getElementById(id);
+                        if (el) el.innerHTML = '<span style="color:var(--color-text-secondary);font-size:var(--text-sm);">Sin datos de telemetría para este edificio.</span>';
+                    });
+                });
         }
     </script>
 </body>

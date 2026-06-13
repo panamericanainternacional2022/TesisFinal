@@ -24,7 +24,7 @@ def notifications_view(request: HttpRequest):
         })
 
     rol = request.session.get("usuario_rol", "US")
-    building_id_raw = request.GET.get("building", "").strip()
+    building_id_raw = (request.GET.get("building") or request.GET.get("edificio") or "").strip()
 
     if is_admin_role(rol):
         buildings = Building.objects.all()

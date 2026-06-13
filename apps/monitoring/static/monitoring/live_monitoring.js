@@ -293,8 +293,10 @@ function renderLiveMonitor(data) {
         return renderCard(sensor.id, value, risk, sensor.nombre);
     }).join('');
 
-    document.getElementById('bombaCards').innerHTML = bombaCards;
-    document.getElementById('elevadorCards').innerHTML = elevadorCards;
+    const bombaCardsEl = document.getElementById('bombaCards');
+    if (bombaCardsEl) bombaCardsEl.innerHTML = bombaCards;
+    const elevadorCardsEl = document.getElementById('elevadorCards');
+    if (elevadorCardsEl) elevadorCardsEl.innerHTML = elevadorCards;
 
     const toggleDisplay = (id, show) => {
         const el = document.getElementById(id);
@@ -587,7 +589,10 @@ function startAlertCountdown(disabledUntilMs) {
 }
 
 function csrfFetch(url, options) {
-    const csrfToken = getCookie('csrftoken');
+    let csrfToken = getCookie('csrftoken');
+    if (!csrfToken && window.CSRF_TOKEN) {
+        csrfToken = window.CSRF_TOKEN;
+    }
     const headers = options.headers || {};
     headers['Content-Type'] = headers['Content-Type'] || 'application/json';
     if (csrfToken) headers['X-CSRFToken'] = csrfToken;

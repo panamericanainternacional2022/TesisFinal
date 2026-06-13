@@ -87,11 +87,8 @@ def parse_notifications(notifications: QuerySet) -> list:
 
 
 def extract_variables(parsed_list: list) -> list[str]:
-    return sorted(set(
-        n.parsed_data.get("variable", "")
-        for n in parsed_list
-        if n.parsed_data.get("parsed") and n.parsed_data.get("variable")
-    ))
+    from apps.sensors.sensor_config import VAR_NAMES
+    return sorted(list(VAR_NAMES.values()))
 
 
 def filter_by_variable(parsed_list: list, variable: str) -> list:

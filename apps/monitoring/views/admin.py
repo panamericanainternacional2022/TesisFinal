@@ -18,14 +18,23 @@ def render_admin_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
 
-    building_id = request.GET.get("edificio")
+    building_id = request.GET.get("edificio") or request.GET.get("edificio_id")
+    valid_ids = [b.pk for b in buildings]
     if building_id:
         try:
             building_id = int(building_id)
-        except (ValueError, TypeError):
-            building_id = buildings[0].pk if buildings else 0
+            if building_id not in valid_ids:
+                building_id = valid_ids[0] if valid_ids else 0
+        except (ValueError, TypeError, IndexError):
+            building_id = valid_ids[0] if valid_ids else 0
     else:
-        building_id = buildings[0].pk if buildings else 0
+        from apps.sensors.simulation.globals import simulators
+        if simulators:
+            building_id = next(iter(simulators.keys()))
+            if building_id not in valid_ids:
+                building_id = valid_ids[0] if valid_ids else 0
+        else:
+            building_id = valid_ids[0] if valid_ids else 0
 
     return render(
         request,
@@ -60,7 +69,7 @@ def building_monitoring_view(request, building_id: int) -> HttpResponse:
 @login_required
 def render_admin_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    building_id = request.GET.get("edificio", "").strip()
+    building_id = (request.GET.get("edificio") or request.GET.get("edificio_id") or "").strip()
     severity = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
     period = request.GET.get("periodo", "24h").strip()
