@@ -149,15 +149,15 @@ def populate():
     print("Creando Equipos de Monitoreo...")
     eq1_bomba, _ = MonitoringEquipment.objects.get_or_create(
         building=e1, equipment_type=MonitoringEquipment.TYPE_PUMP,
-        defaults={"name": f"Bomba de agua - {e1.name}"},
+        defaults={"name": "Bomba de agua"},
     )
     eq1_elevador, _ = MonitoringEquipment.objects.get_or_create(
         building=e1, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
-        defaults={"name": f"Elevador - {e1.name}"},
+        defaults={"name": "Elevador"},
     )
     eq2_bomba, _ = MonitoringEquipment.objects.get_or_create(
         building=e2, equipment_type=MonitoringEquipment.TYPE_PUMP,
-        defaults={"name": f"Bomba de agua - {e2.name}"},
+        defaults={"name": "Bomba de agua"},
     )
 
     print("¡Población de base de datos completada exitosamente!")

@@ -16,12 +16,12 @@ def create_equipment_for_building(
     if config.has_pump:
         MonitoringEquipment.objects.get_or_create(
             building=building, equipment_type=MonitoringEquipment.TYPE_PUMP,
-            defaults={"name": f"Bomba de agua - {building.name}"},
+            defaults={"name": "Bomba de agua"},
         )
     if config.has_elevator:
         MonitoringEquipment.objects.get_or_create(
             building=building, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
-            defaults={"name": f"Elevador - {building.name}"},
+            defaults={"name": "Elevador"},
         )
 
 
@@ -32,7 +32,7 @@ def sync_equipment_for_building(
     if config.has_pump:
         MonitoringEquipment.objects.get_or_create(
             building=building, equipment_type=MonitoringEquipment.TYPE_PUMP,
-            defaults={"name": f"Bomba de agua - {building.name}"},
+            defaults={"name": "Bomba de agua"},
         )
     else:
         MonitoringEquipment.objects.filter(
@@ -41,7 +41,7 @@ def sync_equipment_for_building(
     if config.has_elevator:
         MonitoringEquipment.objects.get_or_create(
             building=building, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
-            defaults={"name": f"Elevador - {building.name}"},
+            defaults={"name": "Elevador"},
         )
     else:
         MonitoringEquipment.objects.filter(

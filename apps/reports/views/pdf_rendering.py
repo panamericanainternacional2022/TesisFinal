@@ -105,15 +105,8 @@ def render_table_header(pdf: Any, column_widths: list[int], column_aligns: list[
 
 
 def _get_equipment_name(notif: Any) -> str:
-    eq = notif.monitoring_equipment
-    if eq:
-        name = eq.name
-        bld = eq.building
-        if bld:
-            suffix = f" - {bld.name}"
-            if name.endswith(suffix):
-                return name[: -len(suffix)]
-        return name
+    if notif.monitoring_equipment:
+        return notif.monitoring_equipment.name
     return "N/A"
 
 
