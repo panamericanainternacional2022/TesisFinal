@@ -232,114 +232,114 @@ RECOMMENDATION_THRESHOLDS = {
 
 # ─── Mensajes de alerta temprana (referencian RECOMMENDATION_THRESHOLDS) ─
 RECOMMENDATION_WARN_MSGS: dict[str, str] = {
-    "temperature": "Elevated temperature. Monitor.",
-    "flow_rate": "Low optimal flow rate. Check filters.",
-    "pressure": "Excessive pressure. Leak risk.",
-    "vibration": "Abnormal vibration. Verify alignment.",
-    "tank_level": "Low tank level.",
-    "load": "Elevator overload. Reduce load.",
-    "current": "Electrical overload.",
+    "temperature": "Temperatura elevada. Monitorear.",
+    "flow_rate": "Caudal óptimo bajo. Verificar filtros.",
+    "pressure": "Presión excesiva. Riesgo de fuga.",
+    "vibration": "Vibración anormal. Verificar alineación.",
+    "tank_level": "Nivel de tanque bajo.",
+    "load": "Sobrecarga de elevador. Reducir carga.",
+    "current": "Sobrecarga eléctrica.",
 }
 
 RECOMMENDATION_CRIT_MSGS: dict[str, str] = {
-    "temperature": "Very high motor temperature. Check cooling system.",
-    "flow_rate": "Low flow rate. Check pump.",
-    "tank_level": "Critical tank level. Urgent refill.",
+    "temperature": "Temperatura del motor muy alta. Verificar sistema de enfriamiento.",
+    "flow_rate": "Caudal bajo. Verificar bomba.",
+    "tank_level": "Nivel de tanque crítico. Relleno urgente.",
 }
 
-RECOMMENDATION_RANGE_MSG: str = "Electrical instability. Check power supply."
+RECOMMENDATION_RANGE_MSG: str = "Inestabilidad eléctrica. Verificar suministro eléctrico."
 
 # ─── Mensajes especiales de recomendación ─────────────────────────────
-RECOMMENDATION_MOTOR_STUCK_MSG: str = "MOTOR STUCK. Urgent maintenance required."
-RECOMMENDATION_DOOR_MSG_TEMPLATE: str = "Check doors: {} failed closing attempts."
-RECOMMENDATION_OK_MSG: str = "All parameters normal. Stable operation."
-RECOMMENDATION_FALLBACK_ACTION_TEMPLATE: str = "Check the {} sensor. Schedule preventive inspection."
+RECOMMENDATION_MOTOR_STUCK_MSG: str = "Motor atascado. Mantenimiento urgente requerido."
+RECOMMENDATION_DOOR_MSG_TEMPLATE: str = "Verificar puertas: {} intentos de cierre fallidos."
+RECOMMENDATION_OK_MSG: str = "Todos los parámetros normales. Operación estable."
+RECOMMENDATION_FALLBACK_ACTION_TEMPLATE: str = "Verificar el sensor {}. Programar inspección preventiva."
 
 # ─── Acciones recomendadas por variable y nivel de riesgo ─────────────────
 ACTIONS: dict[str, dict[str, str]] = {
     "flow_rate": {
-        RISK_BAJO: "Flow rate within normal range. Routine monitoring active.",
-        RISK_MEDIO: "Moderate flow rate. Check for minor leaks or line restrictions.",
-        RISK_ALTO: "Elevated water flow. Monitor relief valves and possible leaks.",
-        RISK_CRITICO: "Critical flow rate (total interruption or severe excess). Preventive pump shutdown activated. Inspect main pipeline.",
+        RISK_BAJO: "Caudal dentro del rango normal. Monitoreo rutinario activo.",
+        RISK_MEDIO: "Caudal moderado. Verifique fugas menores o restricciones en la línea.",
+        RISK_ALTO: "Caudal elevado. Monitoree válvulas de alivio y posibles fugas.",
+        RISK_CRITICO: "Caudal crítico (interrupción total o exceso severo). Parada preventiva de bomba activada. Inspeccione tubería principal.",
     },
     "pressure": {
-        RISK_BAJO: "Pressure within operating range. No action required.",
-        RISK_MEDIO: "Pressure in caution zone. Check pressure regulator preventively.",
-        RISK_ALTO: "Pressure above recommended limit. Verify pressure regulator and gauges.",
-        RISK_CRITICO: "Critical pressure. Imminent risk of pipe rupture. Turn off pump and release pressure.",
+        RISK_BAJO: "Presión dentro del rango operativo. No se requiere acción.",
+        RISK_MEDIO: "Presión en zona de precaución. Verifique el regulador de presión preventivamente.",
+        RISK_ALTO: "Presión por encima del límite recomendado. Verifique el regulador y manómetros.",
+        RISK_CRITICO: "Presión crítica. Riesgo inminente de rotura de tubería. Apague la bomba y libere presión.",
     },
     "temperature": {
-        RISK_BAJO: "Normal temperature. Adequate ventilation.",
-        RISK_MEDIO: "Moderately elevated temperature. Check machine room ventilation.",
-        RISK_ALTO: "High pump motor temperature. Increase machine room ventilation.",
-        RISK_CRITICO: "Critical motor temperature. Risk of overheating and melting. Emergency shutdown and cooling system check.",
+        RISK_BAJO: "Temperatura normal. Ventilación adecuada.",
+        RISK_MEDIO: "Temperatura moderadamente elevada. Verifique la ventilación de la sala de máquinas.",
+        RISK_ALTO: "Temperatura alta del motor de bomba. Aumente la ventilación de la sala de máquinas.",
+        RISK_CRITICO: "Temperatura crítica del motor. Riesgo de sobrecalentamiento y fusión. Apagado de emergencia y verificación del sistema de enfriamiento.",
     },
     "vibration": {
-        RISK_BAJO: "Normal vibration. Correct mechanical alignment.",
-        RISK_MEDIO: "Moderate vibration. Check mechanical fasteners and bearing condition.",
-        RISK_ALTO: "Vibration above standard. Schedule mechanical maintenance.",
-        RISK_CRITICO: "Severe mechanical vibration. Severe misalignment or bearing failure. Shut down equipment immediately.",
+        RISK_BAJO: "Vibración normal. Alineación mecánica correcta.",
+        RISK_MEDIO: "Vibración moderada. Verifique sujetadores mecánicos y estado de rodamientos.",
+        RISK_ALTO: "Vibración por encima del estándar. Programe mantenimiento mecánico.",
+        RISK_CRITICO: "Vibración mecánica severa. Desalineación grave o falla de rodamiento. Detenga el equipo inmediatamente.",
     },
     "tank_level": {
-        RISK_BAJO: "Low tank level. Monitor resupply.",
-        RISK_MEDIO: "Tank level in caution zone. Schedule refill soon.",
-        RISK_ALTO: "High tank level. Monitor automatic filling.",
-        RISK_CRITICO: "Critical tank level. Risk of pump cavitation. Stop suction and refill tank urgently.",
+        RISK_BAJO: "Nivel de tanque bajo. Monitoree el reabastecimiento.",
+        RISK_MEDIO: "Nivel de tanque en zona de precaución. Programe relleno próximamente.",
+        RISK_ALTO: "Nivel de tanque alto. Monitoree el llenado automático.",
+        RISK_CRITICO: "Nivel de tanque crítico. Riesgo de cavitación de bomba. Detenga succión y rellene el tanque urgentemente.",
     },
     "speed": {
-        RISK_BAJO: "Normal elevator speed.",
-        RISK_MEDIO: "Moderately high speed. Monitor variable frequency drive.",
-        RISK_ALTO: "Elevator speed above safe travel limit. Schedule VFD inspection.",
-        RISK_CRITICO: "Critical overspeed. Emergency braking activated. Mandatory safety inspection.",
+        RISK_BAJO: "Velocidad de elevador normal.",
+        RISK_MEDIO: "Velocidad moderadamente alta. Monitoree el variador de frecuencia.",
+        RISK_ALTO: "Velocidad de elevador por encima del límite seguro. Programe inspección del VFD.",
+        RISK_CRITICO: "Sobrepaso de velocidad crítico. Frenado de emergencia activado. Inspección de seguridad obligatoria.",
     },
     "load": {
-        RISK_BAJO: "Normal cabin load.",
-        RISK_MEDIO: "Moderate cabin load. Monitor motor behavior.",
-        RISK_ALTO: "Cabin load near design limit. Monitor motor behavior.",
-        RISK_CRITICO: "Elevator cabin overload. Remove excess weight to resume operation.",
+        RISK_BAJO: "Carga de cabina normal.",
+        RISK_MEDIO: "Carga de cabina moderada. Monitoree el comportamiento del motor.",
+        RISK_ALTO: "Carga de cabina cerca del límite de diseño. Monitoree el comportamiento del motor.",
+        RISK_CRITICO: "Sobrecarga de cabina de elevador. Retire el exceso de peso para reanudar operación.",
     },
     "energy": {
-        RISK_BAJO: "Normal energy consumption.",
-        RISK_MEDIO: "Moderately high energy consumption. Check operational efficiency.",
-        RISK_ALTO: "Unusually high energy consumption. Monitor efficiency.",
-        RISK_CRITICO: "Critical energy spike. Possible short circuit or motor overexertion. Check electrical protections.",
+        RISK_BAJO: "Consumo de energía normal.",
+        RISK_MEDIO: "Consumo de energía moderadamente alto. Verifique la eficiencia operativa.",
+        RISK_ALTO: "Consumo de energía inusualmente alto. Monitoree la eficiencia.",
+        RISK_CRITICO: "Pico de energía crítico. Posible cortocircuito o sobreesfuerzo del motor. Verifique protecciones eléctricas.",
     },
     "voltage": {
-        RISK_BAJO: "Voltage within nominal range (200-240 V).",
-        RISK_MEDIO: "Slight voltage deviation. Check electrical grid stability.",
-        RISK_ALTO: "Voltage instability (outside 200 V - 240 V range). Risk to electronic components.",
-        RISK_CRITICO: "Critical electrical voltage fluctuation. Disconnect equipment to prevent damage.",
+        RISK_BAJO: "Voltaje dentro del rango nominal (200-240 V).",
+        RISK_MEDIO: "Desviación leve de voltaje. Verifique la estabilidad de la red eléctrica.",
+        RISK_ALTO: "Inestabilidad de voltaje (fuera del rango 200 V - 240 V). Riesgo para componentes electrónicos.",
+        RISK_CRITICO: "Fluctuación crítica de voltaje. Desconecte el equipo para evitar daños.",
     },
     "current": {
-        RISK_BAJO: "Motor current within operating range.",
-        RISK_MEDIO: "Moderately high motor current. Monitor winding temperature.",
-        RISK_ALTO: "Motor current above recommended limit. Check load and winding condition.",
-        RISK_CRITICO: "Critical amperage (electrical overload). Automatic protection shutdown active.",
+        RISK_BAJO: "Corriente del motor dentro del rango operativo.",
+        RISK_MEDIO: "Corriente del motor moderadamente alta. Monitoree la temperatura del bobinado.",
+        RISK_ALTO: "Corriente del motor por encima del límite recomendado. Verifique carga y estado del bobinado.",
+        RISK_CRITICO: "Amperaje crítico (sobrecarga eléctrica). Apagado automático por protección activo.",
     },
     "motor_stuck": {
-        RISK_CRITICO: "Elevator motor shaft stuck/blocked. Stop cabin and perform emergency passenger release.",
+        RISK_CRITICO: "Eje del motor del elevador atascado/bloqueado. Detenga la cabina y realice liberación de emergencia de pasajeros.",
     },
     "trip_count": {
-        RISK_BAJO: "Trip count within normal range.",
-        RISK_MEDIO: "High trip count. Schedule traction system inspection soon.",
-        RISK_ALTO: "High trip count. Check wear on elevator mechanical components.",
-        RISK_CRITICO: "Critical trip count. Mandatory technical inspection before continuing operation.",
+        RISK_BAJO: "Conteo de viajes dentro del rango normal.",
+        RISK_MEDIO: "Conteo de viajes alto. Programe inspección del sistema de tracción próximamente.",
+        RISK_ALTO: "Conteo de viajes alto. Verifique desgaste en componentes mecánicos del elevador.",
+        RISK_CRITICO: "Conteo de viajes crítico. Inspección técnica obligatoria antes de continuar operación.",
     },
     "position": {
-        RISK_BAJO: "Elevator position within normal operating range.",
-        RISK_MEDIO: "Elevator position in caution zone. Monitor displacement.",
-        RISK_ALTO: "Elevator position outside safe range. Check limit system.",
-        RISK_CRITICO: "Critical position detected. Stop elevator and check guide system.",
+        RISK_BAJO: "Posición del elevador dentro del rango operativo normal.",
+        RISK_MEDIO: "Posición del elevador en zona de precaución. Monitoree el desplazamiento.",
+        RISK_ALTO: "Posición del elevador fuera del rango seguro. Verifique el sistema de límites.",
+        RISK_CRITICO: "Posición crítica detectada. Detenga el elevador y verifique el sistema de guía.",
     },
     "door_status": {
-        RISK_BAJO: "Normal door status.",
-        RISK_MEDIO: "Irregular door behavior. Monitor opening and closing cycles.",
-        RISK_ALTO: "Door closing failure. Check interlocking mechanism.",
-        RISK_CRITICO: "Door unresponsive. Stop operation and inspect door system.",
+        RISK_BAJO: "Estado de puerta normal.",
+        RISK_MEDIO: "Comportamiento irregular de puerta. Monitoree ciclos de apertura y cierre.",
+        RISK_ALTO: "Fallo de cierre de puerta. Verifique mecanismo de enclavamiento.",
+        RISK_CRITICO: "Puerta sin respuesta. Detenga operación e inspeccione el sistema de puerta.",
     },
     "rationing": {
-        RISK_CRITICO: "Flow rate below minimum admissible (rationing active). Restrict general consumption.",
+        RISK_CRITICO: "Caudal por debajo del mínimo admisible (racionamiento activo). Restrinja el consumo general.",
     },
 }
 
