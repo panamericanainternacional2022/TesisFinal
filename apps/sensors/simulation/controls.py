@@ -3,6 +3,7 @@ import time
 import logging
 from typing import Optional
 
+from apps.sensors.sensor_config import PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS
 from apps.sensors.simulation.constants import (
     DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
     CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
@@ -47,8 +48,8 @@ def inject_fault(edificio_id: int, device: str, fault_type: str) -> str:
     if (device == "pump" and not sim.has_pump) or (device == "elevator" and not sim.has_elevator):
         raise DeviceNotInBuildingError(device)
     valid_faults = {
-        "pump": ("dry_run", "blocked_discharge", "pipe_burst", "cavitation", "overheat", "power_surge", "power_outage"),
-        "elevator": ("motor_stuck", "door_blocked", "overspeed"),
+        "pump": PUMP_FAULT_KEYS,
+        "elevator": ELEVATOR_FAULT_KEYS,
     }
     if fault_type not in valid_faults[device]:
         raise InvalidFaultTypeError(device, fault_type)

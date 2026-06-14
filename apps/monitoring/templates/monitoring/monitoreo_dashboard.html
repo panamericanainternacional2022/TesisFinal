@@ -643,13 +643,9 @@
                     <div style="display:flex; gap:6px;">
                         <select id="simFaultPump" style="height:44px; flex:1;">
                             <option value="">Ninguna</option>
-                            <option value="dry_run">Sequía (dry run)</option>
-                            <option value="blocked_discharge">Descarga bloqueada</option>
-                            <option value="pipe_burst">Ruptura de tubería</option>
-                            <option value="cavitation">Cavitación</option>
-                            <option value="overheat">Sobrecalentamiento</option>
-                            <option value="power_surge">Sobrecarga eléctrica</option>
-                            <option value="power_outage">Corte eléctrico</option>
+                            {% for key, name in PUMP_FAULT_OPTIONS %}
+                            <option value="{{ key }}">{{ name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -658,9 +654,9 @@
                     <div style="display:flex; gap:6px;">
                         <select id="simFaultElevator" style="height:44px; flex:1;">
                             <option value="">Ninguna</option>
-                            <option value="motor_stuck">Motor atascado</option>
-                            <option value="door_blocked">Puerta bloqueada</option>
-                            <option value="overspeed">Exceso de velocidad</option>
+                            {% for key, name in ELEVATOR_FAULT_OPTIONS %}
+                            <option value="{{ key }}">{{ name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                 </div>
@@ -928,9 +924,9 @@
                 } else {
                     div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)}</div>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                            <div class="form-group"><label class="form-label">Bajo</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
-                            <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
-                            <div class="form-group"><label class="form-label">Alto</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
+                            <div class="form-group"><label class="form-label">{{ RISK_BAJO }}</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
+                            <div class="form-group"><label class="form-label">{{ RISK_MEDIO }}</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
+                            <div class="form-group"><label class="form-label">{{ RISK_ALTO }}</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
                         </div><input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
                 }
                 panel.appendChild(div);

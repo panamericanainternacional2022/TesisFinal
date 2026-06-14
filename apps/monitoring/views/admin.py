@@ -11,7 +11,10 @@ from .shared import (
     build_query_string, parse_notifications, extract_variables,
     filter_by_variable, ALL_SEVERITIES,
 )
-from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO, PAGE_SIZE
+from apps.sensors.sensor_config import (
+    RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
+    PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, PAGE_SIZE,
+)
 
 
 @login_required
@@ -47,6 +50,8 @@ def render_admin_monitoring(request) -> HttpResponse:
             "config_json": build_monitoring_config(building_id),
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
             "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "PUMP_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in PUMP_FAULT_KEYS],
+            "ELEVATOR_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in ELEVATOR_FAULT_KEYS],
         },
     )
 

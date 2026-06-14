@@ -27,7 +27,7 @@
                                 {{ total_count }}
                             </span>
                         </div>
-                        <p style="margin-top:6px;">Historial completo de todos los eventos del sistema: informativo, bajo, medio, alto y crítico.</p>
+                        <p style="margin-top:6px;">Historial completo de todos los eventos del sistema: {{ RISK_INFO|lower }}, {{ RISK_BAJO|lower }}, {{ RISK_MEDIO|lower }}, {{ RISK_ALTO|lower }} y {{ RISK_CRITICO|lower }}.</p>
 
                         <!-- ── Barra de controles ─────────────────────── -->
                         <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3);">

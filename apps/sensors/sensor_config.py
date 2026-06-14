@@ -384,3 +384,6 @@ FAULT_NAMES_ES = {
     "door_blocked":       "Puerta bloqueada",
     "overspeed":          "Exceso de velocidad",
 }
+
+PUMP_FAULT_KEYS = ("dry_run", "blocked_discharge", "pipe_burst", "cavitation", "overheat", "power_surge", "power_outage")
+ELEVATOR_FAULT_KEYS = ("motor_stuck", "door_blocked", "overspeed")
