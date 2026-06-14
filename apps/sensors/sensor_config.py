@@ -156,7 +156,7 @@ ELEVATOR_VARS = [
 
 # ─── Listas derivadas (sin redundancia de nombres) ────────────────────────
 # Variables numéricas de elevador útiles para estadísticas
-_ELEVATOR_NUMERIC = [v for v in ELEVATOR_VARS if v not in NO_RISK_VARS]
+_ELEVATOR_NUMERIC = [v for v in ELEVATOR_VARS if v not in NO_RISK_VARS and v not in BOOLEAN_VARS and v not in ENUM_VARS]
 
 # Estadísticas de la UI en vivo: todas las variables numéricas de ambos dispositivos
 STATS_VARS = PUMP_VARS + _ELEVATOR_NUMERIC

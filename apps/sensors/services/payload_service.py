@@ -43,7 +43,7 @@ def _compute_stats(history: list, max_entries: int = MAX_HISTORY_SIZE) -> dict[s
         vals = [
             r["value"]
             for r in recent
-            if r["variable"] == var and isinstance(r["value"], (int, float))
+            if r["variable"] == var and isinstance(r["value"], (int, float)) and not isinstance(r["value"], bool)
         ]
         if vals:
             stats[var] = {

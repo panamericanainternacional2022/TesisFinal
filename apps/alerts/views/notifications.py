@@ -3,6 +3,7 @@ from django.http import HttpRequest
 from django.db.models import Q
 from django.utils import timezone
 from django.core.paginator import Paginator
+import datetime as dt
 
 from apps.core.auth_decorators import login_required
 from apps.users.models import Usuario
@@ -55,7 +56,7 @@ def notifications_view(request: HttpRequest):
 
     alerts_cleared_at = request.session.get("alerts_cleared_at")
     if alerts_cleared_at:
-        cleared_dt = timezone.datetime.fromtimestamp(alerts_cleared_at, tz=timezone.utc)
+        cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
         notifications = notifications.filter(date__gt=cleared_dt)
 
     notifications = (
