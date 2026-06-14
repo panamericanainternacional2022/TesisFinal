@@ -140,8 +140,12 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
         return json_error("Missing field 'enabled'")
 
     from apps.sensors.simulation.globals import simulators
-    if edificio_id and edificio_id in simulators:
-        sim = simulators[edificio_id]
+    try:
+        eid = int(edificio_id) if edificio_id is not None else None
+    except (ValueError, TypeError):
+        eid = None
+    if eid and eid in simulators:
+        sim = simulators[eid]
         sim.alert_enabled = bool(enabled)
         return json_ok({"alert_enabled": sim.alert_enabled})
     else:
@@ -193,7 +197,7 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
     sim = next(iter(simulators.values()), None)
     if not sim:
-        return json_error("Simulator not found", 404)
+        return json_error("No hay un simulador activo. Inicie la simulación primero.", 503)
 
     subject, body = _build_report_email_body(risk_level, sim)
 
@@ -221,11 +225,15 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     risk_level = data.get("risk_level", RISK_INFO)
 
     from apps.sensors.simulation.globals import simulators
-    sim = simulators.get(edificio_id) if edificio_id else next(iter(simulators.values()), None)
+    try:
+        eid = int(edificio_id) if edificio_id is not None else None
+    except (ValueError, TypeError):
+        eid = None
+    sim = simulators.get(eid) if eid else next(iter(simulators.values()), None)
     if not sim:
-        return json_error("Simulator not found", 404)
+        return json_error("No hay un simulador activo. Inicie la simulación primero.", 503)
 
-    emails = get_building_emails(edificio_id or sim.edificio_id)
+    emails = get_building_emails(eid or sim.edificio_id)
     if not emails:
         return json_error("No subscribers for this building")
 
