@@ -5,7 +5,9 @@ from django.http import HttpResponse
 from apps.core.auth_decorators import login_required
 
 from .pdf_rendering import (
+    _create_report_pdf,
     get_column_config,
+    make_pdf_response,
     render_event_rows,
     render_header,
     render_severity_legend,
@@ -46,34 +48,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
     range_label = _get_period_label(params["period"], params["date_from"], params["date_to"])
 
     try:
-        from fpdf import FPDF
-
-        class HistoryPDF(FPDF):
-            def header(self) -> None:
-                if self.page_no() == 1:
-                    self.set_fill_color(10, 10, 10)
-                    self.rect(10, 10, 190, 2, "F")
-                    self.ln(5)
-                else:
-                    _pdf_font(self, "I", 9)
-                    self.set_text_color(95, 95, 95)
-                    self.cell(0, 10, "INES - Historial de eventos", 0, 0, "L")
-                    self.cell(0, 10, f"Página {self.page_no()} / {{nb}}", 0, 1, "R")
-                    self.set_draw_color(10, 10, 10)
-                    self.set_line_width(0.6)
-                    self.line(10, 18, 200, 18)
-                    self.ln(2)
-
-            def footer(self) -> None:
-                self.set_y(-15)
-                _pdf_font(self, "I", 9)
-                self.set_text_color(95, 95, 95)
-                self.cell(0, 10, f"Generado por INES - Página {self.page_no()} / {{nb}}", 0, 0, "C")
-
-        pdf = HistoryPDF()
-        pdf.alias_nb_pages()
-        pdf.set_line_width(0.6)
-        pdf.add_page()
+        pdf = _create_report_pdf("Historial de eventos")
 
         import datetime as dt
         now = dt.datetime.now()
@@ -118,20 +93,8 @@ def history_pdf_view(request: Any) -> HttpResponse:
             pdf.set_text_color(95, 95, 95)
             pdf.cell(0, 9, "No se encontraron eventos con los filtros aplicados.", ln=1)
 
-        pdf_raw = pdf.output()
-        pdf_bytes = (
-            bytes(pdf_raw)
-            if isinstance(pdf_raw, (bytearray, memoryview))
-            else pdf_raw.encode("utf-8")
-            if isinstance(pdf_raw, str)
-            else bytes(pdf_raw)
-        )
-
-        now_dt = now
-        filename = f"historial_{now_dt.strftime('%Y%m%d_%H%M%S')}.pdf"
-        response = HttpResponse(pdf_bytes, content_type="application/pdf")
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
-        return response
+        filename = f"historial_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
+        return make_pdf_response(pdf, filename)
 
     except ImportError:
         return HttpResponse(

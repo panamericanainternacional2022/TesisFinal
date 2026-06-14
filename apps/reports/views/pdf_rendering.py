@@ -1,6 +1,8 @@
 import datetime as dt
 from typing import Any
 
+from django.http import HttpResponse
+
 from .shared import (
     MAX_PDF_EVENTS,
     RISK_STYLES,
@@ -102,6 +104,54 @@ def render_table_header(pdf: Any, column_widths: list[int], column_aligns: list[
         fills=[(10, 10, 10)] * len(column_widths),
         colors=[(255, 255, 255)] * len(column_widths),
     )
+
+
+def _create_report_pdf(title: str) -> Any:
+    from fpdf import FPDF
+
+    class _ReportPDF(FPDF):
+        _title = title
+
+        def header(self) -> None:
+            if self.page_no() == 1:
+                self.set_fill_color(10, 10, 10)
+                self.rect(10, 10, 190, 2, "F")
+                self.ln(5)
+            else:
+                _pdf_font(self, "I", 9)
+                self.set_text_color(95, 95, 95)
+                self.cell(0, 10, f"INES - {self._title}", 0, 0, "L")
+                self.cell(0, 10, f"Página {self.page_no()} / {{nb}}", 0, 1, "R")
+                self.set_draw_color(10, 10, 10)
+                self.set_line_width(0.6)
+                self.line(10, 18, 200, 18)
+                self.ln(2)
+
+        def footer(self) -> None:
+            self.set_y(-15)
+            _pdf_font(self, "I", 9)
+            self.set_text_color(95, 95, 95)
+            self.cell(0, 10, f"Generado por INES - Página {self.page_no()} / {{nb}}", 0, 0, "C")
+
+    pdf = _ReportPDF()
+    pdf.alias_nb_pages()
+    pdf.set_line_width(0.6)
+    pdf.add_page()
+    return pdf
+
+
+def make_pdf_response(pdf: Any, filename: str) -> HttpResponse:
+    pdf_raw = pdf.output()
+    pdf_bytes = (
+        bytes(pdf_raw)
+        if isinstance(pdf_raw, (bytearray, memoryview))
+        else pdf_raw.encode("utf-8")
+        if isinstance(pdf_raw, str)
+        else bytes(pdf_raw)
+    )
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="{filename}"'
+    return response
 
 
 def _get_equipment_name(notif: Any) -> str:
