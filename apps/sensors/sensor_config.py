@@ -70,30 +70,52 @@ RISK_NORMAL  = "Normal"
 
 SEVERITY_LEVELS = [RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO]
 
-# ─── Metadatos de visualización por nivel de riesgo ───────────────────────
-# Cada entrada: (risk, (bg_rgb), (text_rgb), "descripción")
+# ─── Fuente única de colores por nivel de riesgo ───────────────────────
+# Contiene colores para PDF (RGB) y email (hex) con descripción en español.
+# De aquí se derivan SEVERITY_DISPLAY_LEVELS, RISK_STYLES y EMAIL_COLOR_PALETTE.
+RISK_COLORS = {
+    RISK_INFO: {
+        "pdf":     {"bg": (249, 250, 251), "text": (55, 65, 81)},
+        "email":   {"bg": "#f9fafb", "border": "#e5e7eb", "text": "#374151"},
+        "desc":    "Eventos informativos del sistema",
+    },
+    RISK_BAJO: {
+        "pdf":     {"bg": (240, 253, 244), "text": (22, 101, 52)},
+        "email":   {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
+        "desc":    "Valores normales de funcionamiento",
+    },
+    RISK_MEDIO: {
+        "pdf":     {"bg": (255, 251, 235), "text": (146, 64, 14)},
+        "email":   {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
+        "desc":    "Cerca del límite sugerido",
+    },
+    RISK_ALTO: {
+        "pdf":     {"bg": (255, 247, 237), "text": (194, 65, 12)},
+        "email":   {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+        "desc":    "Fuera de rango seguro",
+    },
+    RISK_CRITICO: {
+        "pdf":     {"bg": (254, 242, 242), "text": (153, 27, 27)},
+        "email":   {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+        "desc":    "Estado de peligro, acción inmediata",
+    },
+}
+
+# ─── Estructuras derivadas (compatibilidad con código existente) ──────
 SEVERITY_DISPLAY_LEVELS = [
-    (RISK_INFO,    (249, 250, 251), (55, 65, 81),   "Eventos informativos del sistema"),
-    (RISK_BAJO,    (240, 253, 244), (22, 101, 52),   "Valores normales de funcionamiento"),
-    (RISK_MEDIO,   (255, 251, 235), (146, 64, 14),   "Cerca del límite sugerido"),
-    (RISK_ALTO,    (255, 247, 237), (194, 65, 12),   "Fuera de rango seguro"),
-    (RISK_CRITICO, (254, 242, 242), (153, 27, 27),   "Estado de peligro, acción inmediata"),
+    (risk, v["pdf"]["bg"], v["pdf"]["text"], v["desc"])
+    for risk, v in RISK_COLORS.items()
 ]
 
 RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
-    RISK_INFO:    ((249, 250, 251), (55, 65, 81)),
-    RISK_BAJO:    ((240, 253, 244), (22, 101, 52)),
-    RISK_MEDIO:   ((255, 251, 235), (146, 64, 14)),
-    RISK_ALTO:    ((255, 247, 237), (194, 65, 12)),
-    RISK_CRITICO: ((254, 242, 242), (153, 27, 27)),
+    risk: (v["pdf"]["bg"], v["pdf"]["text"])
+    for risk, v in RISK_COLORS.items()
 }
 
-# ─── Paleta de colores para emails (CSS hex) ─────────────────────────
 EMAIL_COLOR_PALETTE: dict[str, dict[str, str]] = {
-    RISK_BAJO:    {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
-    RISK_MEDIO:   {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
-    RISK_ALTO:    {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
-    RISK_CRITICO: {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+    risk: v["email"]
+    for risk, v in RISK_COLORS.items()
+    if risk != RISK_INFO  # Info no se usa en alertas de email
 }
 EMAIL_FALLBACK_COLORS: dict[str, str] = {
     "bg": "#f5f5f5", "border": "#e0e0e0", "text": "#6b6b6b",

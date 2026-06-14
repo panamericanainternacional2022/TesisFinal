@@ -3,6 +3,7 @@ from apps.alerts.services.email_sender import (
     get_building_emails,
     send_email_alert,
     build_standard_email_body,
+    build_activation_email_html,
     EmailConfig,
     EmailAttachment,
 )

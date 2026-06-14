@@ -38,25 +38,23 @@ def _build_alert_email_subject(variable: str, risk_level: str) -> str:
 def _build_alert_email_body(
     variable: str, value: float, risk_level: str, recommended_action: str
 ) -> str:
-    from apps.alerts.services.alert_service import get_unit
+    from apps.alerts.services.alert_service import build_standard_email_body, get_unit
     var_display = translate_variable_to_spanish(variable)
     timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
     unit = get_unit(variable)
-    return (
-        f"Reporte automático de anomalía\n\n"
-        f"Se ha detectado una lectura fuera de los rangos operativos recomendados "
-        f"en los sensores de monitoreo de infraestructura.\n\n"
-        f"DETALLES DEL EVENTO:\n"
-        f"{'':->44}\n"
-        f"Fecha y hora:     {timestamp}\n"
-        f"Parámetro:        {var_display}\n"
-        f"Lectura:          {value} {unit}\n"
-        f"Nivel de riesgo:  {risk_level}\n\n"
-        f"MEDIDAS CORRECTIVAS RECOMENDADAS:\n"
-        f"{'':->44}\n"
-        f"Acción:         {recommended_action}\n\n"
-        f"Este es un mensaje de contingencia generado automáticamente. "
-        f"Proceda con la inspección técnica correspondiente."
+    return build_standard_email_body(
+        titulo="Reporte automático de anomalía",
+        contexto=(
+            "Se ha detectado una lectura fuera de los rangos operativos recomendados "
+            "en los sensores de monitoreo de infraestructura."
+        ),
+        detalles={
+            "Fecha y hora":     timestamp,
+            "Parámetro":        var_display,
+            "Lectura":          f"{value} {unit}".strip(),
+            "Nivel de riesgo":  risk_level,
+        },
+        accion=recommended_action,
     )
 
 
