@@ -13,6 +13,7 @@ from .utils import (
     translate_variable_to_spanish,
 )
 from .protection import enter_protection_mode
+from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ def _send_alert_email(
 ) -> float:
     from apps.alerts.services.alert_service import send_email_alert
     new_les = last_email_time
-    send_email = risk_level in ("Alto", "Critical")
+    send_email = risk_level in (RISK_ALTO, RISK_CRITICO)
     now = time.time()
     if send_email and now - last_email_time > COOLDOWN_SECONDS:
         new_les = now
@@ -108,7 +109,7 @@ def send_alert(
             f"[SIM] {time.strftime('%H:%M:%S')} ALERT: {variable}={value} level={risk_level} mapped={device_target}"
         )
 
-    if risk_level in ("Alto", "Critical"):
+    if risk_level in (RISK_ALTO, RISK_CRITICO):
         if device_target:
             from apps.sensors.sensor_config import RISK_NAMES_ES
             enter_protection_mode(
@@ -144,5 +145,5 @@ def check_rationing(flow_rate: float, sim: Optional['BuildingSimulator'] = None)
     from apps.sensors.simulation.constants import RATIONING_THRESHOLD
     from apps.alerts.services.alert_service import get_professional_action
     if flow_rate < RATIONING_THRESHOLD:
-        action = get_professional_action("rationing", "Critical", flow_rate)
-        send_alert("rationing", flow_rate, "Critical", action, sim=sim)
+        action = get_professional_action("rationing", RISK_CRITICO, flow_rate)
+        send_alert("rationing", flow_rate, RISK_CRITICO, action, sim=sim)

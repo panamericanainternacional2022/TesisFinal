@@ -54,14 +54,24 @@ UNITS = {
     "rationing":    "L/s",
 }
 
+# ─── Niveles de riesgo (constantes) ───────────────────────────────────────
+RISK_INFO    = "Info"
+RISK_BAJO    = "Bajo"
+RISK_MEDIO   = "Medio"
+RISK_ALTO    = "Alto"
+RISK_CRITICO = "Crítico"
+RISK_NORMAL  = "Normal"
+
+SEVERITY_LEVELS = [RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO]
+
 # ─── Niveles de riesgo en español (forma adjetiva femenina) ───────────────
 RISK_NAMES_ES = {
-    "Crítico": "crítica",
-    "Alto":    "alta",
-    "Medio":   "media",
-    "Bajo":    "baja",
-    "Normal":  "normal",
-    "Info":    "informativa",
+    RISK_CRITICO: "crítica",
+    RISK_ALTO:    "alta",
+    RISK_MEDIO:   "media",
+    RISK_BAJO:    "baja",
+    RISK_NORMAL:  "normal",
+    RISK_INFO:    "informativa",
 }
 
 # ─── Nombres de dispositivos en español ───────────────────────────────────
