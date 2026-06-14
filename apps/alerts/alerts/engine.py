@@ -32,7 +32,7 @@ def _determine_device_target(variable: str) -> Optional[str]:
 
 def _build_alert_email_subject(variable: str, risk_level: str) -> str:
     var_display = translate_variable_to_spanish(variable)
-    return f"[Monitoring alert] Level {risk_level.lower()}: anomaly in {var_display.lower()}"
+    return f"[INES] Alerta - {var_display} - Nivel {risk_level}"
 
 
 def _build_alert_email_body(
@@ -40,23 +40,23 @@ def _build_alert_email_body(
 ) -> str:
     from apps.alerts.services.alert_service import get_unit
     var_display = translate_variable_to_spanish(variable)
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
     unit = get_unit(variable)
     return (
-        f"AUTOMATIC ANOMALY REPORT\n\n"
-        f"A reading outside the recommended operational ranges has been detected "
-        f"in the infrastructure monitoring sensors.\n\n"
-        f"EVENT DETAILS:\n"
+        f"Reporte automático de anomalía\n\n"
+        f"Se ha detectado una lectura fuera de los rangos operativos recomendados "
+        f"en los sensores de monitoreo de infraestructura.\n\n"
+        f"DETALLES DEL EVENTO:\n"
         f"{'':->44}\n"
-        f"Date/Time:      {timestamp}\n"
-        f"Parameter:      {var_display}\n"
-        f"Reading:        {value} {unit}\n"
-        f"Risk level:     {risk_level.lower()}\n\n"
-        f"SUGGESTED CORRECTIVE MEASURES:\n"
+        f"Fecha y hora:     {timestamp}\n"
+        f"Parámetro:        {var_display}\n"
+        f"Lectura:          {value} {unit}\n"
+        f"Nivel de riesgo:  {risk_level}\n\n"
+        f"MEDIDAS CORRECTIVAS RECOMENDADAS:\n"
         f"{'':->44}\n"
-        f"Action:         {recommended_action}\n\n"
-        f"This is an automatically generated contingency message. "
-        f"Please proceed with the corresponding technical inspection."
+        f"Acción:         {recommended_action}\n\n"
+        f"Este es un mensaje de contingencia generado automáticamente. "
+        f"Proceda con la inspección técnica correspondiente."
     )
 
 

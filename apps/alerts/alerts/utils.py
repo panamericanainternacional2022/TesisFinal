@@ -16,7 +16,7 @@ SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD", "")
 
 def translate_device_to_spanish(device: str) -> str:
     from apps.sensors.sensor_config import DEVICE_NAMES_ES
-    return DEVICE_NAMES_ES.get(device, device)
+    return DEVICE_NAMES_ES.get(device, device).capitalize()
 
 
 def translate_variable_to_spanish(variable: str) -> str:

@@ -13,7 +13,7 @@ _ACTIVATION_EMAIL_HTML = """<!DOCTYPE html>
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Account Activation - INES System</title>
+  <title>Activación de cuenta - Sistema INES</title>
 </head>
 <body style="margin: 0; padding: 0; background-color: #f5f5f5; font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; color: #0a0a0a;">
   <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #f5f5f5; padding: 24px 0;">
@@ -22,13 +22,13 @@ _ACTIVATION_EMAIL_HTML = """<!DOCTYPE html>
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border: 1px solid #0a0a0a; border-collapse: collapse;">
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
-              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">SISTEMA INES</span>
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; color: #0a0a0a;">Sistema INES</span>
             </td>
           </tr>
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #f5f5f5; border-left: 6px solid #0a0a0a;">
-              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #5e5e5e; display: block; margin-bottom: 4px;">SYSTEM ACCESS</span>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Account Activation</h1>
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: #5e5e5e; display: block; margin-bottom: 4px;">Acceso al sistema</span>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Activación de cuenta</h1>
             </td>
           </tr>
           <tr>
@@ -37,7 +37,7 @@ _ACTIVATION_EMAIL_HTML = """<!DOCTYPE html>
               <p style="margin: 0 0 16px 0;">Se ha registrado su usuario en el Sistema de Monitoreo INES. Para poder acceder y utilizar todas las funciones de monitoreo y alertas de infraestructura de su edificio, es necesario que complete su registro.</p>
               <p style="margin: 0 0 24px 0;">Por favor, haga clic en el bot&oacute;n a continuaci&oacute;n para definir su nombre de usuario y contrase&ntilde;a:</p>
               <div style="margin: 24px 0; text-align: left;">
-                <a href="{link}" target="_blank" style="background-color: #0a0a0a; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; display: inline-block; border-radius: 0px; border: 1px solid #0a0a0a;">Completar Registro</a>
+                <a href="{link}" target="_blank" style="background-color: #0a0a0a; color: #ffffff; text-decoration: none; padding: 12px 24px; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; display: inline-block; border-radius: 0px; border: 1px solid #0a0a0a;">Completar registro</a>
               </div>
               <div style="margin: 24px 0; padding: 16px; background-color: #f5f5f5; border: 1px solid #e0e0e0; font-size: 12px; color: #5e5e5e;">
                 <p style="margin: 0 0 8px 0; font-weight: 700;">Informaci&oacute;n de seguridad:</p>
@@ -68,8 +68,8 @@ Para completar su registro y poder acceder al sistema, por favor haga clic en el
 
 {link}
 
-Este enlace es valido por 24 horas.
-Si usted no solicito este registro, por favor ignore este correo.
+Este enlace es válido por 24 horas.
+Si usted no solicitó este registro, por favor ignore este correo.
 """
 
 
@@ -140,7 +140,7 @@ def send_activation_email(email: str, user_id: int, base_url: str) -> str:
         send_email_raw(
             from_addr="",
             to_addrs=[email],
-            subject="[INES] Activacion y Acceso al Sistema",
+            subject="[INES] Activación y acceso al sistema",
             html_body=html_body,
             plain_body=plain_body,
         )

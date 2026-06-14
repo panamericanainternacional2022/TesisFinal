@@ -26,23 +26,25 @@ def _send_protection_email(
     now_ts = time.time()
     if now_ts - last_email_time <= COOLDOWN_SECONDS:
         return last_email_time
-    timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-    subject = f"[Protección activada] Operación forzada: {targets_text_es}"
+    timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
+    subject = f"[INES] Protección - {targets_text_es}"
     body = (
-        f"INFORME DE PROTECCIÓN AUTOMÁTICA\n\n"
+        f"Reporte de protección automática\n\n"
         f"El sistema de protección automática ha detectado una condición crítica "
-        f"y ha activado la operación forzada / estado seguro en los siguientes dispositivos.\n\n"
+        f"y ha activado la operación forzada en los siguientes dispositivos.\n\n"
         f"DETALLES DEL EVENTO:\n"
         f"{'':->44}\n"
-        f"Fecha/Hora:     {timestamp}\n"
+        f"Fecha y hora:   {timestamp}\n"
         f"Dispositivos:   {targets_text_es}\n"
         f"Motivo:         {reason or 'condición crítica detectada'}\n"
         f"Estado:         protección activada\n\n"
-        f"MEDIDAS CORRECTIVAS SUGERIDAS:\n"
+        f"MEDIDAS CORRECTIVAS RECOMENDADAS:\n"
         f"{'':->44}\n"
-        f"Acción: Inspeccione los dispositivos indicados antes de reanudar la operación. "
-        f"Los dispositivos se restaurarán automáticamente después del período de protección.\n\n"
-        f"Este es un mensaje de contingencia generado automáticamente por el módulo de protección."
+        f"Acción:         Inspeccione los dispositivos indicados antes de reanudar la "
+        f"operación. Los dispositivos se restaurarán automáticamente después del "
+        f"período de protección.\n\n"
+        f"Este es un mensaje de contingencia generado automáticamente por el "
+        f"Sistema de Monitoreo INES. Por favor, no responda a este correo."
     )
     threading.Thread(
         target=send_email_alert, args=(RISK_CRITICO, subject, body), daemon=True
@@ -70,7 +72,7 @@ def enter_protection_mode(
         pe[device] = now + PROTECTION_HOLD_SECONDS
 
     reason_text = f" ({reason})" if reason else ""
-    targets_text_es = " and ".join(translate_device_to_spanish(d) for d in sorted(targets))
+    targets_text_es = " y ".join(translate_device_to_spanish(d) for d in sorted(targets))
     targets_text_raw = " and ".join(sorted(targets))
     logger.warning("PROTECTION ACTIVATED%s. Forced operation: %s.", reason_text, targets_text_raw)
 

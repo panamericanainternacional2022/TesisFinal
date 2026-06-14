@@ -2,6 +2,7 @@ from apps.alerts.services.email_sender import (
     get_unit,
     get_building_emails,
     send_email_alert,
+    build_standard_email_body,
     EmailConfig,
     EmailAttachment,
 )
@@ -18,6 +19,7 @@ __all__ = [
     "get_unit",
     "get_building_emails",
     "send_email_alert",
+    "build_standard_email_body",
     "EmailConfig",
     "EmailAttachment",
     "generate_recommendations",

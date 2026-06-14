@@ -138,6 +138,30 @@ def _get_email_colors(risk_level: str) -> Dict[str, str]:
     return EMAIL_COLOR_PALETTE.get(risk_level, EMAIL_FALLBACK_COLORS)
 
 
+def build_standard_email_body(
+    titulo: str,
+    detalles: Optional[Dict[str, str]] = None,
+    accion: str = "",
+    contexto: str = "",
+) -> str:
+    lines = [titulo, ""]
+    if contexto:
+        lines.append(contexto)
+        lines.append("")
+    if detalles:
+        lines.append("DETALLES DEL EVENTO:")
+        lines.append("-" * 44)
+        for k, v in detalles.items():
+            lines.append(f"{k}:{' ' * (18 - len(k))}{v}")
+        lines.append("")
+    if accion:
+        lines.append("MEDIDAS CORRECTIVAS RECOMENDADAS:")
+        lines.append("-" * 44)
+        lines.append(f"Acción:         {accion}")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def _build_html_content(body: str, risk_level: str) -> str:
     colors = _get_email_colors(risk_level)
     lines = body.strip().split("\n")
@@ -151,11 +175,11 @@ def _build_html_content(body: str, risk_level: str) -> str:
         line_strip = line.strip()
         if not line_strip:
             continue
-        if "EVENT DETAILS:" in line_strip:
+        if "DETALLES DEL EVENTO:" in line_strip:
             in_details = True
             in_actions = False
             continue
-        elif "SUGGESTED CORRECTIVE MEASURES:" in line_strip:
+        elif "MEDIDAS CORRECTIVAS RECOMENDADAS:" in line_strip:
             in_details = False
             in_actions = True
             continue
@@ -177,24 +201,17 @@ def _build_html_content(body: str, risk_level: str) -> str:
                 if details_rows:
                     html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
         elif in_actions:
-            if line_strip.startswith("Action:"):
+            if line_strip.startswith("Acción:"):
                 action_text = line_strip.split(":", 1)[1].strip()
             else:
                 action_text += " " + line_strip
         else:
-            if "SYSTEM" in line_strip and "REPORT" in line_strip:
-                html_paragraphs.append(
-                    f"<h2 style='margin: 0 0 16px 0; font-size: 16px; font-weight: 700; "
-                    f"text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid #0a0a0a; "
-                    f"padding-bottom: 8px;'>{line_strip}</h2>"
-                )
-            else:
-                html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
+            html_paragraphs.append(f"<p style='margin: 0 0 12px 0;'>{line_strip}</p>")
 
     formatted_content = "".join(html_paragraphs)
     if details_rows:
         formatted_content += f"""
-        <h3 style="margin: 20px 0 10px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: #0a0a0a;">Event Details</h3>
+        <h3 style="margin: 20px 0 10px 0; font-size: 13px; font-weight: 700; letter-spacing: 0.06em; color: #0a0a0a;">Detalles del evento</h3>
         <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; margin-bottom: 24px; font-size: 13px;">
           {"".join(details_rows)}
         </table>
@@ -202,7 +219,7 @@ def _build_html_content(body: str, risk_level: str) -> str:
     if action_text:
         formatted_content += f"""
         <div style="margin: 24px 0; padding: 16px; background-color: {colors['bg']}; border: 1px solid {colors['border']}; border-left: 4px solid {colors['text']};">
-          <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: {colors['text']}; display: block; margin-bottom: 6px;">Recommended Corrective Measure</span>
+          <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.06em; color: {colors['text']}; display: block; margin-bottom: 6px;">Medida correctiva recomendada</span>
           <p style="margin: 0; font-size: 13px; font-weight: 500; color: #0a0a0a; line-height: 1.4;">{action_text}</p>
         </div>
         """
@@ -221,13 +238,13 @@ def _build_html_content(body: str, risk_level: str) -> str:
         <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #ffffff; border: 1px solid #0a0a0a; border-collapse: collapse;">
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: #ffffff;">
-              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: #0a0a0a;">Telemetry System </span>
+              <span style="font-size: 14px; font-weight: 700; letter-spacing: 0.12em; color: #0a0a0a;">Sistema INES</span>
             </td>
           </tr>
           <tr>
             <td style="padding: 24px; border-bottom: 1px solid #0a0a0a; background-color: {colors['bg']}; border-left: 6px solid {colors['text']};">
-              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: {colors['text']}; display: block; margin-bottom: 4px;">RISK LEVEL: {risk_level.upper()}</span>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Alert and Monitoring Notification </h1>
+              <span style="font-size: 11px; font-weight: 700; letter-spacing: 0.12em; color: {colors['text']}; display: block; margin-bottom: 4px;">Nivel de riesgo: {risk_level}</span>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.2; letter-spacing: -0.02em; color: #0a0a0a;">Notificación de alerta y monitoreo</h1>
             </td>
           </tr>
           <tr>
@@ -237,8 +254,8 @@ def _build_html_content(body: str, risk_level: str) -> str:
           </tr>
           <tr>
             <td style="padding: 16px 24px; border-top: 1px solid #e0e0e0; background-color: #f5f5f5; font-size: 11px; color: #6b6b6b; text-align: center;">
-              This message is automatically generated by the Control Panel.<br>
-              Please do not reply to this email.
+              Este mensaje es generado automáticamente por el Sistema de Monitoreo INES.<br>
+              Por favor, no responda a este correo.
             </td>
           </tr>
         </table>
