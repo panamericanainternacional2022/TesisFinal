@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["POST"])
 def manual_update(request) -> JsonResponse:
-    from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO
+    from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS, ENUM_VARS
     from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
     try:
         body = parse_json_body(request)
@@ -39,11 +39,12 @@ def manual_update(request) -> JsonResponse:
     if variable not in sensor_data:
         return json_error_response("Variable no válida")
 
-    if variable == "door_status":
-        if value not in ("open", "closed"):
-            return json_error_response('door_status debe ser "open" o "closed"')
-        sensor_data[variable] = value
-    elif variable == "motor_stuck":
+    if variable in ENUM_VARS:
+        if variable == "door_status":
+            if value not in ("open", "closed"):
+                return json_error_response('door_status debe ser "open" o "closed"')
+            sensor_data[variable] = value
+    elif variable in BOOLEAN_VARS:
         sensor_data[variable] = bool(value)
     else:
         try:
@@ -53,10 +54,10 @@ def manual_update(request) -> JsonResponse:
 
     from apps.core.services.risk_service import classify_risk
 
-    if variable != "motor_stuck":
-        risk, _ = classify_risk(variable, sensor_data[variable])
-    else:
+    if variable in BOOLEAN_VARS:
         risk = RISK_CRITICO if sensor_data[variable] else RISK_BAJO
+    else:
+        risk, _ = classify_risk(variable, sensor_data[variable])
 
     if risk in (RISK_ALTO, RISK_CRITICO) and sim.alert_enabled:
         from apps.alerts.services.alert_service import get_professional_action

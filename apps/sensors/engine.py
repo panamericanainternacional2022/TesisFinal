@@ -5,7 +5,7 @@ import eventlet
 
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
-    RISK_CRITICO, RISK_ALTO, RISK_BAJO,
+    RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS,
     SIM_TICK_INTERVAL, MAX_CONSECUTIVE_FAILURES,
 )
 from apps.sensors.simulation.constants import (
@@ -44,7 +44,7 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
     for var, value in sim.sensor_data.items():
         if var not in alert_vars:
             continue
-        if var == "motor_stuck":
+        if var in BOOLEAN_VARS:
             _handle_motor_stuck_alert(sim, var, value)
             continue
         from apps.alerts.alerts.engine import send_alert
@@ -80,7 +80,7 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var not in all_tracked_vars:
             continue
         risk, color = (
-            classify_risk(var, value) if var != "motor_stuck"
+            classify_risk(var, value) if var not in BOOLEAN_VARS
             else (RISK_CRITICO if value else RISK_BAJO, "red" if value else "green")
         )
         sensor_type = "Bomba" if var in PUMP_VARS else "Elevador"

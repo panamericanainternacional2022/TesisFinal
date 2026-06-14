@@ -3,12 +3,13 @@ from typing import Optional
 from apps.sensors.sensor_config import (
     RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
     NO_RISK_VARS, RISK_UNKNOWN, ZERO_IS_CRITICAL_VARS,
+    BOOLEAN_VARS,
 )
 
 
 def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tuple[str, str]:
     from apps.alerts.services.threshold_service import get_thresholds
-    if variable == "motor_stuck":
+    if variable in BOOLEAN_VARS:
         return (RISK_CRITICO, "red") if value else (RISK_BAJO, "green")
     if variable in NO_RISK_VARS:
         return RISK_BAJO, "green"

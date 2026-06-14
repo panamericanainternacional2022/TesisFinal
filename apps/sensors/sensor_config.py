@@ -88,6 +88,17 @@ RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
     RISK_CRITICO: ((254, 242, 242), (153, 27, 27)),
 }
 
+# ─── Paleta de colores para emails (CSS hex) ─────────────────────────
+EMAIL_COLOR_PALETTE: dict[str, dict[str, str]] = {
+    RISK_BAJO:    {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
+    RISK_MEDIO:   {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
+    RISK_ALTO:    {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+    RISK_CRITICO: {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+}
+EMAIL_FALLBACK_COLORS: dict[str, str] = {
+    "bg": "#f5f5f5", "border": "#e0e0e0", "text": "#6b6b6b",
+}
+
 # ─── Niveles de riesgo en español (forma adjetiva femenina) ───────────────
 RISK_NAMES_ES = {
     RISK_CRITICO: "crítica",
@@ -115,6 +126,12 @@ NO_RISK_VARS = ["position", "door_status"]
 
 # ─── Variables cuyo valor 0 se considera crítico ──────────────────────────
 ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
+
+# ─── Variables de tipo booleano (requieren manejo especial) ──────────────
+BOOLEAN_VARS = {"motor_stuck"}
+
+# ─── Variables de tipo enum (valores string fijos) ───────────────────────
+ENUM_VARS = {"door_status"}
 
 # ─── Variables de sensores agrupadas por dispositivo ──────────────────────
 PUMP_VARS = [
@@ -387,3 +404,7 @@ FAULT_NAMES_ES = {
 
 PUMP_FAULT_KEYS = ("dry_run", "blocked_discharge", "pipe_burst", "cavitation", "overheat", "power_surge", "power_outage")
 ELEVATOR_FAULT_KEYS = ("motor_stuck", "door_blocked", "overspeed")
+
+# ─── Fallback strings para display de API ───────────────────────────
+UNKNOWN_PERSON_NAME: str = "Sin nombre"
+UNKNOWN_EMAIL_LABEL: str = "Sin correo"

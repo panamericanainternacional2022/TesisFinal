@@ -3,7 +3,7 @@ import time
 import logging
 from typing import Optional
 
-from apps.sensors.sensor_config import PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS
+from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS
 from apps.sensors.simulation.constants import (
     DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
     CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
@@ -20,8 +20,8 @@ from apps.sensors.simulation.exceptions import (
 
 logger = logging.getLogger(__name__)
 
-PUMP_RESET_KEYS = ["flow_rate", "pressure", "temperature", "vibration", "tank_level", "voltage", "current"]
-ELEVATOR_RESET_KEYS = ["position", "speed", "load", "motor_stuck", "door_status", "energy", "temperature"]
+PUMP_RESET_KEYS = [v for v in PUMP_VARS if v in SAFE_RESET_VALUES]
+ELEVATOR_RESET_KEYS = [v for v in ELEVATOR_VARS if v in SAFE_RESET_VALUES] + ["temperature"]
 
 
 def reset_critical_values(targets: set[str], sim: BuildingSimulator) -> None:

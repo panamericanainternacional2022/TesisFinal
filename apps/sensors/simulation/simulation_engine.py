@@ -2,6 +2,7 @@ import random
 import time
 import logging
 
+from apps.sensors.sensor_config import PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS
 from apps.sensors.simulation.constants import (
     RANDOM_FAULT_PROB, FAULT_AUTO_CLEAR_SECONDS,
     SIMULTANEOUS_FAIL_PROB, LOG_SIM,
@@ -112,7 +113,7 @@ def _maybe_simultaneous_pump_fault(sim: BuildingSimulator) -> None:
 
 
 def _inject_random_pump_fault(sim: BuildingSimulator) -> None:
-    fault_type = random.choice(["cavitation", "overheat", "blocked_discharge"])
+    fault_type = random.choice(list(PUMP_FAULT_KEYS))
     sim.sim_faults["pump"] = fault_type
     sim.fault_injected_at["pump"] = time.time()
     logger.info("Falla aleatoria de bomba inyectada (vía sim_faults): %s", fault_type)
@@ -121,7 +122,7 @@ def _inject_random_pump_fault(sim: BuildingSimulator) -> None:
 
 
 def _inject_random_elevator_fault(sim: BuildingSimulator) -> None:
-    fault_type = random.choice(["motor_stuck", "door_blocked", "overspeed"])
+    fault_type = random.choice(list(ELEVATOR_FAULT_KEYS))
     sim.sim_faults["elevator"] = fault_type
     sim.fault_injected_at["elevator"] = time.time()
     logger.info("Falla aleatoria de elevador inyectada (vía sim_faults): %s", fault_type)

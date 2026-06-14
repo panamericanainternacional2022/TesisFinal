@@ -6,6 +6,7 @@ from django.http import JsonResponse
 
 from apps.buildings.models import MonitoringEquipment, UserBuilding
 from apps.alerts.models import Notification
+from apps.sensors.sensor_config import UNKNOWN_PERSON_NAME, UNKNOWN_EMAIL_LABEL
 
 from .shared import get_simulator, get_first_simulator, json_error_response
 
@@ -70,8 +71,8 @@ def api_building_users(request, building_id: int) -> JsonResponse:
         person = ub.user.id_persona if ub.user else None
         data.append({
             "id": ub.user.pk if ub.user else None,
-            "nombre": " ".join(x for x in [person.first_name, person.middle_name, person.first_last_name, person.second_last_name] if x) if person else "Sin nombre",
-            "email": person.email if person else "Sin correo",
+            "nombre": " ".join(x for x in [person.first_name, person.middle_name, person.first_last_name, person.second_last_name] if x) if person else UNKNOWN_PERSON_NAME,
+            "email": person.email if person else UNKNOWN_EMAIL_LABEL,
         })
     return JsonResponse(data, safe=False)
 
