@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from apps.core.auth_decorators import is_admin_role, login_required, ADMIN_ROLES
 from apps.core.services.risk_service import classify_risk
+from apps.sensors.sensor_config import RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO
 
 
 class IsAdminRoleTests(TestCase):
@@ -56,28 +57,28 @@ class AdminRequiredDecoratorTests(TestCase):
 class ClassifyRiskTests(TestCase):
     def test_motor_stuck_true_returns_critico(self):
         risk, color = classify_risk("motor_stuck", True)
-        self.assertEqual(risk, "Crítico")
+        self.assertEqual(risk, RISK_CRITICO)
         self.assertEqual(color, "red")
 
     def test_motor_stuck_false_returns_bajo(self):
         risk, color = classify_risk("motor_stuck", False)
-        self.assertEqual(risk, "Bajo")
+        self.assertEqual(risk, RISK_BAJO)
         self.assertEqual(color, "green")
 
     def test_no_risk_vars_return_bajo(self):
         for var in ("position", "door_status"):
             risk, color = classify_risk(var, 42)
-            self.assertEqual(risk, "Bajo")
+            self.assertEqual(risk, RISK_BAJO)
             self.assertEqual(color, "green")
 
     def test_zero_flow_rate_returns_critico(self):
         risk, color = classify_risk("flow_rate", 0)
-        self.assertEqual(risk, "Crítico")
+        self.assertEqual(risk, RISK_CRITICO)
         self.assertEqual(color, "red")
 
     def test_zero_pressure_returns_critico(self):
         risk, color = classify_risk("pressure", 0)
-        self.assertEqual(risk, "Crítico")
+        self.assertEqual(risk, RISK_CRITICO)
         self.assertEqual(color, "red")
 
     def test_unknown_variable_returns_desconocido(self):
@@ -90,24 +91,24 @@ class ClassifyRiskTests(TestCase):
             "temperature": {"direction": "range", "low": 20, "high": 80},
         }
         risk, color = classify_risk("temperature", 50, thresholds=thresholds)
-        self.assertEqual(risk, "Bajo")
+        self.assertEqual(risk, RISK_BAJO)
 
     def test_range_direction_high(self):
         thresholds = {
             "temperature": {"direction": "range", "low": 20, "high": 80},
         }
         risk, color = classify_risk("temperature", 99, thresholds=thresholds)
-        self.assertEqual(risk, "Alto")
+        self.assertEqual(risk, RISK_ALTO)
 
     def test_higher_direction(self):
         thresholds = {
             "flow_rate": {"direction": "higher", "low": 10, "medium": 20, "high": 30},
         }
         test_cases = [
-            (5, "Bajo", "green"),
-            (15, "Medio", "yellow"),
-            (25, "Alto", "orange"),
-            (35, "Crítico", "red"),
+            (5, RISK_BAJO, "green"),
+            (15, RISK_MEDIO, "yellow"),
+            (25, RISK_ALTO, "orange"),
+            (35, RISK_CRITICO, "red"),
         ]
         for value, expected_risk, expected_color in test_cases:
             risk, color = classify_risk("flow_rate", value, thresholds=thresholds)
@@ -119,10 +120,10 @@ class ClassifyRiskTests(TestCase):
             "tank_level": {"direction": "lower", "low": 80, "medium": 60, "high": 40},
         }
         test_cases = [
-            (90, "Bajo", "green"),
-            (70, "Medio", "yellow"),
-            (50, "Alto", "orange"),
-            (30, "Crítico", "red"),
+            (90, RISK_BAJO, "green"),
+            (70, RISK_MEDIO, "yellow"),
+            (50, RISK_ALTO, "orange"),
+            (30, RISK_CRITICO, "red"),
         ]
         for value, expected_risk, expected_color in test_cases:
             risk, color = classify_risk("tank_level", value, thresholds=thresholds)

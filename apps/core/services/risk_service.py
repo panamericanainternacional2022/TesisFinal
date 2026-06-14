@@ -1,15 +1,16 @@
 from typing import Optional
 
+from apps.sensors.sensor_config import RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, NO_RISK_VARS
+
 
 def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tuple[str, str]:
     from apps.alerts.services.threshold_service import get_thresholds
-    from apps.sensors.sensor_config import NO_RISK_VARS
     if variable == "motor_stuck":
-        return ("Crítico", "red") if value else ("Bajo", "green")
+        return (RISK_CRITICO, "red") if value else (RISK_BAJO, "green")
     if variable in NO_RISK_VARS:
-        return "Bajo", "green"
+        return RISK_BAJO, "green"
     if variable in ("flow_rate", "pressure") and value == 0:
-        return "Crítico", "red"
+        return RISK_CRITICO, "red"
     if thresholds is None:
         thresholds = get_thresholds()
     if variable not in thresholds:
@@ -18,24 +19,24 @@ def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tu
     d = cfg["direction"]
     if d == "range":
         low, high = cfg["low"], cfg["high"]
-        return ("Bajo", "green") if low <= value <= high else ("Alto", "orange")
+        return (RISK_BAJO, "green") if low <= value <= high else (RISK_ALTO, "orange")
     else:
         low, med, high = cfg["low"], cfg["medium"], cfg["high"]
         if d == "higher":
             if value <= low:
-                return "Bajo", "green"
+                return RISK_BAJO, "green"
             elif value <= med:
-                return "Medio", "yellow"
+                return RISK_MEDIO, "yellow"
             elif value <= high:
-                return "Alto", "orange"
+                return RISK_ALTO, "orange"
             else:
-                return "Crítico", "red"
+                return RISK_CRITICO, "red"
         else:
             if value >= low:
-                return "Bajo", "green"
+                return RISK_BAJO, "green"
             elif value >= med:
-                return "Medio", "yellow"
+                return RISK_MEDIO, "yellow"
             elif value >= high:
-                return "Alto", "orange"
+                return RISK_ALTO, "orange"
             else:
-                return "Crítico", "red"
+                return RISK_CRITICO, "red"

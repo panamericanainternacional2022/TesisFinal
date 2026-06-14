@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["POST"])
 def manual_update(request) -> JsonResponse:
-    from apps.sensors.sensor_config import PUMP_VARS
+    from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO
     from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
     try:
         body = parse_json_body(request)
@@ -56,9 +56,9 @@ def manual_update(request) -> JsonResponse:
     if variable != "motor_stuck":
         risk, _ = classify_risk(variable, sensor_data[variable])
     else:
-        risk = "Crítico" if sensor_data[variable] else "Bajo"
+        risk = RISK_CRITICO if sensor_data[variable] else RISK_BAJO
 
-    if risk in ("Alto", "Crítico") and sim.alert_enabled:
+    if risk in (RISK_ALTO, RISK_CRITICO) and sim.alert_enabled:
         from apps.alerts.services.alert_service import get_professional_action
         from apps.alerts.alerts.engine import send_alert
 
@@ -79,7 +79,7 @@ def manual_update(request) -> JsonResponse:
         "variable": f"{variable} (manual)",
         "value": sensor_data[variable],
         "risk": risk,
-        "color": "red" if risk in ("Alto", "Crítico") else "green",
+        "color": "red" if risk in (RISK_ALTO, RISK_CRITICO) else "green",
     })
     if len(sim.history) > MAX_HISTORY_SIZE:
         sim.history = sim.history[-MAX_HISTORY_SIZE:]

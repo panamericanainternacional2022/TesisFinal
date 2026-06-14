@@ -12,6 +12,7 @@ from apps.alerts.services.alert_service import (
     send_email_alert,
     get_building_emails,
 )
+from apps.sensors.sensor_config import RISK_INFO
 
 
 
@@ -172,7 +173,7 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
     threading.Thread(
         target=send_email_alert,
         kwargs={
-            "risk_level": "Info",
+            "risk_level": RISK_INFO,
             "subject": "[Test] PCLogo test email",
             "body": "This is a test email from the PCLogo system.",
             "recipients": [email],
@@ -211,7 +212,7 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     for email in emails:
         threading.Thread(
             target=send_email_alert,
-            args=("Info", subject, body, email),
+            args=(RISK_INFO, subject, body, email),
             daemon=True,
         ).start()
     return _json_ok({"message": f"Report sent to {len(emails)} subscribers"})

@@ -5,6 +5,7 @@ from unittest.mock import patch, MagicMock
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment
 from apps.alerts.models import Notification
+from apps.sensors.sensor_config import RISK_ALTO
 
 
 class MenuSeleccionViewTests(TestCase):
@@ -40,7 +41,7 @@ class HistorialViewTests(TestCase):
     def test_historial_with_data(self):
         Notification.objects.create(
             user=self.usuario, monitoring_equipment=self.equipo,
-            date="2026-01-01 12:00:00+00", message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+            date="2026-01-01 12:00:00+00", message=f'{{"risk": "{RISK_ALTO}", "variable": "temperature", "value": 85, "action": "Revisar"}}',
         )
         response = self.client.get(reverse("history"))
         self.assertEqual(response.status_code, 200)

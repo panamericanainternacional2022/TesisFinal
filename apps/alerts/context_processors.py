@@ -3,6 +3,7 @@ from django.db.models import Q
 from apps.core.auth_decorators import is_admin_role
 from apps.buildings.models import UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
+from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
 
 def unread_notifications(request):
     usuario_id = request.session.get("usuario_id")
@@ -31,9 +32,9 @@ def unread_notifications(request):
 
     notifications_count = (
         notifications
-        .exclude(Q(message__risk="Info") | Q(message__contains='"risk": "Info"') | Q(message__contains='"risk":"Info"'))
-        .exclude(Q(message__risk="Bajo") | Q(message__contains='"risk": "Bajo"') | Q(message__contains='"risk":"Bajo"'))
-        .exclude(Q(message__risk="Medio") | Q(message__contains='"risk": "Medio"') | Q(message__contains='"risk":"Medio"'))
+        .exclude(Q(message__risk=RISK_INFO) | Q(message__contains=f'"risk": "{RISK_INFO}"') | Q(message__contains=f'"risk":"{RISK_INFO}"'))
+        .exclude(Q(message__risk=RISK_BAJO) | Q(message__contains=f'"risk": "{RISK_BAJO}"') | Q(message__contains=f'"risk":"{RISK_BAJO}"'))
+        .exclude(Q(message__risk=RISK_MEDIO) | Q(message__contains=f'"risk": "{RISK_MEDIO}"') | Q(message__contains=f'"risk":"{RISK_MEDIO}"'))
         .distinct()
         .count()
     )

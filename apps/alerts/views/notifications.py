@@ -9,6 +9,7 @@ from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
 from apps.alerts.views.shared import parse_notification_for_display
+from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
 
 
 @login_required
@@ -59,9 +60,9 @@ def notifications_view(request: HttpRequest):
 
     notifications = (
         notifications.select_related("user", "monitoring_equipment__building")
-        .exclude(Q(message__risk="Info") | Q(message__contains='"risk": "Info"') | Q(message__contains='"risk":"Info"'))
-        .exclude(Q(message__risk="Bajo") | Q(message__contains='"risk": "Bajo"') | Q(message__contains='"risk":"Bajo"'))
-        .exclude(Q(message__risk="Medio") | Q(message__contains='"risk": "Medio"') | Q(message__contains='"risk":"Medio"'))
+        .exclude(Q(message__risk=RISK_INFO) | Q(message__contains=f'"risk": "{RISK_INFO}"') | Q(message__contains=f'"risk":"{RISK_INFO}"'))
+        .exclude(Q(message__risk=RISK_BAJO) | Q(message__contains=f'"risk": "{RISK_BAJO}"') | Q(message__contains=f'"risk":"{RISK_BAJO}"'))
+        .exclude(Q(message__risk=RISK_MEDIO) | Q(message__contains=f'"risk": "{RISK_MEDIO}"') | Q(message__contains=f'"risk":"{RISK_MEDIO}"'))
         .distinct()
         .order_by("-date")
     )

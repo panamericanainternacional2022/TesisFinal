@@ -81,11 +81,12 @@ class EmailConfig:
 
 
 def _get_email_colors(risk_level: str) -> Dict[str, str]:
+    from apps.sensors.sensor_config import RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO
     palette = {
-        "Bajo": {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
-        "Medio": {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
-        "Alto": {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
-        "Crítico": {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+        RISK_BAJO: {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
+        RISK_MEDIO: {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
+        RISK_ALTO: {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+        RISK_CRITICO: {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
     }
     return palette.get(risk_level, {"bg": "#f5f5f5", "border": "#e0e0e0", "text": "#6b6b6b"})
 

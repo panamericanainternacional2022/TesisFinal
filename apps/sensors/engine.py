@@ -3,7 +3,7 @@ import logging
 
 import eventlet
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
+from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO
 from apps.sensors.simulation.constants import (
     MAX_HISTORY_SIZE,
 )
@@ -47,7 +47,7 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         from apps.alerts.alerts.engine import send_alert
         from apps.alerts.services.alert_service import get_professional_action
         risk, _ = classify_risk(var, value)
-        if risk in ("Alto", "Crítico"):
+        if risk in (RISK_ALTO, RISK_CRITICO):
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action, sim=sim)
         else:
@@ -62,8 +62,8 @@ def _handle_motor_stuck_alert(
     if value:
         from apps.alerts.alerts.engine import send_alert
         from apps.alerts.services.alert_service import get_professional_action
-        action = get_professional_action(var, "Crítico", value)
-        send_alert(var, value, "Crítico", action, sim=sim)
+        action = get_professional_action(var, RISK_CRITICO, value)
+        send_alert(var, value, RISK_CRITICO, action, sim=sim)
     else:
         sim.active_alerts.pop(var, None)
 
@@ -79,7 +79,7 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
             continue
         risk, color = (
             classify_risk(var, value) if var != "motor_stuck"
-            else ("Crítico" if value else "Bajo", "red" if value else "green")
+            else (RISK_CRITICO if value else RISK_BAJO, "red" if value else "green")
         )
         sensor_type = "Bomba" if var in PUMP_VARS else "Elevador"
         new_readings.append({

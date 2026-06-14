@@ -4,9 +4,10 @@ from django.db.models import Q, QuerySet
 from django.utils import timezone as tz
 
 from apps.buildings.models import UserBuilding, MonitoringEquipment
+from apps.sensors.sensor_config import SEVERITY_LEVELS
 
 
-ALL_SEVERITIES = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
+ALL_SEVERITIES = SEVERITY_LEVELS
 
 DELTA_MAP = {
     "1h":  dt.timedelta(hours=1),

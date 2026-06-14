@@ -9,10 +9,14 @@ from django.utils import timezone
 
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
+from apps.sensors.sensor_config import (
+    RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
+    SEVERITY_LEVELS,
+)
 
 logger = logging.getLogger(__name__)
 
-ALL_SEVERITY_LEVELS: list[str] = ["Info", "Bajo", "Medio", "Alto", "Crítico"]
+ALL_SEVERITY_LEVELS: list[str] = SEVERITY_LEVELS
 
 PERIOD_DELTA_MAP: dict[str, timedelta] = {
     "1h": timedelta(hours=1),
@@ -43,18 +47,18 @@ MAX_PDF_EVENTS: int = 200
 
 SEVERITY_DISPLAY_LEVELS: list[tuple[str, tuple[int, int, int], tuple[int, int, int], str]] = [
     ("Informativo", (249, 250, 251), (55, 65, 81), "Eventos informativos del sistema"),
-    ("Bajo", (240, 253, 244), (22, 101, 52), "Valores normales de funcionamiento"),
-    ("Medio", (255, 251, 235), (146, 64, 14), "Cerca del límite sugerido"),
-    ("Alto", (255, 247, 237), (194, 65, 12), "Fuera de rango seguro"),
-    ("Crítico", (254, 242, 242), (153, 27, 27), "Estado de peligro, acción inmediata"),
+    (RISK_BAJO, (240, 253, 244), (22, 101, 52), "Valores normales de funcionamiento"),
+    (RISK_MEDIO, (255, 251, 235), (146, 64, 14), "Cerca del límite sugerido"),
+    (RISK_ALTO, (255, 247, 237), (194, 65, 12), "Fuera de rango seguro"),
+    (RISK_CRITICO, (254, 242, 242), (153, 27, 27), "Estado de peligro, acción inmediata"),
 ]
 
 RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
-    "Info": ((249, 250, 251), (55, 65, 81)),
-    "Bajo": ((240, 253, 244), (22, 101, 52)),
-    "Medio": ((255, 251, 235), (146, 64, 14)),
-    "Alto": ((255, 247, 237), (194, 65, 12)),
-    "Crítico": ((254, 242, 242), (153, 27, 27)),
+    RISK_INFO: ((249, 250, 251), (55, 65, 81)),
+    RISK_BAJO: ((240, 253, 244), (22, 101, 52)),
+    RISK_MEDIO: ((255, 251, 235), (146, 64, 14)),
+    RISK_ALTO: ((255, 247, 237), (194, 65, 12)),
+    RISK_CRITICO: ((254, 242, 242), (153, 27, 27)),
 }
 
 _FONT_CACHE: dict[str, str] = {}

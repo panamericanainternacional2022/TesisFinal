@@ -6,6 +6,7 @@ from django.utils import timezone
 from apps.alerts.models import Notification, ThresholdConfig
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment
+from apps.sensors.sensor_config import RISK_ALTO
 
 
 # ─── MODEL TESTS ─────────────────────────────────────────────────────
@@ -22,7 +23,7 @@ class NotificationModelTests(TestCase):
             user=self.usuario,
             monitoring_equipment=self.equipment,
             date=timezone.now(),
-            message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+            message=f'{{"risk": "{RISK_ALTO}", "variable": "temperature", "value": 85, "action": "Revisar"}}',
         )
         self.assertEqual(Notification.objects.count(), 1)
         self.assertEqual(notif.message, notif.message)
@@ -51,7 +52,7 @@ class NotificationsViewTests(TestCase):
     def test_get_notifications_with_data(self):
         Notification.objects.create(
             user=self.usuario, monitoring_equipment=self.equipment,
-            date=timezone.now(), message='{"risk": "Alto", "variable": "temperature", "value": 85, "action": "Revisar"}',
+            date=timezone.now(), message=f'{{"risk": "{RISK_ALTO}", "variable": "temperature", "value": 85, "action": "Revisar"}}',
         )
         response = self.client.get(reverse("notifications"))
         self.assertEqual(response.status_code, 200)

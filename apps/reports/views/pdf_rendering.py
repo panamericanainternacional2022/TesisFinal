@@ -10,6 +10,7 @@ from .shared import (
     _pdf_font,
     draw_row,
 )
+from apps.sensors.sensor_config import RISK_INFO
 
 
 def render_logo(pdf: Any) -> None:
@@ -46,7 +47,8 @@ def render_header(pdf: Any, now: dt.datetime, building_name: str, severity: str,
 
 
 def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
-    stats: dict[str, int] = {"Info": 0, "Bajo": 0, "Medio": 0, "Alto": 0, "Crítico": 0}
+    from apps.sensors.sensor_config import SEVERITY_LEVELS
+    stats: dict[str, int] = {k: 0 for k in SEVERITY_LEVELS}
     for n in parsed_list:
         risk = n.parsed_data.get("risk", "")
         if risk in stats:
@@ -60,7 +62,7 @@ def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
     col_w = 38
     _pdf_font(pdf, "", 9)
     for lbl, fill, text_c, _desc in SEVERITY_DISPLAY_LEVELS:
-        key = "Info" if lbl == "Informativo" else lbl
+        key = RISK_INFO if lbl == "Informativo" else lbl
         count = stats.get(key, 0)
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
