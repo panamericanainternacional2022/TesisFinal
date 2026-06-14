@@ -341,6 +341,15 @@ ACTIONS: dict[str, dict[str, str]] = {
     "rationing": {
         RISK_CRITICO: "Caudal por debajo del mínimo admisible (racionamiento activo). Restrinja el consumo general.",
     },
+    "auto_protection": {
+        RISK_CRITICO: "Protección automática activada. Operación forzada / Estado seguro activado.",
+    },
+    "protection_pump": {
+        RISK_INFO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
+    },
+    "protection_elevator": {
+        RISK_INFO: "Protección para el elevador finalizada. Operación normal restaurada.",
+    },
 }
 
 # ─── Variables de sistema (eventos, no sensores físicos) ───────────────
