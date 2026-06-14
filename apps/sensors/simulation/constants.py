@@ -1,4 +1,4 @@
-RATIONING_THRESHOLD: float = 8.0
+from apps.sensors.sensor_config import RATIONING_THRESHOLD  # noqa: F401
 MAX_HISTORY_SIZE: int = 500
 MAX_LOG_ENTRIES: int = 100
 PROTECTION_HOLD_SECONDS: int = 30
@@ -40,4 +40,23 @@ DEFAULT_SENSOR_DATA: dict = {
     "voltage": 220.0,
     "current": 20.0,
     "motor_stuck": False,
+}
+
+# Valores seguros post-falla (usados en reset_critical_values).
+# Son deliberadamente distintos de DEFAULT_SENSOR_DATA para restaurar un
+# estado operativo conservador después de limpiar una falla.
+SAFE_RESET_VALUES: dict = {
+    "flow_rate": 25.0,
+    "pressure": 4.0,
+    "temperature": 50.0,
+    "vibration": 1.5,
+    "tank_level": 80.0,
+    "position": 0,
+    "speed": 0.0,
+    "load": 200,
+    "motor_stuck": False,
+    "door_status": "closed",
+    "energy": 5.0,
+    "voltage": 220.0,
+    "current": 18.0,
 }

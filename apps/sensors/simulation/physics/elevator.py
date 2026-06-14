@@ -1,10 +1,17 @@
 import random
 
+from apps.sensors.sensor_config import SENSOR_RANGES
 from apps.sensors.simulation.constants import (
     T_AMBIENT, FLOOR_COUNT, FLOOR_HEIGHT,
     CRUISING_SPEED, ACCELERATION, PASSENGER_WAIT_TICKS,
 )
 from apps.sensors.simulation.models import BuildingSimulator
+
+# Desempaquetar rangos de elevador
+_LOAD_LOW, _LOAD_HIGH = SENSOR_RANGES["load"]
+_ENERGY_LOW, _ENERGY_HIGH = SENSOR_RANGES["energy"]
+_TEMP_LOW, _TEMP_HIGH = SENSOR_RANGES["temperature"]
+_SPEED_LOW, _SPEED_HIGH = SENSOR_RANGES["speed"]
 
 
 def _clamp(value: float, lo: float, hi: float) -> float:
@@ -49,10 +56,10 @@ def _apply_elevator_fault(sim: BuildingSimulator, sd: dict, dt: float) -> None:
 def _apply_motor_stuck(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sd["speed"] = 0.0
     sd["motor_stuck"] = True
-    sd["load"] = _clamp(sd["load"] + 5 * dt, 0, 1200)
+    sd["load"] = _clamp(sd["load"] + 5 * dt, _LOAD_LOW, _LOAD_HIGH)
     sd["door_status"] = "closed"
-    sd["energy"] = _clamp(sd["energy"] + 0.5 * dt, 0, 20)
-    sd["temperature"] = _clamp(sd["temperature"] + 0.5 * dt, T_AMBIENT, 130)
+    sd["energy"] = _clamp(sd["energy"] + 0.5 * dt, _ENERGY_LOW, _ENERGY_HIGH)
+    sd["temperature"] = _clamp(sd["temperature"] + 0.5 * dt, _TEMP_LOW, _TEMP_HIGH)
 
 
 def _apply_door_blocked(sim: BuildingSimulator, sd: dict, dt: float) -> None:
@@ -60,17 +67,17 @@ def _apply_door_blocked(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sim.door_close_attempts += 1
     sd["motor_stuck"] = False
     sd["speed"] = 0.0
-    sd["energy"] = _clamp(sd["energy"] - 0.1 * dt, 0, 20)
+    sd["energy"] = _clamp(sd["energy"] - 0.1 * dt, _ENERGY_LOW, _ENERGY_HIGH)
 
 
 def _apply_overspeed(sim: BuildingSimulator, sd: dict, dt: float) -> None:
-    sd["speed"] = _clamp(sd["speed"] + 0.5 * dt, 0, 6)
+    sd["speed"] = _clamp(sd["speed"] + 0.5 * dt, _SPEED_LOW, _SPEED_HIGH)
     sd["position"] = _clamp(
         sd["position"] + sd["speed"] * dt * 0.5, 0, FLOOR_COUNT * FLOOR_HEIGHT,
     )
     sd["door_status"] = "closed"
     sd["motor_stuck"] = False
-    sd["load"] = _clamp(sd["load"] + random.uniform(-10, 10) * dt, 0, 1200)
+    sd["load"] = _clamp(sd["load"] + random.uniform(-10, 10) * dt, _LOAD_LOW, _LOAD_HIGH)
     sd["energy"] = sd["load"] * sd["speed"] * 0.004 + random.uniform(0.2, 0.5) * dt
 
 
@@ -129,7 +136,7 @@ def _handle_elev_door_opening(
     door = "opening"
     if sim._elev_timer >= 1:
         sim._elev_timer = 0
-        load = _clamp(load + random.randint(-50, 150), 0, 1200)
+        load = _clamp(load + random.randint(-50, 150), _LOAD_LOW, _LOAD_HIGH)
         sim._elev_state = "DOORS_OPEN"
     sd["speed"] = spd
     sd["door_status"] = door
@@ -145,7 +152,7 @@ def _handle_elev_doors_open(
     door = "open"
     if sim._elev_timer >= PASSENGER_WAIT_TICKS / max(sim.sim_speed, 0.1):
         sim._elev_timer = 0
-        load = _clamp(load + random.randint(-100, 100), 0, 1200)
+        load = _clamp(load + random.randint(-100, 100), _LOAD_LOW, _LOAD_HIGH)
         sim._elev_state = "DOOR_CLOSING"
     sd["speed"] = spd
     sd["door_status"] = door
@@ -242,7 +249,7 @@ def _run_elevator_post_fsm(
     sd["speed"] = round(spd, 1)
     sd["load"] = round(load)
     sd["door_status"] = door
-    sd["energy"] = round(_clamp(energy, 0, 20), 1)
+    sd["energy"] = round(_clamp(energy, _ENERGY_LOW, _ENERGY_HIGH), 1)
     sd["motor_stuck"] = stuck
     sim._elev_prev_position = prev_pos
 
@@ -252,7 +259,7 @@ def _compute_elevator_energy(
 ) -> float:
     energy = (load / 500) * spd * 2 + 0.5
     if "elevator" in sim.protection_ends:
-        energy = _clamp(energy, 0, 20)
+        energy = _clamp(energy, _ENERGY_LOW, _ENERGY_HIGH)
     return energy
 
 

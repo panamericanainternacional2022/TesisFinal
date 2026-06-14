@@ -13,6 +13,7 @@ from .shared import (
     filter_by_variable, get_user_building_ids, get_equipment_sensors,
     ALL_SEVERITIES,
 )
+from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO
 
 
 @login_required
@@ -134,6 +135,8 @@ def render_user_history(request) -> HttpResponse:
             "rol": rol,
             "total_count": len(parsed_list),
             "periodo_seleccionado": period,
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },
     )
 

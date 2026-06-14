@@ -9,7 +9,7 @@ from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
 from apps.alerts.views.shared import parse_notification_for_display
-from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
+from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO
 
 
 @login_required
@@ -90,6 +90,8 @@ def notifications_view(request: HttpRequest):
             "rol": rol,
             "alerts_disabled": alerts_disabled,
             "alerts_disabled_until_ms": alerts_disabled_until_ms,
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },
     )
 

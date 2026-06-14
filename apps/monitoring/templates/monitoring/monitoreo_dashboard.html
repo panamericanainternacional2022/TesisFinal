@@ -735,11 +735,12 @@
 
         // ── Helper de Modales Personalizados ──
         const CONFIG = JSON.parse(document.getElementById('dashConfig').textContent);
-        const NO_RISK_VARS = CONFIG.no_risk_vars;
+        const NO_RISK_VARS = CONFIG.no_risk_vars || [];
         const BOMBA_VARS = CONFIG.pump_vars || [];
         const ELEVADOR_VARS = CONFIG.elevator_vars || [];
         const VAR_NAMES_MAP = CONFIG.var_names;
         const UNITS_MAP = CONFIG.units;
+        const _RISK = CONFIG.risk_labels || { info:'Info', bajo:'Bajo', medio:'Medio', alto:'Alto', critico:'Crítico', unknown:'Desconocido' };
         let EDIFICIO_ID = CONFIG.edificio_id || 0;
 
         function getVariableName(variable) {
@@ -751,23 +752,23 @@
         function getRiskClass(varName, value){
             if(NO_RISK_VARS.includes(varName)){
                 let crit = (varName==='motor_stuck' && value);
-                return { card:'risk-'+(crit?'crit':'low'), badge:'badge-'+(crit?'crit':'low'), label:crit?'Crítico':'Bajo' };
+                return { card:'risk-'+(crit?'crit':'low'), badge:'badge-'+(crit?'crit':'low'), label:crit?_RISK.critico:_RISK.bajo };
             }
             let cfg = currentThresholds[varName];
-            if(!cfg) return { card:'', badge:'badge-info', label:'Desconocido' };
-            let risk='Bajo', cls='low';
+            if(!cfg) return { card:'', badge:'badge-info', label:_RISK.unknown };
+            let risk=_RISK.bajo, cls='low';
             if(cfg.direction==='range'){
-                if(!(value>=cfg.low && value<=cfg.high)){ risk='Alto'; cls='high'; }
+                if(!(value>=cfg.low && value<=cfg.high)){ risk=_RISK.alto; cls='high'; }
             } else {
                 let d=cfg.direction, low=cfg.low, med=cfg.medium, high=cfg.high;
                 if(d==='higher'){
-                    if(value>high){risk='Crítico';cls='crit';}
-                    else if(value>med){risk='Alto';cls='high';}
-                    else if(value>low){risk='Medio';cls='med';}
+                    if(value>high){risk=_RISK.critico;cls='crit';}
+                    else if(value>med){risk=_RISK.alto;cls='high';}
+                    else if(value>low){risk=_RISK.medio;cls='med';}
                 } else {
-                    if(value<high){risk='Crítico';cls='crit';}
-                    else if(value<med){risk='Alto';cls='high';}
-                    else if(value<low){risk='Medio';cls='med';}
+                    if(value<high){risk=_RISK.critico;cls='crit';}
+                    else if(value<med){risk=_RISK.alto;cls='high';}
+                    else if(value<low){risk=_RISK.medio;cls='med';}
                 }
             }
             return { card:'risk-'+cls, badge:'badge-'+cls, label:risk };
@@ -813,15 +814,18 @@
                     y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } } 
                 }
             };
+            const _chn = v => `${VAR_NAMES_MAP[v]} (${UNITS_MAP[v]||''})`;
+            const pumpC = BOMBA_VARS.filter(v => v !== 'tank_level').map(_chn);
+            const elevC = ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck').map(_chn);
             chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ 
                 type:'bar', 
                 data:{ 
-                    labels:['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'], 
+                    labels: pumpC, 
                     datasets:[{
                         backgroundColor: '#0a0a0a',
                         borderColor: '#0a0a0a',
                         borderWidth: 1,
-                        data: [0, 0, 0, 0, 0, 0, 0]
+                        data: new Array(pumpC.length).fill(0)
                     }]
                 }, 
                 options: chartDefaults 
@@ -829,12 +833,12 @@
             chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ 
                 type:'bar', 
                 data:{ 
-                    labels:['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'], 
+                    labels: elevC, 
                     datasets:[{
                         backgroundColor: '#0a0a0a',
                         borderColor: '#0a0a0a',
                         borderWidth: 1,
-                        data: [0, 0, 0]
+                        data: new Array(elevC.length).fill(0)
                     }]
                 }, 
                 options: chartDefaults 
@@ -854,43 +858,21 @@
             let getSensorColor = (v) => {
                 let r = getLatestReading(v);
                 if (!r) return '#0a0a0a';
-                if (r.risk === 'Crítico') return '#991b1b'; // Red
-                if (r.risk === 'Alto') return '#c2410c'; // Orange
-                if (r.risk === 'Medio') return '#b45309'; // Amber/Yellow
-                return '#166534'; // Green / Low
+                if (r.risk === _RISK.critico) return '#991b1b';
+                if (r.risk === _RISK.alto) return '#c2410c';
+                if (r.risk === _RISK.medio) return '#b45309';
+                return '#166534';
             };
 
-            chart1.data.datasets[0].data = [
-                getLatest('flow_rate'),
-                getLatest('pressure'),
-                getLatest('temperature'),
-                getLatest('vibration'),
-                getLatest('tank_level'),
-                getLatest('voltage'),
-                getLatest('current')
-            ];
-            chart1.data.datasets[0].backgroundColor = [
-                getSensorColor('flow_rate'),
-                getSensorColor('pressure'),
-                getSensorColor('temperature'),
-                getSensorColor('vibration'),
-                getSensorColor('tank_level'),
-                getSensorColor('voltage'),
-                getSensorColor('current')
-            ];
+            const pumpNumVars = BOMBA_VARS.filter(v => v !== 'tank_level');
+            chart1.data.datasets[0].data = pumpNumVars.map(v => getLatest(v));
+            chart1.data.datasets[0].backgroundColor = pumpNumVars.map(v => getSensorColor(v));
             chart1.data.datasets[0].borderColor = chart1.data.datasets[0].backgroundColor;
             chart1.update();
-            
-            chart2.data.datasets[0].data = [
-                getLatest('speed'),
-                getLatest('load'),
-                getLatest('energy')
-            ];
-            chart2.data.datasets[0].backgroundColor = [
-                getSensorColor('speed'),
-                getSensorColor('load'),
-                getSensorColor('energy')
-            ];
+
+            const elevChartVars = ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck');
+            chart2.data.datasets[0].data = elevChartVars.map(v => getLatest(v));
+            chart2.data.datasets[0].backgroundColor = elevChartVars.map(v => getSensorColor(v));
             chart2.data.datasets[0].borderColor = chart2.data.datasets[0].backgroundColor;
             chart2.update();
         }

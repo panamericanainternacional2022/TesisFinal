@@ -246,6 +246,7 @@
             </div>
         </main>
     </div>
+    {{ config_json|json_script:"dashConfig" }}
     <script>window.EDIFICIO_ID = {{ edificio_id|default:"null" }};</script>
     <script>
         window.showAlert = function(message, type = 'info') {

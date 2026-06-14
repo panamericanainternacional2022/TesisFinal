@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, RISK_CRITICO, RISK_BAJO
+from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, RISK_CRITICO, RISK_BAJO
 
 logger = logging.getLogger(__name__)
 
@@ -100,7 +100,7 @@ def _build_relevant_vars(equipment_types: set) -> set[str]:
         relevant_vars.update(PUMP_VARS)
     if "elevador" in equipment_types:
         relevant_vars.update(ELEVATOR_VARS)
-    relevant_vars.update(["rationing", "auto_protection", "protection_pump", "protection_elevator"])
+    relevant_vars.update(SYSTEM_VARS)
     return relevant_vars
 
 

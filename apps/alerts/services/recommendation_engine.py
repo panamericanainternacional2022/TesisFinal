@@ -1,6 +1,10 @@
 from typing import Dict, Any, List
 
-from apps.sensors.sensor_config import VAR_NAMES, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO
+from apps.sensors.sensor_config import (
+    VAR_NAMES, UNITS, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
+    RECOMMENDATION_THRESHOLDS,
+)
+from apps.sensors.simulation.constants import MAX_DOOR_CLOSE_ATTEMPTS
 
 
 ACTIONS: Dict[str, Dict[str, str]] = {
@@ -90,6 +94,25 @@ ACTIONS: Dict[str, Dict[str, str]] = {
     },
 }
 
+# ─── Mensajes de alerta temprana (usados por generate_recommendations) ──
+_WARN_MSGS: Dict[str, str] = {
+    "temperature": "Elevated temperature. Monitor.",
+    "flow_rate": "Low optimal flow rate. Check filters.",
+    "pressure": "Excessive pressure (>8 bar). Leak risk.",
+    "vibration": "Abnormal vibration (>7 mm/s). Verify alignment.",
+    "tank_level": "Low tank level.",
+    "load": "Elevator overload (>800 kg). Reduce load.",
+    "current": "Electrical overload (current >45A).",
+}
+
+_CRIT_MSGS: Dict[str, str] = {
+    "temperature": "Very high motor temperature (>85°C). Check cooling system.",
+    "flow_rate": "Low flow rate (<10 L/s). Check pump.",
+    "tank_level": "Critical tank level (<20%). Urgent refill.",
+}
+
+_RANGE_MSG: str = "Electrical instability. Check power supply."
+
 
 def generate_recommendations(
     data: Dict[str, Any],
@@ -97,32 +120,28 @@ def generate_recommendations(
     door_close_attempts: int = 0,
 ) -> List[str]:
     recs: List[str] = []
-    if data.get("temperature", 0) > 85:
-        recs.append("Very high motor temperature (>85°C). Check cooling system.")
-    elif data.get("temperature", 0) > 70:
-        recs.append("Elevated temperature. Monitor.")
-    if data.get("flow_rate", 0) < 10:
-        recs.append("Low flow rate (<10 L/s). Check pump.")
-    elif data.get("flow_rate", 0) < 20:
-        recs.append("Low optimal flow rate. Check filters.")
-    if data.get("pressure", 0) > 8:
-        recs.append("Excessive pressure (>8 bar). Leak risk.")
-    if data.get("vibration", 0) > 7:
-        recs.append("Abnormal vibration (>7 mm/s). Verify alignment.")
-    if data.get("tank_level", 100) < 20:
-        recs.append("Critical tank level (<20%). Urgent refill.")
-    elif data.get("tank_level", 100) < 30:
-        recs.append("Low tank level.")
-    if data.get("load", 0) > 800:
-        recs.append("Elevator overload (>800 kg). Reduce load.")
-    voltage = data.get("voltage", 220)
-    if voltage < 200 or voltage > 240:
-        recs.append("Electrical instability. Check power supply.")
-    if data.get("current", 0) > 45:
-        recs.append("Electrical overload (current >45A).")
+
+    for var, cfg in RECOMMENDATION_THRESHOLDS.items():
+        value = data.get(var)
+        if value is None:
+            continue
+
+        if "max_crit" in cfg and value > cfg["max_crit"]:
+            recs.append(_CRIT_MSGS.get(var, ""))
+        elif "max_warn" in cfg and value > cfg["max_warn"]:
+            recs.append(_WARN_MSGS.get(var, ""))
+        elif "min_crit" in cfg and value < cfg["min_crit"]:
+            recs.append(_CRIT_MSGS.get(var, ""))
+        elif "min_warn" in cfg and value < cfg["min_warn"]:
+            recs.append(_WARN_MSGS.get(var, ""))
+        elif "range_warn" in cfg:
+            lo, hi = cfg["range_warn"]
+            if value < lo or value > hi:
+                recs.append(_RANGE_MSG)
+
     if data.get("motor_stuck", False):
         recs.append("MOTOR STUCK. Urgent maintenance required.")
-    if door_close_attempts >= 3:
+    if door_close_attempts >= MAX_DOOR_CLOSE_ATTEMPTS:
         recs.append(f"Check doors: {door_close_attempts} failed closing attempts.")
     if not recs:
         recs.append("All parameters normal. Stable operation.")

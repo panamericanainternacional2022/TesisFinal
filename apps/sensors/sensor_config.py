@@ -1,13 +1,15 @@
 """
 sensor_config.py — Configuración centralizada de sensores del sistema INES.
+Única fuente de verdad para nombres, unidades, umbrales, rangos, etc.
 
 Para agregar una nueva variable al sistema en el futuro:
   1. Agrégala a VAR_NAMES con su nombre en español.
   2. Agrégala a UNITS con su unidad (o cadena vacía si no aplica).
   3. Si genera valores especiales (bool, enums), agrégala a VALUE_DISPLAY_ES.
   4. Si pertenece a un dispositivo, agrégala a PUMP_VARS o ELEVATOR_VARS.
-  5. En entry.py, agrega sus acciones en get_professional_action().
-   Eso es todo. Las listas de estadísticas se derivan automáticamente.
+  5. Si tiene umbrales de riesgo, agrégala a DEFAULT_THRESHOLDS.
+  6. Si tiene rango físico, agrégala a SENSOR_RANGES.
+   Eso es todo. Las listas derivadas se generan automáticamente.
 """
 
 # ─── Nombres de variables (inglés → español) ──────────────────────────────
@@ -153,4 +155,86 @@ VALUE_DISPLAY_ES = {
         "1":     "Atascado",
         "0":     "Normal",
     },
+}
+
+# ─── Umbrales de riesgo por defecto ────────────────────────────────────
+# Cada entrada: {"direction": "higher"|"lower"|"range", "low": ..., "medium": ..., "high": ...}
+DEFAULT_THRESHOLDS = {
+    "flow_rate":   {"direction": "higher", "low": 20,   "medium": 35,  "high": 45},
+    "pressure":    {"direction": "higher", "low": 5,    "medium": 7,   "high": 9},
+    "temperature": {"direction": "higher", "low": 70,   "medium": 85,  "high": 100},
+    "vibration":   {"direction": "higher", "low": 4,    "medium": 7,   "high": 10},
+    "tank_level":  {"direction": "lower",  "low": 30,   "medium": 15,  "high": 5},
+    "speed":       {"direction": "higher", "low": 1.5,  "medium": 2.5, "high": 3.5},
+    "load":        {"direction": "higher", "low": 400,  "medium": 700, "high": 900},
+    "trip_count":  {"direction": "higher", "low": 10000,"medium": 20000,"high": 30000},
+    "energy":      {"direction": "higher", "low": 8,    "medium": 12,  "high": 15},
+    "voltage":     {"direction": "range",  "low": 200,  "high": 240},
+    "current":     {"direction": "higher", "low": 30,   "medium": 40,  "high": 50},
+}
+
+# ─── Umbrales de recomendación (alertas tempranas) ─────────────────────
+# Son más conservadores que DEFAULT_THRESHOLDS; se usan en el motor de
+# recomendaciones para generar mensajes proactivos antes de que el riesgo
+# se vuelva crítico.
+RECOMMENDATION_THRESHOLDS = {
+    "temperature": {"max_warn": 70,  "max_crit": 85},
+    "flow_rate":   {"min_warn": 20,  "min_crit": 10},
+    "pressure":    {"max_warn": 8},
+    "vibration":   {"max_warn": 7},
+    "tank_level":  {"min_warn": 30,  "min_crit": 20},
+    "load":        {"max_warn": 800},
+    "voltage":     {"range_warn": (200, 240)},
+    "current":     {"max_warn": 45},
+}
+
+# ─── Variables de sistema (eventos, no sensores físicos) ───────────────
+SYSTEM_VARS = ["rationing", "auto_protection", "protection_pump", "protection_elevator"]
+
+# ─── Todas las variables que generan alertas ───────────────────────────
+ALERT_VARS = list(set(PUMP_VARS + ELEVATOR_VARS + SYSTEM_VARS))
+
+# ─── Variables que activan protección automática ───────────────────────
+PROTECTION_VARS = {
+    "pump":     [v for v in PUMP_VARS if v != "tank_level"],
+    "elevator": [v for v in ELEVATOR_VARS if v not in ("position", "trip_count", "door_status")],
+}
+
+# ─── Constantes del engine de simulación ───────────────────────────────
+SIM_TICK_INTERVAL = 5
+MAX_CONSECUTIVE_FAILURES = 5
+
+# ─── Umbral de racionamiento (L/s) ─────────────────────────────────────
+RATIONING_THRESHOLD = 8.0
+
+# ─── Rango físico (clamp bounds) por variable ──────────────────────────
+SENSOR_RANGES = {
+    "flow_rate":   (0, 60),
+    "pressure":    (0, 12),
+    "temperature": (22.0, 130),
+    "vibration":   (0, 15),
+    "tank_level":  (0, 100),
+    "voltage":     (180, 260),
+    "current":     (0, 70),
+    "speed":       (0, 6),
+    "load":        (0, 1200),
+    "energy":      (0, 20),
+    "trip_count":  (0, 100000),
+}
+
+# ─── Nivel de riesgo por defecto cuando no hay umbrales ────────────────
+RISK_UNKNOWN = "Desconocido"
+
+# ─── Nombres de fallas de simulación en español ────────────────────────
+FAULT_NAMES_ES = {
+    "dry_run":            "Sequía (dry run)",
+    "blocked_discharge":  "Descarga bloqueada",
+    "pipe_burst":         "Ruptura de tubería",
+    "cavitation":         "Cavitación",
+    "overheat":           "Sobrecalentamiento",
+    "power_surge":        "Sobrecarga eléctrica",
+    "power_outage":       "Corte eléctrico",
+    "motor_stuck":        "Motor atascado",
+    "door_blocked":       "Puerta bloqueada",
+    "overspeed":          "Exceso de velocidad",
 }

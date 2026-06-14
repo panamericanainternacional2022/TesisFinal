@@ -17,47 +17,45 @@ function formatNumeric(value, variable) {
 }
 
 function getRiskBadge(risk) {
-    if (risk === 'Crítico') return 'badge-red';
-    if (risk === 'Alto') return 'badge-orange';
-    if (risk === 'Medio') return 'badge-yellow';
+    if (risk === _RISK.critico) return 'badge-red';
+    if (risk === _RISK.alto) return 'badge-orange';
+    if (risk === _RISK.medio) return 'badge-yellow';
     return 'badge-green';
 }
 
+function _loadConfig() {
+    const el = document.getElementById('dashConfig');
+    return el ? JSON.parse(el.textContent) : null;
+}
+
+const _CONFIG = _loadConfig();
+const _VAR_NAMES = (_CONFIG && _CONFIG.var_names) || {
+    flow_rate: 'Caudal', pressure: 'Presión', temperature: 'Temperatura',
+    vibration: 'Vibración', tank_level: 'Nivel de tanque', voltage: 'Voltaje',
+    current: 'Corriente', position: 'Posición', speed: 'Velocidad', load: 'Carga',
+    trip_count: 'Viajes', door_status: 'Puerta', energy: 'Energía', motor_stuck: 'Motor atascado'
+};
+const _UNITS = (_CONFIG && _CONFIG.units) || {
+    flow_rate: 'L/s', pressure: 'bar', temperature: '°C', vibration: 'mm/s',
+    tank_level: '%', speed: 'm/s', load: 'kg', trip_count: 'viajes',
+    energy: 'kW', voltage: 'V', current: 'A'
+};
+const _BOMBA_VARS = (_CONFIG && _CONFIG.pump_vars) || [
+    'flow_rate', 'pressure', 'temperature', 'vibration', 'tank_level', 'voltage', 'current'
+];
+const _ELEVADOR_VARS = (_CONFIG && _CONFIG.elevator_vars) || [
+    'position', 'speed', 'load', 'trip_count', 'door_status', 'energy', 'motor_stuck'
+];
+const _RISK = (_CONFIG && _CONFIG.risk_labels) || {
+    info: 'Info', bajo: 'Bajo', medio: 'Medio', alto: 'Alto', critico: 'Crítico', unknown: 'Desconocido'
+};
+
 function getVariableName(variable) {
-    const names = {
-        flow_rate: 'Caudal',
-        pressure: 'Presión',
-        temperature: 'Temperatura',
-        vibration: 'Vibración',
-        tank_level: 'Nivel de tanque',
-        voltage: 'Voltaje',
-        current: 'Corriente',
-        position: 'Posición',
-        speed: 'Velocidad',
-        load: 'Carga',
-        trip_count: 'Viajes',
-        door_status: 'Puerta',
-        energy: 'Energía',
-        motor_stuck: 'Motor atascado'
-    };
-    return names[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return _VAR_NAMES[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
 
 function getUnit(variable) {
-    const units = {
-        flow_rate: 'L/s',
-        pressure: 'bar',
-        temperature: '°C',
-        vibration: 'mm/s',
-        tank_level: '%',
-        speed: 'm/s',
-        load: 'kg',
-        trip_count: 'viajes',
-        energy: 'kW',
-        voltage: 'V',
-        current: 'A',
-    };
-    return units[variable] || '';
+    return _UNITS[variable] || '';
 }
 
 function renderCard(variable, value, risk, label) {
@@ -67,9 +65,9 @@ function renderCard(variable, value, risk, label) {
         (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
             `${formatNumeric(value, variable)} ${getUnit(variable)}`);
     let riskCls = 'risk-low';
-    if (risk === 'Medio') riskCls = 'risk-med';
-    else if (risk === 'Alto') riskCls = 'risk-high';
-    else if (risk === 'Crítico') riskCls = 'risk-crit';
+    if (risk === _RISK.medio) riskCls = 'risk-med';
+    else if (risk === _RISK.alto) riskCls = 'risk-high';
+    else if (risk === _RISK.critico) riskCls = 'risk-crit';
 
     return `
         <div class="sensor-card ${riskCls}">
@@ -129,15 +127,19 @@ function initCharts() {
         }
     };
 
+    const pumpLabels = _BOMBA_VARS.map(v => `${getVariableName(v)} (${getUnit(v)})`);
+    const elevLabels = _ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck')
+        .map(v => `${getVariableName(v)} (${getUnit(v)})`);
+
     chart1 = createChart('chart1', {
         type: 'bar',
         data: {
-            labels: ['Caudal (L/s)', 'Presión (bar)', 'Temp (°C)', 'Vibración (mm/s)', 'Tanque (%)', 'Voltaje (V)', 'Corriente (A)'],
+            labels: pumpLabels,
             datasets: [{
                 backgroundColor: '#0a0a0a',
                 borderColor: '#0a0a0a',
                 borderWidth: 1,
-                data: [0, 0, 0, 0, 0, 0, 0]
+                data: new Array(pumpLabels.length).fill(0)
             }]
         },
         options: chartDefaults
@@ -146,12 +148,12 @@ function initCharts() {
     chart2 = createChart('chart2', {
         type: 'bar',
         data: {
-            labels: ['Velocidad (m/s)', 'Carga (kg)', 'Energía (kW)'],
+            labels: elevLabels,
             datasets: [{
                 backgroundColor: '#0a0a0a',
                 borderColor: '#0a0a0a',
                 borderWidth: 1,
-                data: [0, 0, 0]
+                data: new Array(elevLabels.length).fill(0)
             }]
         },
         options: chartDefaults
@@ -174,52 +176,30 @@ function updateCharts(history) {
     const getSensorColor = (v) => {
         const r = getLatestReading(v);
         if (!r) return '#0a0a0a';
-        if (r.risk === 'Crítico') return '#991b1b';
-        if (r.risk === 'Alto') return '#c2410c';
-        if (r.risk === 'Medio') return '#b45309';
+        if (r.risk === _RISK.critico) return '#991b1b';
+        if (r.risk === _RISK.alto) return '#c2410c';
+        if (r.risk === _RISK.medio) return '#b45309';
         return '#166534';
     };
 
     if (chart1) {
-        chart1.data.datasets[0].data = [
-            getLatest('flow_rate'),
-            getLatest('pressure'),
-            getLatest('temperature'),
-            getLatest('vibration'),
-            getLatest('tank_level'),
-            getLatest('voltage'),
-            getLatest('current')
-        ];
-        chart1.data.datasets[0].backgroundColor = [
-            getSensorColor('flow_rate'),
-            getSensorColor('pressure'),
-            getSensorColor('temperature'),
-            getSensorColor('vibration'),
-            getSensorColor('tank_level'),
-            getSensorColor('voltage'),
-            getSensorColor('current')
-        ];
+        const pumpNumVars = _BOMBA_VARS.filter(v => v !== 'tank_level');
+        chart1.data.datasets[0].data = pumpNumVars.map(v => getLatest(v));
+        chart1.data.datasets[0].backgroundColor = pumpNumVars.map(v => getSensorColor(v));
         chart1.data.datasets[0].borderColor = chart1.data.datasets[0].backgroundColor;
         chart1.update();
     }
     if (chart2) {
-        chart2.data.datasets[0].data = [
-            getLatest('speed'),
-            getLatest('load'),
-            getLatest('energy')
-        ];
-        chart2.data.datasets[0].backgroundColor = [
-            getSensorColor('speed'),
-            getSensorColor('load'),
-            getSensorColor('energy')
-        ];
+        const elevChartVars = _ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck');
+        chart2.data.datasets[0].data = elevChartVars.map(v => getLatest(v));
+        chart2.data.datasets[0].backgroundColor = elevChartVars.map(v => getSensorColor(v));
         chart2.data.datasets[0].borderColor = chart2.data.datasets[0].backgroundColor;
         chart2.update();
     }
 }
 
 function isBombaVariable(variable) {
-    return ['flow_rate', 'pressure', 'temperature', 'vibration', 'tank_level', 'voltage', 'current'].includes(variable);
+    return _BOMBA_VARS.includes(variable);
 }
 
 function renderLiveMonitor(data) {
@@ -234,11 +214,11 @@ function renderLiveMonitor(data) {
     };
 
     setElementText('summaryLastUpdate', new Date().toLocaleTimeString());
-    setElementText('summaryFlowRate', `${formatNumeric(current.flow_rate)} L/s`);
-    setElementText('summaryPressure', `${formatNumeric(current.pressure)} bar`);
-    setElementText('summaryTemperature', `${formatNumeric(current.temperature)} °C`);
-    setElementText('summaryVoltage', `${formatNumeric(current.voltage)} V`);
-    setElementText('summaryCurrent', `${formatNumeric(current.current)} A`);
+    setElementText('summaryFlowRate', `${formatNumeric(current.flow_rate)} ${getUnit('flow_rate')}`);
+    setElementText('summaryPressure', `${formatNumeric(current.pressure)} ${getUnit('pressure')}`);
+    setElementText('summaryTemperature', `${formatNumeric(current.temperature)} ${getUnit('temperature')}`);
+    setElementText('summaryVoltage', `${formatNumeric(current.voltage)} ${getUnit('voltage')}`);
+    setElementText('summaryCurrent', `${formatNumeric(current.current)} ${getUnit('current')}`);
     setElementText('summaryAlertCount', alertCount);
     setElementText('summaryRationing', rationingText);
     setElementText('summaryPumpStatus', data.pump_on ? 'ENCENDIDA' : 'APAGADA');
@@ -283,13 +263,13 @@ function renderLiveMonitor(data) {
 
     const bombaCards = sensors.filter(s => isBombaVariable(s.id)).map(sensor => {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
-        return renderCard(sensor.id, value, sensor.riesgo || 'Desconocido', sensor.nombre);
+        return renderCard(sensor.id, value, sensor.riesgo || _RISK.unknown, sensor.nombre);
     }).join('');
     const elevadorCards = sensors.filter(s => !isBombaVariable(s.id)).map(sensor => {
         const value = sensor.valor !== undefined ? sensor.valor : current[sensor.id];
         const risk = sensor.id === 'motor_stuck'
-            ? (sensor.valor ? 'Crítico' : 'Bajo')
-            : (sensor.riesgo || 'Desconocido');
+            ? (sensor.valor ? _RISK.critico : _RISK.bajo)
+            : (sensor.riesgo || _RISK.unknown);
         return renderCard(sensor.id, value, risk, sensor.nombre);
     }).join('');
 
@@ -311,7 +291,8 @@ function renderLiveMonitor(data) {
 
     updateCharts(data.history || []);
 
-    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== 'Info').length;
+    const _INFO_LABEL = 'Info';
+    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== _INFO_LABEL).length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
 }
@@ -324,7 +305,7 @@ function renderNotificationList(alerts) {
         placeholder.remove();
     }
 
-    const filtered = (alerts || []).filter(a => a.risk !== 'Info');
+    const filtered = (alerts || []).filter(a => a.risk !== _INFO_LABEL);
 
     if (filtered.length === 0) {
         unreadNotificationCount = 0;

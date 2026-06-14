@@ -3,7 +3,11 @@ import logging
 
 import eventlet
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO
+from apps.sensors.sensor_config import (
+    PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
+    RISK_CRITICO, RISK_ALTO, RISK_BAJO, RISK_UNKNOWN,
+    SIM_TICK_INTERVAL, MAX_CONSECUTIVE_FAILURES,
+)
 from apps.sensors.simulation.constants import (
     MAX_HISTORY_SIZE,
 )
@@ -32,7 +36,6 @@ def _get_alert_vars(sim: BuildingSimulator) -> set[str]:
         alert_vars.update(PUMP_VARS)
     if "elevador" in sim.equipment_types:
         alert_vars.update(ELEVATOR_VARS)
-        alert_vars.add("motor_stuck")
     return alert_vars
 
 
@@ -72,10 +75,9 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
     from apps.core.services.risk_service import classify_risk
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     new_readings = []
+    all_tracked_vars = set(alert_vars) | set(SYSTEM_VARS)
     for var, value in sim.sensor_data.items():
-        if var not in alert_vars and var not in (
-            "rationing", "auto_protection", "protection_pump", "protection_elevator",
-        ):
+        if var not in all_tracked_vars:
             continue
         risk, color = (
             classify_risk(var, value) if var != "motor_stuck"
@@ -97,9 +99,8 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
 
 def generate_data_and_emit() -> None:
     _consecutive_failures: dict[int, int] = {}
-    _max_consecutive_failures = 5
     while True:
-        eventlet.sleep(5)
+        eventlet.sleep(SIM_TICK_INTERVAL)
         for sim in list(simulators.values()):
             try:
                 _run_sim_tick(sim)
@@ -111,7 +112,7 @@ def generate_data_and_emit() -> None:
                     "Error en tick de sim %s (%s) — fallo consecutivo #%s",
                     sim.edificio_id, sim.nombre, fails,
                 )
-                if fails >= _max_consecutive_failures:
+                if fails >= MAX_CONSECUTIVE_FAILURES:
                     logger.error(
                         "Removiendo simulador %s (%s) tras %s fallos consecutivos",
                         sim.edificio_id, sim.nombre, fails,

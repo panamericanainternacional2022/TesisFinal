@@ -5,21 +5,18 @@ from django.utils import timezone as tz
 
 from apps.buildings.models import UserBuilding, MonitoringEquipment
 from apps.sensors.sensor_config import SEVERITY_LEVELS
+from apps.core.date_utils import PERIOD_DELTA_MAP
 
 
 ALL_SEVERITIES = SEVERITY_LEVELS
-
-DELTA_MAP = {
-    "1h":  dt.timedelta(hours=1),
-    "12h": dt.timedelta(hours=12),
-    "24h": dt.timedelta(hours=24),
-    "3d":  dt.timedelta(days=3),
-    "7d":  dt.timedelta(days=7),
-}
+DELTA_MAP = PERIOD_DELTA_MAP
 
 
 def build_monitoring_config(building_id: int) -> dict:
-    from apps.sensors.sensor_config import NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS
+    from apps.sensors.sensor_config import (
+        NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
+        RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN,
+    )
     return {
         "no_risk_vars": NO_RISK_VARS,
         "pump_vars": PUMP_VARS,
@@ -27,6 +24,14 @@ def build_monitoring_config(building_id: int) -> dict:
         "var_names": VAR_NAMES,
         "units": UNITS,
         "edificio_id": building_id,
+        "risk_labels": {
+            "info": RISK_INFO,
+            "bajo": RISK_BAJO,
+            "medio": RISK_MEDIO,
+            "alto": RISK_ALTO,
+            "critico": RISK_CRITICO,
+            "unknown": RISK_UNKNOWN,
+        },
     }
 
 

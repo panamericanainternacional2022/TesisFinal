@@ -11,6 +11,7 @@ from .shared import (
     build_query_string, parse_notifications, extract_variables,
     filter_by_variable, ALL_SEVERITIES,
 )
+from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO
 
 
 @login_required
@@ -125,6 +126,8 @@ def render_admin_history(request) -> HttpResponse:
             "rol": rol,
             "total_count": len(parsed_list),
             "periodo_seleccionado": period,
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },
     )
 

@@ -62,8 +62,7 @@ def render_stats_summary(pdf: Any, parsed_list: list[Any]) -> None:
     col_w = 38
     _pdf_font(pdf, "", 9)
     for lbl, fill, text_c, _desc in SEVERITY_DISPLAY_LEVELS:
-        key = RISK_INFO if lbl == "Informativo" else lbl
-        count = stats.get(key, 0)
+        count = stats.get(lbl, 0)
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
         pdf.set_draw_color(10, 10, 10)

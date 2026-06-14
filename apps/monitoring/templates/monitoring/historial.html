@@ -94,10 +94,10 @@
                                     {% if notif.parsed_data.parsed %}
                                         <div style="display:flex; align-items:center; gap:var(--sp-1); flex-wrap:wrap; margin-bottom:6px;">
                                             <span class="sensor-badge
-                                                {% if notif.parsed_data.risk == 'Crítico' %}sensor-critical
-                                                {% elif notif.parsed_data.risk == 'Alto' %}sensor-high
-                                                {% elif notif.parsed_data.risk == 'Medio' %}sensor-warning
-                                                {% elif notif.parsed_data.risk == 'Bajo' %}sensor-active
+                                                {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
+                                                {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
+                                                {% elif notif.parsed_data.risk == RISK_MEDIO %}sensor-warning
+                                                {% elif notif.parsed_data.risk == RISK_BAJO %}sensor-active
                                                 {% else %}sensor-info{% endif %}">
                                                 {{ notif.parsed_data.risk }}
                                             </span>

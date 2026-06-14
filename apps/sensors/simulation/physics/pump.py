@@ -1,9 +1,19 @@
 import random
 
+from apps.sensors.sensor_config import SENSOR_RANGES
 from apps.sensors.simulation.constants import (
     PUMP_P0, PUMP_K, T_AMBIENT,
 )
 from apps.sensors.simulation.models import BuildingSimulator
+
+# Desempaquetar rangos de bomba
+_FLOW_LOW, _FLOW_HIGH = SENSOR_RANGES["flow_rate"]
+_PRES_LOW, _PRES_HIGH = SENSOR_RANGES["pressure"]
+_TEMP_LOW, _TEMP_HIGH = SENSOR_RANGES["temperature"]
+_VIB_LOW, _VIB_HIGH = SENSOR_RANGES["vibration"]
+_TANK_LOW, _TANK_HIGH = SENSOR_RANGES["tank_level"]
+_VOLT_LOW, _VOLT_HIGH = SENSOR_RANGES["voltage"]
+_CURR_LOW, _CURR_HIGH = SENSOR_RANGES["current"]
 
 
 def _clamp(value: float, lo: float, hi: float) -> float:
@@ -39,8 +49,8 @@ def _set_pump_idle(sd: dict, dt: float) -> None:
     sd["pressure"] = 0.0
     sd["vibration"] = 0.0
     sd["current"] = 0.0
-    sd["temperature"] = _clamp(sd["temperature"] - 0.5 * dt, T_AMBIENT, 130)
-    sd["voltage"] = _clamp(sd["voltage"] + random.uniform(-1, 1) * dt, 180, 260)
+    sd["temperature"] = _clamp(sd["temperature"] - 0.5 * dt, _TEMP_LOW, _TEMP_HIGH)
+    sd["voltage"] = _clamp(sd["voltage"] + random.uniform(-1, 1) * dt, _VOLT_LOW, _VOLT_HIGH)
 
 
 def _apply_pump_fault(sim: BuildingSimulator, sd: dict, dt: float) -> None:
@@ -108,12 +118,12 @@ def _apply_power_outage(sd: dict, dt: float) -> None:
 
 
 def _clamp_pump_values(sd: dict) -> None:
-    sd["flow_rate"] = round(_clamp(sd["flow_rate"], 0, 60), 1)
-    sd["pressure"] = round(_clamp(sd["pressure"], 0, 12), 1)
-    sd["temperature"] = round(_clamp(sd["temperature"], T_AMBIENT, 130), 1)
-    sd["vibration"] = round(_clamp(sd["vibration"], 0, 15), 1)
+    sd["flow_rate"] = round(_clamp(sd["flow_rate"], _FLOW_LOW, _FLOW_HIGH), 1)
+    sd["pressure"] = round(_clamp(sd["pressure"], _PRES_LOW, _PRES_HIGH), 1)
+    sd["temperature"] = round(_clamp(sd["temperature"], _TEMP_LOW, _TEMP_HIGH), 1)
+    sd["vibration"] = round(_clamp(sd["vibration"], _VIB_LOW, _VIB_HIGH), 1)
     sd["voltage"] = round(sd["voltage"], 1)
-    sd["current"] = round(_clamp(sd["current"], 0, 70), 1)
+    sd["current"] = round(_clamp(sd["current"], _CURR_LOW, _CURR_HIGH), 1)
 
 
 def _run_pump_normal(sim: BuildingSimulator, sd: dict, dt: float) -> None:
@@ -151,10 +161,10 @@ def _write_pump_outputs(
     sd: dict, flow: float, pressure: float, temp: float,
     vib: float, tank: float, volt: float, curr: float,
 ) -> None:
-    sd["flow_rate"] = round(_clamp(flow, 0, 60), 1)
-    sd["pressure"] = round(_clamp(pressure, 0, 12), 1)
-    sd["temperature"] = round(_clamp(temp, T_AMBIENT, 130), 1)
-    sd["vibration"] = round(_clamp(vib, 0, 15), 1)
-    sd["tank_level"] = round(_clamp(tank, 0, 100), 1)
-    sd["voltage"] = round(_clamp(volt, 180, 260), 1)
-    sd["current"] = round(_clamp(curr, 0, 70), 1)
+    sd["flow_rate"] = round(_clamp(flow, _FLOW_LOW, _FLOW_HIGH), 1)
+    sd["pressure"] = round(_clamp(pressure, _PRES_LOW, _PRES_HIGH), 1)
+    sd["temperature"] = round(_clamp(temp, _TEMP_LOW, _TEMP_HIGH), 1)
+    sd["vibration"] = round(_clamp(vib, _VIB_LOW, _VIB_HIGH), 1)
+    sd["tank_level"] = round(_clamp(tank, _TANK_LOW, _TANK_HIGH), 1)
+    sd["voltage"] = round(_clamp(volt, _VOLT_LOW, _VOLT_HIGH), 1)
+    sd["current"] = round(_clamp(curr, _CURR_LOW, _CURR_HIGH), 1)
