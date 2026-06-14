@@ -3,8 +3,10 @@ from typing import Dict, Any, List
 from apps.sensors.sensor_config import (
     VAR_NAMES, RECOMMENDATION_THRESHOLDS,
     RECOMMENDATION_WARN_MSGS, RECOMMENDATION_CRIT_MSGS,
-    RECOMMENDATION_RANGE_MSG, ACTIONS, RISK_BAJO, RISK_MEDIO,
-    RISK_ALTO, RISK_CRITICO,
+    RECOMMENDATION_RANGE_MSG, RECOMMENDATION_MOTOR_STUCK_MSG,
+    RECOMMENDATION_DOOR_MSG_TEMPLATE, RECOMMENDATION_OK_MSG,
+    RECOMMENDATION_FALLBACK_ACTION_TEMPLATE,
+    ACTIONS, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
 )
 from apps.sensors.simulation.constants import MAX_DOOR_CLOSE_ATTEMPTS
 
@@ -35,15 +37,15 @@ def generate_recommendations(
                 recs.append(RECOMMENDATION_RANGE_MSG)
 
     if data.get("motor_stuck", False):
-        recs.append("MOTOR STUCK. Urgent maintenance required.")
+        recs.append(RECOMMENDATION_MOTOR_STUCK_MSG)
     if door_close_attempts >= MAX_DOOR_CLOSE_ATTEMPTS:
-        recs.append(f"Check doors: {door_close_attempts} failed closing attempts.")
+        recs.append(RECOMMENDATION_DOOR_MSG_TEMPLATE.format(door_close_attempts))
     if not recs:
-        recs.append("All parameters normal. Stable operation.")
+        recs.append(RECOMMENDATION_OK_MSG)
     return recs[:5]
 
 
 def get_professional_action(variable: str, risk_level: str, value: Any) -> str:
     var_actions = ACTIONS.get(variable, {})
     var_display = VAR_NAMES.get(variable, variable.replace("_", " "))
-    return var_actions.get(risk_level, f"Check the {var_display.lower()} sensor. Schedule preventive inspection.")
+    return var_actions.get(risk_level, RECOMMENDATION_FALLBACK_ACTION_TEMPLATE.format(var_display.lower()))

@@ -31,10 +31,6 @@ def _make_parsed(
 
     if variable in VALUE_DISPLAY_ES:
         value_display = VALUE_DISPLAY_ES[variable].get(value_str, str(value).capitalize())
-    elif value_str == "pump":
-        value_display = "Water pump"
-    elif value_str == "elevator":
-        value_display = "Elevator"
     elif value_str in DEVICE_NAMES_ES:
         value_display = DEVICE_NAMES_ES[value_str].capitalize()
     elif value_str:

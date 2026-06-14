@@ -130,7 +130,8 @@ def _clear_device_alerts(device: str, active_alerts_dict: dict[str, str]) -> Non
 
 def _notify_protection_ended(device: str, sim: Optional['BuildingSimulator'], pn: list) -> None:
     from apps.alerts.services.alert_service import persist_notification_in_django
-    device_es = "the water pump" if device == "pump" else "the elevator"
+    from .utils import translate_device_to_spanish
+    device_es = translate_device_to_spanish(device)
     alert_enabled = sim.alert_enabled if sim else True
     if alert_enabled:
         eid = sim.edificio_id if sim else None

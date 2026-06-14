@@ -45,6 +45,8 @@ def render_admin_monitoring(request) -> HttpResponse:
             "edificios": buildings,
             "edificio_id": building_id,
             "config_json": build_monitoring_config(building_id),
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },
     )
 

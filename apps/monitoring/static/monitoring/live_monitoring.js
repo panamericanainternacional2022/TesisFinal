@@ -28,27 +28,12 @@ function _loadConfig() {
     return el ? JSON.parse(el.textContent) : null;
 }
 
-const _CONFIG = _loadConfig();
-const _VAR_NAMES = (_CONFIG && _CONFIG.var_names) || {
-    flow_rate: 'Caudal', pressure: 'Presión', temperature: 'Temperatura',
-    vibration: 'Vibración', tank_level: 'Nivel de tanque', voltage: 'Voltaje',
-    current: 'Corriente', position: 'Posición', speed: 'Velocidad', load: 'Carga',
-    trip_count: 'Viajes', door_status: 'Puerta', energy: 'Energía', motor_stuck: 'Motor atascado'
-};
-const _UNITS = (_CONFIG && _CONFIG.units) || {
-    flow_rate: 'L/s', pressure: 'bar', temperature: '°C', vibration: 'mm/s',
-    tank_level: '%', speed: 'm/s', load: 'kg', trip_count: 'viajes',
-    energy: 'kW', voltage: 'V', current: 'A'
-};
-const _BOMBA_VARS = (_CONFIG && _CONFIG.pump_vars) || [
-    'flow_rate', 'pressure', 'temperature', 'vibration', 'tank_level', 'voltage', 'current'
-];
-const _ELEVADOR_VARS = (_CONFIG && _CONFIG.elevator_vars) || [
-    'position', 'speed', 'load', 'trip_count', 'door_status', 'energy', 'motor_stuck'
-];
-const _RISK = (_CONFIG && _CONFIG.risk_labels) || {
-    info: 'Info', bajo: 'Bajo', medio: 'Medio', alto: 'Alto', critico: 'Crítico', unknown: 'Desconocido'
-};
+const _CONFIG = _loadConfig() || {};
+const _VAR_NAMES = _CONFIG.var_names || {};
+const _UNITS = _CONFIG.units || {};
+const _BOMBA_VARS = _CONFIG.pump_vars || [];
+const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
+const _RISK = _CONFIG.risk_labels || {};
 
 function getVariableName(variable) {
     return _VAR_NAMES[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
@@ -291,8 +276,7 @@ function renderLiveMonitor(data) {
 
     updateCharts(data.history || []);
 
-    const _INFO_LABEL = 'Info';
-    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== _INFO_LABEL).length;
+    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== _RISK.info).length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
 }
@@ -305,7 +289,7 @@ function renderNotificationList(alerts) {
         placeholder.remove();
     }
 
-    const filtered = (alerts || []).filter(a => a.risk !== _INFO_LABEL);
+    const filtered = (alerts || []).filter(a => a.risk !== _RISK.info);
 
     if (filtered.length === 0) {
         unreadNotificationCount = 0;

@@ -232,6 +232,12 @@ RECOMMENDATION_CRIT_MSGS: dict[str, str] = {
 
 RECOMMENDATION_RANGE_MSG: str = "Electrical instability. Check power supply."
 
+# ─── Mensajes especiales de recomendación ─────────────────────────────
+RECOMMENDATION_MOTOR_STUCK_MSG: str = "MOTOR STUCK. Urgent maintenance required."
+RECOMMENDATION_DOOR_MSG_TEMPLATE: str = "Check doors: {} failed closing attempts."
+RECOMMENDATION_OK_MSG: str = "All parameters normal. Stable operation."
+RECOMMENDATION_FALLBACK_ACTION_TEMPLATE: str = "Check the {} sensor. Schedule preventive inspection."
+
 # ─── Acciones recomendadas por variable y nivel de riesgo ─────────────────
 ACTIONS: dict[str, dict[str, str]] = {
     "flow_rate": {

@@ -5,7 +5,7 @@ import eventlet
 
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
-    RISK_CRITICO, RISK_ALTO, RISK_BAJO, RISK_UNKNOWN,
+    RISK_CRITICO, RISK_ALTO, RISK_BAJO,
     SIM_TICK_INTERVAL, MAX_CONSECUTIVE_FAILURES,
 )
 from apps.sensors.simulation.constants import (
