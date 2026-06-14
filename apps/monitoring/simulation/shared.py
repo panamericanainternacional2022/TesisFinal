@@ -4,6 +4,7 @@ from typing import Any
 
 from django.http import JsonResponse
 
+from apps.core.services.http_response import json_error as _json_error, json_ok as _json_ok
 from apps.sensors.simulation.exceptions import SimulatorError
 from apps.sensors.simulation.models import BuildingSimulator
 
@@ -59,14 +60,11 @@ def get_first_simulator() -> BuildingSimulator | None:
 
 
 def json_error_response(message: str, status: int = 400) -> JsonResponse:
-    return JsonResponse({"status": "error", "message": message}, status=status)
+    return _json_error(message, status)
 
 
 def json_success_response(extra: dict[str, Any] | None = None) -> JsonResponse:
-    resp: dict[str, Any] = {"status": "ok"}
-    if extra:
-        resp.update(extra)
-    return JsonResponse(resp)
+    return _json_ok(extra)
 
 
 def parse_json_body(request) -> dict[str, Any]:

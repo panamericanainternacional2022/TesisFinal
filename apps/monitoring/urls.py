@@ -57,52 +57,52 @@ urlpatterns = [
     # ─── SIMULACIÓN API (reemplaza routes.py Flask) ─────
     path("sse/<int:building_id>/", sse_stream, name="sse_stream"),
     path("api/status/", api_status, name="api_status"),
-    path("api/edificios/", api_buildings, name="api_edificios"),
+    path("api/edificios/", api_buildings, name="api_buildings"),
     path(
         "api/usuarios_edificio/<int:building_id>/",
         api_building_users,
-        name="api_usuarios_edificio",
+        name="api_building_users",
     ),
     path("api/notifications/", api_notifications, name="api_notifications"),
-    path("api/manual-update/", manual_update, name="manual_update"),
+    path("api/manual-update/", manual_update, name="api_manual_update"),
     path(
         "api/sim/<int:building_id>/status/",
         sim_status,
-        name="sim_status_api",
+        name="api_sim_status",
     ),
     path(
         "api/sim/<int:building_id>/pause/",
         sim_pause,
-        name="sim_pause_api",
+        name="api_sim_pause",
     ),
     path(
         "api/sim/<int:building_id>/reset/",
         sim_reset,
-        name="sim_reset_api",
+        name="api_sim_reset",
     ),
     path(
         "api/sim/<int:building_id>/inject-fault/",
         sim_inject_fault,
-        name="sim_inject_fault_api",
+        name="api_sim_inject_fault",
     ),
     path(
         "api/sim/<int:building_id>/clear-fault/",
         sim_clear_fault,
-        name="sim_clear_fault_api",
+        name="api_sim_clear_fault",
     ),
     path(
         "api/sim/<int:building_id>/set-speed/",
         sim_set_speed,
-        name="sim_set_speed_api",
+        name="api_sim_set_speed",
     ),
     path(
         "api/sim/<int:building_id>/toggle-pump/",
         sim_toggle_pump,
-        name="sim_toggle_pump_api",
+        name="api_sim_toggle_pump",
     ),
     path(
         "api/sim/<int:building_id>/toggle-elevator/",
         sim_toggle_elevator,
-        name="sim_toggle_elevator_api",
+        name="api_sim_toggle_elevator",
     ),
 ]

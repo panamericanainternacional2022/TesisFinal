@@ -7,24 +7,13 @@ from django.http import JsonResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
 
 from apps.core.auth_decorators import login_required
+from apps.core.services.http_response import json_error, json_ok
 from apps.alerts.services.threshold_service import get_thresholds, update_threshold, ThresholdPersistenceError
 from apps.alerts.services.alert_service import (
     send_email_alert,
     get_building_emails,
 )
 from apps.sensors.sensor_config import RISK_INFO
-
-
-
-def _json_error(msg: str, status: int = 400) -> JsonResponse:
-    return JsonResponse({"status": "error", "message": msg}, status=status)
-
-
-def _json_ok(extra: Optional[Dict[str, Any]] = None) -> JsonResponse:
-    resp: Dict[str, Any] = {"status": "ok"}
-    if extra:
-        resp.update(extra)
-    return JsonResponse(resp)
 
 
 @login_required
@@ -102,12 +91,12 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return _json_error("Invalid JSON")
+        return json_error("Invalid JSON")
 
     try:
         variable, risk_lower, value = _validate_and_prepare_threshold(data)
     except ThresholdValidationError as e:
-        return _json_error(str(e))
+        return json_error(str(e))
 
     existing = get_thresholds().get(variable, {"direction": "higher", "low": 0, "medium": 0, "high": 0})
     direction = existing.get("direction", "higher")
@@ -123,17 +112,17 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
         existing[risk_lower] = value
         update_threshold(variable, existing)
     except ThresholdValidationError as e:
-        return _json_error(str(e))
+        return json_error(str(e))
     except ThresholdPersistenceError as e:
-        return _json_error(str(e), status=500)
+        return json_error(str(e), status=500)
 
-    return _json_ok({"thresholds": get_thresholds()})
+    return json_ok({"thresholds": get_thresholds()})
 
 
 @require_http_methods(["POST"])
 def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     request.session["alerts_cleared_at"] = time_module.time()
-    return _json_ok()
+    return json_ok()
 
 
 @require_http_methods(["POST"])
@@ -141,22 +130,22 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return _json_error("Invalid JSON")
+        return json_error("Invalid JSON")
 
     edificio_id = data.get("edificio_id")
     enabled = data.get("enabled")
     if enabled is None:
-        return _json_error("Missing field 'enabled'")
+        return json_error("Missing field 'enabled'")
 
     from apps.sensors.simulation.globals import simulators
     if edificio_id and edificio_id in simulators:
         sim = simulators[edificio_id]
         sim.alert_enabled = bool(enabled)
-        return _json_ok({"alert_enabled": sim.alert_enabled})
+        return json_ok({"alert_enabled": sim.alert_enabled})
     else:
         for sim in simulators.values():
             sim.alert_enabled = bool(enabled)
-        return _json_ok({"alert_enabled": bool(enabled)})
+        return json_ok({"alert_enabled": bool(enabled)})
 
 
 @require_http_methods(["POST"])
@@ -164,11 +153,11 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return _json_error("Invalid JSON")
+        return json_error("Invalid JSON")
 
     email = data.get("email", "")
     if not email:
-        return _json_error("Missing field 'email'")
+        return json_error("Missing field 'email'")
 
     threading.Thread(
         target=send_email_alert,
@@ -180,7 +169,7 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
         },
         daemon=True,
     ).start()
-    return _json_ok({"message": f"Test email sent to {email}"})
+    return json_ok({"message": f"Test email sent to {email}"})
 
 
 @require_http_methods(["POST"])
@@ -188,17 +177,17 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
     except json.JSONDecodeError:
-        return _json_error("Invalid JSON")
+        return json_error("Invalid JSON")
 
     edificio_id = data.get("edificio_id")
     from apps.sensors.simulation.globals import simulators
     sim = simulators.get(edificio_id) if edificio_id else next(iter(simulators.values()), None)
     if not sim:
-        return _json_error("Simulator not found", 404)
+        return json_error("Simulator not found", 404)
 
     emails = get_building_emails(edificio_id or sim.edificio_id)
     if not emails:
-        return _json_error("No subscribers for this building")
+        return json_error("No subscribers for this building")
 
     from apps.sensors.sensor_config import VAR_NAMES, UNITS
     timestamp = time_module.strftime("%Y-%m-%d %H:%M:%S")
@@ -215,4 +204,4 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
             args=(RISK_INFO, subject, body, email),
             daemon=True,
         ).start()
-    return _json_ok({"message": f"Report sent to {len(emails)} subscribers"})
+    return json_ok({"message": f"Report sent to {len(emails)} subscribers"})

@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, RISK_CRITICO, RISK_BAJO, BOOLEAN_VARS, PAYLOAD_HISTORY_SLICE, API_NOTIFICATION_LIMIT
+from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, VAR_NAMES, RISK_CRITICO, RISK_BAJO, BOOLEAN_VARS, PAYLOAD_HISTORY_SLICE, API_NOTIFICATION_LIMIT
 from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
 
 logger = logging.getLogger(__name__)
@@ -30,10 +30,6 @@ class PayloadContext:
     alert_enabled: bool = True
     active_edificio_id: int = None
     django_connected: bool = False
-
-
-def titleize_name(variable_name: str) -> str:
-    return " ".join(word.capitalize() for word in variable_name.replace("_", " ").split())
 
 
 def _compute_stats(history: list, max_entries: int = MAX_HISTORY_SIZE) -> dict[str, Any]:
@@ -117,7 +113,7 @@ def _build_sensors_list(sensor_data: dict, relevant_vars: set[str], thresholds: 
             risk, color = classify_risk(var, value, thresholds)
         sensors.append({
             "id": var,
-            "nombre": titleize_name(var),
+            "nombre": VAR_NAMES.get(var, var),
             "riesgo": risk,
             "color": color,
         })

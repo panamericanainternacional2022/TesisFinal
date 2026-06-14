@@ -80,6 +80,59 @@ class EmailConfig:
         self.smtp_password = smtp_password
 
 
+def _smtp_send(
+    msg: Any,
+    recipients: List[str],
+    server: str,
+    port: int,
+    user: str,
+    password: str,
+    timeout: int = 15,
+) -> None:
+    if not user or not password:
+        logger.warning("SMTP credentials not configured. Email not sent to %s.", recipients)
+        return
+    conn = smtplib.SMTP(server, port, timeout=timeout)
+    conn.starttls()
+    conn.login(user, password)
+    for rec in recipients:
+        if "To" in msg:
+            del msg["To"]
+        msg["To"] = rec
+        conn.send_message(msg)
+    conn.quit()
+
+
+def send_email_raw(
+    from_addr: str,
+    to_addrs: List[str],
+    subject: str,
+    html_body: str,
+    plain_body: str = "",
+    smtp_server: Optional[str] = None,
+    smtp_port: Optional[int] = None,
+    smtp_user: Optional[str] = None,
+    smtp_password: Optional[str] = None,
+) -> None:
+    smtp_server = smtp_server or os.environ.get("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = smtp_port or int(os.environ.get("SMTP_PORT", 587))
+    smtp_user = smtp_user or os.environ.get("SMTP_USER", "")
+    smtp_password = smtp_password or os.environ.get("SMTP_PASSWORD", "")
+
+    if not smtp_user or not smtp_password:
+        logger.warning("SMTP not configured. Email '%s' not sent.", subject)
+        return
+
+    msg = MIMEMultipart("alternative")
+    msg["From"] = smtp_user
+    msg["Subject"] = subject
+    msg.attach(MIMEText(plain_body or html_body, "plain", "utf-8"))
+    msg.attach(MIMEText(html_body, "html", "utf-8"))
+
+    from apps.sensors.sensor_config import SMTP_TIMEOUT
+    _smtp_send(msg, to_addrs, smtp_server, smtp_port, smtp_user, smtp_password, SMTP_TIMEOUT)
+
+
 def _get_email_colors(risk_level: str) -> Dict[str, str]:
     from apps.sensors.sensor_config import EMAIL_COLOR_PALETTE, EMAIL_FALLBACK_COLORS
     return EMAIL_COLOR_PALETTE.get(risk_level, EMAIL_FALLBACK_COLORS)
@@ -224,16 +277,8 @@ def _send_email_smtp(config: EmailConfig) -> None:
         msg.attach(part)
 
     from apps.sensors.sensor_config import SMTP_TIMEOUT
-    server = smtplib.SMTP(smtp_server, smtp_port, timeout=SMTP_TIMEOUT)
-    server.starttls()
-    server.login(smtp_user, smtp_password)
-    for rec in config.recipients or []:
-        if "To" in msg:
-            del msg["To"]
-        msg["To"] = rec
-        server.send_message(msg)
-        logger.info("Real email sent to %s (risk %s)", rec, config.risk_level)
-    server.quit()
+    _smtp_send(msg, config.recipients or [], smtp_server, smtp_port, smtp_user, smtp_password, SMTP_TIMEOUT)
+    logger.info("Real email sent to %s (risk %s)", config.recipients, config.risk_level)
 
 
 def send_email_alert(

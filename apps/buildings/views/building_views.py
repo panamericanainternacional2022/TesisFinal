@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.db.models import Q
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
@@ -102,10 +103,11 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
             if form_errors:
                 messages.error(request, "Por favor, corrige los errores en el formulario.")
             else:
-                building = Building.objects.create(
-                    name=data["name"], rif=data["rif"], address=data["address"],
-                )
-                create_equipment_for_building(building, config)
+                with transaction.atomic():
+                    building = Building.objects.create(
+                        name=data["name"], rif=data["rif"], address=data["address"],
+                    )
+                    create_equipment_for_building(building, config)
                 messages.success(request, "Edificio registrado correctamente.")
                 return redirect("building_list")
 
@@ -163,8 +165,9 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
             if form_errors:
                 messages.error(request, "Por favor, corrige los errores en el formulario.")
             else:
-                building.save()
-                sync_equipment_for_building(building, config)
+                with transaction.atomic():
+                    building.save()
+                    sync_equipment_for_building(building, config)
                 messages.success(request, "Edificio actualizado correctamente.")
                 return redirect("building_list")
 
@@ -198,14 +201,15 @@ def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse
 
 def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
     from apps.alerts.models import Notification
-    equipment = list(building.equipment.all())
-    Notification.objects.filter(
-        monitoring_equipment__building=building,
-    ).delete()
-    for eq in equipment:
-        eq.delete()
-    UserBuilding.objects.filter(building=building).delete()
-    building.delete()
+    with transaction.atomic():
+        equipment = list(building.equipment.all())
+        Notification.objects.filter(
+            monitoring_equipment__building=building,
+        ).delete()
+        for eq in equipment:
+            eq.delete()
+        UserBuilding.objects.filter(building=building).delete()
+        building.delete()
     messages.success(
         request,
         "Edificio y todos sus datos asociados fueron eliminados correctamente.",

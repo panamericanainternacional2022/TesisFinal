@@ -45,13 +45,8 @@ def get_equipment_sensors(equipment: MonitoringEquipment) -> list[dict]:
 
 
 def filter_severity(queryset: QuerySet, severity: str) -> QuerySet:
-    if severity and severity in ALL_SEVERITIES:
-        return queryset.filter(
-            Q(message__risk=severity)
-            | Q(message__contains=f'"risk": "{severity}"')
-            | Q(message__contains=f'"risk":"{severity}"')
-        )
-    return queryset
+    from apps.alerts.views.shared import filter_severity_include
+    return filter_severity_include(queryset, severity)
 
 
 def filter_date_range(queryset: QuerySet, period: str, date_from: str, date_to: str) -> QuerySet:

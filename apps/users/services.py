@@ -1,14 +1,11 @@
-import os
 import random
-import smtplib
 import string
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
 from typing import Any
 
 from django.core import signing
 from django.urls import reverse
 
+from apps.alerts.services.email_sender import send_email_raw
 from apps.users.models import Usuario
 
 _ACTIVATION_EMAIL_HTML = """<!DOCTYPE html>
@@ -126,57 +123,27 @@ def build_random_username(first_name: str, last_name: str) -> str:
     return username
 
 
-def _load_env_file() -> None:
-    env_path = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-        ".env",
-    )
-    if os.path.exists(env_path):
-        with open(env_path, "r", encoding="utf-8") as f:
-            for line in f:
-                if line.strip() and not line.startswith("#"):
-                    if "=" in line:
-                        key, val = line.strip().split("=", 1)
-                        os.environ[key.strip()] = val.strip().strip("'\"")
-
-
-def _get_smtp_config() -> dict[str, str | int]:
-    _load_env_file()
-    return {
-        "server": os.environ.get("SMTP_SERVER", "smtp.gmail.com"),
-        "port": int(os.environ.get("SMTP_PORT", 587)),
-        "user": os.environ.get("SMTP_USER", ""),
-        "password": os.environ.get("SMTP_PASSWORD", ""),
-    }
-
-
 def send_activation_email(email: str, user_id: int, base_url: str) -> str:
+    import os
     token = signing.dumps({"user_id": user_id, "email": email})
     link = f"{base_url}{reverse('complete_registration')}?token={token}"
 
-    smtp = _get_smtp_config()
-    if not smtp["user"] or not smtp["password"]:
+    if not os.environ.get("SMTP_USER") or not os.environ.get("SMTP_PASSWORD"):
         raise RuntimeError(
             "SMTP credentials not configured. Activation link: " + link
         )
 
+    plain_body = _ACTIVATION_EMAIL_PLAIN.format(link=link)
+    html_body = _ACTIVATION_EMAIL_HTML.format(link=link)
+
     try:
-        msg = MIMEMultipart("alternative")
-        msg["From"] = smtp["user"]
-        msg["To"] = email
-        msg["Subject"] = "[INES] Activacion y Acceso al Sistema"
-
-        body = _ACTIVATION_EMAIL_PLAIN.format(link=link)
-        html_content = _ACTIVATION_EMAIL_HTML.format(link=link)
-
-        msg.attach(MIMEText(body, "plain", "utf-8"))
-        msg.attach(MIMEText(html_content, "html", "utf-8"))
-
-        server = smtplib.SMTP(smtp["server"], smtp["port"])
-        server.starttls()
-        server.login(smtp["user"], smtp["password"])
-        server.send_message(msg)
-        server.quit()
-        return link
+        send_email_raw(
+            from_addr="",
+            to_addrs=[email],
+            subject="[INES] Activacion y Acceso al Sistema",
+            html_body=html_body,
+            plain_body=plain_body,
+        )
     except Exception as e:
         raise RuntimeError(f"Failed to send activation email: {e}") from e
+    return link

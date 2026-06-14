@@ -3,6 +3,8 @@ from django.http import HttpResponse, JsonResponse
 from django.core.paginator import Paginator
 
 from apps.core.auth_decorators import login_required, admin_required
+from apps.core.services.http_response import json_error, json_ok
+from apps.core.services.http_request import get_building_id_param
 from apps.buildings.models import Building
 from apps.alerts.models import Notification
 
@@ -22,7 +24,7 @@ def render_admin_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
 
-    building_id = request.GET.get("edificio") or request.GET.get("edificio_id")
+    building_id = get_building_id_param(request, "edificio", "edificio_id")
     valid_ids = [b.pk for b in buildings]
     if building_id:
         try:
@@ -77,7 +79,7 @@ def building_monitoring_view(request, building_id: int) -> HttpResponse:
 @login_required
 def render_admin_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    building_id = (request.GET.get("edificio") or request.GET.get("edificio_id") or "").strip()
+    building_id = get_building_id_param(request, "edificio", "edificio_id")
     severity = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
     period = request.GET.get("periodo", "24h").strip()
@@ -172,12 +174,12 @@ def simulator_start_view(request) -> JsonResponse:
             simulator.elevator_on = simulator.has_elevator
             created_count += 1
         if created_count:
-            return JsonResponse({"status": "ok", "message": f"Simuladores creados ({created_count})."})
-        return JsonResponse({"status": "error", "message": "No hay equipos de monitoreo en la BD."})
+            return json_ok({"message": f"Simuladores creados ({created_count})."})
+        return json_error("No hay equipos de monitoreo en la BD.")
 
     for simulator in simulators.values():
         simulator.sim_paused = False
-    return JsonResponse({"status": "ok", "message": "Simulación reanudada."})
+    return json_ok({"message": "Simulación reanudada."})
 
 
 @login_required
@@ -186,10 +188,10 @@ def simulator_stop_view(request) -> JsonResponse:
     from apps.sensors.simulation.globals import simulators
 
     if not simulators:
-        return JsonResponse({"status": "ok", "message": "No hay simuladores activos."})
+        return json_ok({"message": "No hay simuladores activos."})
     for simulator in simulators.values():
         simulator.sim_paused = True
-    return JsonResponse({"status": "ok", "message": "Simulación pausada."})
+    return json_ok({"message": "Simulación pausada."})
 
 
 @login_required
@@ -199,10 +201,10 @@ def simulator_restart_view(request) -> JsonResponse:
     from apps.sensors.simulation.controls import reset_simulator
 
     if not simulators:
-        return JsonResponse({"status": "error", "message": "No hay simuladores activos."})
+        return json_error("No hay simuladores activos.")
     restarted_count = 0
     for building_id in list(simulators.keys()):
         reset_simulator(building_id)
         simulators[building_id].sim_paused = False
         restarted_count += 1
-    return JsonResponse({"status": "ok", "message": f"{restarted_count} simulador(es) reiniciado(s)."})
+    return json_ok({"message": f"{restarted_count} simulador(es) reiniciado(s)."})

@@ -38,9 +38,8 @@ def _get_user_info(request: Any) -> tuple[int | None, str]:
 
 
 def _parse_query_params(request: Any) -> dict[str, str]:
-    building_id: str = request.GET.get("edificio", "").strip()
-    if building_id.lower() in ("", "none", "null"):
-        building_id = ""
+    from apps.core.services.http_request import get_building_id_param
+    building_id: str = get_building_id_param(request, "edificio")
     return {
         "building_id": building_id,
         "severity": request.GET.get("severidad", "").strip(),
@@ -56,51 +55,21 @@ def _filter_by_role_and_building(
     role: str,
     building_id: str,
 ) -> tuple[QuerySet, str]:
-    from apps.core.auth_decorators import is_admin_role
-    if is_admin_role(role):
-        notifications = Notification.objects.all()
-        building_name: str = "Todos los edificios"
-        if building_id:
-            notifications = notifications.filter(monitoring_equipment__building_id=building_id)
-            try:
-                building_name = Building.objects.get(id=building_id).name
-            except Building.DoesNotExist:
-                pass
-    else:
-        user_buildings = UserBuilding.objects.filter(
-            user_id=user_id
-        ).values_list("building_id", flat=True)
-        building_name = "Todos los edificios"
-        if building_id:
-            if building_id.isdigit() and int(building_id) in list(user_buildings):
-                notifications = Notification.objects.filter(
-                    monitoring_equipment__building_id=building_id
-                )
-                try:
-                    building_name = Building.objects.get(id=building_id).name
-                except Building.DoesNotExist:
-                    pass
-            else:
-                notifications = Notification.objects.none()
-        else:
-            equipment_ids = MonitoringEquipment.objects.filter(
-                building_id__in=list(user_buildings)
-            ).values_list("id", flat=True)
-            notifications = Notification.objects.filter(
-                user_id=user_id
-            ) | Notification.objects.filter(monitoring_equipment_id__in=list(equipment_ids))
+    from apps.alerts.views.shared import _build_notification_query
+    if user_id is None:
+        return Notification.objects.none(), ""
+    notifications, building_name = _build_notification_query(user_id, role, building_id)
+    if not building_name:
+        building_name = building_id or "Todos los edificios"
     return notifications, building_name
 
 
 def _apply_severity_filter(
     notifications: QuerySet, severity: str
 ) -> QuerySet:
-    if severity and severity in ALL_SEVERITY_LEVELS:
-        notifications = notifications.filter(
-            Q(mensaje__risk=severity)
-            | Q(mensaje__contains=f'"risk": "{severity}"')
-            | Q(mensaje__contains=f'"risk":"{severity}"')
-        )
+    from apps.alerts.views.shared import filter_severity_include
+    if severity:
+        notifications = filter_severity_include(notifications, severity)
     return notifications
 
 

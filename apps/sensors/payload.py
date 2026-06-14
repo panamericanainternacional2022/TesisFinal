@@ -12,7 +12,7 @@ def build_live_payload() -> dict:
         door_close_attempts, pump_on, elevator_on, equipment_types,
         sim_paused, sim_speed,
     )
-    from apps.sensors.simulation.constants import RATIONING_THRESHOLD
+    from apps.sensors.sensor_config import RATIONING_THRESHOLD
     from apps.alerts.services.alert_service import generate_recommendations
     ctx = PayloadContext(
         sensor_data=sensor_data,
@@ -34,7 +34,7 @@ def build_live_payload() -> dict:
 
 
 def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
-    from apps.sensors.simulation.constants import RATIONING_THRESHOLD
+    from apps.sensors.sensor_config import RATIONING_THRESHOLD
     from apps.alerts.services.alert_service import generate_recommendations
     ctx = PayloadContext(
         sensor_data=sim.sensor_data,

@@ -7,6 +7,8 @@ from apps.core.auth_decorators import login_required
 from apps.buildings.models import Building, MonitoringEquipment
 from apps.alerts.models import Notification
 
+from apps.core.services.http_request import get_building_id_param
+
 from .shared import (
     build_monitoring_config, filter_severity, filter_date_range,
     build_query_string, parse_notifications, extract_variables,
@@ -19,7 +21,7 @@ from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK
 @login_required
 def render_user_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    user_id = request.session["usuario_id"]
+    user_id = request.session.get("usuario_id")
     query = request.GET.get("q", "").strip()
 
     user_building_ids = get_user_building_ids(user_id)
@@ -62,11 +64,9 @@ def render_user_monitoring(request) -> HttpResponse:
 @login_required
 def render_user_history(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
-    user_id = request.session["usuario_id"]
+    user_id = request.session.get("usuario_id")
 
-    building_id = (request.GET.get("edificio") or request.GET.get("edificio_id") or "").strip()
-    if building_id.lower() in ("", "none", "null"):
-        building_id = ""
+    building_id = get_building_id_param(request, "edificio", "edificio_id")
     severity = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
     period = request.GET.get("periodo", "24h").strip()
@@ -76,21 +76,8 @@ def render_user_history(request) -> HttpResponse:
     user_building_ids = get_user_building_ids(user_id)
     buildings = Building.objects.filter(pk__in=user_building_ids)
 
-    if building_id:
-        if building_id.isdigit() and int(building_id) in user_building_ids:
-            notifications = Notification.objects.filter(
-                monitoring_equipment__building_id=building_id
-            )
-        else:
-            notifications = Notification.objects.none()
-    else:
-        equipment_ids = list(MonitoringEquipment.objects.filter(
-            building_id__in=user_building_ids
-        ).values_list("pk", flat=True))
-        notifications = Notification.objects.filter(
-            Q(user_id=user_id)
-            | Q(monitoring_equipment_id__in=equipment_ids)
-        )
+    from apps.alerts.views.shared import _build_notification_query
+    notifications, _ = _build_notification_query(user_id, "US", building_id)
 
     notifications = filter_severity(notifications, severity)
     notifications = filter_date_range(notifications, period, date_from, date_to)
