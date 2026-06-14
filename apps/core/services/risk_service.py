@@ -2,11 +2,8 @@ from typing import Optional
 
 from apps.sensors.sensor_config import (
     RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
-    NO_RISK_VARS, RISK_UNKNOWN,
+    NO_RISK_VARS, RISK_UNKNOWN, ZERO_IS_CRITICAL_VARS,
 )
-
-
-ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
 
 
 def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tuple[str, str]:

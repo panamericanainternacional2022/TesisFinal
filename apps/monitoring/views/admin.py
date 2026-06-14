@@ -11,7 +11,7 @@ from .shared import (
     build_query_string, parse_notifications, extract_variables,
     filter_by_variable, ALL_SEVERITIES,
 )
-from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO
+from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO, PAGE_SIZE
 
 
 @login_required
@@ -97,7 +97,7 @@ def render_admin_history(request) -> HttpResponse:
     all_variables = extract_variables(parsed_list)
     parsed_list = filter_by_variable(parsed_list, variable_filter)
 
-    paginator = Paginator(parsed_list, 30)
+    paginator = Paginator(parsed_list, PAGE_SIZE)
     page_obj = paginator.get_page(request.GET.get("page"))
 
     query_string = build_query_string(

@@ -192,7 +192,8 @@ def sim_set_speed(request, building_id: int) -> JsonResponse:
     except (SimulatorError, ValueError, TypeError):
         return json_error_response("JSON inválido o speed no numérico")
 
-    sim.sim_speed = max(0.1, min(10.0, speed))
+    from apps.sensors.simulation.constants import MIN_SIM_SPEED, MAX_SIM_SPEED
+    sim.sim_speed = max(MIN_SIM_SPEED, min(MAX_SIM_SPEED, speed))
     return json_success_response({"speed": sim.sim_speed})
 
 

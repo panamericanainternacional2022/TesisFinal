@@ -20,7 +20,8 @@ def sse_stream(request, building_id: int) -> StreamingHttpResponse | StreamingHt
         from apps.sensors.payload import build_live_payload_for_sim
         try:
             while True:
-                eventlet.sleep(5)
+                from apps.sensors.sensor_config import SIM_TICK_INTERVAL
+                eventlet.sleep(SIM_TICK_INTERVAL)
                 payload = build_live_payload_for_sim(sim)
                 yield f"data: {json.dumps(payload)}\n\n"
                 while sim.pending_notifications:

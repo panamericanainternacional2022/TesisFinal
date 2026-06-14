@@ -229,7 +229,8 @@ def _send_email_smtp(config: EmailConfig) -> None:
         part.add_header("Content-Disposition", "attachment", filename=config.attachment.filename)
         msg.attach(part)
 
-    server = smtplib.SMTP(smtp_server, smtp_port, timeout=15)
+    from apps.sensors.sensor_config import SMTP_TIMEOUT
+    server = smtplib.SMTP(smtp_server, smtp_port, timeout=SMTP_TIMEOUT)
     server.starttls()
     server.login(smtp_user, smtp_password)
     for rec in config.recipients or []:

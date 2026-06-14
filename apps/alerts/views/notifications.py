@@ -9,7 +9,7 @@ from apps.users.models import Usuario
 from apps.buildings.models import Building, UserBuilding, MonitoringEquipment
 from apps.alerts.models import Notification
 from apps.alerts.views.shared import parse_notification_for_display
-from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO
+from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, PAGE_SIZE
 
 
 @login_required
@@ -67,7 +67,7 @@ def notifications_view(request: HttpRequest):
         .order_by("-date")
     )
 
-    paginator = Paginator(notifications, 30)
+    paginator = Paginator(notifications, PAGE_SIZE)
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 

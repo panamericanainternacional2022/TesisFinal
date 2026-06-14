@@ -5,6 +5,8 @@ import logging
 from apps.sensors.simulation.constants import (
     RANDOM_FAULT_PROB, FAULT_AUTO_CLEAR_SECONDS,
     SIMULTANEOUS_FAIL_PROB, LOG_SIM,
+    CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
+    CLEAR_FAULT_VOLTAGE_LOW, CLEAR_FAULT_VOLTAGE_HIGH, CLEAR_FAULT_MAX_LOAD,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 
@@ -50,14 +52,14 @@ def _clear_expired_fault_device(sim: BuildingSimulator, device: str) -> None:
     sd = sim.sensor_data
     if device == "pump":
         from apps.sensors.simulation.physics.pump import _clamp
-        sd["flow_rate"] = max(sd["flow_rate"], 15.0)
-        sd["pressure"] = max(sd["pressure"], 3.0)
-        sd["vibration"] = min(sd["vibration"], 5.0)
-        sd["voltage"] = _clamp(sd["voltage"], 210, 230)
+        sd["flow_rate"] = max(sd["flow_rate"], CLEAR_FAULT_MIN_FLOW)
+        sd["pressure"] = max(sd["pressure"], CLEAR_FAULT_MIN_PRESSURE)
+        sd["vibration"] = min(sd["vibration"], CLEAR_FAULT_MAX_VIBRATION)
+        sd["voltage"] = _clamp(sd["voltage"], CLEAR_FAULT_VOLTAGE_LOW, CLEAR_FAULT_VOLTAGE_HIGH)
     elif device == "elevator":
         sd["motor_stuck"] = False
         sd["speed"] = max(sd["speed"], 0.0)
-        sd["load"] = min(sd["load"], 500)
+        sd["load"] = min(sd["load"], CLEAR_FAULT_MAX_LOAD)
         sd["door_status"] = "closed"
         sim.door_close_attempts = 0
         sim._elev_state = "IDLE"

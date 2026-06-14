@@ -77,9 +77,10 @@ def api_building_users(request, building_id: int) -> JsonResponse:
 
 
 def api_notifications(request) -> JsonResponse:
+    from apps.sensors.sensor_config import API_NOTIFICATION_LIMIT
     qs = Notification.objects.select_related(
         "monitoring_equipment__building"
-    ).order_by("-fecha")[:50]
+    ).order_by("-fecha")[:API_NOTIFICATION_LIMIT]
 
     data: list[dict[str, Any]] = []
     for notification in qs:

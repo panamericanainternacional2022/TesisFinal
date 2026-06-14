@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 from typing import Any, Optional, TYPE_CHECKING
 
+from apps.sensors.sensor_config import COOLDOWN_SECONDS
+
 if TYPE_CHECKING:
     from apps.sensors.simulation.models import BuildingSimulator
 
@@ -10,8 +12,6 @@ SMTP_SERVER: str = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
 SMTP_PORT: int = int(os.environ.get("SMTP_PORT", 587))
 SMTP_USER: str = os.environ.get("SMTP_USER", "")
 SMTP_PASSWORD: str = os.environ.get("SMTP_PASSWORD", "")
-
-COOLDOWN_SECONDS: int = 300
 
 
 def translate_device_to_spanish(device: str) -> str:

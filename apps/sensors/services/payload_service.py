@@ -4,7 +4,8 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, RISK_CRITICO, RISK_BAJO
+from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, RISK_CRITICO, RISK_BAJO, PAYLOAD_HISTORY_SLICE, API_NOTIFICATION_LIMIT
+from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ def titleize_name(variable_name: str) -> str:
     return " ".join(word.capitalize() for word in variable_name.replace("_", " ").split())
 
 
-def _compute_stats(history: list, max_entries: int = 500) -> dict[str, Any]:
+def _compute_stats(history: list, max_entries: int = MAX_HISTORY_SIZE) -> dict[str, Any]:
     stats = {}
     recent = history[-max_entries:] if len(history) > max_entries else history
     for var in STATS_VARS:
@@ -69,10 +70,10 @@ def build_live_payload(ctx: PayloadContext) -> dict[str, Any]:
     return {
         "current": {k: v for k, v in ctx.sensor_data.items() if k in relevant_vars},
         "sensors": sensors,
-        "history": [h for h in ctx.history[-200:] if h.get("variable") in relevant_vars],
+        "history": [h for h in ctx.history[-PAYLOAD_HISTORY_SLICE:] if h.get("variable") in relevant_vars],
         "thresholds": thresholds,
         "alert_enabled": ctx.alert_enabled,
-        "alert_log": get_alert_log(ctx.active_edificio_id, 50),
+        "alert_log": get_alert_log(ctx.active_edificio_id, API_NOTIFICATION_LIMIT),
         "stats": stats,
         "recommendations": recommendations,
         "rationing": ctx.sensor_data.get("flow_rate", 0) < ctx.rationing_threshold,

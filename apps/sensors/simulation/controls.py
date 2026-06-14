@@ -4,7 +4,9 @@ import logging
 from typing import Optional
 
 from apps.sensors.simulation.constants import (
-    DEFAULT_SENSOR_DATA, FLOOR_COUNT,
+    DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
+    CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
+    CLEAR_FAULT_VOLTAGE_LOW, CLEAR_FAULT_VOLTAGE_HIGH, CLEAR_FAULT_MAX_LOAD,
 )
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators
@@ -17,27 +19,22 @@ from apps.sensors.simulation.exceptions import (
 
 logger = logging.getLogger(__name__)
 
+PUMP_RESET_KEYS = ["flow_rate", "pressure", "temperature", "vibration", "tank_level", "voltage", "current"]
+ELEVATOR_RESET_KEYS = ["position", "speed", "load", "motor_stuck", "door_status", "energy", "temperature"]
+
 
 def reset_critical_values(targets: set[str], sim: BuildingSimulator) -> None:
     if not targets:
         return
     sd = sim.sensor_data
     if "pump" in targets:
-        sd["flow_rate"] = 25.0
-        sd["pressure"] = 4.0
-        sd["temperature"] = 50.0
-        sd["vibration"] = 1.5
-        sd["tank_level"] = 80.0
-        sd["voltage"] = 220.0
-        sd["current"] = 18.0
+        for k in PUMP_RESET_KEYS:
+            if k in SAFE_RESET_VALUES:
+                sd[k] = SAFE_RESET_VALUES[k]
     if "elevator" in targets:
-        sd["position"] = 0
-        sd["speed"] = 0.0
-        sd["load"] = 200
-        sd["motor_stuck"] = False
-        sd["door_status"] = "closed"
-        sd["energy"] = 5.0
-        sd["temperature"] = 50.0
+        for k in ELEVATOR_RESET_KEYS:
+            if k in SAFE_RESET_VALUES:
+                sd[k] = SAFE_RESET_VALUES[k]
     sim.door_close_attempts = 0
 
 
@@ -75,14 +72,14 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
     sd = sim.sensor_data
     if device in (None, "pump"):
         from apps.sensors.simulation.physics.pump import _clamp
-        sd["flow_rate"] = max(sd["flow_rate"], 15.0)
-        sd["pressure"] = max(sd["pressure"], 3.0)
-        sd["vibration"] = min(sd["vibration"], 5.0)
-        sd["voltage"] = _clamp(sd["voltage"], 210, 230)
+        sd["flow_rate"] = max(sd["flow_rate"], CLEAR_FAULT_MIN_FLOW)
+        sd["pressure"] = max(sd["pressure"], CLEAR_FAULT_MIN_PRESSURE)
+        sd["vibration"] = min(sd["vibration"], CLEAR_FAULT_MAX_VIBRATION)
+        sd["voltage"] = _clamp(sd["voltage"], CLEAR_FAULT_VOLTAGE_LOW, CLEAR_FAULT_VOLTAGE_HIGH)
     if device in (None, "elevator"):
         sd["motor_stuck"] = False
         sd["speed"] = max(sd["speed"], 0.0)
-        sd["load"] = min(sd["load"], 500)
+        sd["load"] = min(sd["load"], CLEAR_FAULT_MAX_LOAD)
         sd["door_status"] = "closed"
         sim.door_close_attempts = 0
         sim._elev_state = "IDLE"

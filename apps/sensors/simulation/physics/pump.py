@@ -38,8 +38,9 @@ def _update_pump(sim: BuildingSimulator) -> None:
 
 
 def _update_pump_refill(sim: BuildingSimulator, sd: dict, dt: float) -> None:
+    from apps.sensors.simulation.constants import REFILL_TIMER_TICKS
     sim._pump_refill_timer += dt
-    if sim._pump_refill_timer >= 15:
+    if sim._pump_refill_timer >= REFILL_TIMER_TICKS:
         sim._pump_refill_timer = 0
         sd["tank_level"] = _clamp(sd["tank_level"] + random.uniform(10, 25), 0, 100)
 

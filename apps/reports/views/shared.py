@@ -10,7 +10,8 @@ from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.sensors.sensor_config import (
     RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
-    SEVERITY_LEVELS,
+    SEVERITY_LEVELS, MAX_PDF_EVENTS,
+    SEVERITY_DISPLAY_LEVELS, RISK_STYLES,
 )
 from apps.core.date_utils import PERIOD_DELTA_MAP, PERIOD_LABEL_MAP
 
@@ -26,24 +27,6 @@ FONT_SEARCH_PATHS: list[str] = [
     "C:/Windows/Fonts/arial.ttf",
     "C:/Windows/Fonts/ARIAL.TTF",
 ]
-
-MAX_PDF_EVENTS: int = 200
-
-SEVERITY_DISPLAY_LEVELS: list[tuple[str, tuple[int, int, int], tuple[int, int, int], str]] = [
-    (RISK_INFO, (249, 250, 251), (55, 65, 81), "Eventos informativos del sistema"),
-    (RISK_BAJO, (240, 253, 244), (22, 101, 52), "Valores normales de funcionamiento"),
-    (RISK_MEDIO, (255, 251, 235), (146, 64, 14), "Cerca del límite sugerido"),
-    (RISK_ALTO, (255, 247, 237), (194, 65, 12), "Fuera de rango seguro"),
-    (RISK_CRITICO, (254, 242, 242), (153, 27, 27), "Estado de peligro, acción inmediata"),
-]
-
-RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
-    RISK_INFO: ((249, 250, 251), (55, 65, 81)),
-    RISK_BAJO: ((240, 253, 244), (22, 101, 52)),
-    RISK_MEDIO: ((255, 251, 235), (146, 64, 14)),
-    RISK_ALTO: ((255, 247, 237), (194, 65, 12)),
-    RISK_CRITICO: ((254, 242, 242), (153, 27, 27)),
-}
 
 _FONT_CACHE: dict[str, str] = {}
 

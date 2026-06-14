@@ -264,4 +264,5 @@ def _compute_elevator_energy(
 
 
 def _check_motor_stuck(speed: float, load: float, temperature: float) -> bool:
-    return speed == 0 and (load > 700 or temperature > 90)
+    from apps.sensors.simulation.constants import ELEVATOR_LOAD_ALERT, ELEVATOR_TEMP_ALERT
+    return speed == 0 and (load > ELEVATOR_LOAD_ALERT or temperature > ELEVATOR_TEMP_ALERT)
