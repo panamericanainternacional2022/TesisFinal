@@ -47,7 +47,7 @@
 
     <nav class="sidebar-nav">
         {% if request.session.usuario_rol == 'SA' or request.session.usuario_rol == 'ADMIN' %}
-        <a href="{% url 'menu' %}" class="sidebar-link">
+        <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high"></i> Panel de control
         </a>
         <a href="{% url 'user_list' %}" class="sidebar-link">
@@ -55,9 +55,6 @@
         </a>
         <a href="{% url 'building_list' %}" class="sidebar-link">
             <i class="fa-solid fa-building"></i> Edificios
-        </a>
-        <a href="{% url 'monitor' %}" class="sidebar-link">
-            <i class="fa-solid fa-chart-line"></i> Monitoreo global
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell"></i>
@@ -71,7 +68,7 @@
             <i class="fa-solid fa-gears"></i> Configuración
         </a>
         {% else %}
-        <a href="{% url 'menu' %}" class="sidebar-link">
+        <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high"></i> Panel de control
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
@@ -81,9 +78,6 @@
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left"></i> Historial
-        </a>
-        <a href="{% url 'monitor' %}" class="sidebar-link">
-            <i class="fa-solid fa-chart-line"></i> Monitoreo
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
             <i class="fa-solid fa-gears"></i> Configuración
