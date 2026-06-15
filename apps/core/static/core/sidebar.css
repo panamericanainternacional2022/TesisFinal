@@ -183,6 +183,10 @@
         border-bottom-color: var(--color-ink);
     }
 
+    .sidebar-link.active {
+        border-bottom-color: var(--color-ink);
+    }
+
     .sidebar-link i {
         width: auto;
         font-size: 1rem;

@@ -16,6 +16,18 @@
     window.addEventListener('load', function () {
         document.body.classList.remove('preload');
     });
+    // ─── DESTACAR LINK ACTIVO EN EL SIDEBAR ────────────────
+    window.addEventListener('DOMContentLoaded', function () {
+        var currentPath = window.location.pathname.replace(/\/+$/, '');
+        var links = document.querySelectorAll('.sidebar-link');
+        for (var i = 0; i < links.length; i++) {
+            var linkPath = links[i].getAttribute('href').replace(/\/+$/, '');
+            if (linkPath === currentPath) {
+                links[i].classList.add('active');
+                break;
+            }
+        }
+    });
 })();
 </script>
 <aside class="sidebar" id="sidebar">
