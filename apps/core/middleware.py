@@ -54,7 +54,7 @@ class AuthMiddleware:
             return redirect(login_url)
 
         if is_logged_in and path == login_url:
-            return redirect("menu")
+            return redirect("monitor")
 
         if is_logged_in:
             rol = request.session.get("usuario_rol", "US")
@@ -62,7 +62,7 @@ class AuthMiddleware:
 
             if any(path.startswith(p) for p in admin_paths if p):
                 if rol not in ("SA", "ADMIN"):
-                    return redirect("menu")
+                    return redirect("monitor")
 
         response = self.get_response(request)
 

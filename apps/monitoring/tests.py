@@ -8,23 +8,6 @@ from apps.alerts.models import Notification
 from apps.sensors.sensor_config import RISK_ALTO
 
 
-class MenuSeleccionViewTests(TestCase):
-    def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
-        from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
-
-    def test_menu_returns_200(self):
-        response = self.client.get(reverse("menu"))
-        self.assertEqual(response.status_code, 200)
-
-    def test_redirects_to_login_if_not_authenticated(self):
-        self.client.get(reverse("logout"))
-        response = self.client.get(reverse("menu"))
-        self.assertEqual(response.status_code, 302)
-
-
 class HistorialViewTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")

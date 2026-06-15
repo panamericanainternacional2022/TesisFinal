@@ -127,8 +127,3 @@ def render_user_history(request) -> HttpResponse:
         },
     )
 
-
-@login_required
-def selection_menu_view(request) -> HttpResponse:
-    rol = request.session.get("usuario_rol", "US")
-    return render(request, "monitoring/menu_seleccion.html", {"rol": rol})

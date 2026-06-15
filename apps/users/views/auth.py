@@ -24,7 +24,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
                     _setup_session(request, user)
                     _check_alert_cooldown(user)
                     _setup_alert_session(request, user)
-                    return redirect("menu")
+                    return redirect("monitor")
             except Usuario.DoesNotExist:
                 error = "Usuario o contraseña incorrectos."
         else:

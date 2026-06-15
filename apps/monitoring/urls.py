@@ -2,7 +2,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 from .views.dispatch import monitoring_view, history_view
-from .views.user import selection_menu_view
+
 from .views.admin import (
     building_monitoring_view,
     simulator_status_view,
@@ -26,7 +26,7 @@ from .simulation.controls import (
 
 urlpatterns = [
     path("", RedirectView.as_view(url="/login/", permanent=False), name="home"),
-    path("menu/", selection_menu_view, name="menu"),
+
     path("history/", history_view, name="history"),
     path("monitor/", monitoring_view, name="monitor"),
     path(

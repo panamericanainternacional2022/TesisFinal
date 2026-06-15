@@ -22,12 +22,12 @@
                     <!-- ── Cabecera ─────────────────────────────────────── -->
                     <div class="admin-info">
                         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                            <h1 style="margin:0;">Historial de eventos</h1>
+                            <h1 style="margin:0;">Historial</h1>
                             <span class="notif-count-badge" style="background: var(--color-ink); color: var(--color-surface); font-size: var(--text-xs); font-weight: var(--weight-bold); padding: 2px 10px; border: 2px solid var(--color-ink);">
                                 {{ total_count }}
                             </span>
                         </div>
-                        <p style="margin-top:6px;">Historial completo de todos los eventos del sistema: {{ RISK_INFO|lower }}, {{ RISK_BAJO|lower }}, {{ RISK_MEDIO|lower }}, {{ RISK_ALTO|lower }} y {{ RISK_CRITICO|lower }}.</p>
+                        <p style="margin-top:6px;">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
 
                         <!-- ── Barra de controles ─────────────────────── -->
                         <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3);">
