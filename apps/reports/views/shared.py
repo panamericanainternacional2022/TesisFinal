@@ -160,14 +160,27 @@ def _pdf_font(pdf: Any, style: str = "", size: int = 10) -> None:
         pdf.set_font("Helvetica", style, size)
 
 
+# Color de zebra striping para filas alternas sin fill explícito
+_ZEBRA_FILL: tuple[int, int, int] = (248, 249, 250)
+
+
 def draw_row(
     pdf: Any,
     widths: list[int],
     aligns: list[str],
     data: list[str],
-    fills: list[tuple[int, int, int] | None] | None = None,
-    colors: list[tuple[int, int, int] | None] | None = None,
+    fills: list | None = None,
+    colors: list | None = None,
+    row_index: int | None = None,
 ) -> None:
+    """
+    Dibuja una fila de tabla.
+    row_index: si se provee, aplica zebra (fondo suave en filas pares)
+               a las celdas que no tengan fill explícito.
+    """
+    # Zebra: fila par con row_index → fondo muy suave
+    zebra = _ZEBRA_FILL if (row_index is not None and row_index % 2 == 0) else None
+
     lines_per_col: list[list[str]] = []
     for w, text in zip(widths, data):
         t_str = str(text) if text is not None else ""
@@ -177,7 +190,7 @@ def draw_row(
         lines_per_col.append(lines)
 
     max_lines = max(len(lines) for lines in lines_per_col) if lines_per_col else 1
-    line_height: float = 5.5
+    line_height: float = 5.8
     row_height: float = max_lines * line_height
 
     if pdf.get_y() + row_height > 270:
@@ -186,17 +199,20 @@ def draw_row(
     start_x: float = pdf.get_x()
     start_y: float = pdf.get_y()
 
+    # Primer pasada: fondos de celdas
     for i in range(max_lines):
         pdf.set_xy(start_x, start_y + (i * line_height))
         for j, lines in enumerate(lines_per_col):
             w = widths[j]
-            fill_c = fills[j] if (fills and fills[j]) else None
-            if fill_c:
-                pdf.set_fill_color(*fill_c)
+            explicit_fill = fills[j] if (fills and fills[j]) else None
+            effective_fill = explicit_fill if explicit_fill else zebra
+            if effective_fill:
+                pdf.set_fill_color(*effective_fill)
                 pdf.cell(w, line_height, "", border=0, fill=True)
             else:
                 pdf.cell(w, line_height, "", border=0, fill=False)
 
+    # Segunda pasada: texto de celdas
     for i in range(max_lines):
         pdf.set_xy(start_x, start_y + (i * line_height))
         for j, lines in enumerate(lines_per_col):
@@ -205,11 +221,11 @@ def draw_row(
             txt = lines[i] if i < len(lines) else ""
             if align == "L" and txt:
                 txt = f" {txt}"
-
             text_c = colors[j] if (colors and colors[j]) else (26, 26, 26)
             pdf.set_text_color(*text_c)
             pdf.cell(w, line_height, txt, border=0, align=align, fill=False)
 
+    # Tercera pasada: bordes de celdas
     curr_x = start_x
     pdf.set_draw_color(10, 10, 10)
     for w in widths:

@@ -7,9 +7,25 @@ from apps.core.auth_decorators import ADMIN_ROLES, login_required
 from apps.users.models import Usuario
 
 from .shared import _pdf_font, draw_row
-from .pdf_rendering import _create_report_pdf, make_pdf_response, render_logo
+from .pdf_rendering import (
+    _create_report_pdf,
+    make_pdf_response,
+    render_pdf_header,
+    render_section_divider,
+    render_summary_box,
+    render_table_header,
+)
 
 logger = logging.getLogger(__name__)
+
+# ─── Mapa de roles a nombre legible ──────────────────────────────────────────
+_ROL_DISPLAY: dict[str, str] = {
+    "US":    "Usuario",
+    "SA":    "Super Admin",
+    "ADMIN": "Administrador",
+    "OP":    "Operador",
+    "MA":    "Manager",
+}
 
 
 @login_required
@@ -18,9 +34,9 @@ def user_pdf_view(request: Any) -> HttpResponse:
         import datetime as dt
         from django.db.models import Q
 
-        query = request.GET.get("q", "").strip()
+        query     = request.GET.get("q", "").strip()
         building_id = request.GET.get("edificio", "").strip()
-        estado = request.GET.get("estado", "").strip()
+        estado    = request.GET.get("estado", "").strip()
 
         usuarios = (
             Usuario.objects.select_related("id_persona")
@@ -50,67 +66,122 @@ def user_pdf_view(request: Any) -> HttpResponse:
 
         from apps.users.services import build_user_data
 
-        users = [build_user_data(u) for u in usuarios]
+        # Incluir el rol junto a los datos del usuario
+        users = [{"rol": u.rol, **build_user_data(u)} for u in usuarios]
 
-        # Group by building
+        # Agrupar por edificio
         from collections import OrderedDict
         groups: OrderedDict[str, list[Any]] = OrderedDict()
         for b in users:
             key = b["edificio_nombre"] or "Sin edificio"
-            if key not in groups:
-                groups[key] = []
-            groups[key].append(b)
-
-        pdf = _create_report_pdf("Informe de usuarios")
+            groups.setdefault(key, []).append(b)
 
         now = dt.datetime.now()
-        render_logo(pdf)
-        _pdf_font(pdf, "B", 18)
-        pdf.set_text_color(10, 10, 10)
-        pdf.cell(0, 12, "Informe de usuarios", ln=1, align="L")
-        _pdf_font(pdf, "", 11)
-        pdf.set_text_color(26, 26, 26)
-        pdf.cell(0, 7, f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}", ln=1)
-        pdf.cell(0, 7, f"Total de usuarios: {len(users)}", ln=1)
-        pdf.cell(0, 7, f"Edificios: {len(groups)}", ln=1)
-        pdf.ln(8)
+        pdf = _create_report_pdf("Informe de usuarios")
 
-        col_widths = [20, 35, 35, 48, 28, 24]
-        col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Estado"]
-        col_aligns = ["C", "L", "L", "L", "L", "C"]
+        # Construir líneas de filtros aplicados
+        filtros: list[str] = []
+        if query:
+            filtros.append(f"Búsqueda: «{query}»")
+        if estado:
+            estado_labels = {
+                "registrado":   "Registrados",
+                "por_registrar": "Pendientes de registro",
+            }
+            filtros.append(f"Estado: {estado_labels.get(estado, estado)}")
+
+        total_registrados = sum(1 for u in users if u["registered"])
+        total_pendientes  = len(users) - total_registrados
+
+        # ── Patrón unificado: header → resumen → secciones ───────────────────
+        render_pdf_header(
+            pdf,
+            title="Informe de usuarios",
+            now=now,
+            meta_lines=[
+                f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}",
+                f"Total de usuarios: {len(users)}",
+                f"Edificios: {len(groups)}",
+                *filtros,           # filtros aplicados (puede ser vacío)
+            ],
+        )
+
+        # Resumen ejecutivo via render_summary_box — mismo patrón
+        render_section_divider(pdf, "Resumen de usuarios")
+        render_summary_box(
+            pdf,
+            items=[
+                {
+                    "label": "Total de usuarios",
+                    "value": len(users),
+                    "fill":  (235, 241, 249),
+                    "text":  (30, 58, 95),
+                },
+                {
+                    "label": "Registrados",
+                    "value": total_registrados,
+                    "fill":  (240, 253, 244),
+                    "text":  (22, 101, 52),
+                },
+                {
+                    "label": "Pendientes",
+                    "value": total_pendientes,
+                    "fill":  (255, 251, 235),
+                    "text":  (146, 64, 14),
+                },
+                {
+                    "label": "Edificios",
+                    "value": len(groups),
+                    "fill":  (249, 250, 251),
+                    "text":  (55, 65, 81),
+                },
+            ],
+        )
+
+        # Tabla de usuarios por edificio
+        col_widths  = [20, 32, 32, 46, 24, 18, 18]
+        col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Rol", "Estado"]
+        col_aligns  = ["C", "L", "L", "L", "L", "C", "C"]
 
         for group_idx, (building_name, members) in enumerate(groups.items()):
             if pdf.get_y() > 240:
                 pdf.add_page()
 
-            _pdf_font(pdf, "B", 11)
-            pdf.set_text_color(10, 10, 10)
-            pdf.cell(0, 8, f"{building_name} ({len(members)})", ln=1)
-            pdf.ln(2)
-
-            _pdf_font(pdf, "B", 10)
-            draw_row(
-                pdf,
-                col_widths,
-                col_aligns,
-                col_headers,
-                fills=[(10, 10, 10)] * len(col_widths),
-                colors=[(255, 255, 255)] * len(col_widths),
-            )
+            render_section_divider(pdf, f"{building_name} ({len(members)} usuario(s))")
+            render_table_header(pdf, col_widths, col_aligns, col_headers)
 
             _pdf_font(pdf, "", 9)
             pdf.set_draw_color(10, 10, 10)
-            for b in members:
+            for idx, b in enumerate(members):
                 estado_str = "Registrado" if b["registered"] else "Pendiente"
-                row_data = [
-                    str(b["cedula"]),
-                    b["nombre"][:24],
-                    b["last_name"][:24],
-                    b["email"][:30],
-                    b.get("username", "")[:16],
-                    estado_str,
-                ]
-                draw_row(pdf, col_widths, col_aligns, row_data)
+                rol_raw    = b.get("rol", "US") or "US"
+                rol_str    = _ROL_DISPLAY.get(rol_raw, rol_raw)
+
+                # Colorear el estado
+                if b["registered"]:
+                    est_fill = (240, 253, 244)
+                    est_text = (22, 101, 52)
+                else:
+                    est_fill = (255, 251, 235)
+                    est_text = (146, 64, 14)
+
+                draw_row(
+                    pdf,
+                    col_widths,
+                    col_aligns,
+                    [
+                        str(b["cedula"]),
+                        b["nombre"][:22],
+                        b["last_name"][:22],
+                        b["email"][:28],
+                        b.get("username", "")[:14],
+                        rol_str,
+                        estado_str,
+                    ],
+                    [None, None, None, None, None, None, est_fill],
+                    [None, None, None, None, None, None, est_text],
+                    row_index=idx,
+                )
 
             pdf.ln(4)
 
