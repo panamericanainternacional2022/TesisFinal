@@ -18,14 +18,6 @@ from .pdf_rendering import (
 
 logger = logging.getLogger(__name__)
 
-# ─── Mapa de roles a nombre legible ──────────────────────────────────────────
-_ROL_DISPLAY: dict[str, str] = {
-    "US":    "Usuario",
-    "SA":    "Super Admin",
-    "ADMIN": "Administrador",
-    "OP":    "Operador",
-    "MA":    "Manager",
-}
 
 
 @login_required
@@ -138,10 +130,10 @@ def user_pdf_view(request: Any) -> HttpResponse:
             ],
         )
 
-        # Tabla de usuarios por edificio
-        col_widths  = [20, 32, 32, 46, 24, 18, 18]
-        col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Rol", "Estado"]
-        col_aligns  = ["C", "L", "L", "L", "L", "C", "C"]
+        # Tabla de usuarios por edificio — sin columna Rol (todos son usuarios)
+        col_widths  = [20, 32, 32, 64, 24, 18]
+        col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Estado"]
+        col_aligns  = ["C", "L", "L", "L", "L", "C"]
 
         for group_idx, (building_name, members) in enumerate(groups.items()):
             if pdf.get_y() > 240:
@@ -154,8 +146,9 @@ def user_pdf_view(request: Any) -> HttpResponse:
             pdf.set_draw_color(10, 10, 10)
             for idx, b in enumerate(members):
                 estado_str = "Registrado" if b["registered"] else "Pendiente"
-                rol_raw    = b.get("rol", "US") or "US"
-                rol_str    = _ROL_DISPLAY.get(rol_raw, rol_raw)
+
+                # El username auto-generado no tiene significado antes del registro
+                username_display = b.get("username", "")[:14] if b["registered"] else "-"
 
                 # Colorear el estado
                 if b["registered"]:
@@ -173,13 +166,12 @@ def user_pdf_view(request: Any) -> HttpResponse:
                         str(b["cedula"]),
                         b["nombre"][:22],
                         b["last_name"][:22],
-                        b["email"][:28],
-                        b.get("username", "")[:14],
-                        rol_str,
+                        b["email"][:40],
+                        username_display,
                         estado_str,
                     ],
-                    [None, None, None, None, None, None, est_fill],
-                    [None, None, None, None, None, None, est_text],
+                    [None, None, None, None, None, est_fill],
+                    [None, None, None, None, None, est_text],
                     row_index=idx,
                 )
 

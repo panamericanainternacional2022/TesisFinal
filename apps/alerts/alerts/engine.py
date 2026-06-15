@@ -36,24 +36,27 @@ def _build_alert_email_subject(variable: str, risk_level: str) -> str:
 
 
 def _build_alert_email_body(
-    variable: str, value: float, risk_level: str, recommended_action: str
+    variable: str, value: float, risk_level: str, recommended_action: str,
+    edificio_nombre: str = "",
 ) -> str:
     from apps.alerts.services.alert_service import build_standard_email_body, get_unit
     var_display = translate_variable_to_spanish(variable)
     timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
     unit = get_unit(variable)
+    detalles = {
+        "Fecha y hora":    timestamp,
+        "Edificio":        edificio_nombre or "Sistema INES",
+        "Parámetro":       var_display,
+        "Lectura":         f"{value} {unit}".strip(),
+        "Nivel de riesgo": risk_level,
+    }
     return build_standard_email_body(
         titulo="Reporte automático de anomalía",
         contexto=(
             "Se ha detectado una lectura fuera de los rangos operativos recomendados "
             "en los sensores de monitoreo de infraestructura."
         ),
-        detalles={
-            "Fecha y hora":     timestamp,
-            "Parámetro":        var_display,
-            "Lectura":          f"{value} {unit}".strip(),
-            "Nivel de riesgo":  risk_level,
-        },
+        detalles=detalles,
         accion=recommended_action,
     )
 
@@ -72,8 +75,9 @@ def _send_alert_email(
     now = time.time()
     if send_email and now - last_email_time > COOLDOWN_SECONDS:
         new_les = now
+        edificio_nombre = getattr(sim, "nombre", "") or ""
         subject = _build_alert_email_subject(variable, risk_level)
-        body = _build_alert_email_body(variable, value, risk_level, recommended_action)
+        body = _build_alert_email_body(variable, value, risk_level, recommended_action, edificio_nombre)
         threading.Thread(
             target=send_email_alert, args=(risk_level, subject, body), daemon=True
         ).start()

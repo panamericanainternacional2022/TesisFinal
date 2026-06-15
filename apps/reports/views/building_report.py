@@ -80,11 +80,6 @@ def generate_building_report_bytes(edificio_id: int) -> tuple[bytes, str]:
 
     # ── Patrón unificado: header → leyenda → secciones ───────────────────────
     address = building.address[:80] + ("..." if len(building.address) > 80 else "")
-    sim_meta = None
-    if sim:
-        sim_meta = f"Velocidad de simulación: {sim.sim_speed:.1f}x"
-        if sim.sim_paused:
-            sim_meta = "Simulación: PAUSADA  ·  " + sim_meta
 
     render_pdf_header(
         pdf,
@@ -95,7 +90,6 @@ def generate_building_report_bytes(edificio_id: int) -> tuple[bytes, str]:
             f"Edificio: {building.name}",
             f"RIF: {building.rif}",
             f"Dirección: {address}",
-            sim_meta,
         ],
     )
 
@@ -287,7 +281,7 @@ def _render_critical_section(
 
     render_section_divider(pdf, f"Sensores en estado {RISK_CRITICO} / {RISK_ALTO}")
 
-    col_widths = [42, 24, 18, 96]
+    col_widths = [42, 24, 26, 88]
     col_headers = ["Variable", "Valor", "Severidad", "Acción recomendada"]
     col_aligns = ["L", "C", "C", "L"]
 
@@ -327,7 +321,7 @@ def _render_current_readings(
 
     render_section_divider(pdf, "Lecturas actuales de sensores")
 
-    col_widths = [42, 24, 16, 98]
+    col_widths = [42, 24, 26, 88]
     col_headers = ["Variable", "Valor", "Severidad", "Acción recomendada"]
     col_aligns = ["L", "C", "C", "L"]
 
@@ -481,14 +475,12 @@ def _render_recommendations_section(pdf: Any, sensor_data: dict) -> None:
     recs = generate_recommendations(sensor_data)
 
     _pdf_font(pdf, "", 10)
-    pdf.set_draw_color(10, 10, 10)
+    pdf.set_text_color(26, 26, 26)
     for i, rec in enumerate(recs, 1):
-        if pdf.get_y() > 265:
-            pdf.add_page()
-        pdf.set_text_color(26, 26, 26)
-        pdf.cell(6, 7, f"{i}.", 0, 0, "L")
-        pdf.multi_cell(174, 7, rec)
-        pdf.ln(1)
+        # multi_cell(0) usa todo el ancho disponible y gestiona saltos de página
+        # correctamente sin el conflicto de posición X que causa cell()+multi_cell(174)
+        pdf.multi_cell(0, 6, f"{i}.  {rec}", new_x="LEFT", new_y="NEXT")
+        pdf.ln(2)
 
     pdf.ln(4)
 
