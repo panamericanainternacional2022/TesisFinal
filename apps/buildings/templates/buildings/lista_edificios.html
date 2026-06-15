@@ -47,6 +47,7 @@
                                         <th>Equipamiento</th>
                                         <th>RIF</th>
                                         <th>Dirección</th>
+                                        <th>Reporte</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -66,11 +67,16 @@
                                                 </td>
                                                 <td title="{{ building.rif }}">{{ building.rif }}</td>
                                                 <td title="{{ building.address }}">{{ building.address }}</td>
+                                                <td>
+                                                    <a href="{% url 'building_report_pdf' building.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important; font-size: 13px;">
+                                                        <i class="fa-solid fa-file-pdf"></i> PDF
+                                                    </a>
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="4" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
                                                 No hay edificios registrados.
                                             </td>
                                         </tr>

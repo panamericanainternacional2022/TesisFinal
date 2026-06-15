@@ -576,15 +576,7 @@
                         <option value="">Cargando edificios...</option>
                     </select>
                 </div>
-                <div class="form-group" style="flex: 1; min-width: 150px; max-width: 200px;">
-                    <label class="form-label">Nivel de riesgo (pruebas)</label>
-                    <select id="subRiskLevel" style="height: 44px;">
-                        <option value="{{ RISK_BAJO }}">{{ RISK_BAJO }}</option>
-                        <option value="{{ RISK_MEDIO }}">{{ RISK_MEDIO }}</option>
-                        <option value="{{ RISK_ALTO }}">{{ RISK_ALTO }}</option>
-                        <option value="{{ RISK_CRITICO }}">{{ RISK_CRITICO }}</option>
-                    </select>
-                </div>
+                
                 <div>
                     <button id="sendAllSubscribersBtn" class="btn btn-ok" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
                         <i class="fas fa-paper-plane"></i> Enviar a todos
@@ -1201,14 +1193,13 @@
             document.querySelectorAll('.test-subscriber').forEach(btn => {
                 btn.addEventListener('click', async () => {
                     let email = btn.dataset.email;
-                    let risk = document.getElementById('subRiskLevel').value;
                     btn.disabled = true;
                     btn.innerText = 'Enviando...';
                     try {
                         let resp = await csrfFetch('/api/send-test-email/', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: email, risk_level: risk })
+                            body: JSON.stringify({ email: email })
                         });
                         let data = await resp.json();
                         await window.showAlert(data.message, resp.ok ? 'success' : 'error');
@@ -1229,7 +1220,6 @@
                 await window.showAlert('Por favor seleccione un edificio.', 'warn');
                 return;
             }
-            let risk = document.getElementById('subRiskLevel').value;
             let btn = document.getElementById('sendAllSubscribersBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
@@ -1237,7 +1227,7 @@
                 let resp = await csrfFetch('/api/send-all-subscribers/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ edificio_id: edificioId, risk_level: risk })
+                    body: JSON.stringify({ edificio_id: edificioId })
                 });
                 let data = await resp.json();
                 await window.showAlert(data.message, resp.ok ? 'success' : 'error');

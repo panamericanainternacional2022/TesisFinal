@@ -1,6 +1,7 @@
 import json
 import time as time_module
 import threading
+import logging
 from typing import Any, Dict, Optional
 
 from django.http import JsonResponse, HttpRequest
@@ -15,7 +16,8 @@ from apps.alerts.services.alert_service import (
     build_standard_email_body,
 )
 from apps.sensors.sensor_config import RISK_INFO
-from apps.sensors.sensor_config import VAR_NAMES, UNITS
+
+logger = logging.getLogger(__name__)
 
 
 @login_required
@@ -154,29 +156,13 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
         return json_ok({"alert_enabled": bool(enabled)})
 
 
-def _build_report_email_body(risk_level: str, sim) -> tuple[str, str]:
+def _build_report_email_body(sim) -> tuple[str, str]:
     timestamp = time_module.strftime("%d/%m/%Y %H:%M:%S")
     subject = f"[INES] Reporte de monitoreo - {timestamp}"
 
-    detalles: dict[str, str] = {
-        "Fecha y hora": timestamp,
-        "Nivel de riesgo": risk_level,
-    }
-    edificio_nombre = getattr(sim, "nombre", None) or getattr(sim, "edificio_id", "")
-    if edificio_nombre:
-        detalles["Edificio"] = str(edificio_nombre)
-
-    for var in list(VAR_NAMES.keys()):
-        val = sim.sensor_data.get(var)
-        if val is not None:
-            nombre = VAR_NAMES.get(var, var)
-            unidad = UNITS.get(var, "")
-            detalles[nombre] = f"{val} {unidad}".strip()
-
     body = build_standard_email_body(
         titulo="Reporte de monitoreo",
-        contexto="Lecturas actuales de los sensores del sistema de monitoreo.",
-        detalles=detalles,
+        contexto="Se adjunta el reporte PDF con el estado actual de los sensores del edificio.",
     )
     return subject, body
 
@@ -192,23 +178,34 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
     if not email:
         return json_error("Missing field 'email'")
 
-    risk_level = data.get("risk_level", RISK_INFO)
-
     from apps.sensors.simulation.globals import simulators
     sim = next(iter(simulators.values()), None)
     if not sim:
         return json_error("No hay un simulador activo. Inicie la simulación primero.", 503)
 
-    subject, body = _build_report_email_body(risk_level, sim)
+    subject, body = _build_report_email_body(sim)
+
+    pdf_bytes = None
+    pdf_name = None
+    try:
+        from apps.reports.views.building_report import generate_building_report_bytes
+        pdf_bytes, pdf_name = generate_building_report_bytes(sim.edificio_id)
+    except Exception as e:
+        logger.warning("Could not generate building report PDF: %s", e)
+
+    kwargs = {
+        "risk_level": RISK_INFO,
+        "subject": subject,
+        "body": body,
+        "recipients": [email],
+    }
+    if pdf_bytes is not None:
+        kwargs["attachment_pdf"] = pdf_bytes
+        kwargs["attachment_name"] = pdf_name
 
     threading.Thread(
         target=send_email_alert,
-        kwargs={
-            "risk_level": risk_level,
-            "subject": subject,
-            "body": body,
-            "recipients": [email],
-        },
+        kwargs=kwargs,
         daemon=True,
     ).start()
     return json_ok({"message": f"Reporte enviado a {email}"})
@@ -222,7 +219,6 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
         return json_error("Invalid JSON")
 
     edificio_id = data.get("edificio_id")
-    risk_level = data.get("risk_level", RISK_INFO)
 
     from apps.sensors.simulation.globals import simulators
     try:
@@ -237,17 +233,30 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     if not emails:
         return json_error("No subscribers for this building")
 
-    subject, body = _build_report_email_body(risk_level, sim)
+    subject, body = _build_report_email_body(sim)
+
+    pdf_bytes = None
+    pdf_name = None
+    target_id = eid or sim.edificio_id
+    try:
+        from apps.reports.views.building_report import generate_building_report_bytes
+        pdf_bytes, pdf_name = generate_building_report_bytes(target_id)
+    except Exception as e:
+        logger.warning("Could not generate building report PDF: %s", e)
+
+    base_kwargs = {
+        "risk_level": RISK_INFO,
+        "subject": subject,
+        "body": body,
+    }
+    if pdf_bytes is not None:
+        base_kwargs["attachment_pdf"] = pdf_bytes
+        base_kwargs["attachment_name"] = pdf_name
 
     for email in emails:
         threading.Thread(
             target=send_email_alert,
-            kwargs={
-                "risk_level": risk_level,
-                "subject": subject,
-                "body": body,
-                "recipients": [email],
-            },
+            kwargs={**base_kwargs, "recipients": [email]},
             daemon=True,
         ).start()
     return json_ok({"message": f"Reporte enviado a {len(emails)} suscriptores"})

@@ -52,6 +52,9 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
 
 class EmailAttachment:
     def __init__(self, pdf_data: Any, filename: str = "report.pdf") -> None:
+        if isinstance(pdf_data, bytes):
+            from io import BytesIO
+            pdf_data = BytesIO(pdf_data)
         self.pdf_data = pdf_data
         self.filename = filename
 
