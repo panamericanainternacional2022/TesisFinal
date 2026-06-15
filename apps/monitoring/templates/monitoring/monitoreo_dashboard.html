@@ -495,13 +495,12 @@
     <div class="main-layout">
         {% include 'core/components/sidebar.html' %}
         <main class="main-content">
-        <div class="page-wrapper">
-
-        <!-- Encabezado -->
-        <header class="admin-info">
-            <h1>Panel de control</h1>
-            <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
-        </header>
+            <div class="perfil-page" style="padding-top: 0;">
+                <div class="reportes-card">
+                    <div class="admin-info">
+                        <h1>Panel de control</h1>
+                        <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
+                    </div>
 
         <!-- Barra de controles + selector de edificio -->
         <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">
@@ -717,7 +716,8 @@
 
         </div><!-- /dashboardContent -->
 
-    </div><!-- /page-wrapper -->
+                </div><!-- /reportes-card -->
+            </div><!-- /perfil-page -->
         </main>
     </div><!-- /main-layout -->
 
