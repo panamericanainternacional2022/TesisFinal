@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 from .utils import (
     COOLDOWN_SECONDS, get_attribute, set_attribute,
-    translate_variable_to_spanish,
+    translate_variable_to_spanish, translate_device_to_spanish,
 )
 from .protection import enter_protection_mode
 from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO
@@ -38,6 +38,7 @@ def _build_alert_email_subject(variable: str, risk_level: str) -> str:
 def _build_alert_email_body(
     variable: str, value: float, risk_level: str, recommended_action: str,
     edificio_nombre: str = "",
+    device_target: Optional[str] = None,
 ) -> str:
     from apps.alerts.services.alert_service import build_standard_email_body, get_unit
     var_display = translate_variable_to_spanish(variable)
@@ -50,6 +51,13 @@ def _build_alert_email_body(
         "Lectura":         f"{value} {unit}".strip(),
         "Nivel de riesgo": risk_level,
     }
+    if device_target:
+        device_es = translate_device_to_spanish(device_target)
+        article = "el" if device_target == "elevator" else "la"
+        detalles["Respuesta automática"] = (
+            f"Protección activada — INES ha puesto en modo seguro {article} {device_es} "
+            f"de forma preventiva."
+        )
     return build_standard_email_body(
         titulo="Reporte automático de anomalía",
         contexto=(
@@ -68,6 +76,7 @@ def _send_alert_email(
     recommended_action: str,
     last_email_time: float,
     sim: Optional['BuildingSimulator'],
+    device_target: Optional[str] = None,
 ) -> float:
     from apps.alerts.services.alert_service import send_email_alert
     new_les = last_email_time
@@ -77,7 +86,9 @@ def _send_alert_email(
         new_les = now
         edificio_nombre = getattr(sim, "nombre", "") or ""
         subject = _build_alert_email_subject(variable, risk_level)
-        body = _build_alert_email_body(variable, value, risk_level, recommended_action, edificio_nombre)
+        body = _build_alert_email_body(
+            variable, value, risk_level, recommended_action, edificio_nombre, device_target
+        )
         threading.Thread(
             target=send_email_alert, args=(risk_level, subject, body), daemon=True
         ).start()
@@ -125,7 +136,7 @@ def send_alert(
                 variable,
             )
 
-    new_les = _send_alert_email(variable, value, risk_level, recommended_action, les, sim)
+    new_les = _send_alert_email(variable, value, risk_level, recommended_action, les, sim, device_target)
     set_attribute(sim, "last_email_sent_time", new_les)
 
     pn = get_attribute(sim, "pending_notifications")

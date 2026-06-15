@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import threading
 import time
 from typing import Optional, TYPE_CHECKING
 
@@ -9,47 +8,11 @@ if TYPE_CHECKING:
     from apps.sensors.simulation.models import BuildingSimulator
 
 from .utils import (
-    COOLDOWN_SECONDS, get_attribute, set_attribute, translate_device_to_spanish,
+    get_attribute, translate_device_to_spanish,
 )
 from apps.sensors.sensor_config import RISK_CRITICO, RISK_INFO
 
 logger = logging.getLogger(__name__)
-
-
-def _send_protection_email(
-    reason: Optional[str],
-    targets_text_es: str,
-    targets_text_raw: str,
-    last_email_time: float,
-) -> float:
-    from apps.alerts.services.alert_service import send_email_alert
-    now_ts = time.time()
-    if now_ts - last_email_time <= COOLDOWN_SECONDS:
-        return last_email_time
-    timestamp = time.strftime("%d/%m/%Y %H:%M:%S")
-    subject = f"[INES] Protección - {targets_text_es}"
-    body = (
-        f"Reporte de protección automática\n\n"
-        f"El sistema de protección automática ha detectado una condición crítica "
-        f"y ha activado la operación forzada en los siguientes dispositivos.\n\n"
-        f"DETALLES DEL EVENTO:\n"
-        f"{'':->44}\n"
-        f"Fecha y hora:   {timestamp}\n"
-        f"Dispositivos:   {targets_text_es}\n"
-        f"Motivo:         {reason or 'condición crítica detectada'}\n"
-        f"Estado:         protección activada\n\n"
-        f"MEDIDAS CORRECTIVAS RECOMENDADAS:\n"
-        f"{'':->44}\n"
-        f"Acción:         Inspeccione los dispositivos indicados antes de reanudar la "
-        f"operación. Los dispositivos se restaurarán automáticamente después del "
-        f"período de protección.\n\n"
-        f"Este es un mensaje de contingencia generado automáticamente por el "
-        f"Sistema de Monitoreo INES. Por favor, no responda a este correo."
-    )
-    threading.Thread(
-        target=send_email_alert, args=(RISK_CRITICO, subject, body), daemon=True
-    ).start()
-    return now_ts
 
 
 def enter_protection_mode(
@@ -65,7 +28,6 @@ def enter_protection_mode(
 
     pe = get_attribute(sim, "protection_ends")
     pn = get_attribute(sim, "pending_notifications")
-    les = get_attribute(sim, "last_email_sent_time")
 
     now = time.time()
     for device in targets:
@@ -73,8 +35,7 @@ def enter_protection_mode(
 
     reason_text = f" ({reason})" if reason else ""
     targets_text_es = " y ".join(translate_device_to_spanish(d) for d in sorted(targets))
-    targets_text_raw = " and ".join(sorted(targets))
-    logger.warning("PROTECTION ACTIVATED%s. Forced operation: %s.", reason_text, targets_text_raw)
+    logger.warning("PROTECTION ACTIVATED%s. Forced operation: %s.", reason_text, " and ".join(sorted(targets)))
 
     action = get_professional_action("auto_protection", RISK_CRITICO, targets_text_es)
     notification_payload = {
@@ -93,9 +54,6 @@ def enter_protection_mode(
         persist_notification_in_django(
             "auto_protection", targets_text_es, RISK_CRITICO, action, edificio_id=eid
         )
-
-    new_les = _send_protection_email(reason, targets_text_es, targets_text_raw, les)
-    set_attribute(sim, "last_email_sent_time", new_les)
 
 
 def _get_expired_devices(protection_ends_dict: dict[str, float]) -> list[str]:
