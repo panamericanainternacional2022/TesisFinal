@@ -158,11 +158,17 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
 
 def _build_report_email_body(sim) -> tuple[str, str]:
     timestamp = time_module.strftime("%d/%m/%Y %H:%M:%S")
-    subject = f"[INES] Reporte de monitoreo - {timestamp}"
+    edificio = getattr(sim, "nombre", "") or "el edificio"
+    subject = f"Reporte de monitoreo — {edificio} — {timestamp}"
 
     body = build_standard_email_body(
-        titulo="Reporte de monitoreo",
-        contexto="Se adjunta el reporte PDF con el estado actual de los sensores del edificio.",
+        titulo="Reporte de estado del sistema",
+        contexto=(
+            f"Se adjunta el informe en formato PDF con el estado actual de los "
+            f"sensores de infraestructura de {edificio}. "
+            f"El documento incluye las lecturas más recientes, las estadísticas de "
+            f"operación y un resumen del nivel de riesgo de cada parámetro monitoreado."
+        ),
     )
     return subject, body
 

@@ -8,15 +8,13 @@ from django.urls import reverse
 from apps.alerts.services.email_sender import send_email_raw, build_activation_email_html
 from apps.users.models import Usuario
 
-_ACTIVATION_EMAIL_PLAIN = """Hola,
+_ACTIVATION_EMAIL_PLAIN = """Estimado/a usuario/a:
 
-Se ha registrado su usuario en el Sistema de Monitoreo INES.
-Para completar su registro y poder acceder al sistema, por favor haga clic en el siguiente enlace y defina su nombre de usuario y contraseña:
+Su cuenta ha sido registrada en el Sistema de Monitoreo INES. Para completar el proceso de registro y acceder a todas las funciones de la plataforma, es necesario que establezca su nombre de usuario y contraseña a través del siguiente enlace:
 
 {link}
 
-Este enlace es válido por 24 horas.
-Si usted no solicitó este registro, por favor ignore este correo.
+Este enlace es válido durante las próximas 24 horas. Si usted no ha solicitado este registro, puede ignorar el presente correo sin que ello implique ninguna consecuencia.
 """
 
 
@@ -86,7 +84,7 @@ def send_activation_email(email: str, user_id: int, base_url: str) -> str:
     try:
         send_email_raw(
             to_addrs=[email],
-            subject="[INES] Activación y acceso al sistema",
+            subject="Activación de cuenta en el Sistema INES",
             html_body=html_body,
             plain_body=plain_body,
         )

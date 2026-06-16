@@ -13,17 +13,18 @@ logger = logging.getLogger(__name__)
 # ─── Constantes de texto — fuente única, no hardcodeadas en el HTML ──────────
 _BRAND_NAME      = "INES"
 _BRAND_SUBTITLE  = "Sistema inteligente de automatización"
-_ALERT_H1        = "Notificación de alerta y monitoreo"
+_ALERT_H1        = "Anomalía detectada en la infraestructura"
 _ALERT_TAG_LABEL = "Nivel de riesgo"       # se concatena con el valor
 _ACTION_LABEL    = "Medida correctiva recomendada"
 _DETAILS_LABEL   = "Detalles del evento"
 _FOOTER_TEXT     = (
-    "Este mensaje es generado automáticamente por el Sistema de Monitoreo INES.<br>"
+    "Este mensaje ha sido generado automáticamente por el Sistema de Monitoreo INES.<br>"
     "Por favor, no responda a este correo."
 )
 _CONTEXT_DEFAULT = (
-    "Se ha detectado una lectura fuera de los rangos operativos recomendados "
-    "en los sensores de monitoreo de infraestructura."
+    "El sistema ha registrado una lectura fuera de los rangos operativos "
+    "establecidos para el presente edificio. A continuación se detallan "
+    "los parámetros del evento y la medida correctiva recomendada."
 )
 
 # Acento navy — idéntico al usado en los PDFs (ACCENT_COLOR)
@@ -175,9 +176,9 @@ def _build_email_shell(inner_html: str) -> str:
             <td style="background-color: {_NAVY}; height: 4px; padding: 0; font-size: 0; line-height: 0;">&nbsp;</td>
           </tr>
 
-          <!-- Header con wordmark INES -->
+          <!-- Header con wordmark INES (sin border-bottom para que el banner fluya pegado) -->
           <tr>
-            <td style="padding: 20px 28px 16px 28px; border-bottom: 1px solid #e5e7eb; background-color: #ffffff;">
+            <td style="padding: 18px 28px 18px 28px; background-color: #ffffff;">
               <table border="0" cellpadding="0" cellspacing="0" width="100%">
                 <tr>
                   <td style="border-left: 4px solid {_NAVY}; padding-left: 12px;">
@@ -259,10 +260,10 @@ def _build_alert_html(
     """
     colors = _get_email_colors(risk_level)
 
-    # 1 — Banner de cabecera del correo
+    # 1 — Banner de cabecera del correo (pegado al header sin gap)
     banner = f"""
           <tr>
-            <td style="padding: 24px 28px; border-bottom: 1px solid #e5e7eb; background-color: {colors['bg']}; border-left: 4px solid {colors['text']};">
+            <td style="padding: 20px 28px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; background-color: {colors['bg']}; border-left: 4px solid {colors['text']};">
               <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: {colors['text']}; display: block; margin-bottom: 6px; text-transform: uppercase;">{_ALERT_TAG_LABEL}: {risk_level}</span>
               <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #111827;">{_ALERT_H1}</h1>
             </td>
@@ -297,22 +298,22 @@ def build_activation_email_html(link: str) -> str:
     Sigue el mismo shell y patrones visuales que el correo de alerta.
     """
     inner_html = f"""
-          <!-- Banner de cabecera -->
+          <!-- Banner de cabecera (pegado al header sin gap) -->
           <tr>
-            <td style="padding: 24px 28px; border-bottom: 1px solid #e5e7eb; background-color: #f8fafc; border-left: 4px solid {_NAVY};">
+            <td style="padding: 20px 28px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; background-color: #f8fafc; border-left: 4px solid {_NAVY};">
               <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: {_NAVY}; display: block; margin-bottom: 6px; text-transform: uppercase;">Acceso al sistema</span>
-              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #111827;">Activaci&oacute;n de cuenta</h1>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #111827;">Activaci&oacute;n de su cuenta</h1>
             </td>
           </tr>
 
           <!-- Cuerpo -->
           <tr>
             <td style="padding: 28px; font-size: 14px; line-height: 1.6; color: #374151;">
-              <p style="margin: 0 0 16px 0;">Hola,</p>
-              <p style="margin: 0 0 16px 0;">Se ha registrado su usuario en el <strong>Sistema de Monitoreo INES</strong>. Para poder acceder y utilizar todas las funciones de monitoreo y alertas de infraestructura de su edificio, es necesario que complete su registro.</p>
-              <p style="margin: 0 0 24px 0;">Por favor, haga clic en el bot&oacute;n a continuaci&oacute;n para definir su nombre de usuario y contrase&ntilde;a:</p>
+              <p style="margin: 0 0 16px 0;">Estimado/a usuario/a:</p>
+              <p style="margin: 0 0 16px 0;">Su cuenta ha sido registrada en el <strong>Sistema de Monitoreo INES</strong>. Para completar el proceso de registro y acceder a todas las funciones de la plataforma, es necesario que establezca su nombre de usuario y contrase&ntilde;a.</p>
+              <p style="margin: 0 0 24px 0;">Para ello, haga clic en el bot&oacute;n que figura a continuaci&oacute;n:</p>
 
-              <!-- Botón CTA -->
+              <!-- Bot&oacute;n CTA -->
               <div style="margin: 0 0 28px 0; text-align: left;">
                 <a href="{link}" target="_blank"
                    style="background-color: {_NAVY}; color: #ffffff; text-decoration: none; padding: 12px 28px; font-size: 13px; font-weight: 700; letter-spacing: 0.05em; display: inline-block; border-radius: 2px;">
@@ -320,15 +321,15 @@ def build_activation_email_html(link: str) -> str:
                 </a>
               </div>
 
-              <!-- Caja de información de seguridad (mismo patrón que _build_action_box) -->
+              <!-- Caja de informaci&oacute;n de seguridad -->
               <div style="padding: 16px 20px; background-color: #f8fafc; border: 1px solid #e5e7eb; border-left: 4px solid {_NAVY}; border-radius: 2px; margin-bottom: 24px;">
                 <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: {_NAVY}; display: block; margin-bottom: 8px; text-transform: uppercase;">Informaci&oacute;n de seguridad</span>
-                <p style="margin: 0 0 6px 0; font-size: 13px; color: #374151;">&bull; Este enlace es v&aacute;lido por <strong>24 horas</strong>.</p>
-                <p style="margin: 0; font-size: 13px; color: #374151;">&bull; Si usted no solicit&oacute; este registro, por favor ignore este correo.</p>
+                <p style="margin: 0 0 6px 0; font-size: 13px; color: #374151;">&bull; Este enlace es v&aacute;lido durante las pr&oacute;ximas <strong>24 horas</strong>.</p>
+                <p style="margin: 0; font-size: 13px; color: #374151;">&bull; Si usted no ha solicitado este registro, puede ignorar el presente correo sin que ello implique ninguna consecuencia.</p>
               </div>
 
               <!-- Enlace de respaldo -->
-              <p style="margin: 0; font-size: 12px; color: #9ca3af;">Si el bot&oacute;n no funciona, copie y pegue la siguiente direcci&oacute;n en su navegador:<br>
+              <p style="margin: 0; font-size: 12px; color: #9ca3af;">Si el bot&oacute;n no funciona correctamente, copie y pegue la siguiente direcci&oacute;n en su navegador:<br>
               <a href="{link}" style="color: {_NAVY}; text-decoration: underline; word-break: break-all;">{link}</a></p>
             </td>
           </tr>"""

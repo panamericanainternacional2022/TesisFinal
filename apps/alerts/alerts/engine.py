@@ -32,7 +32,7 @@ def _determine_device_target(variable: str) -> Optional[str]:
 
 def _build_alert_email_subject(variable: str, risk_level: str) -> str:
     var_display = translate_variable_to_spanish(variable)
-    return f"[INES] Alerta - {var_display} - Nivel {risk_level}"
+    return f"Alerta de monitoreo: {var_display} — Nivel {risk_level}"
 
 
 def _build_alert_email_body(
@@ -59,10 +59,11 @@ def _build_alert_email_body(
             f"de forma preventiva."
         )
     return build_standard_email_body(
-        titulo="Reporte automático de anomalía",
+        titulo="Anomalía detectada en los sensores de infraestructura",
         contexto=(
-            "Se ha detectado una lectura fuera de los rangos operativos recomendados "
-            "en los sensores de monitoreo de infraestructura."
+            "El sistema ha registrado una lectura fuera de los rangos operativos "
+            "establecidos para el presente edificio. A continuación se detallan "
+            "los parámetros del evento y la medida correctiva recomendada."
         ),
         detalles=detalles,
         accion=recommended_action,
