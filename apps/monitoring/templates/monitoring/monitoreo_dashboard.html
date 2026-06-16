@@ -525,12 +525,19 @@
                         {% if edificios and is_admin %}
                         <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
                             <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Edificio activo:</span>
+                            {% if edificios|length == 1 %}
+                            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px; display: inline-block;">
+                                {{ edificios.0.name }}
+                                <input type="hidden" id="buildingSelect" value="{{ edificios.0.id }}">
+                            </span>
+                            {% else %}
                             <select id="buildingSelect"
-                                    style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px;">
+                                    style="width: auto; padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px;">
                                 {% for ed in edificios %}
                                 <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
                                 {% endfor %}
                             </select>
+                            {% endif %}
                             <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</span>
                         </div>
                         {% endif %}
