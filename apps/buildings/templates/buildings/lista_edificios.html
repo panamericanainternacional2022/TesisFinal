@@ -81,7 +81,7 @@
                                                             <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
                                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                                             </a>
-                                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}?">
+                                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
                                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                                             </a>
                                                             <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">
