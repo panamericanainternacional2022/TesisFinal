@@ -9,9 +9,9 @@ from apps.buildings.models import Building
 from apps.alerts.models import Notification
 
 from .shared import (
-    build_monitoring_config, filter_severity, filter_date_range,
+    build_monitoring_config, filter_date_range,
     build_query_string, parse_notifications, extract_variables,
-    filter_by_variable, ALL_SEVERITIES,
+    extract_severities, filter_severity_python, filter_by_variable,
 )
 from apps.sensors.sensor_config import (
     RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
@@ -91,7 +91,8 @@ def render_admin_history(request) -> HttpResponse:
     if building_id:
         notifications = notifications.filter(monitoring_equipment__building_id=building_id)
 
-    notifications = filter_severity(notifications, severity)
+    # Solo filtro de fecha a nivel DB; severidad se filtra en Python
+    # después de extraer las opciones disponibles.
     notifications = filter_date_range(notifications, period, date_from, date_to)
 
     notifications = (
@@ -102,7 +103,13 @@ def render_admin_history(request) -> HttpResponse:
     )
 
     parsed_list = parse_notifications(notifications)
+
+    # Extraer opciones ANTES de filtrar por severidad/variable
     all_variables = extract_variables(parsed_list)
+    available_severities = extract_severities(parsed_list)
+
+    # Filtrar en Python (severidad + variable)
+    parsed_list = filter_severity_python(parsed_list, severity)
     parsed_list = filter_by_variable(parsed_list, variable_filter)
 
     paginator = Paginator(parsed_list, PAGE_SIZE)
@@ -130,7 +137,7 @@ def render_admin_history(request) -> HttpResponse:
             "fecha_desde": date_from,
             "fecha_hasta": date_to,
             "filter_query_string": query_string,
-            "ALL_SEVERITIES": ALL_SEVERITIES,
+            "ALL_SEVERITIES": available_severities,
             "rol": rol,
             "total_count": len(parsed_list),
             "periodo_seleccionado": period,

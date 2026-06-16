@@ -275,7 +275,7 @@ function showState(stateId) {
         if (el) el.style.display = id === stateId ? 'flex' : 'none';
     });
     const active = document.getElementById('activeMonitoring');
-    if (active) active.style.display = stateId === 'stateLoading' || stateId === 'stateNoEquipment' ? 'none' : 'block';
+    if (active) active.style.display = 'none';
 }
 
 function hideAllStates() {
@@ -396,7 +396,7 @@ function connectSSE() {
             monitorConnectionTimeout = setTimeout(() => {
                 showState('stateOffline');
                 monitorConnectionTimeout = null;
-            }, 3500);
+            }, 15000);
         }
     };
 
@@ -1059,7 +1059,7 @@ window.addEventListener('DOMContentLoaded', () => {
     monitorConnectionTimeout = setTimeout(() => {
         showState('stateOffline');
         monitorConnectionTimeout = null;
-    }, 3500);
+    }, 15000);
 
     connectSSE();
 

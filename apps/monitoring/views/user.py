@@ -8,9 +8,9 @@ from apps.buildings.models import Building
 
 from .shared import (
     build_monitoring_config, get_user_building_ids,
-    filter_severity, filter_date_range, parse_notifications,
-    extract_variables, filter_by_variable, build_query_string,
-    ALL_SEVERITIES,
+    filter_date_range, parse_notifications,
+    extract_variables, extract_severities, filter_severity_python,
+    filter_by_variable, build_query_string,
 )
 from apps.sensors.sensor_config import (
     RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
@@ -62,7 +62,8 @@ def render_user_history(request) -> HttpResponse:
     from apps.alerts.views.shared import _build_notification_query
     notifications, _ = _build_notification_query(user_id, "US", building_id)
 
-    notifications = filter_severity(notifications, severity)
+    # Solo filtro de fecha a nivel DB; severidad se filtra en Python
+    # después de extraer las opciones disponibles.
     notifications = filter_date_range(notifications, period, date_from, date_to)
 
     notifications = (
@@ -73,7 +74,13 @@ def render_user_history(request) -> HttpResponse:
     )
 
     parsed_list = parse_notifications(notifications)
+
+    # Extraer opciones ANTES de filtrar por severidad/variable
     all_variables = extract_variables(parsed_list)
+    available_severities = extract_severities(parsed_list)
+
+    # Filtrar en Python (severidad + variable)
+    parsed_list = filter_severity_python(parsed_list, severity)
     parsed_list = filter_by_variable(parsed_list, variable_filter)
 
     paginator = Paginator(parsed_list, PAGE_SIZE)
@@ -101,7 +108,7 @@ def render_user_history(request) -> HttpResponse:
             "fecha_desde": date_from,
             "fecha_hasta": date_to,
             "filter_query_string": query_string,
-            "ALL_SEVERITIES": ALL_SEVERITIES,
+            "ALL_SEVERITIES": available_severities,
             "rol": rol,
             "total_count": len(parsed_list),
             "periodo_seleccionado": period,

@@ -87,8 +87,30 @@ def parse_notifications(notifications: QuerySet) -> list:
 
 
 def extract_variables(parsed_list: list) -> list[str]:
-    from apps.sensors.sensor_config import VAR_NAMES
-    return sorted(list(VAR_NAMES.values()))
+    return sorted({
+        n.parsed_data["variable"]
+        for n in parsed_list
+        if n.parsed_data.get("parsed") and n.parsed_data.get("variable")
+    })
+
+
+def extract_severities(parsed_list: list) -> list[str]:
+    from apps.sensors.sensor_config import SEVERITY_LEVELS
+    present = {
+        n.parsed_data["risk"]
+        for n in parsed_list
+        if n.parsed_data.get("parsed") and n.parsed_data.get("risk")
+    }
+    return [s for s in SEVERITY_LEVELS if s in present]
+
+
+def filter_severity_python(parsed_list: list, severity: str) -> list:
+    if not severity:
+        return parsed_list
+    return [
+        n for n in parsed_list
+        if n.parsed_data.get("parsed") and n.parsed_data.get("risk") == severity
+    ]
 
 
 def filter_by_variable(parsed_list: list, variable: str) -> list:

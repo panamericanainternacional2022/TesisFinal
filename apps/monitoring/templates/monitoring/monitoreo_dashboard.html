@@ -538,51 +538,53 @@
         {% else %}
 
         <!-- Estados de conexión -->
-        <div id="stateLoading" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
-        </div>
-
-        <div id="stateOffline" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
-        </div>
-
-        <div id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
-            <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
-            {% if is_admin %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
-            {% else %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
-            {% endif %}
-        </div>
-
-        <!-- Barra de controles (admin) -->
-        {% if is_admin %}
-        <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">
-            <div class="form-group" style="min-width:220px;">
-                <label class="form-label">Edificio activo</label>
-                <select id="buildingSelect" style="height:44px;">
-                    {% for ed in edificios %}
-                    <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                    {% endfor %}
-                </select>
+        <div class="notif-card" style="margin-top: var(--sp-3);">
+            <div class="no-notif" id="stateLoading" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+                <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
+                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
+                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
             </div>
-            <div id="inlineRec" style="flex:1; min-width:200px; font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</div>
-            <div class="spacer"></div>
-        </div>
 
-        <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
-            <i class="fas fa-triangle-exclamation"></i>
-            <span id="credsMsg"></span>
+            <div class="no-notif" id="stateOffline" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+                <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
+                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
+                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
+            </div>
+
+            <div class="no-notif" id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+                <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
+                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
+                {% if is_admin %}
+                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
+                {% else %}
+                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
+                {% endif %}
+            </div>
         </div>
-        {% endif %}
 
         <!-- Contenedor de telemetría activa -->
         <div id="activeMonitoring" style="display:none;">
+
+            <!-- Barra de controles (admin) -->
+            {% if is_admin %}
+            <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">
+                <div class="form-group" style="min-width:220px;">
+                    <label class="form-label">Edificio activo</label>
+                    <select id="buildingSelect" style="height:44px;">
+                        {% for ed in edificios %}
+                        <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="inlineRec" style="flex:1; min-width:200px; font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</div>
+                <div class="spacer"></div>
+            </div>
+
+            <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
+                <i class="fas fa-triangle-exclamation"></i>
+                <span id="credsMsg"></span>
+            </div>
+            {% endif %}
 
         <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
