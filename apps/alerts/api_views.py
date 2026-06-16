@@ -59,17 +59,20 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
             else:
                 config["medium"] = float(config.get("medium", 0))
                 config["high"] = float(config.get("high", 0))
-        except (ValueError, TypeError):
-            errors[variable] = "Non-numeric threshold value"
+        except (ValueError, TypeError) as e:
+            errors[variable] = f"Non-numeric threshold value: config={config}"
+            logger.warning("Threshold non-numeric for %s: %s — config=%s", variable, e, config)
             continue
 
         if direction == "range":
             if config["low"] >= config["high"]:
-                errors[variable] = "Low limit must be lower than high limit"
+                errors[variable] = f"Low limit ({config['low']}) must be lower than high limit ({config['high']})"
+                logger.warning("Threshold range fail for %s: low=%s high=%s", variable, config['low'], config['high'])
                 continue
         elif direction == "higher":
             if not (config["low"] < config["medium"] < config["high"]):
-                errors[variable] = "Thresholds must be ascending: low < medium < high"
+                errors[variable] = f"Thresholds must be ascending: low={config['low']} < medium={config['medium']} < high={config['high']}"
+                logger.warning("Threshold higher fail for %s: low=%s med=%s high=%s", variable, config['low'], config['medium'], config['high'])
                 continue
         elif direction == "lower":
             if not (config["low"] > config["medium"] > config["high"]):

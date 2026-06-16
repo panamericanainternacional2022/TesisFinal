@@ -890,6 +890,41 @@
                 }
                 panel.appendChild(div);
             }
+            validateThresholdInputs();
+        }
+
+        function validateThresholdInputs(){
+            let hasError = false;
+            let btn = document.getElementById('saveThresholdsBtn');
+            let processed = {};
+            document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
+                let v = inp.dataset.var;
+                if (!v || processed[v]) return;
+                processed[v] = true;
+                let dir = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`)?.value;
+                let low = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`)?.value);
+                let high = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`)?.value);
+                let lowInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`);
+                let highInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`);
+                let medInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="medium"]`);
+                [lowInp, medInp, highInp].forEach(el => { if(el) el.style.borderColor = ''; });
+
+                let valid = false;
+                if (dir === 'range') {
+                    valid = !isNaN(low) && !isNaN(high) && low < high;
+                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+                } else if (dir === 'higher') {
+                    let medium = parseFloat(medInp?.value);
+                    valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low < medium && medium < high;
+                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(medInp) medInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+                } else if (dir === 'lower') {
+                    let medium = parseFloat(medInp?.value);
+                    valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
+                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(medInp) medInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+                }
+                if (!valid) hasError = true;
+            });
+            btn.disabled = hasError;
         }
 
         function csrfFetch(url, opts = {}) {
@@ -910,12 +945,19 @@
                 if(!newTh[v]) newTh[v]={direction:document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`).value};
                 newTh[v][l]=parseFloat(inp.value);
             });
+            console.log('Enviando umbrales:', JSON.stringify(newTh));
             let resp=await csrfFetch('/api/thresholds/update/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newTh)});
             let res=await resp.json();
+            let msgEl=document.getElementById('saveMessage');
             if(res.status==='ok'){
-                document.getElementById('saveMessage').innerText='✓ Guardados';
-                setTimeout(()=>document.getElementById('saveMessage').innerText='',2000);
+                msgEl.innerHTML='<span style="color:var(--state-ok);font-weight:var(--weight-bold);">✓ Guardados</span>';
+                setTimeout(()=>msgEl.innerHTML='',2000);
                 currentThresholds=res.thresholds;
+                renderThresholdsPanel(res.thresholds);
+                validateThresholdInputs();
+            } else {
+                msgEl.innerHTML=`<span style="color:var(--state-critical);font-weight:var(--weight-bold);">✗ Error: ${res.message}</span>`;
+                console.error('Error al guardar umbrales:', res.message);
             }
         }
 
@@ -1090,6 +1132,7 @@
 
         // Eventos
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
+        document.getElementById('thresholdsPanel').addEventListener('input', validateThresholdInputs);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
         document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
@@ -1112,7 +1155,6 @@
         function applyPayload(data){
             if(data.thresholds) currentThresholds=data.thresholds;
             if(data.subscribers) subscribers=data.subscribers;
-            if(data.thresholds) renderThresholdsPanel(data.thresholds);
             if(data.current) updateCards(data.current);
             if(data.history){ updateCharts(data.history); }
             updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
@@ -1178,7 +1220,7 @@
             const url = EDIFICIO_ID ? `/api/status/?edificio_id=${EDIFICIO_ID}` : '/api/status/';
             fetch(url)
                 .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-                .then(data => applyPayload(data))
+                .then(data => { applyPayload(data); if(data.thresholds) renderThresholdsPanel(data.thresholds); })
                 .catch((error) => {
                     console.warn('Error al obtener estado inicial:', error);
                     ['statsBombaPanel', 'statsElevadorPanel', 'recommendationsPanel'].forEach(id => {
