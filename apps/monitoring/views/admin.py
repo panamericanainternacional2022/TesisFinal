@@ -54,6 +54,37 @@ def render_admin_monitoring(request) -> HttpResponse:
 
 
 @login_required
+def render_admin_thresholds(request) -> HttpResponse:
+    """Standalone thresholds configuration page (admin only)."""
+    rol = request.session.get("usuario_rol", "US")
+    buildings = list(Building.objects.all())
+
+    building_id = get_building_id_param(request, "edificio", "edificio_id")
+    valid_ids = [b.pk for b in buildings]
+    if building_id:
+        try:
+            building_id = int(building_id)
+            if building_id not in valid_ids:
+                building_id = valid_ids[0] if valid_ids else 0
+        except (ValueError, TypeError, IndexError):
+            building_id = valid_ids[0] if valid_ids else 0
+    else:
+        building_id = valid_ids[0] if valid_ids else 0
+
+    return render(
+        request,
+        "monitoring/umbrales.html",
+        {
+            "rol": rol,
+            "edificios": buildings,
+            "edificio_id": building_id,
+            "config_json": build_monitoring_config(building_id),
+            "is_admin": True,
+        },
+    )
+
+
+@login_required
 @admin_required
 def building_monitoring_view(request, building_id: int) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
