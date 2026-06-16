@@ -144,7 +144,7 @@ DEVICE_NAMES_ES = {
 }
 
 # ─── Variables excluidas de clasificación de riesgo ───────────────────────
-NO_RISK_VARS = ["position", "door_status"]
+NO_RISK_VARS = ["position", "door_status", "motor_stuck"]
 
 # ─── Variables cuyo valor 0 se considera crítico ──────────────────────────
 ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
