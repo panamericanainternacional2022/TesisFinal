@@ -28,9 +28,11 @@
                             </span>
                         </div>
                         <p style="margin-top:6px;">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
+                    </div>
 
-                        <!-- ── Barra de controles ─────────────────────── -->
-                        <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3);">
+                    {% if edificios %}
+                    <!-- ── Barra de controles ─────────────────────── -->
+                    <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3);">
 
                             <!-- Inputs ocultos (panel lateral + fechas custom) -->
                             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
@@ -460,5 +462,21 @@
             form.submit();
         });
     </script>
+{% else %}
+                    <div class="notif-card" style="margin-top: var(--sp-3);">
+                        <div class="no-notif">
+                            <i class="fa-solid fa-building"></i>
+                            {% if rol == 'AD' %}
+                            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+                            {% else %}
+                            <p>No tienes edificios asignados. Contacta al administrador.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endif %}
 </body>
 </html>

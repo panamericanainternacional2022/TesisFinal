@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
     <script src="{% static 'core/modal.js' %}" defer></script>
     <style>
 
@@ -87,6 +88,23 @@
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
             border-radius: 0px;
+        }
+
+        .notif-card {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+            border-radius: 0px;
+            overflow: hidden;
+            margin-top: var(--sp-3);
+        }
+        .notif-card .notif-list {
+            border: none;
+            box-shadow: none;
+        }
+        .notif-card .no-notif {
+            border: none;
+            box-shadow: none;
         }
 
         .panel-title {
@@ -507,14 +525,15 @@
                     </div>
 
         {% if not edificios %}
-        <div id="stateNoBuildings" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-6) var(--sp-4); text-align:center;">
-            <i class="fa-solid fa-building" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-3);"></i>
-            <h3 style="font-size:var(--text-lg); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin edificios</h3>
-            {% if is_admin %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">No hay edificios registrados en el sistema. Cree un edificio desde el panel de administración para comenzar.</p>
-            {% else %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">No tienes edificios asignados. Contacta con el administrador del sistema para obtener acceso.</p>
-            {% endif %}
+        <div class="notif-card" style="margin-top: var(--sp-3);">
+            <div class="no-notif">
+                <i class="fa-solid fa-building"></i>
+                {% if is_admin %}
+                <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+                {% else %}
+                <p>No tienes edificios asignados. Contacta al administrador.</p>
+                {% endif %}
+            </div>
         </div>
         {% else %}
 

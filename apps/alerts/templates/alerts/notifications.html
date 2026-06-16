@@ -27,7 +27,9 @@
                             </div>
                         </div>
                         <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
-                        
+                    </div>
+
+                    {% if buildings %}
                         <!-- Filtro de Edificio y Botón Limpiar en la misma línea -->
                         <div style="margin-top: var(--sp-3); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
                             {% if buildings|length > 1 %}
@@ -267,5 +269,21 @@
         window.CSRF_TOKEN = "{{ csrf_token }}";
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}" defer></script>
+{% else %}
+                    <div class="notif-card" style="margin-top: var(--sp-3);">
+                        <div class="no-notif">
+                            <i class="fa-solid fa-building"></i>
+                            {% if rol == 'AD' %}
+                            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+                            {% else %}
+                            <p>No tienes edificios asignados. Contacta al administrador.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endif %}
 </body>
 </html>
