@@ -15,30 +15,7 @@ from apps.users.validators import normalize_rif
 from apps.buildings.views.shared import (
     build_message, pop_messages, extract_building_data,
     extract_equipment_config, build_required_errors,
-    count_notifications_for_building,
 )
-
-
-# ─── SELECT (READ) ──────────────────────────────────────────────────
-
-
-@login_required
-@admin_required
-def select_building_view(request: HttpRequest, action: str) -> HttpResponse:
-    VALID_ACTIONS = ("edit", "delete")
-    if action not in VALID_ACTIONS:
-        messages.error(request, f"Acción no válida: {action}")
-        return redirect("building_list")
-    buildings = Building.objects.all()
-    items = [
-        {"id": b.id, "name": b.name, "rif": b.rif}
-        for b in buildings
-    ]
-    return render(
-        request,
-        "buildings/seleccionar_edificio.html",
-        {"items": items, "action": action},
-    )
 
 
 @login_required
@@ -191,15 +168,6 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
 @admin_required
 def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, id=building_id)
-    if request.method == "POST" and request.POST.get("confirmed") == "1":
-        return _execute_delete(request, building)
-    return _render_delete_confirmation(request, building)
-
-
-# ─── PRIVATE HELPERS ────────────────────────────────────────────────
-
-
-def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
     from apps.alerts.models import Notification
     with transaction.atomic():
         equipment = list(building.equipment.all())
@@ -214,25 +182,7 @@ def _execute_delete(request: HttpRequest, building: Building) -> HttpResponse:
         request,
         "Edificio y todos sus datos asociados fueron eliminados correctamente.",
     )
-    return redirect("select_building", action="delete")
-
-
-def _render_delete_confirmation(
-    request: HttpRequest, building: Building,
-) -> HttpResponse:
-    equipment = MonitoringEquipment.objects.filter(building=building)
-    user_assignments = UserBuilding.objects.filter(building=building)
-    notifications = count_notifications_for_building(building.id)
-    return render(
-        request,
-        "buildings/confirmar_eliminar_edificio.html",
-        {
-            "building": building,
-            "equipment": list(equipment),
-            "usuarios_count": user_assignments.count(),
-            "notifications_count": notifications,
-        },
-     )
+    return redirect("building_list")
 
 
 def check_rif_uniqueness_view(request: HttpRequest) -> JsonResponse:

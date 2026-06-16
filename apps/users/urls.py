@@ -11,7 +11,6 @@ from apps.users.views.admin import (
     user_create_view,
     user_update_view,
     user_delete_view,
-    user_select_view,
     check_cedula_uniqueness_view,
 )
 
@@ -34,11 +33,6 @@ urlpatterns = [
         "users/<int:user_id>/delete/",
         user_delete_view,
         name="user_delete",
-    ),
-    path(
-        "select/user/<str:action>/",
-        user_select_view,
-        name="user_select",
     ),
     path("complete-registration/", complete_registration_view, name="complete_registration"),
     path("api/check-cedula/", check_cedula_uniqueness_view, name="check_cedula"),

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
+    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+    <script src="{% static 'core/modal.js' %}" defer></script>
 </head>
 <body class="preload">
     <div class="main-layout">
@@ -47,7 +49,7 @@
                                         <th>Equipamiento</th>
                                         <th>RIF</th>
                                         <th>Dirección</th>
-                                        <th>Reporte</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -68,9 +70,22 @@
                                                 <td title="{{ building.rif }}">{{ building.rif }}</td>
                                                 <td title="{{ building.address }}">{{ building.address }}</td>
                                                 <td>
-                                                    <a href="{% url 'building_report_pdf' building.id %}" class="register-button-react edit-btn" style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important; font-size: 13px;">
-                                                        <i class="fa-solid fa-file-pdf"></i> PDF
-                                                    </a>
+                                                    <div class="actions-dropdown">
+                                                        <button class="dropdown-trigger" title="Acciones">
+                                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
+                                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                                            </a>
+                                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}?">
+                                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                                            </a>
+                                                            <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">
+                                                                <i class="fa-solid fa-file-pdf"></i> PDF
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -89,29 +104,51 @@
                     <div class="table-actions-row action-buttons-row">
                         {% url 'register_building' as registro_url %}
                         {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
-                        {% if buildings %}
-                        <a href="{% url 'select_building' 'edit' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
-                        <a href="{% url 'select_building' 'delete' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
-                        {% else %}
-                        <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
-                        <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
-                        {% endif %}
                     </div>
                 </div>
             </div>
         </main>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', ()=>{
-            const hasItems = {% if buildings %}true{% else %}false{% endif %};
-            if (!hasItems) {
-                const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
-                btns.forEach(btn => {
-                    btn.removeAttribute('href');
-                    btn.setAttribute('aria-disabled', 'true');
-                    btn.setAttribute('tabindex', '-1');
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            // ── Dropdown toggle ──
+            document.addEventListener('click', function(e) {
+                const trigger = e.target.closest('.dropdown-trigger');
+                if (trigger) {
+                    e.stopPropagation();
+                    const menu = trigger.nextElementSibling;
+                    const isOpen = menu.classList.contains('open');
+                    closeAllDropdowns();
+                    if (!isOpen) {
+                        menu.classList.add('open');
+                    }
+                } else {
+                    closeAllDropdowns();
+                }
+            });
+
+            function closeAllDropdowns() {
+                document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
             }
+
+            // ── Eliminar confirmación ──
+            document.querySelectorAll('.btn-confirm-delete').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    const message = this.getAttribute('data-confirm');
+                    showCustomModal({
+                        title: 'Confirmar',
+                        message: message,
+                        type: 'confirm',
+                        showCancel: true
+                    }).then(confirmed => {
+                        if (confirmed) {
+                            window.location.href = url;
+                        }
+                    });
+                });
+            });
         });
     </script>
 <style>
@@ -120,6 +157,79 @@
     line-height: 1;
     margin-right: 4px;
     display: inline-block;
+}
+.actions-dropdown {
+    position: relative;
+    display: inline-flex;
+}
+.dropdown-trigger {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-fast);
+    box-shadow: 2px 2px 0px var(--color-ink);
+}
+.dropdown-trigger:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
+}
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 180px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+}
+.dropdown-menu.open {
+    display: flex;
+}
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    box-sizing: border-box;
+}
+.dropdown-item:hover {
+    background: var(--color-bg);
+}
+.dropdown-item-danger {
+    color: var(--state-critical, #dc2626);
+}
+.dropdown-item-danger:hover {
+    background: #fef2f2;
+}
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+.table-wrapper {
+    overflow: visible !important;
 }
 </style>
 </body>

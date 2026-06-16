@@ -264,45 +264,10 @@ def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
     messages.success(request, f"Usuario <strong>{full_name}</strong> eliminado correctamente.")
-    return redirect("user_select", action="eliminar")
+    return redirect("user_list")
 
 
-@login_required
-@admin_required
-def user_select_view(request: HttpRequest, action: str) -> HttpResponse:
-    from apps.core.auth_decorators import ADMIN_ROLES
-    VALID_ACTIONS = ("editar", "eliminar")
-    if action not in VALID_ACTIONS:
-        messages.error(request, f"Acción no válida: {action}")
-        return redirect("user_list")
 
-    users = (
-        Usuario.objects.select_related("id_persona")
-        .prefetch_related("building_assignments__building")
-        .exclude(rol__in=ADMIN_ROLES)
-    )
-    items = []
-    for u in users:
-        p = u.id_persona
-        ue = u.building_assignments.first()
-        building = ue.building if ue else None
-        items.append(
-            {
-                "id": u.id_usuario,
-                "nombre": " ".join(x for x in [p.first_name, p.middle_name, p.first_last_name, p.second_last_name] if x) if p else u.username,
-                "cedula": p.ci if p else "",
-                "edificio": building.name if building else "",
-            }
-        )
-
-    return render(
-        request,
-        "users/seleccionar_usuario.html",
-        {
-            "items": items,
-            "accion": action,
-        },
-    )
 
 
 def check_cedula_uniqueness_view(request: HttpRequest) -> JsonResponse:

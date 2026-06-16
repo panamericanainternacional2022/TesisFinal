@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
+    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+    <script src="{% static 'core/modal.js' %}" defer></script>
 </head>
 <body class="preload">
     <div class="main-layout">
@@ -55,7 +57,7 @@
                                         <th>Nombre</th>
                                         <th>Apellido</th>
                                         <th>Edificio</th>
-                                        <th>Correo</th>
+                                        <th>Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -67,18 +69,28 @@
                                                 <td>{{ usuario.last_name }}</td>
                                                 <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
                                                 <td>
-                                                    {% if usuario.email %}
-                                                    <button
-                                                        class="register-button-react send-email-btn"
-                                                        data-email="{{ usuario.email }}"
-                                                        style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important; font-size: 13px;"
-                                                        title="Enviar reporte a {{ usuario.email }}"
-                                                    >
-                                                        <i class="fa-solid fa-paper-plane"></i> Enviar
-                                                    </button>
-                                                    {% else %}
-                                                    <span style="color: var(--color-text-secondary); font-size: 13px;">—</span>
-                                                    {% endif %}
+                                                    <div class="actions-dropdown">
+                                                        <button class="dropdown-trigger" title="Acciones">
+                                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
+                                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                                            </a>
+                                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                                            </a>
+                                                            {% if usuario.email %}
+                                                            <button class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
+                                                                <i class="fa-solid fa-paper-plane"></i> Enviar Correo
+                                                            </button>
+                                                            {% else %}
+                                                            <span class="dropdown-item dropdown-item-disabled" title="Este usuario no tiene correo registrado">
+                                                                <i class="fa-solid fa-paper-plane"></i> Sin correo
+                                                            </span>
+                                                            {% endif %}
+                                                        </div>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         {% endfor %}
@@ -98,8 +110,6 @@
                         {% url 'user_create' as registro_url %}
                         {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
                         {% if usuarios %}
-                        <a href="{% url 'user_select' 'editar' %}" class="register-button-react edit-btn"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
-                        <a href="{% url 'user_select' 'eliminar' %}" class="register-button-react delete-btn"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                         <a href="{% url 'user_pdf' %}?{{ filter_query_string }}"
                            class="register-button-react"
                            style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink);"
@@ -113,9 +123,6 @@
                                 data-edificio-id="{{ selected_edificio_id|default:'' }}">
                             <i class="fa-solid fa-paper-plane"></i> Enviar a todos
                         </button>
-                        {% else %}
-                        <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
-                        <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
                         {% endif %}
                     </div>
                 </div>
@@ -184,19 +191,49 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const hasItems = {% if usuarios %}true{% else %}false{% endif %};
-            if (!hasItems) {
-                const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
-                btns.forEach(btn => {
-                    btn.removeAttribute('href');
-                    btn.setAttribute('aria-disabled', 'true');
-                    btn.setAttribute('tabindex', '-1');
-                });
+            // ── Dropdown toggle ──
+            document.addEventListener('click', function(e) {
+                const trigger = e.target.closest('.dropdown-trigger');
+                if (trigger) {
+                    e.stopPropagation();
+                    const menu = trigger.nextElementSibling;
+                    const isOpen = menu.classList.contains('open');
+                    closeAllDropdowns();
+                    if (!isOpen) {
+                        menu.classList.add('open');
+                    }
+                } else {
+                    closeAllDropdowns();
+                }
+            });
+
+            function closeAllDropdowns() {
+                document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
             }
+
+            // ── Eliminar confirmación ──
+            document.querySelectorAll('.btn-confirm-delete').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.getAttribute('href');
+                    const message = this.getAttribute('data-confirm');
+                    showCustomModal({
+                        title: 'Confirmar',
+                        message: message,
+                        type: 'confirm',
+                        showCancel: true
+                    }).then(confirmed => {
+                        if (confirmed) {
+                            window.location.href = url;
+                        }
+                    });
+                });
+            });
 
             // ── Botones individuales de envío por correo ──
             document.querySelectorAll('.send-email-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
                     const email = btn.dataset.email;
                     const origHTML = btn.innerHTML;
                     btn.disabled = true;
@@ -248,5 +285,85 @@
             }
         });
     </script>
+<style>
+.actions-dropdown {
+    position: relative;
+    display: inline-flex;
+}
+.dropdown-trigger {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all var(--transition-fast);
+    box-shadow: 2px 2px 0px var(--color-ink);
+}
+.dropdown-trigger:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
+}
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 180px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+}
+.dropdown-menu.open {
+    display: flex;
+}
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    box-sizing: border-box;
+}
+.dropdown-item:hover {
+    background: var(--color-bg);
+}
+.dropdown-item-danger {
+    color: var(--state-critical, #dc2626);
+}
+.dropdown-item-danger:hover {
+    background: #fef2f2;
+}
+.dropdown-item-disabled {
+    color: var(--color-text-secondary);
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+.table-wrapper {
+    overflow: visible !important;
+}
+</style>
 </body>
 </html>
