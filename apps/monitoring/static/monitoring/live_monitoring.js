@@ -29,6 +29,7 @@ const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 let sseSource = null;
 let monitorConnectionTimeout = null;
 let currentThresholds = {};
+let currentReadings = {};
 let chart1, chart2;
 let unreadNotificationCount = 0;
 let alertCountdownInterval = null;
@@ -440,7 +441,10 @@ function applyPayload(data) {
 
     hideAllStates();
 
-    if (data.current) updateCards(data.current);
+    if (data.current) {
+        currentReadings = data.current;
+        updateCards(data.current);
+    }
     if (data.history) updateCharts(data.history);
 
     updateStatusBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
@@ -536,19 +540,46 @@ function renderThresholdsPanel(th) {
         if (_NO_RISK_VARS.includes(k)) continue;
         let div = document.createElement('div');
         div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
-        if (cfg.direction === 'range') {
-            div.innerHTML = `<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)} (rango)</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label">Mín</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
-                    <div class="form-group"><label class="form-label">Máx</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
-                </div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
+
+        const name = getVariableName(k).toUpperCase();
+        const unit = getUnit(k);
+        const curVal = currentReadings[k];
+        const curStr = (curVal !== undefined && curVal !== null)
+            ? `Actual: ${formatNumeric(curVal, k)}${unit ? ' ' + unit : ''}`
+            : '';
+
+        let dirBadge, dirTitle;
+        if (cfg.direction === 'higher') {
+            dirBadge = '<span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor — valores altos aumentan el riesgo">\u2191</span>';
+        } else if (cfg.direction === 'lower') {
+            dirBadge = '<span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor — valores bajos aumentan el riesgo">\u2193</span>';
         } else {
-            div.innerHTML = `<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)}</div>
+            dirBadge = '<span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango válido — fuera del rango = riesgo Alto">\u27FA</span>';
+        }
+
+        let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
+                ${name}${unit ? ' ('+unit+')' : ''} ${dirBadge}
+            </span>
+            ${curStr ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">'+curStr+'</span>' : ''}
+        </div>`;
+
+        if (cfg.direction === 'range') {
+            div.innerHTML = headerHtml + `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
+                    <div class="form-group"><label class="form-label" style="color:#166534;">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" style="border-left:4px solid #166534;"></div>
+                    <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
+                </div>
+                <div style="margin-top:2px;font-size:0.6rem;color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
+                <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
+        } else {
+            div.innerHTML = headerHtml + `
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label">Bajo</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
-                    <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
-                    <div class="form-group"><label class="form-label">Alto</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
-                </div><input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
+                    <div class="form-group"><label class="form-label" style="color:#166534;">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" style="border-left:4px solid #166534;"></div>
+                    <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" style="border-left:4px solid #b45309;"></div>
+                    <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
+                </div>
+                <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
         }
         panel.appendChild(div);
     }
