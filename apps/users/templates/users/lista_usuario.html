@@ -22,31 +22,51 @@
                     <div class="admin-info">
                         <h1>Usuarios</h1>
                         <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.</p>
+                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+                            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
+                                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
+                                    <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                                    <input type="text" name="q" placeholder="Buscar por nombre, cédula o edificio" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                                </div>
+                                <div class="select-container" style="min-width: 220px;">
+                                    <select name="edificio" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                        <option value="">Todos los edificios</option>
+                                        {% for edf in edificios %}
+                                            <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="select-container" style="min-width: 200px;">
+                                    <select name="estado" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
+                                        <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
+                                        <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
+                                        <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
+                                    </select>
+                                </div>
+                            </form>
+                            <div class="header-actions-wrap">
+                                <button type="button" id="userActionsToggle" class="hist-btn-secondary" style="display:inline-flex; align-items:center; gap:6px; background:var(--color-ink); color:var(--color-surface); border:2px solid var(--color-ink); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); padding:8px 14px; box-shadow:3px 3px 0px rgba(10,10,10,0.3); cursor:pointer; transition:all var(--transition-fast);">
+                                    <i class="fa-solid fa-ellipsis-vertical"></i> Acciones
+                                </button>
+                                <div class="header-actions-menu" id="userActionsMenu">
+                                    {% url 'user_create' as registro_url %}
+                                    <a href="{{ registro_url }}" class="header-actions-item">
+                                        <i class="fa-solid fa-plus"></i> Agregar usuario
+                                    </a>
+                                    {% if usuarios %}
+                                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="header-actions-item">
+                                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                                    </a>
+                                    <button class="header-actions-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
+                                        <i class="fa-solid fa-paper-plane"></i> Enviar a todos
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     {% include 'core/components/toast_messages.html' %}
-
-                    <form class="filters-row" method="get" action="" style="display: flex; gap: var(--sp-3); margin-bottom: var(--sp-3); align-items: center; flex-wrap: wrap;">
-                        <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
-                            <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
-                            <input type="text" name="q" placeholder="Buscar por nombre, cédula o edificio" class="search-input" value="{{ request.GET.q|default:'' }}" />
-                        </div>
-                        <div class="select-container" style="min-width: 220px;">
-                            <select name="edificio" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
-                                <option value="">Todos los edificios</option>
-                                {% for edf in edificios %}
-                                    <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="select-container" style="min-width: 200px;">
-                            <select name="estado" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
-                                <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
-                                <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
-                                <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
-                            </select>
-                        </div>
-                    </form>
 
                     <div class="table-wrapper">
                         <div class="table-responsive">
@@ -106,25 +126,6 @@
                         </div>
                     </div>
 
-                    <div class="table-actions-row action-buttons-row">
-                        {% url 'user_create' as registro_url %}
-                        {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar usuario' %}
-                        {% if usuarios %}
-                        <a href="{% url 'user_pdf' %}?{{ filter_query_string }}"
-                           class="register-button-react"
-                           style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink);"
-                           title="Descargar PDF con los filtros actuales">
-                            <i class="fa-solid fa-file-pdf"></i> Exportar PDF
-                        </a>
-                        <button id="sendAllEmailBtn"
-                                class="register-button-react"
-                                style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;"
-                                title="Enviar reporte por correo a todos los usuarios del edificio seleccionado"
-                                data-edificio-id="{{ selected_edificio_id|default:'' }}">
-                            <i class="fa-solid fa-paper-plane"></i> Enviar a todos
-                        </button>
-                        {% endif %}
-                    </div>
                 </div>
             </div>
         </main>
@@ -283,6 +284,24 @@
                     }
                 });
             }
+
+            // ── Actions dropdown toggle ──
+            const userActionsToggle = document.getElementById('userActionsToggle');
+            const userActionsMenu   = document.getElementById('userActionsMenu');
+            if (userActionsToggle && userActionsMenu) {
+                userActionsToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    userActionsMenu.classList.toggle('open');
+                });
+                document.addEventListener('click', function(e) {
+                    if (!userActionsToggle.contains(e.target) && !userActionsMenu.contains(e.target)) {
+                        userActionsMenu.classList.remove('open');
+                    }
+                });
+                userActionsMenu.addEventListener('click', function() {
+                    setTimeout(() => userActionsMenu.classList.remove('open'), 150);
+                });
+            }
         });
     </script>
 <style>
@@ -363,6 +382,58 @@
 }
 .table-wrapper {
     overflow: visible !important;
+}
+
+/* ── Actions dropdown en header ── */
+.header-actions-wrap {
+    position: relative;
+    display: inline-flex;
+}
+.header-actions-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 200px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+}
+.header-actions-menu.open {
+    display: flex;
+}
+.header-actions-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    box-sizing: border-box;
+}
+.header-actions-item:hover {
+    background: var(--color-bg);
+}
+.header-actions-item i {
+    width: 16px;
+    text-align: center;
+}
+.hist-btn-secondary:hover {
+    background: var(--color-surface) !important;
+    color: var(--color-ink) !important;
+    transform: translate(-1px,-1px);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
 }
 </style>
 </body>

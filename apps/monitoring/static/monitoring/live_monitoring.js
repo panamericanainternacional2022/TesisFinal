@@ -274,6 +274,8 @@ function showState(stateId) {
         const el = document.getElementById(id);
         if (el) el.style.display = id === stateId ? 'flex' : 'none';
     });
+    const card = document.getElementById('stateNotifCard');
+    if (card) card.style.display = 'block';
     const active = document.getElementById('activeMonitoring');
     if (active) active.style.display = 'none';
 }
@@ -283,6 +285,8 @@ function hideAllStates() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+    const card = document.getElementById('stateNotifCard');
+    if (card) card.style.display = 'none';
     const active = document.getElementById('activeMonitoring');
     if (active) active.style.display = 'block';
 }
