@@ -81,10 +81,11 @@ class AlertApiViewTests(TestCase):
         data = json.loads(response.content)
         self.assertIn("temperature", data)
 
-    @patch("apps.alerts.api_views.update_threshold")
-    def test_update_thresholds(self, mock_update):
-        mock_update.return_value = None
-        response = self.client.post(reverse("api_thresholds_update"), json.dumps({"variable": "temperature", "risk": "low", "value": 10}), content_type="application/json")
+    @patch("apps.alerts.api_views.bulk_update")
+    def test_update_thresholds(self, mock_bulk):
+        mock_bulk.return_value = None
+        payload = {"temperature": {"direction": "higher", "low": 20, "medium": 40, "high": 60}}
+        response = self.client.post(reverse("api_thresholds_update"), json.dumps(payload), content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     def test_toggle_alerts_session_disabled(self):

@@ -2,14 +2,13 @@ import json
 import time as time_module
 import threading
 import logging
-from typing import Any, Dict, Optional
 
 from django.http import JsonResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
 
 from apps.core.auth_decorators import login_required
 from apps.core.services.http_response import json_error, json_ok
-from apps.alerts.services.threshold_service import get_thresholds, update_threshold, ThresholdPersistenceError
+from apps.alerts.services.threshold_service import get_thresholds, bulk_update, ThresholdPersistenceError
 from apps.alerts.services.alert_service import (
     send_email_alert,
     get_building_emails,
@@ -25,68 +24,7 @@ def view_get_thresholds(request: HttpRequest) -> JsonResponse:
     return JsonResponse(get_thresholds())
 
 
-class ThresholdValidationError(ValueError):
-    pass
-
-
-def _validate_higher_direction(existing: Dict[str, Any], risk_lower: str, value: float) -> None:
-    thresholds_ordered = {"low": 0, "medium": 0, "high": 0}
-    for k in ("low", "medium", "high"):
-        thresholds_ordered[k] = existing.get(k, 0)
-    thresholds_ordered[risk_lower] = value
-
-    if thresholds_ordered["low"] >= thresholds_ordered["medium"] and thresholds_ordered["medium"] != 0:
-        raise ThresholdValidationError("The 'low' threshold must be lower than 'medium'.")
-    if thresholds_ordered["medium"] >= thresholds_ordered["high"] and thresholds_ordered["high"] != 0:
-        raise ThresholdValidationError("The 'medium' threshold must be lower than 'high'.")
-
-
-def _validate_lower_direction(existing: Dict[str, Any], risk_lower: str, value: float) -> None:
-    thresholds_ordered = {"low": 99999, "medium": 99999, "high": 99999}
-    for k in ("low", "medium", "high"):
-        thresholds_ordered[k] = existing.get(k, 99999)
-    thresholds_ordered[risk_lower] = value
-
-    if thresholds_ordered["low"] <= thresholds_ordered["medium"] and thresholds_ordered["medium"] != 99999:
-        raise ThresholdValidationError("The 'low' threshold must be greater than 'medium' (descending direction).")
-    if thresholds_ordered["medium"] <= thresholds_ordered["high"] and thresholds_ordered["high"] != 99999:
-        raise ThresholdValidationError("The 'medium' threshold must be greater than 'high' (descending direction).")
-
-
-def _validate_range_direction(existing: Dict[str, Any], risk_lower: str, value: float) -> None:
-    if risk_lower == "low":
-        high_val = existing.get("high", 240)
-        if value >= high_val:
-            raise ThresholdValidationError(f"The lower limit ({value}) must be lower than the upper limit ({high_val}).")
-    elif risk_lower == "high":
-        low_val = existing.get("low", 200)
-        if value <= low_val:
-            raise ThresholdValidationError(f"The upper limit ({value}) must be greater than the lower limit ({low_val}).")
-    elif risk_lower in ("medium",):
-        raise ThresholdValidationError("Range variables only allow 'low' and 'high' thresholds.")
-
-
-def _validate_and_prepare_threshold(data: Dict[str, Any]) -> tuple:
-    variable = data.get("variable")
-    risk = data.get("risk")
-    value_raw = data.get("value")
-
-    if not variable or not risk or value_raw is None:
-        raise ThresholdValidationError("Missing fields: variable, risk, value")
-
-    try:
-        value = float(value_raw)
-    except (ValueError, TypeError):
-        raise ThresholdValidationError("value must be numeric")
-
-    risk_lower = risk.lower()
-    if risk_lower not in ("low", "medium", "high"):
-        raise ThresholdValidationError(f"Invalid risk: {risk}")
-
-    if value < 0:
-        raise ThresholdValidationError("Threshold value cannot be negative.")
-
-    return variable, risk_lower, value
+VALID_DIRECTIONS = frozenset({"higher", "lower", "range"})
 
 
 @require_http_methods(["POST"])
@@ -96,26 +34,53 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
     except json.JSONDecodeError:
         return json_error("Invalid JSON")
 
-    try:
-        variable, risk_lower, value = _validate_and_prepare_threshold(data)
-    except ThresholdValidationError as e:
-        return json_error(str(e))
+    if not isinstance(data, dict):
+        return json_error("Body must be a JSON object")
 
-    existing = get_thresholds().get(variable, {"direction": "higher", "low": 0, "medium": 0, "high": 0})
-    direction = existing.get("direction", "higher")
+    errors: dict[str, str] = {}
 
-    try:
+    for variable, config in data.items():
+        if not isinstance(config, dict):
+            errors[variable] = "Invalid config format"
+            continue
+
+        direction = config.get("direction")
+        if direction not in VALID_DIRECTIONS:
+            errors[variable] = f"Invalid direction: {direction}"
+            continue
+
+        try:
+            config["low"] = float(config.get("low", 0))
+            if direction == "range":
+                if "high" not in config:
+                    errors[variable] = "Missing 'high' for range direction"
+                    continue
+                config["high"] = float(config["high"])
+            else:
+                config["medium"] = float(config.get("medium", 0))
+                config["high"] = float(config.get("high", 0))
+        except (ValueError, TypeError):
+            errors[variable] = "Non-numeric threshold value"
+            continue
+
         if direction == "range":
-            _validate_range_direction(existing, risk_lower, value)
+            if config["low"] >= config["high"]:
+                errors[variable] = "Low limit must be lower than high limit"
+                continue
         elif direction == "higher":
-            _validate_higher_direction(existing, risk_lower, value)
+            if not (config["low"] < config["medium"] < config["high"]):
+                errors[variable] = "Thresholds must be ascending: low < medium < high"
+                continue
         elif direction == "lower":
-            _validate_lower_direction(existing, risk_lower, value)
+            if not (config["low"] > config["medium"] > config["high"]):
+                errors[variable] = "Thresholds must be descending: low > medium > high"
+                continue
 
-        existing[risk_lower] = value
-        update_threshold(variable, existing)
-    except ThresholdValidationError as e:
-        return json_error(str(e))
+    if errors:
+        return json_error(f"Validation errors: {errors}")
+
+    try:
+        bulk_update(data)
     except ThresholdPersistenceError as e:
         return json_error(str(e), status=500)
 
