@@ -523,7 +523,6 @@
         </div>
 
 
-
         <!-- Contenedor de toda la telemetría -->
         <div id="dashboardContent">
 
@@ -558,35 +557,6 @@
         <div class="grid-2" style="margin-bottom: var(--sp-3);">
             <div id="statsBombaPanel"></div>
             <div id="statsElevadorPanel"></div>
-        </div>
-
-        <!-- Suscriptores -->
-        <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-envelope"></i> Envío de alertas por correo</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-2);">
-                <div id="activeBuildingNameContainer" class="form-group" style="flex: 1; min-width: 250px;">
-                    <span class="form-label">Edificio activo</span>
-                    <div style="height: 44px; border: 2px solid var(--color-ink); padding: 9px var(--sp-1); background: var(--color-bg); font-weight: var(--weight-bold); display: flex; align-items: center; color: var(--color-ink); font-size: var(--text-sm);">
-                        <span id="activeBuildingName">Cargando...</span>
-                    </div>
-                </div>
-                <div class="form-group" id="subBuildingSelectContainer" style="flex: 1; min-width: 250px; display: none;">
-                    <label class="form-label">Edificio (edf)</label>
-                    <select id="subBuildingSelect" style="height: 44px;">
-                        <option value="">Cargando edificios...</option>
-                    </select>
-                </div>
-                
-                <div>
-                    <button id="sendAllSubscribersBtn" class="btn btn-ok" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-paper-plane"></i> Enviar a todos
-                    </button>
-                </div>
-            </div>
-            <div class="subs-container">
-                <div id="subscribersList" style="font-size:var(--text-sm); color:var(--color-text-secondary);">Cargando usuarios...</div>
-            </div>
-            <p style="margin-top:8px; font-size:var(--text-xs); color:var(--color-text-placeholder);">* El botón "Enviar a todos" envía el reporte en PDF por correo a todas las personas del edificio seleccionado. El botón "Enviar prueba" en la lista envía de manera individual.</p>
         </div>
 
         <!-- Control manual -->
@@ -721,7 +691,6 @@
         let subscribers = {};
         let sseSource = null;
 
-        // ── Helper de Modales Personalizados ──
         const CONFIG = JSON.parse(document.getElementById('dashConfig').textContent);
         const NO_RISK_VARS = CONFIG.no_risk_vars || [];
         const BOMBA_VARS = CONFIG.pump_vars || [];
@@ -768,7 +737,7 @@
             for(let [k,v] of Object.entries(data)){
                 let ri = getRiskClass(k,v);
                 let dn = getVariableName(k).toUpperCase();
-                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') : 
+                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') :
                              (k === 'door_status' ? (v === 'open' ? 'Abierta' : (v === 'closed' ? 'Cerrada' : v)) :
                              `${v} ${getUnit(k)}`);
                 let card = document.createElement('div');
@@ -784,8 +753,6 @@
             }
         }
 
-
-
         function initCharts(){
             if (typeof Chart === 'undefined') {
                 console.warn('Chart.js no está definido. Desactivando gráficos.');
@@ -793,43 +760,43 @@
             }
             const chartDefaults = {
                 responsive:true,
-                plugins:{ 
+                plugins:{
                     legend:{ display: false },
-                    tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw}` } } 
+                    tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw}` } }
                 },
-                scales:{ 
-                    x:{ ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } }, 
-                    y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } } 
+                scales:{
+                    x:{ ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } },
+                    y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } }
                 }
             };
             const _chn = v => `${VAR_NAMES_MAP[v]} (${UNITS_MAP[v]||''})`;
             const pumpC = BOMBA_VARS.filter(v => v !== 'tank_level').map(_chn);
             const elevC = ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck').map(_chn);
-            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{ 
-                type:'bar', 
-                data:{ 
-                    labels: pumpC, 
+            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{
+                type:'bar',
+                data:{
+                    labels: pumpC,
                     datasets:[{
                         backgroundColor: '#0a0a0a',
                         borderColor: '#0a0a0a',
                         borderWidth: 1,
                         data: new Array(pumpC.length).fill(0)
                     }]
-                }, 
-                options: chartDefaults 
+                },
+                options: chartDefaults
             });
-            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{ 
-                type:'bar', 
-                data:{ 
-                    labels: elevC, 
+            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{
+                type:'bar',
+                data:{
+                    labels: elevC,
                     datasets:[{
                         backgroundColor: '#0a0a0a',
                         borderColor: '#0a0a0a',
                         borderWidth: 1,
                         data: new Array(elevC.length).fill(0)
                     }]
-                }, 
-                options: chartDefaults 
+                },
+                options: chartDefaults
             });
         }
 
@@ -1121,127 +1088,7 @@
             }
         });
 
-        let activeUsers = [];
-
-        async function loadBuildings() {
-            try {
-                let resp = await fetch('/api/edificios/');
-                let buildings = await resp.json();
-                let select = document.getElementById('subBuildingSelect');
-                select.innerHTML = '';
-                buildings.forEach(b => {
-                    let opt = document.createElement('option');
-                    opt.value = b.id;
-                    opt.textContent = b.nombre;
-                    select.appendChild(opt);
-                });
-
-                document.getElementById('activeBuildingNameContainer').style.display = 'none';
-                document.getElementById('subBuildingSelectContainer').style.display = 'block';
-                if (buildings.length > 0) {
-                    select.value = EDIFICIO_ID || buildings[0].id;
-                    loadUsersForBuilding(select.value);
-                } else {
-                    document.getElementById('subscribersList').innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay edificios registrados.</p>';
-                }
-            } catch (e) {
-                console.error("Error al cargar edificios:", e);
-            }
-        }
-
-        async function loadUsersForBuilding(edificioId) {
-            if (!edificioId) return;
-            let container = document.getElementById('subscribersList');
-            container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">Cargando usuarios...</p>';
-            try {
-                let resp = await fetch(`/api/usuarios_edificio/${edificioId}/`);
-                activeUsers = await resp.json();
-                updateSubscribersList();
-            } catch (e) {
-                console.error("Error al cargar usuarios:", e);
-                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--state-critical);font-size:var(--text-sm);">Error al cargar usuarios.</p>';
-            }
-        }
-
-        function updateSubscribersList() {
-            let container = document.getElementById('subscribersList');
-            if (!activeUsers || activeUsers.length === 0) {
-                container.innerHTML = '<p style="padding:var(--sp-1);color:var(--color-text-secondary);font-size:var(--text-sm);">No hay usuarios asociados a este edificio.</p>';
-                return;
-            }
-            let rows = '';
-            activeUsers.forEach(u => {
-                rows += `<tr>
-                    <td>${u.nombre}</td>
-                    <td>${u.email}</td>
-                    <td><button class="btn-test-sub test-subscriber" data-email="${u.email}">Enviar prueba</button></td>
-                </tr>`;
-            });
-            container.innerHTML = `<table class="subs-table">
-                <thead>
-                    <tr>
-                        <th>Nombre</th>
-                        <th>Correo Electrónico</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${rows}
-                </tbody>
-            </table>`;
-
-            document.querySelectorAll('.test-subscriber').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    let email = btn.dataset.email;
-                    btn.disabled = true;
-                    btn.innerText = 'Enviando...';
-                    try {
-                        let resp = await csrfFetch('/api/send-test-email/', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ email: email })
-                        });
-                        let data = await resp.json();
-                        await window.showAlert(data.message, resp.ok ? 'success' : 'error');
-                    } catch (e) {
-                        await window.showAlert('Error al conectar con el servidor.', 'error');
-                    } finally {
-                        btn.disabled = false;
-                        btn.innerText = 'Enviar prueba';
-                    }
-                });
-            });
-        }
-
-        async function sendAllSubscribers() {
-            let select = document.getElementById('subBuildingSelect');
-            let edificioId = select.value;
-            if (!edificioId) {
-                await window.showAlert('Por favor seleccione un edificio.', 'warn');
-                return;
-            }
-            let btn = document.getElementById('sendAllSubscribersBtn');
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando...';
-            try {
-                let resp = await csrfFetch('/api/send-all-subscribers/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ edificio_id: edificioId })
-                });
-                let data = await resp.json();
-                await window.showAlert(data.message, resp.ok ? 'success' : 'error');
-            } catch (e) {
-                await window.showAlert('Error al conectar con el servidor.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fas fa-paper-plane"></i> Enviar a todos';
-            }
-        }
-
         // Eventos
-        document.getElementById('subBuildingSelect').addEventListener('change', (e) => loadUsersForBuilding(e.target.value));
-        document.getElementById('sendAllSubscribersBtn').addEventListener('click', sendAllSubscribers);
         document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
         document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
         document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
@@ -1315,11 +1162,9 @@
             }
         }
 
-
         initCharts();
         populateManualSensorSelect();
         updateSensorTypeIndicator();
-        loadBuildings();
         connectSSE();
         fetchInitialData();
 
@@ -1327,7 +1172,6 @@
             EDIFICIO_ID = parseInt(this.value);
             connectSSE();
             fetchInitialData();
-            loadUsersForBuilding(EDIFICIO_ID);
         });
 
         function fetchInitialData() {

@@ -55,6 +55,7 @@
                                         <th>Nombre</th>
                                         <th>Apellido</th>
                                         <th>Edificio</th>
+                                        <th>Correo</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -65,11 +66,25 @@
                                                 <td>{{ usuario.nombre }}</td>
                                                 <td>{{ usuario.last_name }}</td>
                                                 <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
+                                                <td>
+                                                    {% if usuario.email %}
+                                                    <button
+                                                        class="register-button-react send-email-btn"
+                                                        data-email="{{ usuario.email }}"
+                                                        style="box-shadow: 2px 2px 0px var(--color-ink); margin: 0; padding: 4px 10px !important; font-size: 13px;"
+                                                        title="Enviar reporte a {{ usuario.email }}"
+                                                    >
+                                                        <i class="fa-solid fa-paper-plane"></i> Enviar
+                                                    </button>
+                                                    {% else %}
+                                                    <span style="color: var(--color-text-secondary); font-size: 13px;">—</span>
+                                                    {% endif %}
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     {% else %}
                                         <tr>
-                                            <td colspan="4" style="text-align: center; padding: 24px 0;">
+                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
                                                 No hay usuarios registrados.
                                             </td>
                                         </tr>
@@ -91,6 +106,13 @@
                            title="Descargar PDF con los filtros actuales">
                             <i class="fa-solid fa-file-pdf"></i> Exportar PDF
                         </a>
+                        <button id="sendAllEmailBtn"
+                                class="register-button-react"
+                                style="background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;"
+                                title="Enviar reporte por correo a todos los usuarios del edificio seleccionado"
+                                data-edificio-id="{{ selected_edificio_id|default:'' }}">
+                            <i class="fa-solid fa-paper-plane"></i> Enviar a todos
+                        </button>
                         {% else %}
                         <a class="register-button-react edit-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-pen-to-square"></i> Editar</a>
                         <a class="register-button-react delete-btn disabled" aria-disabled="true" tabindex="-1"><i class="fa-solid fa-trash-can"></i> Eliminar</a>
@@ -101,7 +123,67 @@
         </main>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', ()=>{
+        function csrfFetch(url, opts = {}) {
+            const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
+            const token = csrf ? csrf.split('=')[1] : '';
+            opts.headers = { ...opts.headers, 'X-CSRFToken': token };
+            opts.credentials = 'same-origin';
+            return fetch(url, opts);
+        }
+
+        function showToast(message, type = 'info') {
+            // Reutiliza el mismo contenedor y clases de toast_messages.html
+            let container = document.querySelector('.messages-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'messages-container';
+                container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:380px;width:calc(100% - 48px);';
+                document.body.appendChild(container);
+
+                // Registra el handler del botón de cierre si no existe aún
+                if (!document.__toastCloseHandlerAdded) {
+                    document.__toastCloseHandlerAdded = true;
+                    document.addEventListener('click', function(e) {
+                        if (e.target.classList.contains('close-msg-btn')) {
+                            const toast = e.target.closest('.toast-item');
+                            if (toast) {
+                                toast.style.transform = 'translateX(120%)';
+                                toast.style.opacity = '0';
+                                setTimeout(() => toast.remove(), 350);
+                            }
+                        }
+                    });
+                }
+            }
+
+            const styles = {
+                success: 'background-color:#e6f4ea;color:#137333;border-left:6px solid #137333;',
+                error:   'background-color:#fce8e6;color:#c5221f;border-left:6px solid #c5221f;',
+                info:    'background-color:#f1f3f4;color:#5f6368;border-left:6px solid #5f6368;',
+            };
+            const itemStyle = styles[type] || styles.info;
+
+            const toast = document.createElement('div');
+            toast.className = 'credentials-box toast-item';
+            toast.style.cssText = `pointer-events:auto;padding:15px;position:relative;border-radius:0;box-sizing:border-box;border:2px solid var(--color-ink);box-shadow:4px 4px 0px var(--color-ink);transform:translateX(120%);opacity:0;transition:transform 350ms cubic-bezier(0.4,0,0.2,1),opacity 350ms ease;${itemStyle}`;
+            toast.innerHTML = `<button type="button" class="close-msg-btn" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:inherit;line-height:1;font-weight:bold;padding:2px;">&times;</button><div class="toast-body-content" style="padding-right:15px;">${message}</div>`;
+            container.appendChild(toast);
+
+            // Slide in
+            requestAnimationFrame(() => {
+                toast.style.transform = 'translateX(0)';
+                toast.style.opacity = '1';
+            });
+
+            // Auto-cierre
+            setTimeout(() => {
+                toast.style.transform = 'translateX(120%)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 350);
+            }, 5000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             const hasItems = {% if usuarios %}true{% else %}false{% endif %};
             if (!hasItems) {
                 const btns = document.querySelectorAll('.edit-btn.disabled, .delete-btn.disabled');
@@ -109,6 +191,59 @@
                     btn.removeAttribute('href');
                     btn.setAttribute('aria-disabled', 'true');
                     btn.setAttribute('tabindex', '-1');
+                });
+            }
+
+            // ── Botones individuales de envío por correo ──
+            document.querySelectorAll('.send-email-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const email = btn.dataset.email;
+                    const origHTML = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+                    try {
+                        const resp = await csrfFetch('/api/send-test-email/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ email: email })
+                        });
+                        const data = await resp.json();
+                        showToast(data.message || (resp.ok ? 'Correo enviado.' : 'Error al enviar.'), resp.ok ? 'success' : 'error');
+                    } catch (e) {
+                        showToast('Error al conectar con el servidor.', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        btn.innerHTML = origHTML;
+                    }
+                });
+            });
+
+            // ── Botón Enviar a todos ──
+            const sendAllBtn = document.getElementById('sendAllEmailBtn');
+            if (sendAllBtn) {
+                sendAllBtn.addEventListener('click', async () => {
+                    const edificioId = sendAllBtn.dataset.edificioId;
+                    if (!edificioId) {
+                        showToast('Filtra por un edificio específico antes de usar "Enviar a todos".', 'info');
+                        return;
+                    }
+                    const origHTML = sendAllBtn.innerHTML;
+                    sendAllBtn.disabled = true;
+                    sendAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+                    try {
+                        const resp = await csrfFetch('/api/send-all-subscribers/', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ edificio_id: edificioId })
+                        });
+                        const data = await resp.json();
+                        showToast(data.message || (resp.ok ? 'Correos enviados.' : 'Error al enviar.'), resp.ok ? 'success' : 'error');
+                    } catch (e) {
+                        showToast('Error al conectar con el servidor.', 'error');
+                    } finally {
+                        sendAllBtn.disabled = false;
+                        sendAllBtn.innerHTML = origHTML;
+                    }
                 });
             }
         });
