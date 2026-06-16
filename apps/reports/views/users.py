@@ -69,7 +69,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
             groups.setdefault(key, []).append(b)
 
         now = dt.datetime.now()
-        pdf = _create_report_pdf("Informe de usuarios")
+        pdf = _create_report_pdf("Reporte de usuarios")
 
         # Construir líneas de filtros aplicados
         filtros: list[str] = []
@@ -88,7 +88,7 @@ def user_pdf_view(request: Any) -> HttpResponse:
         # ── Patrón unificado: header → resumen → secciones ───────────────────
         render_pdf_header(
             pdf,
-            title="Informe de usuarios",
+            title="Reporte de usuarios",
             now=now,
             meta_lines=[
                 f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}",

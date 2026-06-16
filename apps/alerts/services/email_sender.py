@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 _BRAND_NAME      = "INES"
 _BRAND_SUBTITLE  = "Sistema inteligente de automatización"
 _ALERT_H1        = "Anomalía detectada en la infraestructura"
-_ALERT_TAG_LABEL = "Nivel de riesgo"       # se concatena con el valor
+_ALERT_TAG_LABEL = "Severidad"             # alineado con la columna homónima de los PDFs
 _ACTION_LABEL    = "Medida correctiva recomendada"
 _DETAILS_LABEL   = "Detalles del evento"
 _FOOTER_TEXT     = (
@@ -337,6 +337,40 @@ def build_activation_email_html(link: str) -> str:
     return _build_email_shell(inner_html)
 
 
+# ─── Constructor para correo de reporte de estado ────────────────────────────────
+
+def build_report_email_html(edificio: str = "", contexto: str = "") -> str:
+    """
+    Correo de reporte de estado del sistema (enviado desde el dashboard).
+    Tiene su propio banner diferenciado del correo de alerta:
+      - Etiqueta: REPORTE DE MONITOREO
+      - H1: Estado actual del sistema de infraestructura
+    """
+    ctx = contexto or (
+        f"Se adjunta el informe en formato PDF con el estado actual de los "
+        f"sensores de infraestructura{' de ' + edificio if edificio else ''}. "
+        f"El documento incluye las lecturas más recientes, las estadísticas de "
+        f"operación y un resumen del nivel de riesgo de cada parámetro monitoreado."
+    )
+    inner_html = f"""
+          <!-- Banner de cabecera (reporte de estado — tono neutro informativo) -->
+          <tr>
+            <td style="padding: 20px 28px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; background-color: #f0f4f8; border-left: 4px solid {_NAVY};">
+              <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: {_NAVY}; display: block; margin-bottom: 6px; text-transform: uppercase;">Reporte de monitoreo</span>
+              <h1 style="margin: 0; font-size: 20px; font-weight: 700; line-height: 1.25; letter-spacing: -0.02em; color: #111827;">Estado actual del sistema de infraestructura</h1>
+            </td>
+          </tr>
+
+          <!-- Cuerpo -->
+          <tr>
+            <td style="padding: 28px; font-size: 14px; line-height: 1.6; color: #374151;">
+              <p style="margin: 0 0 20px 0;">{ctx}</p>
+              <p style="margin: 0; font-size: 13px; color: #6b7280;">El informe PDF se encuentra adjunto al presente correo.</p>
+            </td>
+          </tr>"""
+    return _build_email_shell(inner_html)
+
+
 # ─── Función auxiliar para plain-text (solo texto, sin estructura HTML) ───────
 
 def build_standard_email_body(
@@ -374,6 +408,8 @@ def send_email_raw(
     subject: str,
     html_body: str,
     plain_body: str = "",
+    attachment_pdf: Optional[bytes] = None,
+    attachment_name: str = "reporte.pdf",
     smtp_server: Optional[str] = None,
     smtp_port: Optional[int] = None,
     smtp_user: Optional[str] = None,
@@ -386,11 +422,22 @@ def send_email_raw(
         logger.warning("SMTP not configured. Email '%s' not sent.", subject)
         return
 
-    msg = MIMEMultipart("alternative")
+    if attachment_pdf is not None:
+        msg = MIMEMultipart("mixed")
+        alt = MIMEMultipart("alternative")
+        alt.attach(MIMEText(plain_body or html_body, "plain", "utf-8"))
+        alt.attach(MIMEText(html_body, "html", "utf-8"))
+        msg.attach(alt)
+        part = MIMEApplication(attachment_pdf, _subtype="pdf")
+        part.add_header("Content-Disposition", "attachment", filename=attachment_name)
+        msg.attach(part)
+    else:
+        msg = MIMEMultipart("alternative")
+        msg.attach(MIMEText(plain_body or html_body, "plain", "utf-8"))
+        msg.attach(MIMEText(html_body, "html", "utf-8"))
+
     msg["From"] = smtp_user
     msg["Subject"] = subject
-    msg.attach(MIMEText(plain_body or html_body, "plain", "utf-8"))
-    msg.attach(MIMEText(html_body, "html", "utf-8"))
 
     from apps.sensors.sensor_config import SMTP_TIMEOUT
     _smtp_send(msg, to_addrs, smtp_server, smtp_port, smtp_user, smtp_password, SMTP_TIMEOUT)

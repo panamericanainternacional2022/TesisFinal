@@ -13,9 +13,8 @@ from apps.alerts.services.threshold_service import get_thresholds, update_thresh
 from apps.alerts.services.alert_service import (
     send_email_alert,
     get_building_emails,
-    build_standard_email_body,
 )
-from apps.sensors.sensor_config import RISK_INFO
+from apps.alerts.services.email_sender import build_report_email_html, send_email_raw
 
 logger = logging.getLogger(__name__)
 
@@ -158,18 +157,9 @@ def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
 
 def _build_report_email_body(sim) -> tuple[str, str]:
     timestamp = time_module.strftime("%d/%m/%Y %H:%M:%S")
-    edificio = getattr(sim, "nombre", "") or "el edificio"
-    subject = f"Reporte de monitoreo — {edificio} — {timestamp}"
-
-    body = build_standard_email_body(
-        titulo="Reporte de estado del sistema",
-        contexto=(
-            f"Se adjunta el informe en formato PDF con el estado actual de los "
-            f"sensores de infraestructura de {edificio}. "
-            f"El documento incluye las lecturas más recientes, las estadísticas de "
-            f"operación y un resumen del nivel de riesgo de cada parámetro monitoreado."
-        ),
-    )
+    edificio = getattr(sim, "nombre", "") or ""
+    subject = f"Reporte de monitoreo: {edificio} — {timestamp}" if edificio else f"Reporte de monitoreo — {timestamp}"
+    body = build_report_email_html(edificio=edificio)
     return subject, body
 
 
@@ -189,29 +179,25 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
     if not sim:
         return json_error("No hay un simulador activo. Inicie la simulación primero.", 503)
 
-    subject, body = _build_report_email_body(sim)
+    subject, html_body = _build_report_email_body(sim)
 
     pdf_bytes = None
-    pdf_name = None
+    pdf_name = "reporte.pdf"
     try:
         from apps.reports.views.building_report import generate_building_report_bytes
         pdf_bytes, pdf_name = generate_building_report_bytes(sim.edificio_id)
     except Exception as e:
         logger.warning("Could not generate building report PDF: %s", e)
 
-    kwargs = {
-        "risk_level": RISK_INFO,
-        "subject": subject,
-        "body": body,
-        "recipients": [email],
-    }
-    if pdf_bytes is not None:
-        kwargs["attachment_pdf"] = pdf_bytes
-        kwargs["attachment_name"] = pdf_name
-
     threading.Thread(
-        target=send_email_alert,
-        kwargs=kwargs,
+        target=send_email_raw,
+        kwargs={
+            "to_addrs": [email],
+            "subject": subject,
+            "html_body": html_body,
+            "attachment_pdf": pdf_bytes,
+            "attachment_name": pdf_name,
+        },
         daemon=True,
     ).start()
     return json_ok({"message": f"Reporte enviado a {email}"})
@@ -239,10 +225,10 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     if not emails:
         return json_error("No subscribers for this building")
 
-    subject, body = _build_report_email_body(sim)
+    subject, html_body = _build_report_email_body(sim)
 
     pdf_bytes = None
-    pdf_name = None
+    pdf_name = "reporte.pdf"
     target_id = eid or sim.edificio_id
     try:
         from apps.reports.views.building_report import generate_building_report_bytes
@@ -250,19 +236,16 @@ def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     except Exception as e:
         logger.warning("Could not generate building report PDF: %s", e)
 
-    base_kwargs = {
-        "risk_level": RISK_INFO,
-        "subject": subject,
-        "body": body,
-    }
-    if pdf_bytes is not None:
-        base_kwargs["attachment_pdf"] = pdf_bytes
-        base_kwargs["attachment_name"] = pdf_name
-
     for email in emails:
         threading.Thread(
-            target=send_email_alert,
-            kwargs={**base_kwargs, "recipients": [email]},
+            target=send_email_raw,
+            kwargs={
+                "to_addrs": [email],
+                "subject": subject,
+                "html_body": html_body,
+                "attachment_pdf": pdf_bytes,
+                "attachment_name": pdf_name,
+            },
             daemon=True,
         ).start()
     return json_ok({"message": f"Reporte enviado a {len(emails)} suscriptores"})
