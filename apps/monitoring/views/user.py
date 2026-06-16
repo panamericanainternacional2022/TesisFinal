@@ -1,62 +1,40 @@
 from django.shortcuts import render
 from django.http import HttpResponse
-from django.core.paginator import Paginator
-from django.db.models import Q
 
 from apps.core.auth_decorators import login_required
-from apps.buildings.models import Building, MonitoringEquipment
-from apps.alerts.models import Notification
-
-from apps.core.services.http_request import get_building_id_param
+from apps.buildings.models import Building
 
 from .shared import (
-    build_monitoring_config, filter_severity, filter_date_range,
-    build_query_string, parse_notifications, extract_variables,
-    filter_by_variable, get_user_building_ids, get_equipment_sensors,
-    ALL_SEVERITIES,
+    build_monitoring_config, get_user_building_ids,
 )
-from apps.sensors.sensor_config import RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO, PAGE_SIZE
+from apps.sensors.sensor_config import (
+    RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
+    PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES,
+)
 
 
 @login_required
 def render_user_monitoring(request) -> HttpResponse:
     rol = request.session.get("usuario_rol", "US")
     user_id = request.session.get("usuario_id")
-    query = request.GET.get("q", "").strip()
 
     user_building_ids = get_user_building_ids(user_id)
-    equipment_list = MonitoringEquipment.objects.filter(
-        building_id__in=user_building_ids
-    ).select_related("building")
-
-    if query:
-        equipment_list = equipment_list.filter(
-            Q(building__name__icontains=query)
-            | Q(building__rif__icontains=query)
-        )
-
-    data = []
-    first_building_id = 0
-    for equipment in equipment_list:
-        sensors = get_equipment_sensors(equipment)
-        data.append({
-            "equipo": equipment,
-            "edificio": equipment.building,
-            "status": equipment.get_status_display(),
-            "sensores": sensors,
-        })
-        if first_building_id == 0:
-            first_building_id = equipment.building.pk
+    edificios = list(Building.objects.filter(pk__in=user_building_ids))
+    building_id = edificios[0].pk if edificios else 0
 
     return render(
         request,
-        "monitoring/monitoreo.html",
+        "monitoring/monitoreo_dashboard.html",
         {
-            "equipos_data": data,
             "rol": rol,
-            "query": query,
-            "edificio_id": first_building_id,
-            "config_json": build_monitoring_config(first_building_id),
+            "edificios": edificios,
+            "edificio_id": building_id,
+            "config_json": build_monitoring_config(building_id),
+            "is_admin": False,
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "PUMP_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in PUMP_FAULT_KEYS],
+            "ELEVATOR_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in ELEVATOR_FAULT_KEYS],
         },
     )
 

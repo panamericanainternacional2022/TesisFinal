@@ -499,10 +499,50 @@
                 <div class="reportes-card">
                     <div class="admin-info">
                         <h1>Panel de control</h1>
+                        {% if is_admin %}
                         <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
+                        {% else %}
+                        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
+                        {% endif %}
                     </div>
 
-        <!-- Barra de controles + selector de edificio -->
+        {% if not edificios %}
+        <div id="stateNoBuildings" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-6) var(--sp-4); text-align:center;">
+            <i class="fa-solid fa-building" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-3);"></i>
+            <h3 style="font-size:var(--text-lg); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin edificios</h3>
+            {% if is_admin %}
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">No hay edificios registrados en el sistema. Cree un edificio desde el panel de administración para comenzar.</p>
+            {% else %}
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">No tienes edificios asignados. Contacta con el administrador del sistema para obtener acceso.</p>
+            {% endif %}
+        </div>
+        {% else %}
+
+        <!-- Estados de conexión -->
+        <div id="stateLoading" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
+        </div>
+
+        <div id="stateOffline" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
+        </div>
+
+        <div id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; justify-content:center; padding:var(--sp-4); text-align:center;">
+            <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
+            {% if is_admin %}
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
+            {% else %}
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
+            {% endif %}
+        </div>
+
+        <!-- Barra de controles (admin) -->
+        {% if is_admin %}
         <div class="controls-row" style="display:flex; align-items:center; gap:var(--sp-2); flex-wrap:wrap;">
             <div class="form-group" style="min-width:220px;">
                 <label class="form-label">Edificio activo</label>
@@ -516,44 +556,52 @@
             <div class="spacer"></div>
         </div>
 
-        <!-- Aviso de credenciales -->
         <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
             <i class="fas fa-triangle-exclamation"></i>
             <span id="credsMsg"></span>
         </div>
+        {% endif %}
 
-
-        <!-- Contenedor de toda la telemetría -->
-        <div id="dashboardContent">
+        <!-- Contenedor de telemetría activa -->
+        <div id="activeMonitoring" style="display:none;">
 
         <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
+            <div id="protectionStatusRow" class="status-cell">
+                <div class="status-cell-label">Protección</div>
+                <div class="status-cell-value">
+                    <span id="protectionStatusValue">INACTIVA</span>
+                </div>
+            </div>
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
-                    <span id="pumpStatusBadge" class="badge" style="display: none;"></span>
+                    <span id="pumpStatusBadge" class="badge" style="display:none;"></span>
                     <span id="pumpStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
                 </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
-                    <span id="elevatorStatusBadge" class="badge" style="display: none;"></span>
+                    <span id="elevatorStatusBadge" class="badge" style="display:none;"></span>
                     <span id="elevatorStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
                 </div>
             </div>
+            {% if is_admin %}
             <div id="simStatusRow" class="status-cell">
                 <div class="status-cell-label">Simulación</div>
                 <div class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
                 </div>
             </div>
+            {% endif %}
             <div class="status-cell">
                 <div class="status-cell-label">Última actualización</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
         </div>
 
+        {% if is_admin %}
         <div class="grid-2" style="margin-bottom: var(--sp-3);">
             <div id="statsBombaPanel"></div>
             <div id="statsElevadorPanel"></div>
@@ -567,12 +615,12 @@
                     <label class="form-label">Sensor</label>
                     <select id="manualSensorSelect"></select>
                 </div>
-                <div class="form-group" style="flex:1; min-width:180px; position:relative;">
+                <div class="form-group" style="flex:1; min-width:180px;">
                     <label class="form-label">Valor</label>
                     <input type="text" id="manualValueInput" placeholder="Ingrese valor">
                 </div>
                 <div>
-                    <button id="sendManualBtn" class="btn" style="height: 44px; display: inline-flex; align-items: center; justify-content: center;">
+                    <button id="sendManualBtn" class="btn" style="height:44px; display:inline-flex; align-items:center; justify-content:center;">
                         <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
@@ -630,6 +678,7 @@
             </div>
             <div id="simStatusMessage" style="margin-top:8px; font-size:var(--text-sm); min-height:20px;"></div>
         </div>
+        {% endif %}
 
         <!-- Tarjetas de sensores: Bomba -->
         <div id="bombaSection" class="sensor-section">
@@ -662,8 +711,7 @@
             </div>
         </div>
 
-
-
+        {% if is_admin %}
         <!-- Umbrales -->
         <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
             <i class="fa-solid fa-gears"></i> Umbrales de riesgo
@@ -675,8 +723,10 @@
                 <span id="saveMessage" style="font-size:var(--text-sm); color:var(--state-ok);"></span>
             </div>
         </div>
+        {% endif %}
 
-        </div><!-- /dashboardContent -->
+        </div><!-- /activeMonitoring -->
+        {% endif %}
 
                 </div><!-- /reportes-card -->
             </div><!-- /perfil-page -->
@@ -685,550 +735,23 @@
 
     {{ config_json|json_script:"dashConfig" }}
     <script>
+        window.IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        let chart1, chart2;
-        let currentThresholds = {};
-        let subscribers = {};
-        let sseSource = null;
-
-        const CONFIG = JSON.parse(document.getElementById('dashConfig').textContent);
-        const NO_RISK_VARS = CONFIG.no_risk_vars || [];
-        const BOMBA_VARS = CONFIG.pump_vars || [];
-        const ELEVADOR_VARS = CONFIG.elevator_vars || [];
-        const VAR_NAMES_MAP = CONFIG.var_names;
-        const UNITS_MAP = CONFIG.units;
-        const _RISK = CONFIG.risk_labels || {};
-        let EDIFICIO_ID = CONFIG.edificio_id || 0;
-
-        function getVariableName(variable) {
-            return VAR_NAMES_MAP[variable] || variable.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-        }
-
-        function getUnit(v){ return UNITS_MAP[v]||''; }
-
-        function getRiskClass(varName, value){
-            if(NO_RISK_VARS.includes(varName)){
-                let crit = (varName==='motor_stuck' && value);
-                return { card:'risk-'+(crit?'crit':'low'), badge:'badge-'+(crit?'crit':'low'), label:crit?_RISK.critico:_RISK.bajo };
-            }
-            let cfg = currentThresholds[varName];
-            if(!cfg) return { card:'', badge:'badge-info', label:_RISK.unknown };
-            let risk=_RISK.bajo, cls='low';
-            if(cfg.direction==='range'){
-                if(!(value>=cfg.low && value<=cfg.high)){ risk=_RISK.alto; cls='high'; }
-            } else {
-                let d=cfg.direction, low=cfg.low, med=cfg.medium, high=cfg.high;
-                if(d==='higher'){
-                    if(value>high){risk=_RISK.critico;cls='crit';}
-                    else if(value>med){risk=_RISK.alto;cls='high';}
-                    else if(value>low){risk=_RISK.medio;cls='med';}
-                } else {
-                    if(value<high){risk=_RISK.critico;cls='crit';}
-                    else if(value<med){risk=_RISK.alto;cls='high';}
-                    else if(value<low){risk=_RISK.medio;cls='med';}
-                }
-            }
-            return { card:'risk-'+cls, badge:'badge-'+cls, label:risk };
-        }
-
-        function updateCards(data){
-            let b=document.getElementById('bombaCards'), a=document.getElementById('elevadorCards');
-            b.innerHTML=''; a.innerHTML='';
-            for(let [k,v] of Object.entries(data)){
-                let ri = getRiskClass(k,v);
-                let dn = getVariableName(k).toUpperCase();
-                let valStr = typeof v === 'boolean' ? (v?'Sí':'No') :
-                             (k === 'door_status' ? (v === 'open' ? 'Abierta' : (v === 'closed' ? 'Cerrada' : v)) :
-                             `${v} ${getUnit(k)}`);
-                let card = document.createElement('div');
-                card.className = `sensor-card ${ri.card}`;
-                card.innerHTML = `
-                    <div class="sensor-card-name">${dn}</div>
-                    <div class="sensor-card-value">${valStr}</div>
-                    <div class="sensor-card-footer">
-                        <span class="badge ${ri.badge}">${ri.label}</span>
-                    </div>`;
-                if(BOMBA_VARS.includes(k)) b.appendChild(card);
-                else if(ELEVADOR_VARS.includes(k)) a.appendChild(card);
-            }
-        }
-
-        function initCharts(){
-            if (typeof Chart === 'undefined') {
-                console.warn('Chart.js no está definido. Desactivando gráficos.');
-                return;
-            }
-            const chartDefaults = {
-                responsive:true,
-                plugins:{
-                    legend:{ display: false },
-                    tooltip:{ callbacks:{ label: ctx => `${ctx.label}: ${ctx.raw}` } }
-                },
-                scales:{
-                    x:{ ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } },
-                    y:{ beginAtZero: true, ticks:{ font:{ family:"'DM Sans', system-ui", size:10 } } }
-                }
-            };
-            const _chn = v => `${VAR_NAMES_MAP[v]} (${UNITS_MAP[v]||''})`;
-            const pumpC = BOMBA_VARS.filter(v => v !== 'tank_level').map(_chn);
-            const elevC = ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck').map(_chn);
-            chart1 = new Chart(document.getElementById('chart1').getContext('2d'),{
-                type:'bar',
-                data:{
-                    labels: pumpC,
-                    datasets:[{
-                        backgroundColor: '#0a0a0a',
-                        borderColor: '#0a0a0a',
-                        borderWidth: 1,
-                        data: new Array(pumpC.length).fill(0)
-                    }]
-                },
-                options: chartDefaults
+        window.showAlert = function(message, type) {
+            return new Promise((resolve) => {
+                const el = document.getElementById('global-alert');
+                if (el) {
+                    el.textContent = message;
+                    el.className = 'global-alert ' + type;
+                    el.style.display = 'block';
+                    setTimeout(() => { el.style.display = 'none'; resolve(); }, 3000);
+                } else { resolve(); }
             });
-            chart2 = new Chart(document.getElementById('chart2').getContext('2d'),{
-                type:'bar',
-                data:{
-                    labels: elevC,
-                    datasets:[{
-                        backgroundColor: '#0a0a0a',
-                        borderColor: '#0a0a0a',
-                        borderWidth: 1,
-                        data: new Array(elevC.length).fill(0)
-                    }]
-                },
-                options: chartDefaults
-            });
-        }
-
-        function updateCharts(hist){
-            if (typeof Chart === 'undefined' || !chart1) return;
-            if(!hist||hist.length===0) return;
-            let getLatestReading = (v) => {
-                return hist.filter(item => item.variable === v).pop();
-            };
-            let getLatest = (v) => {
-                let r = getLatestReading(v);
-                return r ? r.value : 0;
-            };
-            let getSensorColor = (v) => {
-                let r = getLatestReading(v);
-                if (!r) return '#0a0a0a';
-                if (r.risk === _RISK.critico) return '#991b1b';
-                if (r.risk === _RISK.alto) return '#c2410c';
-                if (r.risk === _RISK.medio) return '#b45309';
-                return '#166534';
-            };
-
-            const pumpNumVars = BOMBA_VARS.filter(v => v !== 'tank_level');
-            chart1.data.datasets[0].data = pumpNumVars.map(v => getLatest(v));
-            chart1.data.datasets[0].backgroundColor = pumpNumVars.map(v => getSensorColor(v));
-            chart1.data.datasets[0].borderColor = chart1.data.datasets[0].backgroundColor;
-            chart1.update();
-
-            const elevChartVars = ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck');
-            chart2.data.datasets[0].data = elevChartVars.map(v => getLatest(v));
-            chart2.data.datasets[0].backgroundColor = elevChartVars.map(v => getSensorColor(v));
-            chart2.data.datasets[0].borderColor = chart2.data.datasets[0].backgroundColor;
-            chart2.update();
-        }
-
-        function renderStatsTable(entries, containerId, firstColLabel, accentColor){
-            const div = document.getElementById(containerId);
-            if(entries.length){
-                const rows = entries.map(([k,v])=>
-                    `<tr><td style="padding:8px 10px; font-weight:var(--weight-bold); text-transform:uppercase; letter-spacing:var(--tracking-wide); font-size:var(--text-xs); border-bottom:1px solid var(--color-border); color:var(--color-ink);">${getVariableName(k).toUpperCase()}</td>`+
-                    `<td style="padding:8px 10px; font-weight:var(--weight-bold); text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-ink);">${v.avg.toFixed(1)}</td>`+
-                    `<td style="padding:8px 10px; text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-text-secondary);">${v.min}</td>`+
-                    `<td style="padding:8px 10px; text-align:right; border-bottom:1px solid var(--color-border); color:var(--color-text-secondary);">${v.max}</td></tr>`).join('');
-                div.innerHTML=`<div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15); border-left:6px solid ${accentColor};">
-                <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
-                    <thead><tr>
-                        <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">${firstColLabel}</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Prom.</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Mín.</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Máx.</th>
-                    </tr></thead><tbody>${rows}</tbody></table></div>`;
-            } else {
-                div.innerHTML='<p style="color:var(--color-text-secondary);font-size:var(--text-sm);">No hay datos.</p>';
-            }
-        }
-
-        function updateStatsAndRecs(stats, recs, attempts){
-            const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
-            renderStatsTable(entries.filter(([k])=>BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba', '#2563eb');
-            renderStatsTable(entries.filter(([k])=>ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador', '#7c3aed');
-            let inlineEl=document.getElementById('inlineRec');
-            if(recs&&recs.length){
-                let doorNote = (typeof attempts==='number' && attempts>0) ? ` | 🚪 ${attempts} intentos` : '';
-                inlineEl.innerHTML = '⚠️ ' + recs[0] + doorNote;
-                inlineEl.style.color = 'var(--state-warn)';
-            } else {
-                inlineEl.innerHTML = '✅ Todo normal';
-                inlineEl.style.color = 'var(--color-text-secondary)';
-            }
-        }
-
-        function renderThresholdsPanel(th){
-            let panel=document.getElementById('thresholdsPanel'); panel.innerHTML='';
-            for(let [k,cfg] of Object.entries(th)){
-                if(NO_RISK_VARS.includes(k)) continue;
-                let div=document.createElement('div');
-                div.style.cssText='border:1px solid var(--color-border);padding:var(--sp-1);';
-                if(cfg.direction==='range'){
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)} (rango)</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
-                            <div class="form-group"><label class="form-label">Mín</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
-                            <div class="form-group"><label class="form-label">Máx</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
-                        </div><input type="hidden" data-var="${k}" data-level="direction" value="range">`;
-                } else {
-                    div.innerHTML=`<div style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);margin-bottom:6px;">${getVariableName(k)}</div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                            <div class="form-group"><label class="form-label">{{ RISK_BAJO }}</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}"></div>
-                            <div class="form-group"><label class="form-label">{{ RISK_MEDIO }}</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}"></div>
-                            <div class="form-group"><label class="form-label">{{ RISK_ALTO }}</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}"></div>
-                        </div><input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
-                }
-                panel.appendChild(div);
-            }
-            validateThresholdInputs();
-        }
-
-        function validateThresholdInputs(){
-            let hasError = false;
-            let btn = document.getElementById('saveThresholdsBtn');
-            let processed = {};
-            document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
-                let v = inp.dataset.var;
-                if (!v || processed[v]) return;
-                processed[v] = true;
-                let dir = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`)?.value;
-                let low = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`)?.value);
-                let high = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`)?.value);
-                let lowInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`);
-                let highInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`);
-                let medInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="medium"]`);
-                [lowInp, medInp, highInp].forEach(el => { if(el) el.style.borderColor = ''; });
-
-                let valid = false;
-                if (dir === 'range') {
-                    valid = !isNaN(low) && !isNaN(high) && low < high;
-                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-                } else if (dir === 'higher') {
-                    let medium = parseFloat(medInp?.value);
-                    valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low < medium && medium < high;
-                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(medInp) medInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-                } else if (dir === 'lower') {
-                    let medium = parseFloat(medInp?.value);
-                    valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
-                    if(!valid){ if(lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if(medInp) medInp.style.borderColor = 'var(--state-critical)'; if(highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-                }
-                if (!valid) hasError = true;
-            });
-            btn.disabled = hasError;
-        }
-
-        function csrfFetch(url, opts = {}) {
-            const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
-            let token = csrf ? csrf.split('=')[1] : '';
-            if (!token && window.CSRF_TOKEN) {
-                token = window.CSRF_TOKEN;
-            }
-            opts.headers = { ...opts.headers, 'X-CSRFToken': token };
-            opts.credentials = 'same-origin';
-            return fetch(url, opts);
-        }
-
-        async function saveThresholds(){
-            let newTh={};
-            document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp=>{
-                let v=inp.dataset.var, l=inp.dataset.level;
-                if(!newTh[v]) newTh[v]={direction:document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`).value};
-                newTh[v][l]=parseFloat(inp.value);
-            });
-            console.log('Enviando umbrales:', JSON.stringify(newTh));
-            let resp=await csrfFetch('/api/thresholds/update/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(newTh)});
-            let res=await resp.json();
-            let msgEl=document.getElementById('saveMessage');
-            if(res.status==='ok'){
-                msgEl.innerHTML='<span style="color:var(--state-ok);font-weight:var(--weight-bold);">✓ Guardados</span>';
-                setTimeout(()=>msgEl.innerHTML='',2000);
-                currentThresholds=res.thresholds;
-                renderThresholdsPanel(res.thresholds);
-                validateThresholdInputs();
-            } else {
-                msgEl.innerHTML=`<span style="color:var(--state-critical);font-weight:var(--weight-bold);">✗ Error: ${res.message}</span>`;
-                console.error('Error al guardar umbrales:', res.message);
-            }
-        }
-
-        function populateManualSensorSelect(){
-            let sel=document.getElementById('manualSensorSelect'); sel.innerHTML='';
-            [...BOMBA_VARS,...ELEVADOR_VARS].forEach(v=>{
-                let opt=document.createElement('option'); opt.value=v;
-                opt.textContent=(BOMBA_VARS.includes(v)?'Bomba: ':'Elevador: ')+getVariableName(v).toUpperCase();
-                sel.appendChild(opt);
-            });
-        }
-
-        function updateSensorTypeIndicator(){
-            let v=document.getElementById('manualSensorSelect').value;
-            document.getElementById('sensorTypeIndicator').textContent=BOMBA_VARS.includes(v)?'Bomba / Eléctrico':'Elevador / Motor';
-        }
-
-        function updateManualRiskPreview(){
-            let v=document.getElementById('manualSensorSelect').value;
-            let raw=document.getElementById('manualValueInput').value;
-            let span=document.getElementById('manualRiskPreview');
-            if(raw===''){span.innerHTML='';return;}
-            let val=raw;
-            if(v==='door_status'){}
-            else if(v==='motor_stuck') val=(raw==='true'||raw==='1');
-            else{let n=parseFloat(raw); if(isNaN(n)){span.innerHTML='<span style="color:var(--state-critical)">Valor inválido</span>';return;} val=n;}
-            let ri=getRiskClass(v,val);
-            span.innerHTML=`Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
-        }
-
-        async function sendManualValue(){
-            let v=document.getElementById('manualSensorSelect').value;
-            let raw=document.getElementById('manualValueInput').value;
-            let msgEl=document.getElementById('manualMessage');
-            if(raw===''){msgEl.innerHTML='<span style="color:var(--state-critical)">Ingrese un valor</span>';return;}
-            let val=raw;
-            if(v==='door_status'){val=raw.toLowerCase(); if(!['open','closed'].includes(val)){msgEl.innerHTML='<span style="color:var(--state-critical)">Debe ser "open" o "closed"</span>';return;}}
-            else if(v==='motor_stuck') val=(raw==='true'||raw==='1');
-            else{let n=parseFloat(raw); if(isNaN(n)){msgEl.innerHTML='<span style="color:var(--state-critical)">Valor numérico inválido</span>';return;} val=n;}
-            try{
-                let resp=await csrfFetch('/api/manual-update/',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({variable:v,value:val,edificio_id:EDIFICIO_ID})});
-                let res=await resp.json();
-                if(res.status==='ok'){msgEl.innerHTML=`<span style="color:var(--state-ok)">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(()=>msgEl.innerHTML='',3000);}
-                else{msgEl.innerHTML=`<span style="color:var(--state-critical)">Error: ${res.message}</span>`;}
-            }catch(e){msgEl.innerHTML='<span style="color:var(--state-critical)">Error de conexión</span>';}
-        }
-
-        // ── Simulation Control ──
-        async function fetchSimStatus() {
-            if (!EDIFICIO_ID) return null;
-            try {
-                let resp = await fetch(`/api/sim/${EDIFICIO_ID}/status/`);
-                return await resp.json();
-            } catch (e) {
-                return null;
-            }
-        }
-
-        async function togglePause() {
-            if (!EDIFICIO_ID) return;
-            try {
-                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/pause/`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
-                let data = await resp.json();
-                if (data.status === 'ok') {
-                    updatePauseBtn(data.paused);
-                    setSimMessage(data.paused ? '⏸ Simulación pausada' : '▶ Simulación reanudada', 'info');
-                }
-            } catch (e) {
-                setSimMessage('Error al pausar/reanudar', 'error');
-            }
-        }
-
-        function updatePauseBtn(paused) {
-            let btn = document.getElementById('simPauseBtn');
-            if (paused) {
-                btn.innerHTML = '<i class="fas fa-play"></i> <span>Reanudar</span>';
-                btn.className = 'btn btn-ok';
-            } else {
-                btn.innerHTML = '<i class="fas fa-pause"></i> <span>Pausar</span>';
-                btn.className = 'btn btn-ghost';
-            }
-        }
-
-        async function resetSim() {
-            let confirmed = await window.showConfirm('¿Reiniciar el simulador al estado normal?');
-            if (!confirmed || !EDIFICIO_ID) return;
-            try {
-                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/reset/`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: '{}' });
-                let data = await resp.json();
-                if (data.status === 'ok') {
-                    setSimMessage('✅ ' + data.message, 'success');
-                    updatePauseBtn(false);
-                    document.getElementById('simFaultPump').value = '';
-                    document.getElementById('simFaultElevator').value = '';
-                } else {
-                    setSimMessage('❌ ' + data.message, 'error');
-                }
-            } catch (e) {
-                setSimMessage('Error al reiniciar', 'error');
-            }
-        }
-
-        async function injectFault(device) {
-            if (!EDIFICIO_ID) return;
-            let sel = document.getElementById(device === 'pump' ? 'simFaultPump' : 'simFaultElevator');
-            let faultType = sel.value;
-            try {
-                let url, body;
-                if (!faultType) {
-                    url = `/api/sim/${EDIFICIO_ID}/clear-fault/`;
-                    body = JSON.stringify({ device: device });
-                } else {
-                    url = `/api/sim/${EDIFICIO_ID}/inject-fault/`;
-                    body = JSON.stringify({ device: device, fault_type: faultType });
-                }
-                let resp = await csrfFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-                let data = await resp.json();
-                if (data.status === 'ok') {
-                    setSimMessage('✅ ' + data.message, 'success');
-                } else {
-                    setSimMessage('❌ ' + data.message, 'error');
-                }
-            } catch (e) {
-                setSimMessage('Error al gestionar falla', 'error');
-            }
-        }
-
-        async function setSpeed() {
-            if (!EDIFICIO_ID) return;
-            let slider = document.getElementById('simSpeedSlider');
-            let speed = parseFloat(slider.value);
-            document.getElementById('simSpeedLabel').textContent = speed.toFixed(1) + 'x';
-            try {
-                let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/set-speed/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ speed: speed })
-                });
-                let data = await resp.json();
-                if (data.status === 'ok') {
-                    setSimMessage('⚡ Velocidad: ' + data.speed.toFixed(1) + 'x', 'info');
-                }
-            } catch (e) {
-                // silent
-            }
-        }
-
-        function setSimMessage(msg, type) {
-            let el = document.getElementById('simStatusMessage');
-            let color = type === 'error' ? 'var(--state-critical)' : type === 'success' ? 'var(--state-ok)' : 'var(--color-text-secondary)';
-            el.innerHTML = '<span style="color:' + color + ';">' + msg + '</span>';
-            setTimeout(() => { if (el.innerHTML === '<span style="color:' + color + ';">' + msg + '</span>') el.innerHTML = ''; }, 4000);
-        }
-
-        // Eventos de control de simulación
-        document.getElementById('simPauseBtn').addEventListener('click', togglePause);
-        document.getElementById('simResetBtn').addEventListener('click', resetSim);
-        document.getElementById('simFaultPump').addEventListener('change', () => injectFault('pump'));
-        document.getElementById('simFaultElevator').addEventListener('change', () => injectFault('elevator'));
-        document.getElementById('simSpeedSlider').addEventListener('input', setSpeed);
-
-        // Cargar estado inicial de simulación
-        fetchSimStatus().then(data => {
-            if (data) {
-                updatePauseBtn(data.paused);
-                document.getElementById('simSpeedSlider').value = data.speed;
-                document.getElementById('simSpeedLabel').textContent = data.speed.toFixed(1) + 'x';
-                document.getElementById('simFaultPump').value = data.faults && data.faults.pump ? data.faults.pump : '';
-                document.getElementById('simFaultElevator').value = data.faults && data.faults.elevator ? data.faults.elevator : '';
-            }
-        });
-
-        // Eventos
-        document.getElementById('saveThresholdsBtn').addEventListener('click', saveThresholds);
-        document.getElementById('thresholdsPanel').addEventListener('input', validateThresholdInputs);
-        document.getElementById('manualValueInput').addEventListener('input', updateManualRiskPreview);
-        document.getElementById('manualSensorSelect').addEventListener('change', ()=>{ updateManualRiskPreview(); updateSensorTypeIndicator(); });
-        document.getElementById('sendManualBtn').addEventListener('click', sendManualValue);
-
-        // SSE
-        function connectSSE() {
-            if (sseSource) { sseSource.close(); }
-            if (!EDIFICIO_ID) return;
-            const url = `/sse/${EDIFICIO_ID}/`;
-            sseSource = new EventSource(url);
-            sseSource.onmessage = (event) => {
-                try { applyPayload(JSON.parse(event.data)); } catch(e) {}
-            };
-            sseSource.onerror = () => {
-                console.warn('SSE error, reconectando en 5s...');
-                setTimeout(() => connectSSE(), 5000);
-            };
-        }
-
-        function applyPayload(data){
-            if(data.thresholds) currentThresholds=data.thresholds;
-            if(data.subscribers) subscribers=data.subscribers;
-            if(data.current) updateCards(data.current);
-            if(data.history){ updateCharts(data.history); }
-            updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
-            document.getElementById('lastUpdate').innerText = new Date().toLocaleTimeString();
-            const updateBadge = (badgeId, emptyId, statusVal) => {
-                const badgeEl = document.getElementById(badgeId);
-                const emptyEl = document.getElementById(emptyId);
-                if (badgeEl && emptyEl) {
-                    if (statusVal) {
-                        badgeEl.style.display = 'inline-block';
-                        badgeEl.textContent = statusVal.toUpperCase();
-                        emptyEl.style.display = 'none';
-                        if (statusVal === 'falla') {
-                            badgeEl.className = 'badge badge-crit';
-                        } else if (statusVal === 'mantenimiento') {
-                            badgeEl.className = 'badge badge-med';
-                        } else {
-                            badgeEl.className = 'badge badge-low';
-                        }
-                    } else {
-                        badgeEl.style.display = 'none';
-                        emptyEl.style.display = 'inline';
-                    }
-                }
-            };
-            updateBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
-            updateBadge('elevatorStatusBadge', 'elevatorStatusEmpty', data.elevator_status);
-            // Ocultar secciones según equipamiento del edificio
-            const et = data.equipment_types || [];
-            const hasPump = et.includes('bomba');
-            const hasElev = et.includes('elevador');
-            ['pumpStatusRow','bombaSection','chartPumpPanel'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = hasPump ? '' : 'none';
-            });
-            ['elevatorStatusRow','elevadorSection','chartElevatorPanel'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.style.display = hasElev ? '' : 'none';
-            });
-            // Sim status
-            const simSpd = document.getElementById('simSpeedDisplay');
-            if (data.sim_paused !== undefined) {
-                updatePauseBtn(data.sim_paused);
-            }
-            if (data.sim_speed !== undefined && simSpd) {
-                simSpd.textContent = data.sim_speed.toFixed(1) + 'x';
-            }
-        }
-
-        initCharts();
-        populateManualSensorSelect();
-        updateSensorTypeIndicator();
-        connectSSE();
-        fetchInitialData();
-
-        document.getElementById('buildingSelect').addEventListener('change', function() {
-            EDIFICIO_ID = parseInt(this.value);
-            connectSSE();
-            fetchInitialData();
-        });
-
-        function fetchInitialData() {
-            const url = EDIFICIO_ID ? `/api/status/?edificio_id=${EDIFICIO_ID}` : '/api/status/';
-            fetch(url)
-                .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
-                .then(data => { applyPayload(data); if(data.thresholds) renderThresholdsPanel(data.thresholds); })
-                .catch((error) => {
-                    console.warn('Error al obtener estado inicial:', error);
-                    ['statsBombaPanel', 'statsElevadorPanel', 'recommendationsPanel'].forEach(id => {
-                        let el = document.getElementById(id);
-                        if (el) el.innerHTML = '<span style="color:var(--color-text-secondary);font-size:var(--text-sm);">Sin datos de telemetría para este edificio.</span>';
-                    });
-                });
-        }
+        };
+        window.showConfirm = function(message) {
+            return new Promise((resolve) => { resolve(confirm(message)); });
+        };
     </script>
+    <script src="{% static 'monitoring/live_monitoring.js' %}?v=4" defer></script>
 </body>
 </html>

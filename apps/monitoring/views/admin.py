@@ -50,6 +50,7 @@ def render_admin_monitoring(request) -> HttpResponse:
             "edificios": buildings,
             "edificio_id": building_id,
             "config_json": build_monitoring_config(building_id),
+            "is_admin": True,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
             "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
             "PUMP_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in PUMP_FAULT_KEYS],
@@ -65,13 +66,17 @@ def building_monitoring_view(request, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, pk=building_id)
     return render(
         request,
-        "monitoring/monitoreo.html",
+        "monitoring/monitoreo_dashboard.html",
         {
             "rol": rol,
-            "selected_edificio": building,
-            "equipos_data": [],
-            "query": "",
+            "edificios": [building],
             "edificio_id": building_id,
+            "config_json": build_monitoring_config(building_id),
+            "is_admin": True,
+            "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
+            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "PUMP_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in PUMP_FAULT_KEYS],
+            "ELEVATOR_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in ELEVATOR_FAULT_KEYS],
         },
     )
 
