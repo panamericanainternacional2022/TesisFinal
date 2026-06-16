@@ -28,11 +28,9 @@
                             </span>
                         </div>
                         <p style="margin-top:6px;">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
-                    </div>
-
-                    {% if edificios %}
-                    <!-- ── Barra de controles ─────────────────────── -->
-                    <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-3);">
+                        {% if edificios %}
+                        <!-- ── Barra de controles ─────────────────────── -->
+                        <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-2);">
 
                             <!-- Inputs ocultos (panel lateral + fechas custom) -->
                             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
@@ -83,7 +81,10 @@
 
                             </div>
                         </form>
+                        {% endif %}
+                    </div>
 
+                    {% if edificios %}
                     <!-- ── Lista de Eventos ────────────────────────────── -->
                     <div class="notif-card">
                         <div id="historial-list">
