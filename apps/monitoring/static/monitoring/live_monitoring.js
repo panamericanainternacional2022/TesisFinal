@@ -1034,6 +1034,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (toggleBtn) {
             toggleBtn.disabled = false;
             toggleBtn.style.opacity = '1';
+            toggleBtn.style.display = '';
             const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
