@@ -89,10 +89,9 @@ def manual_update(request) -> JsonResponse:
 
 
 def sim_status(request, building_id: int) -> JsonResponse:
-    try:
-        sim = get_simulator(building_id)
-    except SimulatorError as e:
-        return json_error_response(e.message, e.status_code)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     return JsonResponse({
         "edificio_id": sim.edificio_id,
@@ -112,10 +111,9 @@ def sim_status(request, building_id: int) -> JsonResponse:
 
 @require_http_methods(["POST"])
 def sim_pause(request, building_id: int) -> JsonResponse:
-    try:
-        sim = get_simulator(building_id)
-    except SimulatorError as e:
-        return json_error_response(e.message, e.status_code)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     try:
         body = parse_json_body(request)
@@ -182,10 +180,9 @@ def sim_clear_fault(request, building_id: int) -> JsonResponse:
 
 @require_http_methods(["POST"])
 def sim_set_speed(request, building_id: int) -> JsonResponse:
-    try:
-        sim = get_simulator(building_id)
-    except SimulatorError as e:
-        return json_error_response(e.message, e.status_code)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     try:
         body = parse_json_body(request)
@@ -200,10 +197,9 @@ def sim_set_speed(request, building_id: int) -> JsonResponse:
 
 @require_http_methods(["POST"])
 def sim_toggle_pump(request, building_id: int) -> JsonResponse:
-    try:
-        sim = get_simulator(building_id)
-    except SimulatorError as e:
-        return json_error_response(e.message, e.status_code)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     try:
         body = parse_json_body(request)
@@ -220,10 +216,9 @@ def sim_toggle_pump(request, building_id: int) -> JsonResponse:
 
 @require_http_methods(["POST"])
 def sim_toggle_elevator(request, building_id: int) -> JsonResponse:
-    try:
-        sim = get_simulator(building_id)
-    except SimulatorError as e:
-        return json_error_response(e.message, e.status_code)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     try:
         body = parse_json_body(request)

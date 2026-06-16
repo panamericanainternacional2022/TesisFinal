@@ -11,10 +11,9 @@ logger = logging.getLogger(__name__)
 
 
 def sse_stream(request, building_id: int) -> StreamingHttpResponse | StreamingHttpResponse:
-    try:
-        sim = get_simulator(building_id)
-    except Exception as e:
-        return json_error_response(str(e), 404)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     def event_stream():
         from apps.sensors.payload import build_live_payload_for_sim

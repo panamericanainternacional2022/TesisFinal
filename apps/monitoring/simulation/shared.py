@@ -12,7 +12,7 @@ from apps.sensors.simulation.models import BuildingSimulator
 logger = logging.getLogger(__name__)
 
 
-def get_simulator(building_id: int) -> BuildingSimulator:
+def get_simulator(building_id: int) -> BuildingSimulator | None:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.models import BuildingSimulator
 
@@ -41,17 +41,15 @@ def get_simulator(building_id: int) -> BuildingSimulator:
     except Exception as e:
         logger.warning("Error al inicializar simulador dinámico para ID %s: %s", building_id, e)
 
-    # 3. Fallback 1: Retornar el primer simulador activo en memoria
+    # 3. Fallback: primer simulador activo en memoria
     first_sim = next(iter(simulators.values()), None)
     if first_sim:
         logger.warning("Usando fallback de simulador %s para el ID solicitado %s", first_sim.edificio_id, building_id)
         return first_sim
 
-    # 4. Fallback 2: Crear un simulador dummy temporal para que la telemetría nunca falle
-    logger.warning("Creando simulador dummy temporal para el ID %s", building_id)
-    sim = BuildingSimulator(building_id, "Edificio Temporal (Simulado)", equipment_types={"bomba", "elevador"})
-    simulators[building_id] = sim
-    return sim
+    # 4. Sin simulador disponible
+    logger.warning("No hay simulador disponible para el ID %s", building_id)
+    return None
 
 
 def get_first_simulator() -> BuildingSimulator | None:

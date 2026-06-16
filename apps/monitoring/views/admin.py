@@ -34,13 +34,7 @@ def render_admin_monitoring(request) -> HttpResponse:
         except (ValueError, TypeError, IndexError):
             building_id = valid_ids[0] if valid_ids else 0
     else:
-        from apps.sensors.simulation.globals import simulators
-        if simulators:
-            building_id = next(iter(simulators.keys()))
-            if building_id not in valid_ids:
-                building_id = valid_ids[0] if valid_ids else 0
-        else:
-            building_id = valid_ids[0] if valid_ids else 0
+        building_id = valid_ids[0] if valid_ids else 0
 
     return render(
         request,

@@ -69,24 +69,6 @@ for eq in equipos:
     simulators[eid].elevator_on = simulators[eid].has_elevator
     logger.info("Simulador creado: edificio=%s tipo=%s", eid, eq.equipment_type)
 
-if not simulators:
-    from apps.buildings.models import Building as BuildingModel
-    dummy_edificio, _ = BuildingModel.objects.get_or_create(
-        rif="J-00000000-0",
-        defaults={"name": "Edificio Simulado", "address": "Dirección simulada"},
-    )
-    MonitoringEquipment.objects.get_or_create(
-        building=dummy_edificio, equipment_type=MonitoringEquipment.TYPE_PUMP,
-        defaults={"name": f"Bomba de agua - {dummy_edificio.name}"},
-    )
-    MonitoringEquipment.objects.get_or_create(
-        building=dummy_edificio, equipment_type=MonitoringEquipment.TYPE_ELEVATOR,
-        defaults={"name": f"Elevador - {dummy_edificio.name}"},
-    )
-    _dummy = BuildingSimulator(1, "Edificio Simulado", equipment_types={"bomba", "elevador"})
-    simulators[1] = _dummy
-    logger.warning("No hay equipos en BD. Simulador dummy creado con edificio en BD.")
-
 logger.info("Simuladores activos: %s", list(simulators.keys()))
 
 # ─── Sincronizar variables globales legacy con el primer simulador ─

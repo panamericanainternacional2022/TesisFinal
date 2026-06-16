@@ -1,15 +1,20 @@
 from django.shortcuts import render
 from django.http import HttpResponse
+from django.core.paginator import Paginator
 
 from apps.core.auth_decorators import login_required
+from apps.core.services.http_request import get_building_id_param
 from apps.buildings.models import Building
 
 from .shared import (
     build_monitoring_config, get_user_building_ids,
+    filter_severity, filter_date_range, parse_notifications,
+    extract_variables, filter_by_variable, build_query_string,
+    ALL_SEVERITIES,
 )
 from apps.sensors.sensor_config import (
     RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
-    PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES,
+    PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, PAGE_SIZE,
 )
 
 

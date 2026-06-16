@@ -27,10 +27,9 @@ def api_status(request) -> JsonResponse:
             return json_error_response("No hay simuladores activos", 404)
         building_id = first_sim.edificio_id
 
-    try:
-        sim = get_simulator(building_id)
-    except Exception as e:
-        return json_error_response(str(e), 404)
+    sim = get_simulator(building_id)
+    if sim is None:
+        return json_error_response("No hay simulador activo para este edificio", 404)
 
     from apps.sensors.payload import build_live_payload_for_sim
     return JsonResponse(build_live_payload_for_sim(sim))
