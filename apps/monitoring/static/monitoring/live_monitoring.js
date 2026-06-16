@@ -324,11 +324,6 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
     }
 }
 
-function updateProtectionStatus(active) {
-    const el = document.getElementById('protectionStatusValue');
-    if (el) el.textContent = active ? 'ACTIVA' : 'INACTIVA';
-}
-
 // ═══════════════════════════════════════════════════════════════════
 // 9.  Equipment visibility
 // ═══════════════════════════════════════════════════════════════════
@@ -351,8 +346,35 @@ function updateEquipmentVisibility(equipTypes) {
         });
     };
 
-    toggle(['pumpStatusRow', 'bombaSection', 'chartPumpPanel'], hasPump);
-    toggle(['elevatorStatusRow', 'elevadorSection', 'chartElevatorPanel'], hasElev);
+    toggle(['bombaSection', 'chartPumpPanel', 'statsBombaPanel'], hasPump);
+    toggle(['elevadorSection', 'chartElevatorPanel', 'statsElevadorPanel'], hasElev);
+
+    const pumpNI = document.getElementById('pumpNotInstalled');
+    const pumpBadge = document.getElementById('pumpStatusBadge');
+    const pumpEmpty = document.getElementById('pumpStatusEmpty');
+    if (pumpNI && pumpBadge && pumpEmpty) {
+        if (!hasPump) {
+            pumpBadge.style.display = 'none';
+            pumpEmpty.style.display = 'none';
+            pumpNI.style.display = 'inline';
+        } else {
+            pumpNI.style.display = 'none';
+        }
+    }
+
+    const elevNI = document.getElementById('elevatorNotInstalled');
+    const elevBadge = document.getElementById('elevatorStatusBadge');
+    const elevEmpty = document.getElementById('elevatorStatusEmpty');
+    if (elevNI && elevBadge && elevEmpty) {
+        if (!hasElev) {
+            elevBadge.style.display = 'none';
+            elevEmpty.style.display = 'none';
+            elevNI.style.display = 'inline';
+        } else {
+            elevNI.style.display = 'none';
+        }
+    }
+
     return true;
 }
 
@@ -421,7 +443,6 @@ function applyPayload(data) {
     if (data.current) updateCards(data.current);
     if (data.history) updateCharts(data.history);
 
-    updateProtectionStatus(data.protection_active);
     updateStatusBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
     updateStatusBadge('elevatorStatusBadge', 'elevatorStatusEmpty', data.elevator_status);
 
@@ -455,8 +476,6 @@ function updateSummaryValues(data) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     };
-    const c = data.current || {};
-    setVal('summaryProtectionStatus', data.protection_active ? 'ACTIVA' : 'INACTIVA');
     setVal('summaryPumpStatus', data.pump_on ? 'ENCENDIDA' : 'APAGADA');
     setVal('summaryElevatorStatus', data.elevator_on ? 'ENCENDIDO' : 'APAGADO');
 }

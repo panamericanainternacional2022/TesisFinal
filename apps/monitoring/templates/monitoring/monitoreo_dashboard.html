@@ -523,16 +523,15 @@
                         <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
                         {% endif %}
                         {% if edificios and is_admin %}
-                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:flex-end; margin-top:var(--sp-2);">
-                            <div class="form-group" style="min-width:220px;">
-                                <label class="form-label">Edificio activo</label>
-                                <select id="buildingSelect" style="height:44px;">
-                                    {% for ed in edificios %}
-                                    <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</div>
+                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+                            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Edificio activo:</span>
+                            <select id="buildingSelect"
+                                    style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px;">
+                                {% for ed in edificios %}
+                                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</span>
                         </div>
                         {% endif %}
                     </div>
@@ -588,17 +587,12 @@
 
         <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
-            <div id="protectionStatusRow" class="status-cell">
-                <div class="status-cell-label">Protección</div>
-                <div class="status-cell-value">
-                    <span id="protectionStatusValue">INACTIVA</span>
-                </div>
-            </div>
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
                     <span id="pumpStatusBadge" class="badge" style="display:none;"></span>
                     <span id="pumpStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
+                    <span id="pumpNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
                 </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
@@ -606,6 +600,7 @@
                 <div class="status-cell-value">
                     <span id="elevatorStatusBadge" class="badge" style="display:none;"></span>
                     <span id="elevatorStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
+                    <span id="elevatorNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
                 </div>
             </div>
             {% if is_admin %}
