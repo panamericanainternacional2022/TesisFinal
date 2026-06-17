@@ -76,7 +76,6 @@
         .sensor-card-name {
             font-size: var(--text-xs);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             color: var(--color-ink);
             margin-bottom: 4px;
@@ -103,7 +102,6 @@
             padding: 2px 8px;
             font-size: var(--text-xs);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: 0.03em;
             border: 2px solid var(--color-ink);
             border-radius: 0px;
@@ -136,7 +134,6 @@
 
         .status-cell-label {
             font-size: var(--text-xs);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             color: var(--color-ink);
             font-weight: var(--weight-bold);
@@ -162,7 +159,6 @@
         .sensor-section-title {
             font-size: var(--text-sm);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             color: var(--color-ink);
             margin-bottom: var(--sp-1);
@@ -200,7 +196,6 @@
             color: var(--color-ink);
             font-size: var(--text-xs);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             padding: 8px var(--sp-2);
             text-align: left;
@@ -232,7 +227,6 @@
         .chart-panel-title {
             font-size: var(--text-xs);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             color: var(--color-ink);
             margin-bottom: var(--sp-1);
@@ -301,7 +295,6 @@
         .panel-subsection-title {
             font-size: var(--text-xs);
             font-weight: var(--weight-bold);
-            text-transform: uppercase;
             letter-spacing: var(--tracking-wide);
             color: var(--color-text-secondary);
             margin-bottom: var(--sp-2);
@@ -370,7 +363,7 @@
             </select>
             {% endif %}
             {% if is_admin %}
-            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</span>
+            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold);">Conectando al simulador...</span>
             {% endif %}
         </div>
         {% endif %}
@@ -551,7 +544,7 @@
         <!-- Tarjetas de sensores: Bomba -->
         <div id="bombaSection" class="sensor-section">
             <div class="sensor-section-title">
-                <i class="fa-solid fa-oil-can"></i> Sensores de Bomba y Eléctricos
+                <i class="fa-solid fa-oil-can"></i> Sensores de la bomba de agua
             </div>
             <div class="sensor-cards-grid" id="bombaCards"></div>
         </div>
@@ -559,17 +552,17 @@
         <!-- Tarjetas de sensores: Elevador -->
         <div id="elevadorSection" class="sensor-section">
             <div class="sensor-section-title">
-                <i class="fa-solid fa-elevator"></i> Sensores de Elevador y Motor
+                <i class="fa-solid fa-elevator"></i> Sensores del elevador
             </div>
             <div class="sensor-cards-grid" id="elevadorCards"></div>
         </div>
         <div class="grid-charts">
             <div id="chartPumpPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de Bomba / Eléctricas</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
                 <canvas id="chart1"></canvas>
             </div>
             <div id="chartElevatorPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables de Elevador / Motor</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
                 <canvas id="chart2"></canvas>
             </div>
         </div>

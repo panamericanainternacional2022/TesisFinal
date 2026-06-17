@@ -150,7 +150,7 @@ function isBombaVariable(variable) {
 // ═══════════════════════════════════════════════════════════════════
 
 function renderCard(variable, value, risk, badgeClass, cardClass) {
-    const name = getVariableName(variable).toUpperCase();
+    const name = getVariableName(variable);
     const displayValue = translateSensorValue(variable, value)
         ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
 
@@ -333,7 +333,7 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
     if (!badgeEl || !emptyEl) return;
     if (statusVal) {
         badgeEl.style.display = 'inline-block';
-        badgeEl.textContent = statusVal.toUpperCase();
+        badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
         emptyEl.style.display = 'none';
         if (statusVal === 'falla') badgeEl.className = 'badge badge-crit';
         else if (statusVal === 'mantenimiento') badgeEl.className = 'badge badge-med';
@@ -492,15 +492,15 @@ function applyPayload(data) {
                 }
             });
         }
-        
+
         const simSpd = document.getElementById('simSpeedDisplay');
         if (simSpd) {
             const isPaused = data.sim_paused !== undefined ? data.sim_paused : document.getElementById('simPauseBtn')?.querySelector('i.fa-play') !== null;
             const speed = data.sim_speed !== undefined ? data.sim_speed : parseFloat(document.querySelector('.speed-btn.active')?.dataset.speed || 1.0);
-            
+
             if (isPaused) {
-                simSpd.textContent = 'PAUSADA';
-                simSpd.className = 'badge badge-med'; 
+                simSpd.textContent = 'Pausada';
+                simSpd.className = 'badge badge-med';
             } else {
                 simSpd.textContent = speed.toFixed(1) + 'x';
                 simSpd.className = 'badge badge-info';
@@ -518,8 +518,8 @@ function updateSummaryValues(data) {
         const el = document.getElementById(id);
         if (el) el.textContent = val;
     };
-    setVal('summaryPumpStatus', data.pump_on ? 'ENCENDIDA' : 'APAGADA');
-    setVal('summaryElevatorStatus', data.elevator_on ? 'ENCENDIDO' : 'APAGADO');
+    setVal('summaryPumpStatus', data.pump_on ? 'Encendida' : 'Apagada');
+    setVal('summaryElevatorStatus', data.elevator_on ? 'Encendido' : 'Apagado');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -531,7 +531,7 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
     if (!div) return;
     if (entries.length) {
         const rows = entries.map(([k, v]) =>
-            `<tr><td style="padding:8px 10px;font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);font-size:var(--text-xs);border-bottom:1px solid var(--color-border);color:var(--color-ink);">${getVariableName(k).toUpperCase()}</td>` +
+            `<tr><td style="padding:8px 10px;font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);font-size:var(--text-xs);border-bottom:1px solid var(--color-border);color:var(--color-ink);">${getVariableName(k)}</td>` +
             `<td style="padding:8px 10px;font-weight:var(--weight-bold);text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-ink);">${v.avg.toFixed(1)}</td>` +
             `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${v.min}</td>` +
             `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${v.max}</td></tr>`
@@ -539,13 +539,11 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
         div.innerHTML = `<div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15);border-left:6px solid ${accentColor};">
         <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
             <thead><tr>
-                <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">${firstColLabel}</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Prom.</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Mín.</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:#fff;">Máx.</th>
+                <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">${firstColLabel}</th>
+                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Prom.</th>
+                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Mín.</th>
+                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Máx.</th>
             </tr></thead><tbody>${rows}</tbody></table></div>`;
-    } else {
-        div.innerHTML = '<p style="color:var(--color-text-secondary);font-size:var(--text-sm);">No hay datos.</p>';
     }
 }
 
@@ -557,11 +555,8 @@ function updateStatsAndRecs(stats, recs, attempts) {
     if (inlineEl) {
         if (recs && recs.length) {
             let doorNote = (typeof attempts === 'number' && attempts > 0) ? ` | 🚪 ${attempts} intentos` : '';
-            inlineEl.innerHTML = '⚠️ ' + recs[0] + doorNote;
+            inlineEl.innerHTML = recs[0] + doorNote;
             inlineEl.style.color = 'var(--state-warn)';
-        } else {
-            inlineEl.innerHTML = '✅ Todo normal';
-            inlineEl.style.color = 'var(--color-text-secondary)';
         }
     }
 }
@@ -579,7 +574,7 @@ function renderThresholdsPanel(th) {
         let div = document.createElement('div');
         div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
 
-        const name = getVariableName(k).toUpperCase();
+        const name = getVariableName(k);
         const unit = getUnit(k);
         const curVal = currentReadings[k];
         const curStr = (curVal !== undefined && curVal !== null)
@@ -596,10 +591,10 @@ function renderThresholdsPanel(th) {
         }
 
         let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);text-transform:uppercase;letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
-                ${name}${unit ? ' ('+unit+')' : ''} ${dirBadge}
+            <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
+                ${name}${unit ? ' (' + unit + ')' : ''} ${dirBadge}
             </span>
-            ${curStr ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">'+curStr+'</span>' : ''}
+            ${curStr ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">' + curStr + '</span>' : ''}
         </div>`;
 
         if (cfg.direction === 'range') {
@@ -779,7 +774,7 @@ function updateManualRiskPreview() {
     }
 
     if (raw === undefined || raw === '') { span.innerHTML = ''; return; }
-    
+
     let val = raw;
     if (v === 'door_status') { /* string */ }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
@@ -792,7 +787,7 @@ async function sendManualValue() {
     const v = document.getElementById('manualSensorSelect')?.value;
     const inp = document.getElementById('manualValueInput');
     const sel = document.getElementById('manualValueSelect');
-    
+
     if (!v) return;
     let raw = '';
     if (v === 'door_status' || v === 'motor_stuck') {
@@ -908,7 +903,7 @@ async function injectFault(device) {
 
 async function setSpeed(speed) {
     if (!EDIFICIO_ID) return;
-    
+
     document.querySelectorAll('.speed-btn').forEach(btn => {
         if (parseFloat(btn.dataset.speed) === speed) {
             btn.classList.add('active');
@@ -1006,7 +1001,7 @@ function showDurationPicker() {
         container.innerHTML = `
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-2);">
                 <i class="fa-solid fa-clock" style="color:var(--state-warn);font-size:var(--text-xl);"></i>
-                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);text-transform:uppercase;letter-spacing:var(--tracking-wide);">Desactivar alertas</span>
+                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);letter-spacing:var(--tracking-wide);">Desactivar alertas</span>
             </div>
             <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);">¿Por cuánto tiempo deseas desactivar las alertas?</p>
             <div id="durationGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-3);">
@@ -1178,7 +1173,7 @@ function setupAdminEvents() {
     if (resetBtn) resetBtn.addEventListener('click', resetSim);
     if (faultPump) faultPump.addEventListener('change', () => injectFault('pump'));
     if (faultElev) faultElev.addEventListener('change', () => injectFault('elevator'));
-    
+
     document.querySelectorAll('.speed-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const speed = parseFloat(e.target.dataset.speed);
@@ -1197,9 +1192,9 @@ function setupAdminEvents() {
         });
     }
     if (manualSensorSel) {
-        manualSensorSel.addEventListener('change', () => { 
-            updateManualInputType(); 
-            updateSensorTypeIndicator(); 
+        manualSensorSel.addEventListener('change', () => {
+            updateManualInputType();
+            updateSensorTypeIndicator();
         });
     }
     if (sendManualBtn) sendManualBtn.addEventListener('click', sendManualValue);

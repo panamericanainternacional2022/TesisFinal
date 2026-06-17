@@ -46,7 +46,6 @@ body {
     font-weight: var(--weight-bold);
     font-size: var(--text-lg);
     letter-spacing: var(--tracking-wider);
-    text-transform: uppercase;
     color: var(--color-ink);
     margin-bottom: var(--sp-1);
 }

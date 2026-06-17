@@ -102,7 +102,6 @@
     font-weight: var(--weight-bold);
     font-size: var(--text-xs);
     letter-spacing: var(--tracking-wide);
-    text-transform: uppercase;
     border-bottom: 2px solid var(--color-ink);
 }
 
@@ -119,7 +118,6 @@
     text-align: left;
     font-size: var(--text-xs);
     font-weight: var(--weight-medium);
-    text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
     border-bottom: 2px solid var(--color-ink);
     /* línea gruesa cabecera/cuerpo */
@@ -457,7 +455,6 @@
     font-size: var(--text-xs);
     font-weight: var(--weight-bold);
     letter-spacing: 0.03em;
-    text-transform: uppercase;
     border: 2px solid var(--color-ink);
 }
 

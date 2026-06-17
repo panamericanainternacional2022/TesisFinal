@@ -30,7 +30,6 @@
     font-weight: var(--weight-bold);
     font-size: var(--text-md);
     letter-spacing: var(--tracking-wider);
-    text-transform: uppercase;
     color: var(--color-ink);
 }
 

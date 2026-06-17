@@ -138,6 +138,13 @@ def _setup_session(request: HttpRequest, user: Usuario) -> None:
         user_role = "SA"
     request.session["usuario_rol"] = user_role
 
+    person = user.id_persona
+    if person:
+        name_parts = [person.first_name, person.first_last_name]
+        request.session["usuario_nombre_completo"] = " ".join(p for p in name_parts if p)
+    else:
+        request.session["usuario_nombre_completo"] = user.username
+
 
 def _check_alert_cooldown(user: Usuario) -> None:
     if (

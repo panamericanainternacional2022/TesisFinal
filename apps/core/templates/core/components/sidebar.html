@@ -101,7 +101,7 @@
     </nav>
 
     <div class="sidebar-footer">
-        <span class="sidebar-user">{{ request.session.usuario_username }}</span>
+        <span class="sidebar-user">{% if request.session.usuario_rol == 'US' %}{{ request.session.usuario_nombre_completo }}{% else %}Administrador{% endif %}</span>
         <a href="{% url 'logout' %}" class="sidebar-link sidebar-logout">
             <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
         </a>

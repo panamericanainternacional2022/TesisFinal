@@ -20,7 +20,7 @@
             container.innerHTML = `
                 <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2, 16px);">
                     ${iconHtml}
-                    <span style="font-size: var(--text-lg, 1.125rem); font-weight: var(--weight-bold, 700); color: var(--color-ink, #0a0a0a); text-transform: uppercase; letter-spacing: var(--tracking-wide, 0.06em);">${title}</span>
+                    <span style="font-size: var(--text-lg, 1.125rem); font-weight: var(--weight-bold, 700); color: var(--color-ink, #0a0a0a); letter-spacing: var(--tracking-wide, 0.06em);">${title}</span>
                 </div>
                 <div style="font-size: var(--text-sm, 0.875rem); color: var(--color-text-secondary, #5f5f5f); line-height: var(--leading-normal, 1.5); margin-bottom: var(--sp-3, 24px); word-break: break-word;">
                     ${message}
