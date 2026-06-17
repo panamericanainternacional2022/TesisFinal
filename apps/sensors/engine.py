@@ -6,7 +6,7 @@ import eventlet
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
     RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS,
-    SIM_TICK_INTERVAL, MAX_CONSECUTIVE_FAILURES,
+    SIM_TICK_INTERVAL,
 )
 from apps.sensors.simulation.constants import (
     MAX_HISTORY_SIZE,
@@ -17,6 +17,10 @@ from apps.sensors.simulation.simulation_engine import update_sensor_data
 
 
 logger = logging.getLogger(__name__)
+
+# Máximo de ticks a omitir en backoff exponencial (≈ 30 × SIM_TICK_INTERVAL s).
+# El simulador NUNCA se elimina; solo pausa ticks y reintenta automáticamente.
+_MAX_BACKOFF_TICKS: int = 30
 
 
 def _run_sim_tick(sim: BuildingSimulator) -> None:
@@ -98,24 +102,42 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
 
 
 def generate_data_and_emit() -> None:
+    """Loop principal del engine. Procesa todos los simuladores activos cada tick.
+
+    En lugar de eliminar un simulador tras fallos consecutivos, aplica backoff
+    exponencial (saltar 2^N ticks, máx. _MAX_BACKOFF_TICKS) y reintenta
+    automáticamente. El dict ``simulators`` nunca pierde entradas por errores.
+    """
     _consecutive_failures: dict[int, int] = {}
+    _backoff_remaining: dict[int, int] = {}   # ticks restantes de pausa por edificio
+
     while True:
         eventlet.sleep(SIM_TICK_INTERVAL)
         for sim in list(simulators.values()):
+            eid = sim.edificio_id
+
+            # ── Backoff: contar regresivo y saltar este tick ────────────
+            if _backoff_remaining.get(eid, 0) > 0:
+                _backoff_remaining[eid] -= 1
+                continue
+
             try:
                 _run_sim_tick(sim)
-                _consecutive_failures.pop(sim.edificio_id, None)
+                # Tick exitoso: limpiar estado de fallos
+                _consecutive_failures.pop(eid, None)
+                _backoff_remaining.pop(eid, None)
             except Exception:
-                fails = _consecutive_failures.get(sim.edificio_id, 0) + 1
-                _consecutive_failures[sim.edificio_id] = fails
+                fails = _consecutive_failures.get(eid, 0) + 1
+                _consecutive_failures[eid] = fails
                 logger.exception(
                     "Error en tick de sim %s (%s) — fallo consecutivo #%s",
-                    sim.edificio_id, sim.nombre, fails,
+                    eid, sim.nombre, fails,
                 )
-                if fails >= MAX_CONSECUTIVE_FAILURES:
-                    logger.error(
-                        "Removiendo simulador %s (%s) tras %s fallos consecutivos",
-                        sim.edificio_id, sim.nombre, fails,
-                    )
-                    del simulators[sim.edificio_id]
-                    _consecutive_failures.pop(sim.edificio_id, None)
+                # Backoff exponencial: 2^N ticks (cap = _MAX_BACKOFF_TICKS)
+                # El simulador NO se elimina; reintentará automáticamente.
+                backoff = min(2 ** fails, _MAX_BACKOFF_TICKS)
+                _backoff_remaining[eid] = backoff
+                logger.warning(
+                    "Simulador %s (%s) en backoff por %s ticks — reintentará automáticamente",
+                    eid, sim.nombre, backoff,
+                )

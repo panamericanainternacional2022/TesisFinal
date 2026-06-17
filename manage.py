@@ -76,9 +76,26 @@ def main():
                 _sim_globals.sim_paused = _first.sim_paused
                 _sim_globals.sim_speed = _first.sim_speed
 
-            # Iniciar loop
-            eventlet.spawn(generate_data_and_emit)
-            logger.info("Loop de simulación iniciado via manage.py runserver")
+            # ── Watchdog: relanza el engine si muere ──────────────────────────
+            def _engine_watchdog():
+                """Greenlet supervisor: si generate_data_and_emit termina
+                (por crash o excepción no capturada), lo relanza tras 5 s."""
+                while True:
+                    logger.info("Loop de simulación iniciado via manage.py runserver")
+                    gt = eventlet.spawn(generate_data_and_emit)
+                    try:
+                        gt.wait()   # bloquea hasta que el greenlet termine
+                        logger.warning(
+                            "Loop de simulación terminó normalmente (inesperado) — reintentando"
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Loop de simulación falló con excepción — reintentando en 5 s"
+                        )
+                    eventlet.sleep(5)
+
+            eventlet.spawn(_engine_watchdog)
+            logger.info("Watchdog del simulador iniciado: %d edificio(s)", len(simulators))
 
     try:
         from django.core.management import execute_from_command_line

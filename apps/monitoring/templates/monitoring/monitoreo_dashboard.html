@@ -750,25 +750,6 @@
             </div>
         </div>
 
-        {% if is_admin %}
-        <!-- Umbrales -->
-        <h2 style="font-size:var(--text-base); font-weight:var(--weight-medium); text-transform:uppercase; letter-spacing:var(--tracking-wide); color:var(--color-text-secondary); margin-bottom:var(--sp-1);">
-            <i class="fa-solid fa-gears"></i> Umbrales de riesgo
-        </h2>
-        <div class="panel">
-            <div class="threshold-legend">
-                <span><span class="badge-dir-up">&#8593;</span> Mayor es peor</span>
-                <span><span class="badge-dir-down">&#8595;</span> Menor es peor</span>
-                <span><span class="badge-dir-range">&#10298;</span> Rango v&aacute;lido</span>
-                <span style="margin-left:auto;">Cada n&uacute;mero es el <strong>l&iacute;mite</strong> donde comienza ese nivel de riesgo</span>
-            </div>
-            <div id="thresholdsPanel" class="grid-2"></div>
-            <div style="margin-top:var(--sp-2); display:flex; align-items:center; gap:var(--sp-2);">
-                <button id="saveThresholdsBtn" class="btn btn-ok"><i class="fas fa-check"></i> Guardar Umbrales</button>
-                <span id="saveMessage" style="font-size:var(--text-sm); color:var(--state-ok);"></span>
-            </div>
-        </div>
-        {% endif %}
 
         </div><!-- /activeMonitoring -->
         {% endif %}
