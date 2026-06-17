@@ -477,6 +477,14 @@ function applyPayload(data) {
         if (data.sim_speed !== undefined) {
             const simSpd = document.getElementById('simSpeedDisplay');
             if (simSpd) simSpd.textContent = data.sim_speed.toFixed(1) + 'x';
+            
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                if (parseFloat(btn.dataset.speed) === data.sim_speed) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
         }
     }
 
@@ -752,7 +760,6 @@ async function togglePause() {
         let data = await resp.json();
         if (data.status === 'ok') {
             updatePauseBtn(data.paused);
-            setSimMessage(data.paused ? 'Simulación pausada.' : 'Simulación reanudada.', 'info');
         }
     } catch (e) { setSimMessage('Error al pausar o reanudar la simulación.', 'error'); }
 }
@@ -806,17 +813,20 @@ async function injectFault(device) {
     } catch (e) { setSimMessage('Error al gestionar la falla.', 'error'); }
 }
 
-async function setSpeed() {
+async function setSpeed(speed) {
     if (!EDIFICIO_ID) return;
-    const slider = document.getElementById('simSpeedSlider');
-    const label = document.getElementById('simSpeedLabel');
-    if (!slider) return;
-    const speed = parseFloat(slider.value);
-    if (label) label.textContent = speed.toFixed(1) + 'x';
+    
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        if (parseFloat(btn.dataset.speed) === speed) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
     try {
         let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/set-speed/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ speed: speed }) });
         let data = await resp.json();
-        if (data.status === 'ok') setSimMessage(`Velocidad establecida: ${data.speed.toFixed(1)}x.`, 'info');
     } catch (e) { /* silent */ }
 }
 
@@ -1063,7 +1073,6 @@ function setupAdminEvents() {
     const resetBtn = document.getElementById('simResetBtn');
     const faultPump = document.getElementById('simFaultPump');
     const faultElev = document.getElementById('simFaultElevator');
-    const speedSlider = document.getElementById('simSpeedSlider');
     const saveThreshBtn = document.getElementById('saveThresholdsBtn');
     const threshPanel = document.getElementById('thresholdsPanel');
     const manualValInput = document.getElementById('manualValueInput');
@@ -1074,7 +1083,14 @@ function setupAdminEvents() {
     if (resetBtn) resetBtn.addEventListener('click', resetSim);
     if (faultPump) faultPump.addEventListener('change', () => injectFault('pump'));
     if (faultElev) faultElev.addEventListener('change', () => injectFault('elevator'));
-    if (speedSlider) speedSlider.addEventListener('input', setSpeed);
+    
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const speed = parseFloat(e.target.dataset.speed);
+            setSpeed(speed);
+        });
+    });
+
     if (saveThreshBtn) saveThreshBtn.addEventListener('click', saveThresholds);
     if (threshPanel) threshPanel.addEventListener('input', validateThresholdInputs);
     if (manualValInput) manualValInput.addEventListener('input', updateManualRiskPreview);
@@ -1097,10 +1113,13 @@ function setupAdminEvents() {
     fetchSimStatus().then(data => {
         if (data) {
             updatePauseBtn(data.paused);
-            const slider = document.getElementById('simSpeedSlider');
-            const label = document.getElementById('simSpeedLabel');
-            if (slider) slider.value = data.speed;
-            if (label) label.textContent = data.speed.toFixed(1) + 'x';
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                if (parseFloat(btn.dataset.speed) === data.speed) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
             const fp = document.getElementById('simFaultPump');
             const fe = document.getElementById('simFaultElevator');
             if (fp) fp.value = data.faults && data.faults.pump ? data.faults.pump : '';

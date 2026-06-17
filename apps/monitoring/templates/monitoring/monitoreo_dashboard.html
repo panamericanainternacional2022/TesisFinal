@@ -322,6 +322,45 @@
         .badge-dir-down { color: #c2410c; font-weight: var(--weight-bold); }
         .badge-dir-range { color: var(--state-inactive); font-weight: var(--weight-bold); }
 
+        /* ── Panel de controles admin (sub-secciones) ── */
+        .admin-controls-panel .panel-subsection {
+            padding-top: var(--sp-2);
+        }
+        .admin-controls-panel .panel-subsection + .panel-subsection {
+            margin-top: var(--sp-2);
+            padding-top: var(--sp-2);
+            border-top: 1px dashed var(--color-ink);
+        }
+        .panel-subsection-title {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            text-transform: uppercase;
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--sp-2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .admin-controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--sp-2);
+            align-items: flex-end;
+        }
+
+        /* ── Speed Button Group ── */
+        .speed-group { display: flex; height: 38px; border: 2px solid var(--color-ink); box-shadow: 3px 3px 0px var(--color-ink); background: var(--color-surface); }
+        .speed-btn {
+            flex: 1; border: none; background: transparent; color: var(--color-text-secondary);
+            font-size: var(--text-xs); font-weight: var(--weight-bold); cursor: pointer;
+            border-right: 1px solid var(--color-border); padding: 0 10px; transition: all var(--transition-fast);
+            font-family: var(--font);
+        }
+        .speed-btn:last-child { border-right: none; }
+        .speed-btn:hover { background: var(--color-bg); color: var(--color-ink); }
+        .speed-btn.active { background: var(--color-accent-bg); color: var(--color-accent); font-weight: 800; }
+
         /* Responsive */
         @media (max-width: 1024px) {
             .grid-2, .grid-3 { grid-template-columns: 1fr; }
@@ -455,72 +494,79 @@
             <div id="statsElevadorPanel"></div>
         </div>
 
-        <!-- Control manual -->
-        <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-sliders"></i> Control manual de sensores</h2>
-            <div style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
-                <div class="form-group" style="flex:1; min-width:180px;">
-                    <label class="form-label">Sensor</label>
-                    <select id="manualSensorSelect" class="form-select" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"></select>
-                </div>
-                <div class="form-group" style="flex:1; min-width:180px;">
-                    <label class="form-label">Valor</label>
-                    <input type="text" id="manualValueInput" class="form-input" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);" placeholder="Ingrese valor">
-                </div>
-                <div>
-                    <button id="sendManualBtn" class="btn btn-primary" style="height:38px; display:inline-flex; align-items:center; justify-content:center; padding: 6px 16px;">
-                        <i class="fas fa-paper-plane"></i> Enviar
-                    </button>
-                </div>
-            </div>
-            <div style="font-size:var(--text-xs); margin-top:8px; height:18px;" id="manualRiskPreview"></div>
-        </div>
+        <!-- Controles administrativos (simulación + override manual) -->
+        <div class="panel admin-controls-panel" style="margin-bottom: var(--sp-3);">
+            <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
 
-        <!-- Control de simulación -->
-        <div class="panel">
-            <h2 class="panel-title"><i class="fa-solid fa-gamepad"></i> Control de simulación</h2>
-            <div id="simControls" style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
-                <div class="form-group" style="min-width:100px;">
-                    <label class="form-label">Estado</label>
-                    <button id="simPauseBtn" class="btn btn-secondary" style="height:38px; width:120px; padding: 6px 16px;">
-                        <i class="fas fa-pause"></i> <span>Pausar</span>
-                    </button>
+            <!-- Sub-sección: Simulación -->
+            <div class="panel-subsection">
+                <div class="panel-subsection-title">
+                    <i class="fa-solid fa-gamepad"></i> Simulación
                 </div>
-                <div class="form-group" style="min-width:100px;">
-                    <label class="form-label">Velocidad</label>
-                    <div style="display:flex; gap:6px; align-items:center;">
-                        <input type="range" id="simSpeedSlider" min="1" max="2" step="0.25" value="1.0" style="width:120px; height:38px; accent-color:var(--color-accent);">
-                        <span id="simSpeedLabel" style="font-weight:var(--weight-bold); min-width:40px; font-size:var(--text-sm);">1.0x</span>
+                <div id="simControls" class="admin-controls-row">
+                    <div class="form-group">
+                        <button id="simPauseBtn" class="btn btn-secondary" style="height:38px; min-width:120px; padding: 6px 16px;">
+                            <i class="fas fa-pause"></i> <span>Pausar</span>
+                        </button>
                     </div>
-                </div>
-                <div class="form-group" style="min-width:140px;">
-                    <label class="form-label">Falla (bomba)</label>
-                    <div style="display:flex; gap:6px;">
-                        <select id="simFaultPump" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); flex:1;">
+                    <div class="form-group">
+                        <label class="form-label">Velocidad</label>
+                        <div class="speed-group">
+                            <button type="button" class="speed-btn" data-speed="0.5">0.5x</button>
+                            <button type="button" class="speed-btn active" data-speed="1.0">1.0x</button>
+                            <button type="button" class="speed-btn" data-speed="1.5">1.5x</button>
+                            <button type="button" class="speed-btn" data-speed="2.0">2.0x</button>
+                        </div>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:160px;">
+                        <label class="form-label">Falla (Bomba de agua)</label>
+                        <select id="simFaultPump" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
                             <option value="">Ninguna</option>
                             {% for key, name in PUMP_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                </div>
-                <div class="form-group" style="min-width:140px;">
-                    <label class="form-label">Falla (elevador)</label>
-                    <div style="display:flex; gap:6px;">
-                        <select id="simFaultElevator" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); flex:1;">
+                    <div class="form-group" style="flex:1; min-width:160px;">
+                        <label class="form-label">Falla (Elevador)</label>
+                        <select id="simFaultElevator" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
                             <option value="">Ninguna</option>
                             {% for key, name in ELEVATOR_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
                             {% endfor %}
                         </select>
                     </div>
+                    <div style="align-self:flex-end;">
+                        <button id="simResetBtn" class="btn btn-critical" style="height:38px; padding: 6px 16px;">
+                            <i class="fas fa-rotate-left"></i> Reiniciar
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group" style="min-width:60px;">
-                    <label class="form-label">&nbsp;</label>
-                    <button id="simResetBtn" class="btn btn-critical" style="height:38px; padding: 6px 16px;">
-                        <i class="fas fa-rotate-left"></i> Reset
-                    </button>
+            </div>
+
+            <!-- Sub-sección: Override manual de sensor -->
+            <div class="panel-subsection">
+                <div class="panel-subsection-title">
+                    <i class="fa-solid fa-sliders"></i> Manuales
                 </div>
+                <div class="admin-controls-row">
+                    <div class="form-group" style="flex:1; min-width:180px;">
+                        <label class="form-label">Sensor</label>
+                        <select id="manualSensorSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"></select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:160px;">
+                        <label class="form-label">Valor</label>
+                        <input type="text" id="manualValueInput" class="form-input"
+                               style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"
+                               placeholder="Ingrese valor">
+                    </div>
+                    <div style="align-self:flex-end;">
+                        <button id="sendManualBtn" class="btn btn-primary" style="height:38px; padding: 6px 16px;">
+                            <i class="fas fa-paper-plane"></i> Enviar
+                        </button>
+                    </div>
+                </div>
+                <div style="font-size:var(--text-xs); margin-top:8px; min-height:18px;" id="manualRiskPreview"></div>
             </div>
         </div>
         {% endif %}
