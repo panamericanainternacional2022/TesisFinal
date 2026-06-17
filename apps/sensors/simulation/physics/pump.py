@@ -38,6 +38,8 @@ def _update_pump(sim: BuildingSimulator) -> None:
 
 
 def _update_pump_refill(sim: BuildingSimulator, sd: dict, dt: float) -> None:
+    if sim.sim_faults.get("pump") == "dry_run":
+        return
     from apps.sensors.simulation.constants import REFILL_TIMER_TICKS
     sim._pump_refill_timer += dt
     if sim._pump_refill_timer >= REFILL_TIMER_TICKS:
@@ -116,6 +118,8 @@ def _apply_power_outage(sd: dict, dt: float) -> None:
     sd["current"] = 0.0
     sd["flow_rate"] = 0.0
     sd["pressure"] = 0.0
+    sd["vibration"] = 0.0
+    sd["temperature"] = _clamp(sd["temperature"] - 0.5 * dt, T_AMBIENT, _TEMP_HIGH)
 
 
 def _clamp_pump_values(sd: dict) -> None:

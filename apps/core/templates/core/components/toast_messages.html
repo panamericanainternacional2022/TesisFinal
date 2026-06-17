@@ -54,16 +54,6 @@
                     }, 5000);
                 }
             });
-
-            // Close button handler for toast notifications
-            document.addEventListener('click', function(e) {
-                if (e.target.classList.contains('close-msg-btn')) {
-                    const toast = e.target.closest('.toast-item');
-                    if (toast) {
-                        closeToast(toast);
-                    }
-                }
-            });
         });
     </script>
 {% endif %}

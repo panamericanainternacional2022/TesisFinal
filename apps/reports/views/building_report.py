@@ -14,7 +14,7 @@ from apps.sensors.sensor_config import (
 )
 from apps.alerts.models import Notification
 
-from .shared import _pdf_font, draw_row
+from .shared import _pdf_font, draw_row, safe_text
 from .pdf_rendering import (
     ACCENT_COLOR, DIVIDER_COLOR, HEADER_BG, HEADER_TEXT,
     _create_report_pdf,
@@ -227,10 +227,10 @@ def _render_executive_summary(
     pdf.set_text_color(26, 26, 26)
     if "bomba" in equip_types:
         status_str = pump_status.capitalize() if pump_status else "Desconocido"
-        pdf.cell(0, 6, f"Bomba de agua: {status_str}", ln=1)
+        pdf.cell(0, 6, safe_text(f"Bomba de agua: {status_str}"), ln=1)
     if "elevador" in equip_types:
         status_str = elevator_status.capitalize() if elevator_status else "Desconocido"
-        pdf.cell(0, 6, f"Elevador: {status_str}", ln=1)
+        pdf.cell(0, 6, safe_text(f"Elevador: {status_str}"), ln=1)
     pdf.ln(4)
 
 
@@ -337,7 +337,7 @@ def _render_current_readings(
 
         _pdf_font(pdf, "B", 10)
         pdf.set_text_color(55, 65, 81)
-        pdf.cell(0, 7, section_name, ln=1)
+        pdf.cell(0, 7, safe_text(section_name), ln=1)
         pdf.ln(1)
 
         render_table_header(pdf, col_widths, col_aligns, col_headers)
@@ -377,7 +377,7 @@ def _render_rationing_section(pdf: Any, sensor_data: dict) -> None:
     if flow is None:
         _pdf_font(pdf, "", 10)
         pdf.set_text_color(95, 95, 95)
-        pdf.cell(0, 7, "Sin datos de caudal disponibles.", ln=1)
+        pdf.cell(0, 7, safe_text("Sin datos de caudal disponibles."), ln=1)
         pdf.ln(4)
         return
 
@@ -405,7 +405,7 @@ def _render_rationing_section(pdf: Any, sensor_data: dict) -> None:
 
     _pdf_font(pdf, "B", 10)
     pdf.set_draw_color(10, 10, 10)
-    pdf.cell(0, 8, f"  {label}", 1, 1, "L", True)
+    pdf.cell(0, 8, f"  {safe_text(label)}", 1, 1, "L", True)
     pdf.ln(4)
 
 
@@ -424,7 +424,7 @@ def _render_alerts_section(pdf: Any, edificio_id: int, now: dt.datetime) -> None
     total = notifications.count()
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(26, 26, 26)
-    pdf.cell(0, 7, f"Últimas 24 horas: {total} alerta(s) registrada(s)", ln=1)
+    pdf.cell(0, 7, safe_text(f"Últimas 24 horas: {total} alerta(s) registrada(s)"), ln=1)
     pdf.ln(3)
 
     counts: dict[str, int] = {}
@@ -436,7 +436,7 @@ def _render_alerts_section(pdf: Any, edificio_id: int, now: dt.datetime) -> None
     if not counts:
         pdf.set_text_color(95, 95, 95)
         _pdf_font(pdf, "", 10)
-        pdf.cell(0, 7, "No se registraron alertas en las últimas 24 horas.", ln=1)
+        pdf.cell(0, 7, safe_text("No se registraron alertas en las últimas 24 horas."), ln=1)
         pdf.ln(4)
         return
 
@@ -479,7 +479,7 @@ def _render_recommendations_section(pdf: Any, sensor_data: dict) -> None:
     for i, rec in enumerate(recs, 1):
         # multi_cell(0) usa todo el ancho disponible y gestiona saltos de página
         # correctamente sin el conflicto de posición X que causa cell()+multi_cell(174)
-        pdf.multi_cell(0, 6, f"{i}.  {rec}", new_x="LEFT", new_y="NEXT")
+        pdf.multi_cell(0, 6, safe_text(f"{i}.  {rec}"), new_x="LEFT", new_y="NEXT")
         pdf.ln(2)
 
     pdf.ln(4)

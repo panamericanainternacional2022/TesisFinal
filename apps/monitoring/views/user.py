@@ -25,7 +25,14 @@ def render_user_monitoring(request) -> HttpResponse:
 
     user_building_ids = get_user_building_ids(user_id)
     edificios = list(Building.objects.filter(pk__in=user_building_ids))
-    building_id = edificios[0].pk if edificios else 0
+    
+    building_id_raw = get_building_id_param(request, "edificio", "edificio_id")
+    if building_id_raw and building_id_raw.isdigit():
+        building_id = int(building_id_raw)
+        if building_id not in user_building_ids:
+            building_id = edificios[0].pk if edificios else 0
+    else:
+        building_id = edificios[0].pk if edificios else 0
 
     return render(
         request,

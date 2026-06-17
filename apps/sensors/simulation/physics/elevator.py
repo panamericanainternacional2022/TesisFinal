@@ -105,7 +105,7 @@ def _run_elevator_fsm(sim: BuildingSimulator, sd: dict, dt: float) -> None:
         handler(sim, sd, dt, spd, pos, load, door, target, direction)
     pos = sd["position"]
     spd = sd["speed"]
-    _run_elevator_post_fsm(sim, sd, dt, prev_pos, pos, spd, load, door)
+    _run_elevator_post_fsm(sim, sd, dt, prev_pos, pos, spd, load, door, state)
 
 
 def _handle_elev_idle(
@@ -230,7 +230,7 @@ def _handle_elev_decelerating(
 def _run_elevator_post_fsm(
     sim: BuildingSimulator, sd: dict, dt: float,
     prev_pos: float, pos: float, spd: float,
-    load: float, door: str,
+    load: float, door: str, old_state: str,
 ) -> None:
     pos = _clamp(pos, 0, FLOOR_COUNT * FLOOR_HEIGHT)
     current_state = sim._elev_state
@@ -241,10 +241,13 @@ def _run_elevator_post_fsm(
     if current_state == "DOOR_CLOSING" and sim._elev_timer >= 1:
         if random.random() < 0.15 * dt:
             sim.door_close_attempts += 1
-    if prev_pos < FLOOR_HEIGHT and pos >= FLOOR_HEIGHT and sim._elev_direction > 0:
+    
+    moving_states = {"ACCELERATING", "MOVING", "DECELERATING"}
+    if old_state in moving_states and current_state not in moving_states:
         sd["trip_count"] += 1
+        
     energy = _compute_elevator_energy(load, spd, current_state, sim)
-    stuck = _check_motor_stuck(spd, load, sd.get("temperature", 50.0))
+    stuck = _check_motor_stuck(current_state, spd, load, sd.get("temperature", 50.0))
     sd["position"] = round(pos, 1)
     sd["speed"] = round(spd, 1)
     sd["load"] = round(load)
@@ -263,6 +266,8 @@ def _compute_elevator_energy(
     return energy
 
 
-def _check_motor_stuck(speed: float, load: float, temperature: float) -> bool:
+def _check_motor_stuck(state: str, speed: float, load: float, temperature: float) -> bool:
+    if state in ("IDLE", "DOOR_OPENING", "DOORS_OPEN", "DOOR_CLOSING"):
+        return False
     from apps.sensors.simulation.constants import ELEVATOR_LOAD_ALERT, ELEVATOR_TEMP_ALERT
     return speed == 0 and (load > ELEVATOR_LOAD_ALERT or temperature > ELEVATOR_TEMP_ALERT)

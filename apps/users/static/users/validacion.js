@@ -224,7 +224,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Confirmar contraseña
     function validarConfirmPassword(input) {
         const form = input.form;
-        const passField = form.querySelector('#new_password') || form.querySelector('#current_password');
+        const passField = form.querySelector('#password') || form.querySelector('#new_password') || form.querySelector('#current_password');
         const passValue = passField ? passField.value : '';
         if (input.value && input.value !== passValue) {
             mostrarError(input, 'Las contraseñas no coinciden.');

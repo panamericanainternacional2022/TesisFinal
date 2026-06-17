@@ -73,7 +73,7 @@ class RegisterBuildingViewTests(BuildingViewTestBase):
     def test_post_creates_building(self) -> None:
         response = self.client.post(reverse("register_building"), {
             "nombreEdificio": "Edificio Test",
-            "parroquia": "Av. Principal, Urb. Centro",
+            "direccion": "Av. Principal, Urb. Centro",
             "rif": "J-11111111-0",
             "con_bomba": "true",
             "con_elevador": "true",

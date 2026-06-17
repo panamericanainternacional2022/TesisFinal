@@ -14,7 +14,7 @@ def pop_messages(request: HttpRequest, key: str = "_bld_msg") -> list:
 def extract_building_data(request: HttpRequest) -> dict:
     return {
         "name": request.POST.get("nombreEdificio", "").strip(),
-        "address": request.POST.get("parroquia", "").strip(),
+        "address": request.POST.get("direccion", "").strip(),
         "rif": request.POST.get("rif", "").strip(),
     }
 

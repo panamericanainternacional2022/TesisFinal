@@ -410,3 +410,36 @@ input[type="number"]:focus {
 .admin-info {
     border-top: 6px solid var(--color-accent) !important;
 }
+
+/* ── Alertas del Sistema ───────────────────────────────────────────────────── */
+.alert {
+    padding: var(--sp-2) var(--sp-3);
+    margin-bottom: var(--sp-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    border: 2px solid var(--color-ink);
+    border-radius: 0px;
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+}
+
+.alert.alert-success,
+.alert.alert-ok {
+    background: var(--state-ok-bg);
+    color: var(--state-ok);
+    border-color: var(--state-ok);
+}
+
+.alert.alert-error {
+    background: var(--state-critical-bg);
+    color: var(--state-critical);
+    border-color: var(--state-critical);
+}
+
+.alert.alert-warning {
+    background: var(--state-warn-bg);
+    color: var(--state-warn);
+    border-color: var(--state-warn);
+}

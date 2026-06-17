@@ -231,6 +231,7 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
             "user": data,
             "editing": True,
             "usuario_id": user_id,
+            "persona_id": person.id_persona if person else None,
             "edificios": buildings,
             "edificio_actual": current_building,
             "form_errors": form_errors,

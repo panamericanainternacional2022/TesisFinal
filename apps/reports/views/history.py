@@ -26,6 +26,7 @@ from .shared import (
     _parse_query_params,
     _pdf_font,
     draw_row,
+    safe_text,
 )
 
 
@@ -108,7 +109,7 @@ def history_pdf_view(request: Any) -> HttpResponse:
         else:
             _pdf_font(pdf, "I", 10)
             pdf.set_text_color(95, 95, 95)
-            pdf.cell(0, 9, "No se encontraron eventos con los filtros aplicados.", ln=1)
+            pdf.cell(0, 9, safe_text("No se encontraron eventos con los filtros aplicados."), ln=1)
 
         filename = f"historial_{now.strftime('%Y%m%d_%H%M%S')}.pdf"
         return make_pdf_response(pdf, filename)

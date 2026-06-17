@@ -89,10 +89,17 @@ function getCookie(name) {
     return cookieValue;
 }
 
-function csrfFetch(url, opts) {
+function csrfFetch(url, opts = {}) {
     let token = getCookie('csrftoken');
     if (!token && window.CSRF_TOKEN) token = window.CSRF_TOKEN;
-    opts.headers = { ...opts.headers, 'X-CSRFToken': token };
+    const headers = {
+        'X-CSRFToken': token,
+        ...opts.headers
+    };
+    if (opts.body && !headers['Content-Type'] && !headers['content-type']) {
+        headers['Content-Type'] = 'application/json';
+    }
+    opts.headers = headers;
     opts.credentials = 'same-origin';
     return fetch(url, opts);
 }
@@ -142,18 +149,13 @@ function isBombaVariable(variable) {
 // 5.  Card rendering
 // ═══════════════════════════════════════════════════════════════════
 
-function renderCard(variable, value, risk, label) {
+function renderCard(variable, value, risk, badgeClass, cardClass) {
     const name = getVariableName(variable).toUpperCase();
-    const badgeClass = getRiskBadge(risk);
     const displayValue = translateSensorValue(variable, value)
         ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
-    let riskCls = 'risk-low';
-    if (risk === _RISK.medio) riskCls = 'risk-med';
-    else if (risk === _RISK.alto) riskCls = 'risk-high';
-    else if (risk === _RISK.critico) riskCls = 'risk-crit';
 
     return `
-        <div class="sensor-card ${riskCls}">
+        <div class="sensor-card ${cardClass}">
             <div class="sensor-card-name">${name}</div>
             <div class="sensor-card-value">${displayValue}</div>
             <div class="sensor-card-footer">
@@ -171,16 +173,10 @@ function updateCards(data) {
     a.innerHTML = '';
     for (let [k, v] of Object.entries(data)) {
         let ri = getRiskClass(k, v);
-        let dn = getVariableName(k).toUpperCase();
-        let valStr = translateSensorValue(k, v) ?? `${formatNumeric(v, k)} ${getUnit(k)}`;
-        let card = document.createElement('div');
-        card.className = `sensor-card ${ri.card}`;
-        card.innerHTML = `
-            <div class="sensor-card-name">${dn}</div>
-            <div class="sensor-card-value">${valStr}</div>
-            <div class="sensor-card-footer">
-                <span class="badge ${ri.badge}">${ri.label}</span>
-            </div>`;
+        let cardHtml = renderCard(k, v, ri.label, ri.badge, ri.card);
+        let wrapper = document.createElement('div');
+        wrapper.innerHTML = cardHtml.trim();
+        let card = wrapper.firstElementChild;
         if (_BOMBA_VARS.includes(k)) b.appendChild(card);
         else if (_ELEVADOR_VARS.includes(k)) a.appendChild(card);
     }
@@ -190,11 +186,22 @@ function updateCards(data) {
 // 6.  Charts
 // ═══════════════════════════════════════════════════════════════════
 
+function getCSSVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '';
+}
+
 function initCharts() {
     if (typeof Chart === 'undefined') {
         console.warn('Chart.js no disponible. Gráficos desactivados.');
         return;
     }
+    const canvas1 = document.getElementById('chart1');
+    const canvas2 = document.getElementById('chart2');
+    if (!canvas1 || !canvas2) {
+        console.warn('Canvas para gráficos no encontrados. Omisión de inicialización.');
+        return;
+    }
+
     const chartDefaults = {
         responsive: true,
         plugins: {
@@ -207,17 +214,18 @@ function initCharts() {
         }
     };
 
-    const pumpLabels = _BOMBA_VARS.map(v => `${getVariableName(v)} (${getUnit(v)})`);
+    const pumpNumVars = _BOMBA_VARS.filter(v => v !== 'tank_level');
+    const pumpLabels = pumpNumVars.map(v => `${getVariableName(v)} (${getUnit(v)})`);
     const elevLabels = _ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck')
         .map(v => `${getVariableName(v)} (${getUnit(v)})`);
 
-    chart1 = new Chart(document.getElementById('chart1')?.getContext('2d'), {
+    chart1 = new Chart(canvas1.getContext('2d'), {
         type: 'bar',
         data: {
             labels: pumpLabels,
             datasets: [{
-                backgroundColor: '#0a0a0a',
-                borderColor: '#0a0a0a',
+                backgroundColor: getCSSVar('--color-ink') || '#0a0a0a',
+                borderColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderWidth: 1,
                 data: new Array(pumpLabels.length).fill(0)
             }]
@@ -225,13 +233,13 @@ function initCharts() {
         options: chartDefaults
     });
 
-    chart2 = new Chart(document.getElementById('chart2')?.getContext('2d'), {
+    chart2 = new Chart(canvas2.getContext('2d'), {
         type: 'bar',
         data: {
             labels: elevLabels,
             datasets: [{
-                backgroundColor: '#0a0a0a',
-                borderColor: '#0a0a0a',
+                backgroundColor: getCSSVar('--color-ink') || '#0a0a0a',
+                borderColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderWidth: 1,
                 data: new Array(elevLabels.length).fill(0)
             }]
@@ -253,11 +261,11 @@ function updateCharts(history) {
 
     const getSensorColor = (v) => {
         const r = getLatestReading(v);
-        if (!r) return '#0a0a0a';
-        if (r.risk === _RISK.critico) return '#991b1b';
+        if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
+        if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
         if (r.risk === _RISK.alto) return '#c2410c';
-        if (r.risk === _RISK.medio) return '#b45309';
-        return '#166534';
+        if (r.risk === _RISK.medio) return getCSSVar('--state-warn') || '#b45309';
+        return getCSSVar('--state-ok') || '#16a34a';
     };
 
     if (chart1) {
@@ -854,7 +862,7 @@ function updatePauseBtn(paused) {
     if (!btn) return;
     if (paused) {
         btn.innerHTML = '<i class="fas fa-play"></i> <span>Reanudar</span>';
-        btn.className = 'btn btn-ok';
+        btn.className = 'btn btn-secondary';
     } else {
         btn.innerHTML = '<i class="fas fa-pause"></i> <span>Pausar</span>';
         btn.className = 'btn btn-ghost';

@@ -68,6 +68,18 @@
         return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
     };
 
+    // Register toast close listener globally immediately on load
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-msg-btn')) {
+            const t = e.target.closest('.toast-item');
+            if (t) {
+                t.style.transform = 'translateX(120%)';
+                t.style.opacity = '0';
+                setTimeout(function() { t.remove(); }, 350);
+            }
+        }
+    });
+
     // ── Toast deslizante (no bloqueante) ──────────────────────────────────────
     window.showToast = function(message, type) {
         type = type || 'info';
@@ -77,15 +89,6 @@
             container.className = 'messages-container';
             container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:380px;width:calc(100% - 48px);';
             document.body.appendChild(container);
-            if (!document.__toastCloseHandlerAdded) {
-                document.__toastCloseHandlerAdded = true;
-                document.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('close-msg-btn')) {
-                        const t = e.target.closest('.toast-item');
-                        if (t) { t.style.transform = 'translateX(120%)'; t.style.opacity = '0'; setTimeout(function() { t.remove(); }, 350); }
-                    }
-                });
-            }
         }
         const styles = {
             success: 'background-color:var(--state-ok-bg);color:var(--state-ok);border-left:6px solid var(--state-ok);',

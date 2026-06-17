@@ -9,6 +9,7 @@ from .shared import (
     SEVERITY_DISPLAY_LEVELS,
     _pdf_font,
     draw_row,
+    safe_text,
 )
 
 # ─── Paleta de acento ────────────────────────────────────────────────────────
@@ -44,7 +45,7 @@ def render_logo(pdf: Any) -> None:
     pdf.set_x(17)
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 8, "Sistema inteligente de automatización", ln=1, align="L")
+    pdf.cell(0, 8, safe_text("Sistema inteligente de automatización"), ln=1, align="L")
     pdf.ln(2)
 
     # Línea separadora suave
@@ -72,12 +73,12 @@ def render_pdf_header(
     render_logo(pdf)
     _pdf_font(pdf, "B", 18)
     pdf.set_text_color(10, 10, 10)
-    pdf.cell(0, 12, title, ln=1, align="L")
+    pdf.cell(0, 12, safe_text(title), ln=1, align="L")
     _pdf_font(pdf, "", 11)
     pdf.set_text_color(26, 26, 26)
     for line in meta_lines:
         if line is not None:
-            pdf.cell(0, 7, line, ln=1)
+            pdf.cell(0, 7, safe_text(line), ln=1)
     pdf.ln(6)
 
 
@@ -94,7 +95,7 @@ def render_section_divider(pdf: Any, title: str) -> None:
     pdf.ln(2)
     _pdf_font(pdf, "B", 13)
     pdf.set_text_color(*ACCENT_COLOR)
-    pdf.cell(0, 9, title, ln=1)
+    pdf.cell(0, 9, safe_text(title), ln=1)
     pdf.set_draw_color(*DIVIDER_COLOR)
     pdf.set_line_width(0.4)
     y = pdf.get_y()
@@ -140,7 +141,7 @@ def render_summary_box(pdf: Any, items: list) -> None:
         label = item.get("label", "")
         pdf.set_xy(start_x + i * cell_w + 3, start_y + 2)
         pdf.set_text_color(*text_c)
-        pdf.cell(cell_w - 3, 5, label, ln=0)
+        pdf.cell(cell_w - 3, 5, safe_text(label), ln=0)
 
     # Valores (fila inferior, más grandes)
     _pdf_font(pdf, "B", 12)
@@ -149,7 +150,7 @@ def render_summary_box(pdf: Any, items: list) -> None:
         value = str(item.get("value", ""))
         pdf.set_xy(start_x + i * cell_w + 3, start_y + 8)
         pdf.set_text_color(*text_c)
-        pdf.cell(cell_w - 3, 7, value, ln=0)
+        pdf.cell(cell_w - 3, 7, safe_text(value), ln=0)
 
     pdf.set_xy(start_x, start_y + box_h + 4)
 
@@ -165,17 +166,14 @@ def render_text_progress_bar(
     unit: str = "",
 ) -> None:
     """
-    Barra de progreso en texto (bloques Unicode █░) para mostrar
+    Barra de progreso vectorial premium (usando pdf.rect) para mostrar
     una lectura respecto a su rango máximo y umbral crítico.
     Patrón compartido disponible para los 3 PDFs.
     """
     if max_value <= 0:
         return
 
-    bar_width = 24
     ratio = min(1.0, max(0.0, value / max_value))
-    filled = round(ratio * bar_width)
-    bar = "█" * filled + "░" * (bar_width - filled)
     pct = ratio * 100
 
     # Determinar color de la barra
@@ -188,23 +186,54 @@ def render_text_progress_bar(
         bar_text = (22, 101, 52)
         estado = "✓ Dentro del rango"
 
-    if pdf.get_y() + 14 > 270:
+    if pdf.get_y() + 16 > 270:
         pdf.add_page()
 
     _pdf_font(pdf, "", 9)
     pdf.set_text_color(55, 65, 81)
-    pdf.cell(0, 5, label, ln=1)
+    pdf.cell(0, 5, safe_text(label), ln=1)
 
-    _pdf_font(pdf, "B", 9)
-    pdf.set_text_color(*bar_text)
-    bar_line = f"{bar}  {pct:.0f}%   {value:.1f} / {max_value:.1f} {unit}".strip()
+    # Posicionamiento para dibujo vectorial
+    start_x = pdf.get_x()
+    start_y = pdf.get_y()
+
+    # Dibujar celda contenedora
     pdf.set_fill_color(*bar_fill)
     pdf.set_draw_color(*HEADER_BG)
-    pdf.cell(0, 7, f"  {bar_line}", 1, 1, "L", True)
+    pdf.set_line_width(0.4)
+    pdf.cell(0, 8, "", 1, 1, "L", True)
+
+    # Dibujar barra de progreso
+    bar_x = start_x + 4
+    bar_y = start_y + 2
+    bar_w = 80
+    bar_h = 4
+
+    # Fondo de la barra
+    pdf.set_fill_color(229, 231, 235)  # gray-200
+    pdf.rect(bar_x, bar_y, bar_w, bar_h, "F")
+
+    # Llenado de la barra
+    fill_color = (22, 101, 52) if (threshold is None or value >= threshold) else (153, 27, 27)
+    pdf.set_fill_color(*fill_color)
+    pdf.rect(bar_x, bar_y, bar_w * ratio, bar_h, "F")
+
+    # Texto a la derecha de la barra
+    text_x = bar_x + bar_w + 4
+    pdf.set_xy(text_x, start_y + 1)
+    _pdf_font(pdf, "B", 9)
+    pdf.set_text_color(*bar_text)
+    
+    safe_unit = safe_text(unit)
+    info_text = f"{pct:.0f}%   ({value:.1f} / {max_value:.1f} {safe_unit})"
+    pdf.cell(0, 6, info_text, 0, 0, "L")
+
+    # Restaurar cursor al final de la celda contenedora
+    pdf.set_xy(start_x, start_y + 8)
 
     _pdf_font(pdf, "", 8)
     pdf.set_text_color(95, 95, 95)
-    pdf.cell(0, 5, f"  {estado}", ln=1)
+    pdf.cell(0, 5, f"  {safe_text(estado)}", ln=1)
     pdf.ln(2)
 
 
@@ -218,9 +247,9 @@ def render_severity_legend(pdf: Any) -> None:
         pdf.set_fill_color(*fill)
         pdf.set_text_color(*text_c)
         pdf.set_draw_color(10, 10, 10)
-        pdf.cell(28, 6, f"  {lbl}", 1, 0, "L", True)
+        pdf.cell(28, 6, f"  {safe_text(lbl)}", 1, 0, "L", True)
         pdf.set_text_color(95, 95, 95)
-        pdf.cell(162, 6, f" {desc}", 1, 1, "L")
+        pdf.cell(162, 6, f" {safe_text(desc)}", 1, 1, "L")
     pdf.ln(6)
 
 
@@ -301,8 +330,10 @@ def _create_report_pdf(title: str) -> Any:
             else:
                 _pdf_font(self, "I", 9)
                 self.set_text_color(95, 95, 95)
-                self.cell(0, 10, f"INES \u2014 {self._title}", 0, 0, "L")
-                self.cell(0, 10, f"P\u00e1gina {self.page_no()} / {{nb}}", 0, 1, "R")
+                title_text = safe_text(f"INES - {self._title}")
+                page_text = safe_text(f"Pagina {self.page_no()} / {{nb}}")
+                self.cell(0, 10, title_text, 0, 0, "L")
+                self.cell(0, 10, page_text, 0, 1, "R")
                 self.set_draw_color(*DIVIDER_COLOR)
                 self.set_line_width(0.5)
                 self.line(10, 18, 200, 18)
@@ -312,12 +343,11 @@ def _create_report_pdf(title: str) -> Any:
             self.set_y(-15)
             _pdf_font(self, "I", 9)
             self.set_text_color(95, 95, 95)
-            self.cell(
-                0, 10,
-                f"INES \u00b7 Sistema inteligente de automatizaci\u00f3n"
-                f"  \u00b7  P\u00e1gina {self.page_no()} / {{nb}}",
-                0, 0, "C",
+            footer_text = safe_text(
+                f"INES * Sistema inteligente de automatizacion"
+                f"  *  Pagina {self.page_no()} / {{nb}}"
             )
+            self.cell(0, 10, footer_text, 0, 0, "C")
 
     pdf = _ReportPDF()
     pdf.alias_nb_pages()
@@ -365,7 +395,7 @@ def render_event_rows(
         pdf.set_text_color(194, 65, 12)
         pdf.cell(
             0, 6,
-            f"Mostrando los primeros {MAX_PDF_EVENTS} de {len(parsed_list)} eventos totales.",
+            safe_text(f"Mostrando los primeros {MAX_PDF_EVENTS} de {len(parsed_list)} eventos totales."),
             ln=1,
         )
         pdf.ln(2)

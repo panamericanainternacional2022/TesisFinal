@@ -160,6 +160,28 @@ def _pdf_font(pdf: Any, style: str = "", size: int = 10) -> None:
         pdf.set_font("Helvetica", style, size)
 
 
+def safe_text(txt: Any) -> str:
+    if txt is None:
+        return ""
+    t_str = str(txt)
+    if not _resolve_font():
+        # Map accented and special characters to standard equivalents when falling back to Helvetica
+        accents = {
+            'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+            'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+            'ñ': 'n', 'Ñ': 'N', 'ü': 'u', 'Ü': 'U',
+            'í': 'i', 'ï': 'i', 'ö': 'o', 'ä': 'a',
+            '\u201c': '"', '\u201d': '"',
+            '\u2018': "'", '\u2019': "'",
+            '\u2013': '-', '\u2014': '-',
+            '\u2022': '*', '\u2026': '...',
+        }
+        for c, r in accents.items():
+            t_str = t_str.replace(c, r)
+        t_str = t_str.encode("latin-1", errors="replace").decode("latin-1")
+    return t_str
+
+
 # Color de zebra striping para filas alternas sin fill explícito
 _ZEBRA_FILL: tuple[int, int, int] = (248, 249, 250)
 
@@ -183,9 +205,7 @@ def draw_row(
 
     lines_per_col: list[list[str]] = []
     for w, text in zip(widths, data):
-        t_str = str(text) if text is not None else ""
-        if not _resolve_font():
-            t_str = t_str.encode("latin-1", errors="replace").decode("latin-1")
+        t_str = safe_text(text)
         lines = pdf.multi_cell(w, 4, t_str, split_only=True)
         lines_per_col.append(lines)
 

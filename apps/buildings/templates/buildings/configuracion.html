@@ -72,7 +72,7 @@
             <div class="form-group full-width">
                 <label for="current_password">Contraseña actual</label>
                 <div class="input-with-icon">
-                    <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" data-validate="password" required class="form-input {% if form_errors.current_password %}input-error{% endif %}" />
+                    <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" required class="form-input {% if form_errors.current_password %}input-error{% endif %}" />
                     <i class="fa-solid fa-lock edit-icon"></i>
                 </div>
                 <div class="validation-error">{% if form_errors.current_password %}{{ form_errors.current_password }}{% endif %}</div>

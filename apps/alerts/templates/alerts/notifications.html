@@ -149,13 +149,10 @@
                         <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
                             <span class="sensor-badge
                                 {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
-                                {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
-                                {% elif notif.parsed_data.risk == RISK_MEDIO %}sensor-warning
-                                {% elif notif.parsed_data.risk == RISK_BAJO %}sensor-active
-                                {% else %}sensor-info{% endif %}">
+                                {% else %}sensor-high{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
-                            {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" %}
+                            {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
                             <span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">
                                 {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                             </span>
