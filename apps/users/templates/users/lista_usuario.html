@@ -191,6 +191,7 @@
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Edificio</th>
+                        <th>Correo</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -202,6 +203,7 @@
                                 <td>{{ usuario.nombre }}</td>
                                 <td>{{ usuario.last_name }}</td>
                                 <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
+                                <td>{{ usuario.email|default:'—' }}</td>
                                 <td>
                                     <div class="actions-dropdown">
                                         <button class="dropdown-trigger" title="Acciones">
@@ -218,10 +220,6 @@
                                             <button class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
                                                 <i class="fa-solid fa-paper-plane"></i> Enviar correo
                                             </button>
-                                            {% else %}
-                                            <span class="dropdown-item dropdown-item-disabled" title="Este usuario no tiene correo registrado">
-                                                <i class="fa-solid fa-paper-plane"></i> Sin correo
-                                            </span>
                                             {% endif %}
                                         </div>
                                     </div>
@@ -230,7 +228,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 24px 0;">
+                            <td colspan="6" style="text-align: center; padding: 24px 0;">
                                 No hay usuarios registrados.
                             </td>
                         </tr>
