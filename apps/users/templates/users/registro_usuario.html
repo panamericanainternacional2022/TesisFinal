@@ -105,3 +105,53 @@
     </form>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var form = document.querySelector('form');
+    if (!form) return;
+    var submitBtn = form.querySelector('.save-button');
+    if (!submitBtn) return;
+    var isEditing = {% if editing %}true{% else %}false{% endif %};
+
+    // Captura valores iniciales para detectar cambios (modo edición)
+    var initialValues = {};
+    form.querySelectorAll('input[name], select[name]').forEach(function (el) {
+        initialValues[el.name] = el.value;
+    });
+
+    function setBtn(disabled) {
+        submitBtn.disabled = disabled;
+        submitBtn.style.opacity = disabled ? '0.5' : '1';
+        submitBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+    }
+
+    function checkChanges() {
+        var hasErrors = form.querySelectorAll('.input-error').length > 0;
+        var shouldEnable;
+        if (isEditing) {
+            // Patrón A: habilitar solo si hay cambios Y sin errores
+            var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
+                .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
+            shouldEnable = hasChanges && !hasErrors;
+        } else {
+            // Patrón B: habilitar solo si todos los required están rellenos Y sin errores
+            var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
+                .every(function (el) { return el.value.trim() !== ''; });
+            shouldEnable = allFilled && !hasErrors;
+        }
+        setBtn(!shouldEnable);
+    }
+
+    // Arranca deshabilitado en creación, y validado en edición
+    setTimeout(checkChanges, 0);
+
+    form.querySelectorAll('input, select').forEach(function (el) {
+        el.addEventListener('input', function () { setTimeout(checkChanges, 0); });
+        el.addEventListener('change', function () { setTimeout(checkChanges, 0); });
+        el.addEventListener('blur', function () { setTimeout(checkChanges, 0); });
+    });
+});
+</script>
+{% endblock %}

@@ -175,6 +175,56 @@
             sw.classList.toggle('switch-on');
             var inp = card.querySelector('input[type=hidden]');
             inp.value = inp.value === 'true' ? 'false' : 'true';
+            // Re-validar botón al cambiar equipamiento
+            setTimeout(checkFormState, 0);
         }
+
+        // ── Validación de botón (Patrón A/B) ──────────────────────────
+        var checkFormState;
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.querySelector('form');
+            if (!form) return;
+            var submitBtn = form.querySelector('.save-button');
+            if (!submitBtn) return;
+            var isEditing = {% if editing %}true{% else %}false{% endif %};
+
+            // Captura valores iniciales (modo edición)
+            var initialValues = {};
+            form.querySelectorAll('input[name], select[name]').forEach(function (el) {
+                initialValues[el.name] = el.value;
+            });
+
+            function setBtn(disabled) {
+                submitBtn.disabled = disabled;
+                submitBtn.style.opacity = disabled ? '0.5' : '1';
+                submitBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+            }
+
+            checkFormState = function () {
+                var hasErrors = form.querySelectorAll('.input-error').length > 0;
+                var shouldEnable;
+                if (isEditing) {
+                    // Patrón A: solo si hay cambios Y sin errores
+                    var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
+                        .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
+                    shouldEnable = hasChanges && !hasErrors;
+                } else {
+                    // Patrón B: solo si todos los required rellenos Y sin errores
+                    var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
+                        .every(function (el) { return el.value.trim() !== ''; });
+                    shouldEnable = allFilled && !hasErrors;
+                }
+                setBtn(!shouldEnable);
+            };
+
+            // Arranca deshabilitado en creación, validado en edición
+            setTimeout(checkFormState, 0);
+
+            form.querySelectorAll('input, select').forEach(function (el) {
+                el.addEventListener('input', function () { setTimeout(checkFormState, 0); });
+                el.addEventListener('change', function () { setTimeout(checkFormState, 0); });
+                el.addEventListener('blur', function () { setTimeout(checkFormState, 0); });
+            });
+        });
     </script>
 {% endblock %}

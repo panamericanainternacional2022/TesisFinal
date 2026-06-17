@@ -3,7 +3,7 @@ import time
 import logging
 from typing import Optional
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS
+from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES
 from apps.sensors.simulation.constants import (
     DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
     CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
@@ -56,16 +56,21 @@ def inject_fault(edificio_id: int, device: str, fault_type: str) -> str:
     sim.sim_faults[device] = fault_type
     sim.fault_injected_at[device] = time.time()
     logger.info("Falla inyectada: edificio=%s, device=%s, tipo=%s", edificio_id, device, fault_type)
-    return f"Falla '{fault_type}' inyectada en {device}"
+    _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
+    nombre_falla = FAULT_NAMES_ES.get(fault_type, fault_type)
+    nombre_dispositivo = _DEVICE_ES.get(device, device)
+    return f"Falla '{nombre_falla}' inyectada en {nombre_dispositivo}"
 
 def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
     sim = simulators.get(edificio_id)
     if not sim:
         raise SimulatorNotFoundError(edificio_id)
+    _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
     if device:
         sim.sim_faults.pop(device, None)
         sim.fault_injected_at.pop(device, None)
-        msg = f"Falla limpiada para {device}"
+        nombre_dispositivo = _DEVICE_ES.get(device, device)
+        msg = f"Falla limpiada para {nombre_dispositivo}"
     else:
         sim.sim_faults.clear()
         sim.fault_injected_at.clear()

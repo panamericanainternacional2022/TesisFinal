@@ -22,6 +22,7 @@ const _BOMBA_VARS = _CONFIG.pump_vars || [];
 const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
 const _RISK = _CONFIG.risk_labels || {};
 const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
+const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
 
 const EDIFICIO_ID = _CONFIG.edificio_id || 0;
 const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
@@ -29,6 +30,7 @@ const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 let sseSource = null;
 let monitorConnectionTimeout = null;
 let currentThresholds = {};
+let _originalThresholds = {};
 let currentReadings = {};
 let chart1, chart2;
 let unreadNotificationCount = 0;
@@ -58,6 +60,17 @@ function getVariableName(variable) {
 
 function getUnit(variable) {
     return _UNITS[variable] || '';
+}
+
+function translateSensorValue(variable, value) {
+    // Usa VALUE_DISPLAY_ES de sensor_config como fuente única de verdad
+    if (_VALUE_DISPLAY[variable]) {
+        const tr = _VALUE_DISPLAY[variable][String(value)];
+        if (tr !== undefined) return tr;
+    }
+    // Fallback para booleanos no mapeados
+    if (typeof value === 'boolean') return value ? 'Sí' : 'No';
+    return null; // null = el caller formatea numéricamente
 }
 
 function getCookie(name) {
@@ -131,9 +144,8 @@ function isBombaVariable(variable) {
 function renderCard(variable, value, risk, label) {
     const name = getVariableName(variable).toUpperCase();
     const badgeClass = getRiskBadge(risk);
-    const displayValue = variable === 'motor_stuck' ? (value ? 'Sí' : 'No') :
-        (variable === 'door_status' ? (value === 'open' ? 'Abierta' : (value === 'closed' ? 'Cerrada' : safeText(value))) :
-            `${formatNumeric(value, variable)} ${getUnit(variable)}`);
+    const displayValue = translateSensorValue(variable, value)
+        ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
     let riskCls = 'risk-low';
     if (risk === _RISK.medio) riskCls = 'risk-med';
     else if (risk === _RISK.alto) riskCls = 'risk-high';
@@ -159,9 +171,7 @@ function updateCards(data) {
     for (let [k, v] of Object.entries(data)) {
         let ri = getRiskClass(k, v);
         let dn = getVariableName(k).toUpperCase();
-        let valStr = typeof v === 'boolean' ? (v ? 'Sí' : 'No') :
-            (k === 'door_status' ? (v === 'open' ? 'Abierta' : (v === 'closed' ? 'Cerrada' : v)) :
-                `${v} ${getUnit(k)}`);
+        let valStr = translateSensorValue(k, v) ?? `${formatNumeric(v, k)} ${getUnit(k)}`;
         let card = document.createElement('div');
         card.className = `sensor-card ${ri.card}`;
         card.innerHTML = `
@@ -583,6 +593,8 @@ function renderThresholdsPanel(th) {
         }
         panel.appendChild(div);
     }
+    // Guardar snapshot de valores originales para detectar cambios
+    _originalThresholds = JSON.parse(JSON.stringify(th));
     validateThresholdInputs();
 }
 
@@ -617,7 +629,22 @@ function validateThresholdInputs() {
         }
         if (!valid) hasError = true;
     });
-    if (btn) btn.disabled = hasError;
+    // Detectar cambios respecto al snapshot original
+    let hasChanges = false;
+    document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
+        const varKey = inp.dataset.var;
+        const lvl = inp.dataset.level;
+        if (!varKey || !lvl || lvl === 'direction') return;
+        if (_originalThresholds[varKey] !== undefined && _originalThresholds[varKey][lvl] !== undefined) {
+            if (parseFloat(inp.value) !== _originalThresholds[varKey][lvl]) hasChanges = true;
+        }
+    });
+    const shouldDisable = hasError || !hasChanges;
+    if (btn) {
+        btn.disabled = shouldDisable;
+        btn.style.opacity = shouldDisable ? '0.5' : '1';
+        btn.style.cursor = shouldDisable ? 'not-allowed' : 'pointer';
+    }
 }
 
 async function saveThresholds() {
@@ -629,15 +656,12 @@ async function saveThresholds() {
     });
     let resp = await csrfFetch('/api/thresholds/update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newTh) });
     let res = await resp.json();
-    let msgEl = document.getElementById('saveMessage');
     if (res.status === 'ok') {
-        msgEl.innerHTML = '<span style="color:var(--state-ok);font-weight:var(--weight-bold);">✓ Guardados</span>';
-        setTimeout(() => msgEl.innerHTML = '', 2000);
+        window.showToast('Umbrales guardados correctamente.', 'success');
         currentThresholds = res.thresholds;
         renderThresholdsPanel(res.thresholds);
-        validateThresholdInputs();
     } else {
-        msgEl.innerHTML = `<span style="color:var(--state-critical);font-weight:var(--weight-bold);">✗ Error: ${res.message}</span>`;
+        window.showToast(`Error al guardar: ${res.message || 'Inténtalo de nuevo.'}`, 'error');
     }
 }
 
@@ -679,18 +703,34 @@ function updateManualRiskPreview() {
 async function sendManualValue() {
     const v = document.getElementById('manualSensorSelect')?.value;
     const raw = document.getElementById('manualValueInput')?.value;
-    const msgEl = document.getElementById('manualMessage');
-    if (!v || !raw) { msgEl.innerHTML = '<span style="color:var(--state-critical)">Complete los campos</span>'; return; }
+    if (!v || !raw) { window.showToast('Completa todos los campos.', 'error'); return; }
     let val = raw;
-    if (v === 'door_status') { val = raw.toLowerCase(); if (!['open', 'closed'].includes(val)) { msgEl.innerHTML = '<span style="color:var(--state-critical)">Debe ser "open" o "closed"</span>'; return; } }
-    else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
-    else { let n = parseFloat(raw); if (isNaN(n)) { msgEl.innerHTML = '<span style="color:var(--state-critical)">Valor numérico inválido</span>'; return; } val = n; }
+    if (v === 'door_status') {
+        val = raw.toLowerCase();
+        const valoresValidos = Object.keys(_VALUE_DISPLAY['door_status'] || { open: 1, closed: 1 });
+        const aceptados = valoresValidos.length ? valoresValidos : ['open', 'closed'];
+        if (!aceptados.includes(val)) {
+            window.showToast(`Valores válidos: ${aceptados.join(', ')}.`, 'error');
+            return;
+        }
+    } else if (v === 'motor_stuck') {
+        val = (raw === 'true' || raw === '1');
+    } else {
+        let n = parseFloat(raw);
+        if (isNaN(n)) { window.showToast('Ingresa un valor numérico válido.', 'error'); return; }
+        val = n;
+    }
     try {
         let resp = await csrfFetch('/api/manual-update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ variable: v, value: val, edificio_id: EDIFICIO_ID }) });
         let res = await resp.json();
-        if (res.status === 'ok') { msgEl.innerHTML = `<span style="color:var(--state-ok)">✓ ${v} = ${res.value} (${res.risk})</span>`; setTimeout(() => msgEl.innerHTML = '', 3000); }
-        else { msgEl.innerHTML = `<span style="color:var(--state-critical)">Error: ${res.message}</span>`; }
-    } catch (e) { msgEl.innerHTML = '<span style="color:var(--state-critical)">Error de conexión</span>'; }
+        if (res.status === 'ok') {
+            window.showToast(`${getVariableName(v)}: ${res.value} — Riesgo ${res.risk}`, 'success');
+        } else {
+            window.showToast(`Error: ${res.message || 'No se pudo aplicar el valor.'}`, 'error');
+        }
+    } catch (e) {
+        window.showToast('Error de conexión. Inténtalo de nuevo.', 'error');
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -781,11 +821,7 @@ async function setSpeed() {
 }
 
 function setSimMessage(msg, type) {
-    const el = document.getElementById('simStatusMessage');
-    if (!el) return;
-    const color = type === 'error' ? 'var(--state-critical)' : type === 'success' ? 'var(--state-ok)' : 'var(--color-text-secondary)';
-    el.innerHTML = '<span style="color:' + color + ';">' + msg + '</span>';
-    setTimeout(() => { if (el.innerHTML === '<span style="color:' + color + ';">' + msg + '</span>') el.innerHTML = ''; }, 4000);
+    window.showToast(msg, type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -1046,6 +1082,17 @@ function setupAdminEvents() {
         manualSensorSel.addEventListener('change', () => { updateManualRiskPreview(); updateSensorTypeIndicator(); });
     }
     if (sendManualBtn) sendManualBtn.addEventListener('click', sendManualValue);
+
+    // Deshabilitar botón "Enviar" cuando el campo está vacío
+    function updateSendBtnState() {
+        if (!sendManualBtn || !manualValInput) return;
+        const empty = !manualValInput.value.trim();
+        sendManualBtn.disabled = empty;
+        sendManualBtn.style.opacity = empty ? '0.5' : '1';
+        sendManualBtn.style.cursor = empty ? 'not-allowed' : 'pointer';
+    }
+    updateSendBtnState();
+    if (manualValInput) manualValInput.addEventListener('input', updateSendBtnState);
 
     fetchSimStatus().then(data => {
         if (data) {

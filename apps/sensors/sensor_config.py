@@ -421,7 +421,7 @@ RISK_UNKNOWN = "Desconocido"
 
 # ─── Nombres de fallas de simulación en español ────────────────────────
 FAULT_NAMES_ES = {
-    "dry_run":            "Sequía (dry run)",
+    "dry_run":            "Sequía",
     "blocked_discharge":  "Descarga bloqueada",
     "pipe_burst":         "Ruptura de tubería",
     "cavitation":         "Cavitación",

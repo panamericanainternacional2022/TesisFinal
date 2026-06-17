@@ -14,17 +14,23 @@ class SimulatorNotFoundError(SimulatorError):
 
 class InvalidDeviceError(SimulatorError):
     def __init__(self, device: str):
-        super().__init__(f"Dispositivo debe ser 'pump' o 'elevator': {device}")
+        _ES = {"pump": "Bomba", "elevator": "Elevador"}
+        super().__init__(f"Dispositivo no válido: {_ES.get(device, device)}")
 
 
 class DeviceNotInBuildingError(SimulatorError):
     def __init__(self, device: str):
-        super().__init__(f"El edificio no tiene {device}")
+        _ES = {"pump": "Bomba", "elevator": "Elevador"}
+        super().__init__(f"El edificio no tiene {_ES.get(device, device)}")
 
 
 class InvalidFaultTypeError(SimulatorError):
     def __init__(self, device: str, fault_type: str):
-        super().__init__(f"Falla inválida para {device}: {fault_type}")
+        from apps.sensors.sensor_config import FAULT_NAMES_ES
+        _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
+        nombre_falla = FAULT_NAMES_ES.get(fault_type, fault_type)
+        nombre_dispositivo = _DEVICE_ES.get(device, device)
+        super().__init__(f"Falla '{nombre_falla}' no es válida para {nombre_dispositivo}")
 
 
 class NoSimulatorAvailableError(SimulatorError):
