@@ -78,7 +78,7 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
                 "rif": data["rif"],
             })
             if form_errors:
-                messages.error(request, "Por favor, corrige los errores en el formulario.")
+                messages.error(request, "Corrija los errores indicados en el formulario.")
             else:
                 with transaction.atomic():
                     building = Building.objects.create(
@@ -140,7 +140,7 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
                 exclude_building_id=building.id,
             )
             if form_errors:
-                messages.error(request, "Por favor, corrige los errores en el formulario.")
+                messages.error(request, "Corrija los errores indicados en el formulario.")
             else:
                 with transaction.atomic():
                     building.save()
@@ -180,7 +180,7 @@ def delete_building_view(request: HttpRequest, building_id: int) -> HttpResponse
         building.delete()
     messages.success(
         request,
-        "Edificio y todos sus datos asociados fueron eliminados correctamente.",
+        "El edificio y todos sus datos asociados se eliminaron correctamente.",
     )
     return redirect("building_list")
 

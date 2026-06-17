@@ -108,12 +108,12 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
             user_data = post_data
 
             if not has_required_fields(post_data):
-                messages.error(request, "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio.")
+                messages.error(request, "Complete los campos obligatorios: nombre, apellido, correo electrónico, cédula y edificio.")
                 form_errors = build_required_field_errors(post_data)
             else:
                 form_errors = validate_user_form(post_data)
                 if form_errors:
-                    messages.error(request, "Por favor, corrige los errores en el formulario.")
+                    messages.error(request, "Corrija los errores indicados en el formulario.")
                 else:
                     person = Persona.objects.create(
                         ci=post_data["cedula"],
@@ -133,7 +133,7 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
                             person,
                         )
                     except ValueError:
-                        messages.error(request, "No se pudo generar un nombre de usuario. Verifica los datos ingresados.")
+                        messages.error(request, "No se pudo generar el nombre de usuario. Verifique los datos ingresados.")
 
                     if "user" in locals() and post_data.get("id_edificio"):
                         UserBuilding.objects.create(
@@ -158,20 +158,9 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
                         p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
                         person_name = " ".join(p for p in p_parts if p)
                         if email_sent:
-                            msg_html = f"""
-                            <h3 style="margin: 0 0 6px; color: #137333; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">¡Registro exitoso!</h3>
-                            <p style="margin: 0 0 4px; font-size: 0.9rem; line-height: 1.4;">Se ha enviado un correo de activación para <strong>{person_name}</strong> a: <strong style="word-break: break-all;">{post_data['email']}</strong></p>
-                            <p style="margin: 0; font-size: 0.85rem; opacity: 0.9;">El usuario deberá seguir el enlace enviado para configurar su cuenta.</p>
-                            """
-                            messages.success(request, msg_html)
+                            messages.success(request, f"Usuario {person_name} registrado. Se envió el correo de activación a {post_data['email']}.")
                         else:
-                            msg_html = f"""
-                            <h3 style="margin: 0 0 6px; color: #c5221f; font-size: 1.05rem; font-weight: bold; line-height: 1.2;">Registro exitoso (Correo no enviado)</h3>
-                            <p style="margin: 0 0 6px; font-size: 0.9rem; line-height: 1.4;">Se ha registrado a <strong>{person_name}</strong>. Las credenciales SMTP no están configuradas. Copia y entrega el siguiente enlace directamente al usuario:</p>
-                            <div style="margin: 0 0 6px 0; word-break: break-all; background: #fff; padding: 8px; border: 1.5px solid #c5221f; font-family: monospace; font-size: 0.82rem;"><a href="{activation_link}" target="_blank" style="color: #c5221f; text-decoration: underline; font-weight: bold;">{activation_link}</a></div>
-                            <p style="margin: 0; font-size: 0.8rem; opacity: 0.8;">Válido por 24 horas.</p>
-                            """
-                            messages.warning(request, msg_html)
+                            messages.warning(request, f"Usuario {person_name} registrado. No se pudo enviar el correo; entregue el enlace de activación manualmente: {activation_link}")
 
                         return redirect("user_list")
 
@@ -202,12 +191,12 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
             data["id_edificio"] = int(data["id_edificio"])
 
         if not has_required_fields(post_data):
-            messages.error(request, "Complete los campos obligatorios: nombre, apellido, email, cédula y edificio para actualizar.")
+            messages.error(request, "Complete los campos obligatorios para actualizar: nombre, apellido, correo electrónico, cédula y edificio.")
             form_errors = build_required_field_errors(post_data)
         else:
             form_errors = validate_user_form(post_data, exclude_persona_id=person.id_persona)
             if form_errors:
-                messages.error(request, "Por favor, corrige los errores en el formulario.")
+                messages.error(request, "Corrija los errores indicados en el formulario.")
             else:
                 person.first_name = post_data["primerNombre"]
                 person.middle_name = post_data["segundoNombre"]
@@ -226,7 +215,7 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
 
                 p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
                 full_name = " ".join(p for p in p_parts if p) or user.username
-                messages.success(request, f"Usuario <strong>{full_name}</strong> actualizado correctamente.")
+                messages.success(request, f"Usuario {full_name} actualizado correctamente.")
                 return redirect("user_list")
     else:
         data = build_edit_initial_data(user, person)
@@ -263,7 +252,7 @@ def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
         user.delete()
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
-    messages.success(request, f"Usuario <strong>{full_name}</strong> eliminado correctamente.")
+    messages.success(request, f"Usuario {full_name} eliminado correctamente.")
     return redirect("user_list")
 
 

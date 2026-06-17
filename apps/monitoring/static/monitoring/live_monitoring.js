@@ -661,7 +661,7 @@ async function saveThresholds() {
         currentThresholds = res.thresholds;
         renderThresholdsPanel(res.thresholds);
     } else {
-        window.showToast(`Error al guardar: ${res.message || 'Inténtalo de nuevo.'}`, 'error');
+        window.showToast(`Error al guardar: ${res.message || 'Inténtelo de nuevo.'}`, 'error');
     }
 }
 
@@ -703,33 +703,33 @@ function updateManualRiskPreview() {
 async function sendManualValue() {
     const v = document.getElementById('manualSensorSelect')?.value;
     const raw = document.getElementById('manualValueInput')?.value;
-    if (!v || !raw) { window.showToast('Completa todos los campos.', 'error'); return; }
+    if (!v || !raw) { window.showToast('Complete todos los campos.', 'error'); return; }
     let val = raw;
     if (v === 'door_status') {
         val = raw.toLowerCase();
         const valoresValidos = Object.keys(_VALUE_DISPLAY['door_status'] || { open: 1, closed: 1 });
         const aceptados = valoresValidos.length ? valoresValidos : ['open', 'closed'];
         if (!aceptados.includes(val)) {
-            window.showToast(`Valores válidos: ${aceptados.join(', ')}.`, 'error');
+            window.showToast(`Valores aceptados: ${aceptados.join(', ')}.`, 'error');
             return;
         }
     } else if (v === 'motor_stuck') {
         val = (raw === 'true' || raw === '1');
     } else {
         let n = parseFloat(raw);
-        if (isNaN(n)) { window.showToast('Ingresa un valor numérico válido.', 'error'); return; }
+        if (isNaN(n)) { window.showToast('Introduzca un valor numérico válido.', 'error'); return; }
         val = n;
     }
     try {
         let resp = await csrfFetch('/api/manual-update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ variable: v, value: val, edificio_id: EDIFICIO_ID }) });
         let res = await resp.json();
         if (res.status === 'ok') {
-            window.showToast(`${getVariableName(v)}: ${res.value} — Riesgo ${res.risk}`, 'success');
+            window.showToast(`${getVariableName(v)}: ${res.value} — Nivel de riesgo: ${res.risk}.`, 'success');
         } else {
-            window.showToast(`Error: ${res.message || 'No se pudo aplicar el valor.'}`, 'error');
+            window.showToast(res.message || 'No se pudo aplicar el valor.', 'error');
         }
     } catch (e) {
-        window.showToast('Error de conexión. Inténtalo de nuevo.', 'error');
+        window.showToast('Error de conexión. Inténtelo de nuevo.', 'error');
     }
 }
 
@@ -752,9 +752,9 @@ async function togglePause() {
         let data = await resp.json();
         if (data.status === 'ok') {
             updatePauseBtn(data.paused);
-            setSimMessage(data.paused ? '⏸ Simulación pausada' : '▶ Simulación reanudada', 'info');
+            setSimMessage(data.paused ? 'Simulación pausada.' : 'Simulación reanudada.', 'info');
         }
-    } catch (e) { setSimMessage('Error al pausar/reanudar', 'error'); }
+    } catch (e) { setSimMessage('Error al pausar o reanudar la simulación.', 'error'); }
 }
 
 function updatePauseBtn(paused) {
@@ -776,14 +776,14 @@ async function resetSim() {
         let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/reset/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
         let data = await resp.json();
         if (data.status === 'ok') {
-            setSimMessage('✅ ' + data.message, 'success');
+            setSimMessage(data.message, 'success');
             updatePauseBtn(false);
             const fp = document.getElementById('simFaultPump');
             const fe = document.getElementById('simFaultElevator');
             if (fp) fp.value = '';
             if (fe) fe.value = '';
-        } else { setSimMessage('❌ ' + data.message, 'error'); }
-    } catch (e) { setSimMessage('Error al reiniciar', 'error'); }
+        } else { setSimMessage(data.message, 'error'); }
+    } catch (e) { setSimMessage('Error al reiniciar la simulación.', 'error'); }
 }
 
 async function injectFault(device) {
@@ -801,9 +801,9 @@ async function injectFault(device) {
         }
         let resp = await csrfFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
         let data = await resp.json();
-        if (data.status === 'ok') { setSimMessage('✅ ' + data.message, 'success'); }
-        else { setSimMessage('❌ ' + data.message, 'error'); }
-    } catch (e) { setSimMessage('Error al gestionar falla', 'error'); }
+        if (data.status === 'ok') { setSimMessage(data.message, 'success'); }
+        else { setSimMessage(data.message, 'error'); }
+    } catch (e) { setSimMessage('Error al gestionar la falla.', 'error'); }
 }
 
 async function setSpeed() {
@@ -816,7 +816,7 @@ async function setSpeed() {
     try {
         let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/set-speed/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ speed: speed }) });
         let data = await resp.json();
-        if (data.status === 'ok') setSimMessage('⚡ Velocidad: ' + data.speed.toFixed(1) + 'x', 'info');
+        if (data.status === 'ok') setSimMessage(`Velocidad establecida: ${data.speed.toFixed(1)}x.`, 'info');
     } catch (e) { /* silent */ }
 }
 

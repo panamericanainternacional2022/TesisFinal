@@ -309,9 +309,9 @@
                             body: JSON.stringify({ email: email })
                         });
                         const data = await resp.json();
-                        showToast(data.message || (resp.ok ? 'Correo enviado.' : 'Error al enviar.'), resp.ok ? 'success' : 'error');
+                        showToast(data.message || (resp.ok ? 'Correo enviado correctamente.' : 'No se pudo enviar el correo.'), resp.ok ? 'success' : 'error');
                     } catch (e) {
-                        showToast('Error al conectar con el servidor.', 'error');
+                        showToast('Error de conexión con el servidor.', 'error');
                     } finally {
                         btn.disabled = false;
                         btn.innerHTML = origHTML;
@@ -325,7 +325,7 @@
                 sendAllBtn.addEventListener('click', async () => {
                     const edificioId = sendAllBtn.dataset.edificioId;
                     if (!edificioId) {
-                        showToast('Filtra por un edificio específico antes de usar "Enviar a todos".', 'info');
+                        showToast('Seleccione un edificio específico antes de usar «Enviar a todos».', 'info');
                         return;
                     }
                     const origHTML = sendAllBtn.innerHTML;
@@ -338,9 +338,9 @@
                             body: JSON.stringify({ edificio_id: edificioId })
                         });
                         const data = await resp.json();
-                        showToast(data.message || (resp.ok ? 'Correos enviados.' : 'Error al enviar.'), resp.ok ? 'success' : 'error');
+                        showToast(data.message || (resp.ok ? 'Correos enviados correctamente.' : 'No se pudieron enviar los correos.'), resp.ok ? 'success' : 'error');
                     } catch (e) {
-                        showToast('Error al conectar con el servidor.', 'error');
+                        showToast('Error de conexión con el servidor.', 'error');
                     } finally {
                         sendAllBtn.disabled = false;
                         sendAllBtn.innerHTML = origHTML;

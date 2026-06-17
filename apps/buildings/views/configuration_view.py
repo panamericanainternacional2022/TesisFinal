@@ -69,7 +69,7 @@ def _handle_config_post(
             messages.success(request, "Datos de perfil actualizados correctamente.")
             return redirect("configuration")
 
-        messages.error(request, "Por favor, corrige los errores en los datos del perfil.")
+        messages.error(request, "Corrija los errores indicados en los datos del perfil.")
         return render(
             request,
             "buildings/configuracion.html",
@@ -114,7 +114,7 @@ def _handle_config_post(
             messages.success(request, "Contraseña actualizada correctamente.")
             return redirect("configuration")
 
-        messages.error(request, "Por favor, corrige los errores en el formulario de contraseña.")
+        messages.error(request, "Corrija los errores indicados en el formulario de contraseña.")
         return render(
             request,
             "buildings/configuracion.html",
