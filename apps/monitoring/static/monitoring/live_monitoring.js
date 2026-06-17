@@ -23,6 +23,7 @@ const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
 const _RISK = _CONFIG.risk_labels || {};
 const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
+const _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
 const EDIFICIO_ID = _CONFIG.edificio_id || 0;
 const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
@@ -677,16 +678,65 @@ async function saveThresholds() {
 // 13.  Admin: Manual sensor control
 // ═══════════════════════════════════════════════════════════════════
 
+function updateManualInputType() {
+    const v = document.getElementById('manualSensorSelect')?.value;
+    const inp = document.getElementById('manualValueInput');
+    const sel = document.getElementById('manualValueSelect');
+    if (!v || !inp || !sel) return;
+
+    if (v === 'door_status') {
+        inp.style.display = 'none';
+        sel.style.display = 'block';
+        sel.innerHTML = '';
+        const opts = Object.entries(_VALUE_DISPLAY['door_status'] || {});
+        opts.forEach(([val, label]) => {
+            if (val !== 'true' && val !== 'false') {
+                let opt = document.createElement('option');
+                opt.value = val;
+                opt.textContent = label;
+                sel.appendChild(opt);
+            }
+        });
+        inp.value = '';
+    } else if (v === 'motor_stuck') {
+        inp.style.display = 'none';
+        sel.style.display = 'block';
+        sel.innerHTML = '<option value="true">Atascado</option><option value="false">Normal</option>';
+        inp.value = '';
+    } else {
+        inp.style.display = 'block';
+        sel.style.display = 'none';
+        if (_SENSOR_RANGES[v]) {
+            inp.min = _SENSOR_RANGES[v][0];
+            inp.max = _SENSOR_RANGES[v][1];
+            let unit = getUnit(v);
+            let unitStr = unit ? ` ${unit}` : '';
+            inp.placeholder = `Ej: ${_SENSOR_RANGES[v][0]} - ${_SENSOR_RANGES[v][1]}${unitStr}`;
+        } else {
+            inp.removeAttribute('min');
+            inp.removeAttribute('max');
+            let unit = getUnit(v);
+            inp.placeholder = `Ingrese valor numérico${unit ? ' (' + unit + ')' : ''}`;
+        }
+    }
+    updateManualRiskPreview();
+}
+
 function populateManualSensorSelect() {
     const sel = document.getElementById('manualSensorSelect');
-    if (!sel) return;
+    const eqSel = document.getElementById('manualEquipmentSelect');
+    if (!sel || !eqSel) return;
     sel.innerHTML = '';
-    [..._BOMBA_VARS, ..._ELEVADOR_VARS].forEach(v => {
+    const eq = eqSel.value || 'pump';
+    const vars = eq === 'pump' ? _BOMBA_VARS : _ELEVADOR_VARS;
+    vars.forEach(v => {
         let opt = document.createElement('option');
         opt.value = v;
-        opt.textContent = (_BOMBA_VARS.includes(v) ? 'Bomba: ' : 'Elevador: ') + getVariableName(v).toUpperCase();
+        let unit = getUnit(v);
+        opt.textContent = getVariableName(v) + (unit ? ` (${unit})` : '');
         sel.appendChild(opt);
     });
+    updateManualInputType();
 }
 
 function updateSensorTypeIndicator() {
@@ -697,21 +747,42 @@ function updateSensorTypeIndicator() {
 
 function updateManualRiskPreview() {
     const v = document.getElementById('manualSensorSelect')?.value;
-    const raw = document.getElementById('manualValueInput')?.value;
+    const inp = document.getElementById('manualValueInput');
+    const sel = document.getElementById('manualValueSelect');
     const span = document.getElementById('manualRiskPreview');
-    if (!span || !raw) { if (span) span.innerHTML = ''; return; }
+    if (!span || !v) return;
+
+    let raw = '';
+    if (v === 'door_status' || v === 'motor_stuck') {
+        raw = sel.value;
+    } else {
+        raw = inp.value;
+    }
+
+    if (raw === undefined || raw === '') { span.innerHTML = ''; return; }
+    
     let val = raw;
     if (v === 'door_status') { /* string */ }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
-    else { let n = parseFloat(raw); if (isNaN(n)) { span.innerHTML = '<span style="color:var(--state-critical)">Valor inválido</span>'; return; } val = n; }
+    else { let n = parseFloat(raw); if (isNaN(n)) { span.innerHTML = '<span style="color:var(--state-critical)">Valor numérico requerido</span>'; return; } val = n; }
     let ri = getRiskClass(v, val);
     span.innerHTML = `Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
 }
 
 async function sendManualValue() {
     const v = document.getElementById('manualSensorSelect')?.value;
-    const raw = document.getElementById('manualValueInput')?.value;
-    if (!v || !raw) { window.showToast('Complete todos los campos.', 'error'); return; }
+    const inp = document.getElementById('manualValueInput');
+    const sel = document.getElementById('manualValueSelect');
+    
+    if (!v) return;
+    let raw = '';
+    if (v === 'door_status' || v === 'motor_stuck') {
+        raw = sel.value;
+    } else {
+        raw = inp.value;
+    }
+
+    if (raw === undefined || raw === '') { window.showToast('Complete todos los campos.', 'error'); return; }
     let val = raw;
     if (v === 'door_status') {
         val = raw.toLowerCase();
@@ -726,6 +797,10 @@ async function sendManualValue() {
     } else {
         let n = parseFloat(raw);
         if (isNaN(n)) { window.showToast('Introduzca un valor numérico válido.', 'error'); return; }
+        if (_SENSOR_RANGES[v] && (n < _SENSOR_RANGES[v][0] || n > _SENSOR_RANGES[v][1])) {
+            window.showToast(`El valor debe estar entre ${_SENSOR_RANGES[v][0]} y ${_SENSOR_RANGES[v][1]}`, 'error');
+            return;
+        }
         val = n;
     }
     try {
@@ -1076,7 +1151,9 @@ function setupAdminEvents() {
     const saveThreshBtn = document.getElementById('saveThresholdsBtn');
     const threshPanel = document.getElementById('thresholdsPanel');
     const manualValInput = document.getElementById('manualValueInput');
+    const manualValSelect = document.getElementById('manualValueSelect');
     const manualSensorSel = document.getElementById('manualSensorSelect');
+    const manualEquipSel = document.getElementById('manualEquipmentSelect');
     const sendManualBtn = document.getElementById('sendManualBtn');
 
     if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
@@ -1094,21 +1171,40 @@ function setupAdminEvents() {
     if (saveThreshBtn) saveThreshBtn.addEventListener('click', saveThresholds);
     if (threshPanel) threshPanel.addEventListener('input', validateThresholdInputs);
     if (manualValInput) manualValInput.addEventListener('input', updateManualRiskPreview);
+    if (manualValSelect) manualValSelect.addEventListener('change', updateManualRiskPreview);
+    if (manualEquipSel) {
+        manualEquipSel.addEventListener('change', () => {
+            populateManualSensorSelect();
+            updateSensorTypeIndicator();
+        });
+    }
     if (manualSensorSel) {
-        manualSensorSel.addEventListener('change', () => { updateManualRiskPreview(); updateSensorTypeIndicator(); });
+        manualSensorSel.addEventListener('change', () => { 
+            updateManualInputType(); 
+            updateSensorTypeIndicator(); 
+        });
     }
     if (sendManualBtn) sendManualBtn.addEventListener('click', sendManualValue);
 
     // Deshabilitar botón "Enviar" cuando el campo está vacío
     function updateSendBtnState() {
-        if (!sendManualBtn || !manualValInput) return;
-        const empty = !manualValInput.value.trim();
+        if (!sendManualBtn) return;
+        const v = manualSensorSel?.value;
+        let empty = false;
+        if (v === 'door_status' || v === 'motor_stuck') {
+            empty = false; // El select siempre tiene un valor predeterminado
+        } else if (manualValInput) {
+            empty = !manualValInput.value.trim();
+        }
         sendManualBtn.disabled = empty;
         sendManualBtn.style.opacity = empty ? '0.5' : '1';
         sendManualBtn.style.cursor = empty ? 'not-allowed' : 'pointer';
     }
     updateSendBtnState();
     if (manualValInput) manualValInput.addEventListener('input', updateSendBtnState);
+    if (manualValSelect) manualValSelect.addEventListener('change', updateSendBtnState);
+    if (manualSensorSel) manualSensorSel.addEventListener('change', updateSendBtnState);
+    if (manualEquipSel) manualEquipSel.addEventListener('change', updateSendBtnState);
 
     fetchSimStatus().then(data => {
         if (data) {

@@ -16,7 +16,7 @@ def build_monitoring_config(building_id: int) -> dict:
     from apps.sensors.sensor_config import (
         NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
         RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN,
-        VALUE_DISPLAY_ES,
+        VALUE_DISPLAY_ES, SENSOR_RANGES
     )
     return {
         "no_risk_vars": NO_RISK_VARS,
@@ -25,6 +25,7 @@ def build_monitoring_config(building_id: int) -> dict:
         "var_names": VAR_NAMES,
         "units": UNITS,
         "value_display_es": VALUE_DISPLAY_ES,
+        "sensor_ranges": SENSOR_RANGES,
         "edificio_id": building_id,
         "risk_labels": {
             "info": RISK_INFO,

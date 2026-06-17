@@ -550,15 +550,23 @@
                     <i class="fa-solid fa-sliders"></i> Manuales
                 </div>
                 <div class="admin-controls-row">
-                    <div class="form-group" style="flex:1; min-width:180px;">
+                    <div class="form-group" style="flex:1; min-width:140px;">
+                        <label class="form-label">Equipo</label>
+                        <select id="manualEquipmentSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                            <option value="pump">Bomba de agua</option>
+                            <option value="elevator">Elevador</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Sensor</label>
                         <select id="manualSensorSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"></select>
                     </div>
-                    <div class="form-group" style="flex:1; min-width:160px;">
+                    <div class="form-group" style="flex:1; min-width:140px;" id="manualValueContainer">
                         <label class="form-label">Valor</label>
-                        <input type="text" id="manualValueInput" class="form-input"
+                        <input type="number" step="any" id="manualValueInput" class="form-input"
                                style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"
-                               placeholder="Ingrese valor">
+                               placeholder="Ej: 42.5">
+                        <select id="manualValueSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); display:none;"></select>
                     </div>
                     <div style="align-self:flex-end;">
                         <button id="sendManualBtn" class="btn btn-primary" style="height:38px; padding: 6px 16px;">
