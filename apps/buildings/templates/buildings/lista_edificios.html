@@ -6,12 +6,6 @@
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
     <style>
-        .equip-badge {
-            font-size: 20px;
-            line-height: 1;
-            margin-right: 4px;
-            display: inline-block;
-        }
         .actions-dropdown {
             position: relative;
             display: inline-flex;
@@ -132,8 +126,8 @@
                                 <td>
                                     {% with equipment_list=building.equipment.all %}
                                         {% for eq in equipment_list %}
-                                            {% if eq.equipment_type == "bomba" %}<span class="equip-badge" title="Bomba de agua">🔧</span>{% endif %}
-                                            {% if eq.equipment_type == "elevador" %}<span class="equip-badge" title="Elevador">🛗</span>{% endif %}
+                                            {% if eq.equipment_type == "bomba" %}Bomba de agua{% if not forloop.last %} y {% endif %}{% endif %}
+                                            {% if eq.equipment_type == "elevador" %}{% if equipment_list|length > 1 %}elevador{% else %}Elevador{% endif %}{% if not forloop.last %} y {% endif %}{% endif %}
                                         {% empty %}
                                             <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
                                         {% endfor %}
