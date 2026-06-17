@@ -1,86 +1,12 @@
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Control de Telemetría</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
-    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+
+{% block title %}Panel de Control de Telemetría{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <script src="{% static 'core/modal.js' %}" defer></script>
     <style>
-
-
-        /* ── Cabecera informativa unificada ── */
-        .admin-info {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            border-left: 6px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            padding: var(--sp-3);
-            margin-bottom: var(--sp-3);
-            border-radius: 0px;
-        }
-
-        .admin-info h1 {
-            font-size: var(--text-xl);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-tight);
-            color: var(--color-ink);
-            margin-bottom: var(--sp-1);
-            line-height: var(--leading-tight);
-        }
-
-        .admin-info p {
-            font-size: var(--text-sm);
-            color: var(--color-text-secondary);
-            margin-top: 4px;
-            line-height: var(--leading-normal);
-        }
-
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        body {
-            font-family: var(--font);
-            background: var(--color-bg);
-            color: var(--color-text-primary);
-            font-size: var(--text-base);
-            line-height: var(--leading-normal);
-            font-weight: var(--weight-normal);
-            -webkit-font-smoothing: antialiased;
-        }
-
-        /* ── Layout ── */
-        .page-wrapper { max-width: 1400px; margin: 0 auto; padding: var(--sp-4); }
-
-        .page-header {
-            border-bottom: 2px solid var(--color-ink);
-            padding-bottom: var(--sp-2);
-            margin-bottom: var(--sp-4);
-        }
-
-        .page-title {
-            font-size: var(--text-2xl);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-tight);
-            color: var(--color-ink);
-            line-height: var(--leading-tight);
-        }
-
-        .page-subtitle {
-            font-size: var(--text-sm);
-            color: var(--color-text-secondary);
-            margin-top: 4px;
-        }
-
-        /* ── Paneles / Tarjetas ── */
+        /* ── Paneles / Tarjetas de Dashboard ── */
         .panel {
             background: var(--color-surface);
             border: 2px solid var(--color-ink);
@@ -88,23 +14,6 @@
             padding: var(--sp-3);
             margin-bottom: var(--sp-3);
             border-radius: 0px;
-        }
-
-        .notif-card {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-            overflow: hidden;
-            margin-top: var(--sp-3);
-        }
-        .notif-card .notif-list {
-            border: none;
-            box-shadow: none;
-        }
-        .notif-card .no-notif {
-            border: none;
-            box-shadow: none;
         }
 
         .panel-title {
@@ -122,7 +31,7 @@
 
         .panel-title i { color: var(--color-ink); font-size: 0.9rem; }
 
-        /* ── Grids ── */
+        /* ── Grids del Dashboard ── */
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
         .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
         .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
@@ -147,98 +56,7 @@
 
         .controls-row .spacer { flex: 1; }
 
-        /* ── Botones ── */
-        .btn {
-            font-family: var(--font);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            cursor: pointer;
-            border: 2px solid var(--color-ink);
-            background: var(--color-ink);
-            color: var(--color-surface);
-            padding: 8px var(--sp-2);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all var(--transition-fast);
-            border-radius: 0px;
-            box-shadow: 3px 3px 0px var(--color-ink);
-        }
-
-        .btn:hover {
-            background: var(--color-surface);
-            color: var(--color-ink);
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
-            opacity: 1;
-        }
-        .btn:disabled { opacity: 0.35; cursor: not-allowed; }
-
-        .btn-ghost {
-            background: var(--color-surface);
-            color: var(--color-ink);
-            border: 2px solid var(--color-ink);
-            box-shadow: 3px 3px 0px var(--color-ink);
-        }
-
-        .btn-danger {
-            background: var(--state-critical);
-            border-color: var(--state-critical);
-            box-shadow: 3px 3px 0px var(--state-critical);
-        }
-
-        .btn-danger:hover {
-            background: var(--color-surface);
-            color: var(--state-critical);
-            border-color: var(--state-critical);
-            box-shadow: 4px 4px 0px rgba(153, 27, 27, 0.25);
-        }
-
-        .btn-ok {
-            background: var(--state-ok);
-            border-color: var(--state-ok);
-            box-shadow: 3px 3px 0px var(--state-ok);
-        }
-
-        .btn-ok:hover {
-            background: var(--color-surface);
-            color: var(--state-ok);
-            border-color: var(--state-ok);
-            box-shadow: 4px 4px 0px rgba(22, 101, 52, 0.25);
-        }
-
-        /* ── Inputs y Selects ── */
-        .form-group { display: flex; flex-direction: column; gap: 4px; }
-
-        .form-label {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            text-transform: uppercase;
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-        }
-
-        input[type="text"],
-        input[type="number"],
-        input[type="email"],
-        select {
-            font-family: var(--font);
-            font-size: var(--text-base);
-            color: var(--color-text-primary);
-            background: var(--color-bg);
-            border: 2px solid var(--color-ink);
-            padding: 9px var(--sp-1);
-            width: 100%;
-            outline: none;
-            border-radius: 0px;
-            transition: all var(--transition-base);
-        }
-
-        input:focus, select:focus {
-            border-color: var(--color-ink);
-            background: var(--color-surface);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
-        }
+        /* Botones del Dashboard unificados con el sistema de tokens de diseño */
 
         /* ── Sensor Cards ── */
         .sensor-card {
@@ -365,16 +183,7 @@
             border-radius: 0px;
         }
 
-        /* ── Tabla ── */
-        .table-wrapper {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            overflow: hidden;
-            margin-bottom: var(--sp-3);
-            border-radius: 0px;
-        }
-
+        /* ── Live Log Table ── */
         .scroll-table {
             max-height: 320px;
             overflow-y: auto;
@@ -436,7 +245,7 @@
 
         canvas { max-height: 220px; width: 100%; }
 
-        /* ── Alerta / Aviso ── */
+        /* ── Alertas de Sistema ── */
         .sys-alert {
             padding: var(--sp-1) var(--sp-2);
             margin-bottom: var(--sp-2);
@@ -485,10 +294,11 @@
             box-shadow: 2px 2px 0px var(--color-ink);
         }
         .subs-table button:hover {
-            background: var(--color-ink) !important;
-            color: var(--color-surface) !important;
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px rgba(10, 10, 10, 0.25);
+            background: var(--color-accent-bg) !important;
+            color: var(--color-accent) !important;
+            border-color: var(--color-accent) !important;
+            transform: translate(-2px, -2px);
+            box-shadow: 3px 3px 0px var(--color-accent);
             opacity: 1 !important;
         }
         .btn-test-sub { color: var(--color-ink); margin-right: var(--sp-1); }
@@ -512,101 +322,100 @@
         .badge-dir-down { color: #c2410c; font-weight: var(--weight-bold); }
         .badge-dir-range { color: var(--state-inactive); font-weight: var(--weight-bold); }
 
-        /* ── Responsive ── */
+        /* Responsive */
         @media (max-width: 1024px) {
             .grid-2, .grid-3 { grid-template-columns: 1fr; }
             .grid-charts { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 640px) {
-            .page-wrapper { padding: var(--sp-2); }
             .controls-row { flex-direction: column; align-items: flex-start; }
         }
-
     </style>
-</head>
-<body class="preload">
-    <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
-        <main class="main-content">
-            <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card">
-                    <div class="admin-info">
-                        <h1>Panel de control</h1>
-                        {% if is_admin %}
-                        <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
-                        {% else %}
-                        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
-                        {% endif %}
-                        {% if edificios and is_admin %}
-                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
-                            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Edificio activo:</span>
-                            {% if edificios|length == 1 %}
-                            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px; display: inline-block;">
-                                {{ edificios.0.name }}
-                                <input type="hidden" id="buildingSelect" value="{{ edificios.0.id }}">
-                            </span>
-                            {% else %}
-                            <select id="buildingSelect"
-                                    style="width: auto; padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px;">
-                                {% for ed in edificios %}
-                                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                                {% endfor %}
-                            </select>
-                            {% endif %}
-                            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</span>
-                        </div>
-                        {% endif %}
-                    </div>
+{% endblock %}
 
-        {% if not edificios %}
-        <div class="notif-card" style="margin-top: var(--sp-3);">
-            <div class="no-notif">
-                <i class="fa-solid fa-building"></i>
-                {% if is_admin %}
-                <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
-                {% else %}
-                <p>No tienes edificios asignados. Contacta al administrador.</p>
-                {% endif %}
-            </div>
-        </div>
+{% block extra_head_js %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="reportes-card">
+    <div class="admin-info">
+        <h1>Panel de control</h1>
+        {% if is_admin %}
+        <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
         {% else %}
+        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
+        {% endif %}
+        {% if edificios and is_admin %}
+        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Edificio activo:</span>
+            {% if edificios|length == 1 %}
+            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px; display: inline-block;">
+                {{ edificios.0.name }}
+                <input type="hidden" id="buildingSelect" value="{{ edificios.0.id }}">
+            </span>
+            {% else %}
+            <select id="buildingSelect" class="form-select"
+                    style="width: auto; min-width: 200px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                {% for ed in edificios %}
+                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-text-secondary);">✅ Todo normal</span>
+        </div>
+        {% endif %}
+    </div>
 
-        <!-- Estados de conexión -->
-        <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
-            <div class="no-notif" id="stateLoading" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-                <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
-                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
-                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
-            </div>
+    {% if not edificios %}
+    <div class="notif-card" style="margin-top: var(--sp-3);">
+        <div class="no-notif">
+            <i class="fa-solid fa-building"></i>
+            {% if is_admin %}
+            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+            {% else %}
+            <p>No tienes edificios asignados. Contacta al administrador.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
 
-            <div class="no-notif" id="stateOffline" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-                <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
-                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
-            </div>
-
-            <div class="no-notif" id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-                <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
-                <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
-                {% if is_admin %}
-                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
-                {% else %}
-                <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
-                {% endif %}
-            </div>
+    <!-- Estados de conexión -->
+    <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
+        <div class="no-notif" id="stateLoading" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
         </div>
 
-        <!-- Contenedor de telemetría activa -->
-        <div id="activeMonitoring" style="display:none;">
+        <div class="no-notif" id="stateOffline" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
+        </div>
 
-            <!-- Credenciales (admin) -->
+        <div class="no-notif" id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
             {% if is_admin %}
-            <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
-                <i class="fas fa-triangle-exclamation"></i>
-                <span id="credsMsg"></span>
-            </div>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
+            {% else %}
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
             {% endif %}
+        </div>
+    </div>
+
+    <!-- Contenedor de telemetría activa -->
+    <div id="activeMonitoring" style="display:none;">
+
+        <!-- Credenciales (admin) -->
+        {% if is_admin %}
+        <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span id="credsMsg"></span>
+        </div>
+        {% endif %}
 
         <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
@@ -652,14 +461,14 @@
             <div style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
                 <div class="form-group" style="flex:1; min-width:180px;">
                     <label class="form-label">Sensor</label>
-                    <select id="manualSensorSelect"></select>
+                    <select id="manualSensorSelect" class="form-select" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"></select>
                 </div>
                 <div class="form-group" style="flex:1; min-width:180px;">
                     <label class="form-label">Valor</label>
-                    <input type="text" id="manualValueInput" placeholder="Ingrese valor">
+                    <input type="text" id="manualValueInput" class="form-input" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);" placeholder="Ingrese valor">
                 </div>
                 <div>
-                    <button id="sendManualBtn" class="btn" style="height:44px; display:inline-flex; align-items:center; justify-content:center;">
+                    <button id="sendManualBtn" class="btn btn-primary" style="height:38px; display:inline-flex; align-items:center; justify-content:center; padding: 6px 16px;">
                         <i class="fas fa-paper-plane"></i> Enviar
                     </button>
                 </div>
@@ -675,21 +484,21 @@
             <div id="simControls" style="display:flex; flex-wrap:wrap; gap:var(--sp-2); align-items:flex-end;">
                 <div class="form-group" style="min-width:100px;">
                     <label class="form-label">Estado</label>
-                    <button id="simPauseBtn" class="btn btn-ghost" style="height:44px; width:120px;">
+                    <button id="simPauseBtn" class="btn btn-secondary" style="height:38px; width:120px; padding: 6px 16px;">
                         <i class="fas fa-pause"></i> <span>Pausar</span>
                     </button>
                 </div>
                 <div class="form-group" style="min-width:100px;">
                     <label class="form-label">Velocidad</label>
                     <div style="display:flex; gap:6px; align-items:center;">
-                        <input type="range" id="simSpeedSlider" min="1" max="2" step="0.25" value="1.0" style="width:120px; height:44px; accent-color:var(--color-ink);">
+                        <input type="range" id="simSpeedSlider" min="1" max="2" step="0.25" value="1.0" style="width:120px; height:38px; accent-color:var(--color-accent);">
                         <span id="simSpeedLabel" style="font-weight:var(--weight-bold); min-width:40px; font-size:var(--text-sm);">1.0x</span>
                     </div>
                 </div>
                 <div class="form-group" style="min-width:140px;">
                     <label class="form-label">Falla (bomba)</label>
                     <div style="display:flex; gap:6px;">
-                        <select id="simFaultPump" style="height:44px; flex:1;">
+                        <select id="simFaultPump" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); flex:1;">
                             <option value="">Ninguna</option>
                             {% for key, name in PUMP_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
@@ -700,7 +509,7 @@
                 <div class="form-group" style="min-width:140px;">
                     <label class="form-label">Falla (elevador)</label>
                     <div style="display:flex; gap:6px;">
-                        <select id="simFaultElevator" style="height:44px; flex:1;">
+                        <select id="simFaultElevator" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); flex:1;">
                             <option value="">Ninguna</option>
                             {% for key, name in ELEVATOR_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
@@ -710,7 +519,7 @@
                 </div>
                 <div class="form-group" style="min-width:60px;">
                     <label class="form-label">&nbsp;</label>
-                    <button id="simResetBtn" class="btn btn-danger" style="height:44px;">
+                    <button id="simResetBtn" class="btn btn-critical" style="height:38px; padding: 6px 16px;">
                         <i class="fas fa-rotate-left"></i> Reset
                     </button>
                 </div>
@@ -749,35 +558,16 @@
                 <canvas id="chart2"></canvas>
             </div>
         </div>
+    </div><!-- /activeMonitoring -->
+    {% endif %}
+</div>
+{% endblock %}
 
-
-        </div><!-- /activeMonitoring -->
-        {% endif %}
-
-                </div><!-- /reportes-card -->
-            </div><!-- /perfil-page -->
-        </main>
-    </div><!-- /main-layout -->
-
+{% block extra_js %}
     {{ config_json|json_script:"dashConfig" }}
     <script>
         window.IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.showAlert = function(message, type) {
-            return new Promise((resolve) => {
-                const el = document.getElementById('global-alert');
-                if (el) {
-                    el.textContent = message;
-                    el.className = 'global-alert ' + type;
-                    el.style.display = 'block';
-                    setTimeout(() => { el.style.display = 'none'; resolve(); }, 3000);
-                } else { resolve(); }
-            });
-        };
-        window.showConfirm = function(message) {
-            return new Promise((resolve) => { resolve(confirm(message)); });
-        };
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=4" defer></script>
-</body>
-</html>
+{% endblock %}

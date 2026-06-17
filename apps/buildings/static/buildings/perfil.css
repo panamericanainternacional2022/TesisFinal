@@ -19,6 +19,7 @@
 .perfil-card {
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
+    border-top: 6px solid var(--color-accent);
     box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
     border-radius: 0px;
     padding: var(--sp-4);
@@ -95,9 +96,9 @@
 
 .input-with-icon input:focus,
 .input-with-icon select:focus {
-    border-color: var(--color-ink);
+    border-color: var(--color-accent);
     background: var(--color-surface);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+    box-shadow: 4px 4px 0px var(--color-accent-bg);
 }
 
 /* Icono de edición */
@@ -123,7 +124,7 @@
 }
 
 .save-button {
-    background: var(--color-ink);
+    background: var(--color-accent);
     color: var(--color-surface) !important;
     padding: 12px var(--sp-4);
     border-radius: 0px;
@@ -141,10 +142,10 @@
 }
 
 .save-button:hover {
-    background: var(--color-surface);
-    color: var(--color-ink) !important;
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+    background: var(--color-accent-hover);
+    color: var(--color-surface) !important;
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
 }
 
 .save-button:disabled,
@@ -166,10 +167,12 @@
 .input-error {
     border-color: var(--state-critical) !important;
     background: var(--color-surface) !important;
+    box-shadow: 4px 4px 0px var(--state-critical-bg) !important;
 }
 
 .input-valid {
     border-color: var(--state-ok) !important;
+    box-shadow: 4px 4px 0px var(--state-ok-bg) !important;
 }
 
 /* ── Alertas (Django messages) ────────────────────────────────────────────── */

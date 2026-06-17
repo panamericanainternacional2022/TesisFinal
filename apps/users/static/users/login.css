@@ -27,6 +27,7 @@ body {
     max-width: 400px;
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
+    border-top: 6px solid var(--color-accent);
     box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
     padding: var(--sp-7) var(--sp-6);
     position: relative;
@@ -96,9 +97,9 @@ body {
 }
 
 .login-form input:focus {
-    border-color: var(--color-ink);
+    border-color: var(--color-accent);
     background: var(--color-surface);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+    box-shadow: 4px 4px 0px var(--color-accent-bg);
 }
 
 /* ── Botón Principal ──────────────────────────────────────────────────────── */
@@ -108,7 +109,7 @@ body {
     align-items: center;
     width: 100%;
     padding: 14px var(--sp-3);
-    background: var(--color-ink);
+    background: var(--color-accent);
     color: var(--color-surface);
     border: 2px solid var(--color-ink);
     border-radius: 0px;
@@ -124,10 +125,10 @@ body {
 }
 
 .primary-button:hover {
-    background: var(--color-surface);
-    color: var(--color-ink);
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+    background: var(--color-accent-hover);
+    color: var(--color-surface);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
 }
 
 .primary-button:active {

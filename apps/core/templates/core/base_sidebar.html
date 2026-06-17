@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    {% block meta_description %}{% endblock %}
+    
+    <!-- Hojas de estilo compartidas -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
+    {% block extra_css %}{% endblock %}
+
+    <!-- Scripts compartidos -->
+    <script src="{% static 'core/modal.js' %}" defer></script>
+    {% block extra_head_js %}{% endblock %}
+</head>
+<body class="preload">
+    <div class="main-layout">
+        {% include 'core/components/sidebar.html' %}
+
+        <main class="main-content">
+            <div class="perfil-page" style="padding-top: 0 !important;">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% include 'core/components/toast_messages.html' %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %}</title>
+    {% block meta_description %}{% endblock %}
+
+    <!-- Hojas de estilo compartidas de acceso público -->
+    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'users/login.css' %}">
+    <link rel="stylesheet" href="{% static 'users/navbar.css' %}">
+    {% block extra_css %}{% endblock %}
+    {% block extra_head_js %}{% endblock %}
+</head>
+<body>
+    {% include 'core/components/navbar.html' %}
+
+    <main class="login-page">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

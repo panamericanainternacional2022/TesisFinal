@@ -15,11 +15,13 @@
     align-items: center;
     z-index: 99999;
     opacity: 0;
+    pointer-events: none;
     transition: opacity 150ms ease;
 }
 
 .custom-modal-backdrop.active {
     opacity: 1;
+    pointer-events: auto;
 }
 
 .custom-modal-container {

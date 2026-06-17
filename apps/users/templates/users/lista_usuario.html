@@ -1,135 +1,248 @@
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de usuarios </title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+
+{% block title %}Administración de usuarios{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
-    <script src="{% static 'core/modal.js' %}" defer></script>
-</head>
-<body class="preload">
-    <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
+    <style>
+        .actions-dropdown {
+            position: relative;
+            display: inline-flex;
+        }
+        .dropdown-trigger {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all var(--transition-fast);
+            box-shadow: 2px 2px 0px var(--color-ink);
+        }
+        .dropdown-trigger:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
+        }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            min-width: 180px;
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 4px 0;
+        }
+        .dropdown-menu.open {
+            display: flex;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: var(--font);
+            text-decoration: none;
+            color: var(--color-text-primary);
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            box-sizing: border-box;
+        }
+        .dropdown-item:hover {
+            background: var(--color-bg);
+        }
+        .dropdown-item-danger {
+            color: var(--state-critical, #dc2626);
+        }
+        .dropdown-item-danger:hover {
+            background: #fef2f2;
+        }
+        .dropdown-item-disabled {
+            color: var(--color-text-secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
+        .table-wrapper {
+            overflow: visible !important;
+        }
 
-        <main class="main-content">
-            <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card">
-                    <div class="admin-info">
-                        <h1>Usuarios</h1>
-                        <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.</p>
-                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
-                            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
-                                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
-                                    <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
-                                    <input type="text" name="q" placeholder="Buscar por nombre, cédula o edificio" class="search-input" value="{{ request.GET.q|default:'' }}" />
-                                </div>
-                                <div class="select-container" style="min-width: 220px;">
-                                    <select name="edificio" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
-                                        <option value="">Todos los edificios</option>
-                                        {% for edf in edificios %}
-                                            <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
-                                        {% endfor %}
-                                    </select>
-                                </div>
-                                <div class="select-container" style="min-width: 200px;">
-                                    <select name="estado" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
-                                        <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
-                                        <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
-                                        <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
-                                    </select>
-                                </div>
-                            </form>
-                            <div class="header-actions-wrap">
-                                <button type="button" id="userActionsToggle" class="hist-btn-secondary" style="display:inline-flex; align-items:center; gap:6px; background:var(--color-ink); color:var(--color-surface); border:2px solid var(--color-ink); font-family:var(--font); font-size:var(--text-sm); font-weight:var(--weight-bold); padding:8px 14px; box-shadow:3px 3px 0px rgba(10,10,10,0.3); cursor:pointer; transition:all var(--transition-fast);">
-                                    <i class="fa-solid fa-ellipsis-vertical"></i> Acciones
-                                </button>
-                                <div class="header-actions-menu" id="userActionsMenu">
-                                    {% url 'user_create' as registro_url %}
-                                    <a href="{{ registro_url }}" class="header-actions-item">
-                                        <i class="fa-solid fa-plus"></i> Agregar usuario
-                                    </a>
-                                    {% if usuarios %}
-                                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="header-actions-item">
-                                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
-                                    </a>
-                                    <button class="header-actions-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
-                                        <i class="fa-solid fa-paper-plane"></i> Enviar a todos
-                                    </button>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+        /* ── Actions dropdown en header ── */
+        .header-actions-wrap {
+            position: relative;
+            display: inline-flex;
+        }
+        .header-actions-menu {
+            position: absolute;
+            top: calc(100% + 4px);
+            right: 0;
+            min-width: 200px;
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 4px 0;
+        }
+        .header-actions-menu.open {
+            display: flex;
+        }
+        .header-actions-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-family: var(--font);
+            text-decoration: none;
+            color: var(--color-text-primary);
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            box-sizing: border-box;
+        }
+        .header-actions-item:hover {
+            background: var(--color-bg);
+        }
+        .header-actions-item i {
+            width: 16px;
+            text-align: center;
+        }
+    </style>
+{% endblock %}
 
-                    {% include 'core/components/toast_messages.html' %}
-
-                    <div class="table-wrapper">
-                        <div class="table-responsive">
-                            <table class="report-table centered-table">
-                                <thead>
-                                    <tr>
-                                        <th>Cédula</th>
-                                        <th>Nombre</th>
-                                        <th>Apellido</th>
-                                        <th>Edificio</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if usuarios %}
-                                        {% for usuario in usuarios %}
-                                            <tr>
-                                                <td>{{ usuario.cedula }}</td>
-                                                <td>{{ usuario.nombre }}</td>
-                                                <td>{{ usuario.last_name }}</td>
-                                                <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
-                                                <td>
-                                                    <div class="actions-dropdown">
-                                                        <button class="dropdown-trigger" title="Acciones">
-                                                            <i class="fa-solid fa-ellipsis-vertical"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
-                                                                <i class="fa-solid fa-pen-to-square"></i> Editar
-                                                            </a>
-                                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
-                                                                <i class="fa-solid fa-trash-can"></i> Eliminar
-                                                            </a>
-                                                            {% if usuario.email %}
-                                                            <button class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
-                                                                <i class="fa-solid fa-paper-plane"></i> Enviar correo
-                                                            </button>
-                                                            {% else %}
-                                                            <span class="dropdown-item dropdown-item-disabled" title="Este usuario no tiene correo registrado">
-                                                                <i class="fa-solid fa-paper-plane"></i> Sin correo
-                                                            </span>
-                                                            {% endif %}
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
-                                                No hay usuarios registrados.
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
+{% block content %}
+<div class="reportes-card">
+    <div class="admin-info">
+        <h1>Usuarios</h1>
+        <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.</p>
+        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
+                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside"></i>
+                    <input type="text" name="q" placeholder="Buscar por nombre, cédula o edificio" class="form-input search-input" value="{{ request.GET.q|default:'' }}" />
+                </div>
+                <div class="select-container" style="min-width: 220px;">
+                    <select name="edificio" onchange="this.form.submit()" class="form-select">
+                        <option value="">Todos los edificios</option>
+                        {% for edf in edificios %}
+                            <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="select-container" style="min-width: 200px;">
+                    <select name="estado" onchange="this.form.submit()" class="form-select">
+                        <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
+                        <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
+                        <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
+                    </select>
+                </div>
+            </form>
+            <div class="header-actions-wrap">
+                <button type="button" id="userActionsToggle" class="btn btn-secondary" style="box-shadow: 3px 3px 0px var(--color-ink);">
+                    <i class="fa-solid fa-ellipsis-vertical"></i> Acciones
+                </button>
+                <div class="header-actions-menu" id="userActionsMenu">
+                    {% url 'user_create' as registro_url %}
+                    <a href="{{ registro_url }}" class="header-actions-item">
+                        <i class="fa-solid fa-plus"></i> Agregar usuario
+                    </a>
+                    {% if usuarios %}
+                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="header-actions-item">
+                        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+                    </a>
+                    <button class="header-actions-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
+                        <i class="fa-solid fa-paper-plane"></i> Enviar a todos
+                    </button>
+                    {% endif %}
                 </div>
             </div>
-        </main>
+        </div>
     </div>
+
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <table class="report-table centered-table">
+                <thead>
+                    <tr>
+                        <th>Cédula</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Edificio</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if usuarios %}
+                        {% for usuario in usuarios %}
+                            <tr>
+                                <td>{{ usuario.cedula }}</td>
+                                <td>{{ usuario.nombre }}</td>
+                                <td>{{ usuario.last_name }}</td>
+                                <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
+                                <td>
+                                    <div class="actions-dropdown">
+                                        <button class="dropdown-trigger" title="Acciones">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
+                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                            </a>
+                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                            </a>
+                                            {% if usuario.email %}
+                                            <button class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
+                                                <i class="fa-solid fa-paper-plane"></i> Enviar correo
+                                            </button>
+                                            {% else %}
+                                            <span class="dropdown-item dropdown-item-disabled" title="Este usuario no tiene correo registrado">
+                                                <i class="fa-solid fa-paper-plane"></i> Sin correo
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 24px 0;">
+                                No hay usuarios registrados.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
     <script>
         function csrfFetch(url, opts = {}) {
             const csrf = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
@@ -140,7 +253,6 @@
         }
 
         function showToast(message, type = 'info') {
-            // Reutiliza el mismo contenedor y clases de toast_messages.html
             let container = document.querySelector('.messages-container');
             if (!container) {
                 container = document.createElement('div');
@@ -148,7 +260,6 @@
                 container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:380px;width:calc(100% - 48px);';
                 document.body.appendChild(container);
 
-                // Registra el handler del botón de cierre si no existe aún
                 if (!document.__toastCloseHandlerAdded) {
                     document.__toastCloseHandlerAdded = true;
                     document.addEventListener('click', function(e) {
@@ -165,9 +276,9 @@
             }
 
             const styles = {
-                success: 'background-color:#e6f4ea;color:#137333;border-left:6px solid #137333;',
-                error:   'background-color:#fce8e6;color:#c5221f;border-left:6px solid #c5221f;',
-                info:    'background-color:#f1f3f4;color:#5f6368;border-left:6px solid #5f6368;',
+                success: 'background-color:var(--state-ok-bg);color:var(--state-ok);border-left:6px solid var(--state-ok);',
+                error:   'background-color:var(--state-critical-bg);color:var(--state-critical);border-left:6px solid var(--state-critical);',
+                info:    'background-color:var(--state-inactive-bg);color:var(--state-inactive);border-left:6px solid var(--state-inactive);',
             };
             const itemStyle = styles[type] || styles.info;
 
@@ -177,13 +288,11 @@
             toast.innerHTML = `<button type="button" class="close-msg-btn" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:inherit;line-height:1;font-weight:bold;padding:2px;">&times;</button><div class="toast-body-content" style="padding-right:15px;">${message}</div>`;
             container.appendChild(toast);
 
-            // Slide in
             requestAnimationFrame(() => {
                 toast.style.transform = 'translateX(0)';
                 toast.style.opacity = '1';
             });
 
-            // Auto-cierre
             setTimeout(() => {
                 toast.style.transform = 'translateX(120%)';
                 toast.style.opacity = '0';
@@ -304,137 +413,4 @@
             }
         });
     </script>
-<style>
-.actions-dropdown {
-    position: relative;
-    display: inline-flex;
-}
-.dropdown-trigger {
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    color: var(--color-ink);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all var(--transition-fast);
-    box-shadow: 2px 2px 0px var(--color-ink);
-}
-.dropdown-trigger:hover {
-    background: var(--color-ink);
-    color: var(--color-surface);
-    transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
-}
-.dropdown-menu {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 4px);
-    min-width: 180px;
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
-    z-index: 100;
-    display: none;
-    flex-direction: column;
-    padding: 4px 0;
-}
-.dropdown-menu.open {
-    display: flex;
-}
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-family: var(--font);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    box-sizing: border-box;
-}
-.dropdown-item:hover {
-    background: var(--color-bg);
-}
-.dropdown-item-danger {
-    color: var(--state-critical, #dc2626);
-}
-.dropdown-item-danger:hover {
-    background: #fef2f2;
-}
-.dropdown-item-disabled {
-    color: var(--color-text-secondary);
-    cursor: not-allowed;
-    opacity: 0.5;
-}
-.dropdown-item i {
-    width: 16px;
-    text-align: center;
-}
-.table-wrapper {
-    overflow: visible !important;
-}
-
-/* ── Actions dropdown en header ── */
-.header-actions-wrap {
-    position: relative;
-    display: inline-flex;
-}
-.header-actions-menu {
-    position: absolute;
-    top: calc(100% + 4px);
-    right: 0;
-    min-width: 200px;
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
-    z-index: 100;
-    display: none;
-    flex-direction: column;
-    padding: 4px 0;
-}
-.header-actions-menu.open {
-    display: flex;
-}
-.header-actions-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    font-size: 13px;
-    font-family: var(--font);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    box-sizing: border-box;
-}
-.header-actions-item:hover {
-    background: var(--color-bg);
-}
-.header-actions-item i {
-    width: 16px;
-    text-align: center;
-}
-.hist-btn-secondary:hover {
-    background: var(--color-surface) !important;
-    color: var(--color-ink) !important;
-    transform: translate(-1px,-1px);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
-}
-</style>
-</body>
-</html>
+{% endblock %}

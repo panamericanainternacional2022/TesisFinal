@@ -1,39 +1,28 @@
+{% extends 'core/base_public.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Acceso al sistema </title>
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'users/login.css' %}">
-    <link rel="stylesheet" href="{% static 'users/navbar.css' %}">
-</head>
-<body>
-    {% include 'core/components/navbar.html' %}
 
-    <main class="login-page">
-        <section class="login-card">
-            <div class="login-card__header">
-                <span class="login-card__brand">INES</span>
-                <p class="login-card__subtitle">Sistema inteligente de automatización</p>
-            </div>
+{% block title %}Acceso al sistema{% endblock %}
 
-            <h1>Acceso al sistema</h1>
-            {% if error %}
-                <div class="login-error">
-                    {{ error }}
-                </div>
-            {% endif %}
+{% block content %}
+<section class="login-card">
+    <div class="login-card__header">
+        <span class="login-card__brand">INES</span>
+        <p class="login-card__subtitle">Sistema inteligente de automatización</p>
+    </div>
 
-            <form method="POST" class="login-form">
-                {% csrf_token %}
-                <input type="text" name="username" placeholder="Usuario" required autofocus>
-                <input type="password" name="password" placeholder="Contraseña" required>
+    <h1>Acceso al sistema</h1>
+    {% if error %}
+        <div class="login-error">
+            {{ error }}
+        </div>
+    {% endif %}
 
-                {% include 'core/components/boton.html' with type='submit' class='primary-button' text='Ingresar' %}
-            </form>
-        </section>
-    </main>
-</body>
-</html>
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+        <input type="text" name="username" class="form-input" placeholder="Usuario" required autofocus>
+        <input type="password" name="password" class="form-input" placeholder="Contraseña" required>
+
+        {% include 'core/components/boton.html' with type='submit' class='btn btn-primary primary-button' text='Ingresar' %}
+    </form>
+</section>
+{% endblock %}

@@ -123,6 +123,7 @@ class ConfigurationViewTests(BuildingViewTestBase):
 
     def test_update_email(self) -> None:
         response = self.client.post(reverse("configuration"), {
+            "action": "update_profile",
             "email": "nuevo@test.com",
             "username": "",
             "current_password": "admin123",
@@ -135,11 +136,12 @@ class ConfigurationViewTests(BuildingViewTestBase):
 
     def test_wrong_current_password(self) -> None:
         response = self.client.post(reverse("configuration"), {
+            "action": "change_password",
             "email": "",
             "username": "",
             "current_password": "wrong",
-            "new_password": "",
-            "confirm_password": "",
+            "new_password": "newpass123",
+            "confirm_password": "newpass123",
         })
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "no es correcta")

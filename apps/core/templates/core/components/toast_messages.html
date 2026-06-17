@@ -9,11 +9,13 @@
                         opacity: 0;
                         transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 350ms ease;
                     {% if message.tags == 'success' %}
-                        background-color: #e6f4ea; color: #137333; border-left: 6px solid #137333;
-                    {% elif message.tags == 'warning' or message.tags == 'error' %}
-                        background-color: #fce8e6; color: #c5221f; border-left: 6px solid #c5221f;
+                        background-color: var(--state-ok-bg); color: var(--state-ok); border-left: 6px solid var(--state-ok);
+                    {% elif message.tags == 'warning' %}
+                        background-color: var(--state-warn-bg); color: var(--state-warn); border-left: 6px solid var(--state-warn);
+                    {% elif message.tags == 'error' %}
+                        background-color: var(--state-critical-bg); color: var(--state-critical); border-left: 6px solid var(--state-critical);
                     {% else %}
-                        background-color: #f1f3f4; color: #5f6368; border-left: 6px solid #5f6368;
+                        background-color: var(--state-inactive-bg); color: var(--state-inactive); border-left: 6px solid var(--state-inactive);
                     {% endif %}
                  ">
                 <button type="button" class="close-msg-btn" style="position: absolute; right: 12px; top: 12px; background: none; border: none; font-size: 1.3rem; cursor: pointer; color: inherit; line-height: 1; font-weight: bold; padding: 2px;">&times;</button>

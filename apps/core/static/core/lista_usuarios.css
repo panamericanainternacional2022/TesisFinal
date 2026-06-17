@@ -80,14 +80,15 @@
 }
 
 .search-input:focus {
-    border-color: var(--color-ink);
+    border-color: var(--color-accent);
     background: var(--color-surface);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+    box-shadow: 4px 4px 0px var(--color-accent-bg);
 }
 
 /* ── Wrapper de Tabla ─────────────────────────────────────────────────────── */
 .table-wrapper {
     border: 2px solid var(--color-ink);
+    border-top: 6px solid var(--color-accent);
     border-radius: 0px;
     overflow: hidden;
     background: var(--color-surface);
@@ -134,7 +135,7 @@
 }
 
 .report-table tbody tr:hover td {
-    background: var(--color-bg);
+    background: var(--color-accent-bg);
 }
 
 /* ── Links dentro de celdas ───────────────────────────────────────────────── */
@@ -169,9 +170,35 @@
 
 /* ── Botones de Acción — estilo cuadrado Neo-brutalista ──────────────────────────── */
 .register-button-react,
-.btn-action,
-.edit-btn,
-.delete-btn {
+.btn-action {
+    background: var(--color-accent) !important;
+    border: 2px solid var(--color-ink) !important;
+    color: var(--color-surface) !important;
+    border-radius: 0px !important;
+    font-family: var(--font);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    padding: 6px 12px !important;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.01em;
+    box-shadow: 3px 3px 0px var(--color-ink);
+}
+
+.register-button-react:hover,
+.btn-action:hover {
+    background: var(--color-accent-hover) !important;
+    color: var(--color-surface) !important;
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
+    opacity: 1 !important;
+}
+
+.edit-btn {
     background: var(--color-surface) !important;
     border: 2px solid var(--color-ink) !important;
     color: var(--color-ink) !important;
@@ -190,31 +217,44 @@
     box-shadow: 3px 3px 0px var(--color-ink);
 }
 
-.register-button-react:hover,
-.btn-action:hover,
 .edit-btn:hover {
-    background: var(--color-ink) !important;
-    color: var(--color-surface) !important;
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
+    background: var(--color-accent-bg) !important;
+    color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-accent);
     opacity: 1 !important;
 }
 
 .delete-btn {
-    border-color: var(--state-critical) !important;
+    background: var(--color-surface) !important;
+    border: 2px solid var(--state-critical) !important;
     color: var(--state-critical) !important;
+    border-radius: 0px !important;
+    font-family: var(--font);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    padding: 6px 12px !important;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.01em;
     box-shadow: 3px 3px 0px var(--state-critical);
 }
 
 .delete-btn:hover {
-    background: var(--state-critical) !important;
-    color: var(--color-surface) !important;
-    transform: translate(-1px, -1px);
-    box-shadow: 4px 4px 0px rgba(220, 38, 38, 0.25);
+    background: var(--state-critical-bg) !important;
+    color: var(--state-critical) !important;
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--state-critical);
     opacity: 1 !important;
 }
 
 .register-button-react.disabled,
+.btn-action.disabled,
 .edit-btn.disabled,
 .delete-btn.disabled {
     opacity: 0.4;

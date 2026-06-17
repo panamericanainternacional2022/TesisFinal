@@ -55,10 +55,10 @@
 }
 
 .menu-card:hover {
-    background: var(--color-ink);
+    background: var(--color-accent);
     color: var(--color-surface);
     transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.2);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
 }
 
 .menu-card:hover .icon-card {

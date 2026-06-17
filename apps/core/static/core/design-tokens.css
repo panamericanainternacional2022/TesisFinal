@@ -6,89 +6,153 @@
 
 :root {
     /* ── Tipografía ────────────────────────────────────────────── */
-    --font:          'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    --font: 'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
-    --text-xs:       0.72rem;   /* 11.5px — meta, badges */
-    --text-sm:       0.82rem;   /* 13px  — labels, subtítulos tabla */
-    --text-base:     0.93rem;   /* 14.9px — cuerpo */
-    --text-md:       1.05rem;   /* 16.8px — body emphasis */
-    --text-lg:       1.2rem;    /* 19.2px — subtítulos */
-    --text-xl:       1.5rem;    /* 24px   — títulos de sección */
-    --text-2xl:      1.9rem;    /* 30.4px — títulos de página */
-    --text-3xl:      2.4rem;    /* 38.4px — display */
+    --text-xs: 0.72rem;
+    /* 11.5px — meta, badges */
+    --text-sm: 0.82rem;
+    /* 13px  — labels, subtítulos tabla */
+    --text-base: 0.93rem;
+    /* 14.9px — cuerpo */
+    --text-md: 1.05rem;
+    /* 16.8px — body emphasis */
+    --text-lg: 1.2rem;
+    /* 19.2px — subtítulos */
+    --text-xl: 1.5rem;
+    /* 24px   — títulos de sección */
+    --text-2xl: 1.9rem;
+    /* 30.4px — títulos de página */
+    --text-3xl: 2.4rem;
+    /* 38.4px — display */
 
-    --weight-light:  300;
+    --weight-light: 300;
     --weight-normal: 400;
     --weight-medium: 500;
-    --weight-bold:   700;
+    --weight-bold: 700;
 
-    --leading-tight:  1.2;
+    --leading-tight: 1.2;
     --leading-normal: 1.55;
-    --leading-loose:  1.8;
+    --leading-loose: 1.8;
 
-    --tracking-tight:  -0.02em;
-    --tracking-normal:  0;
-    --tracking-wide:    0.06em;
-    --tracking-wider:   0.12em;
+    --tracking-tight: -0.02em;
+    --tracking-normal: 0;
+    --tracking-wide: 0.06em;
+    --tracking-wider: 0.12em;
 
     /* ── Paleta Principal ─────────────────────────────────────── */
-    --color-ink:        #0a0a0a;    /* negro tipográfico */
-    --color-ink-soft:   #2e2e2e;    /* negro suavizado (hover de fondo oscuro) */
-    --color-surface:    #ffffff;    /* blanco puro (tarjetas, inputs) */
-    --color-bg:         #f5f5f5;    /* gris página */
-    --color-border:     #e0e0e0;    /* divisores, bordes de caja */
-    --color-border-strong: #0a0a0a; /* borde activo/énfasis */
+    --color-ink: #0a0a0a;
+    /* negro tipográfico */
+    --color-ink-soft: #2e2e2e;
+    /* negro suavizado (hover de fondo oscuro) */
+    --color-surface: #ffffff;
+    /* blanco puro (tarjetas, inputs) */
+    --color-bg: #f5f5f5;
+    /* gris página */
+    --color-border: #e0e0e0;
+    /* divisores, bordes de caja */
+    --color-border-strong: #0a0a0a;
+    /* borde activo/énfasis */
+
+    /* ── Paleta de Acento Cobalto (Neo-Brutalist) ───────────── */
+    --color-accent: #2563eb;
+    /* azul cobalto eléctrico */
+    --color-accent-hover: #1d4ed8;
+    /* cobalto oscuro */
+    --color-accent-bg: #eff6ff;
+    /* azul muy suave para hover de filas e inputs */
+    --color-accent-shadow: rgba(37, 99, 235, 0.15);
 
     /* ── Texto ────────────────────────────────────────────────── */
-    --color-text-primary:     #0a0a0a;
-    --color-text-secondary:   #5e5e5e;
+    --color-text-primary: #0a0a0a;
+    --color-text-secondary: #5e5e5e;
     --color-text-placeholder: #9e9e9e;
 
     /* ── Estados Funcionales (semáforos — uso exclusivo) ─────── */
-    --state-ok:          #16a34a;
-    --state-ok-bg:       #f0fdf4;
-    --state-ok-border:   #bbf7d0;
+    --state-ok: #16a34a;
+    --state-ok-bg: #f0fdf4;
+    --state-ok-border: #bbf7d0;
 
-    --state-warn:        #b45309;
-    --state-warn-bg:     #fffbeb;
+    --state-warn: #b45309;
+    --state-warn-bg: #fffbeb;
     --state-warn-border: #fde68a;
 
-    --state-critical:        #dc2626;
-    --state-critical-bg:     #fef2f2;
+    --state-critical: #dc2626;
+    --state-critical-bg: #fef2f2;
     --state-critical-border: #fecaca;
 
-    --state-inactive:        #6b6b6b;
-    --state-inactive-bg:     #f5f5f5;
+    --state-inactive: #6b6b6b;
+    --state-inactive-bg: #f5f5f5;
     --state-inactive-border: #e0e0e0;
 
     /* ── Espaciado (cuadrícula de 8px) ───────────────────────── */
-    --sp-1:  8px;
-    --sp-2:  16px;
-    --sp-3:  24px;
-    --sp-4:  32px;
-    --sp-5:  40px;
-    --sp-6:  48px;
-    --sp-7:  56px;
-    --sp-8:  64px;
+    --sp-1: 8px;
+    --sp-2: 16px;
+    --sp-3: 24px;
+    --sp-4: 32px;
+    --sp-5: 40px;
+    --sp-6: 48px;
+    --sp-7: 56px;
+    --sp-8: 64px;
 
     /* ── Layout ──────────────────────────────────────────────── */
-    --sidebar-width:  220px;
-    --content-max:    1280px;
-    --header-height:  60px;
+    --sidebar-width: 220px;
+    --content-max: 1280px;
+    --header-height: 60px;
 
     /* ── Forma ───────────────────────────────────────────────── */
-    --radius:         0px;      /* sin redondeo — principio Swiss */
-    --radius-badge:   2px;      /* solo badges de estado */
+    --radius: 0px;
+    /* sin redondeo — principio Swiss */
+    --radius-badge: 2px;
+    /* solo badges de estado */
 
-    /* ── Transiciones ────────────────────────────────────────── */
-    --transition-fast:   120ms ease;
-    --transition-base:   200ms ease;
+    /* ── Transiciones ──── */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    --transition-fast: 120ms ease;
+    --transition-base: 200ms ease;
+}
+
+a {
+    color: inherit;
+}
+
+button {
+    font-family: var(--font);
+}
+
+/* ── Cabecera informativa unificada ── */
+.admin-info {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    border-left: 6px solid var(--color-ink);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    padding: var(--sp-3);
+    margin-bottom: var(--sp-3);
+    border-radius: 0px;
+}
+
+.admin-info h1 {
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin-bottom: var(--sp-1);
+    line-height: var(--leading-tight);
+}
+
+.admin-info p {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    margin-top: 4px;
+    line-height: var(--leading-normal);
 }
 
 /* ==========================================================================
    Reset mínimo global
    ========================================================================== */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -105,8 +169,13 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-a { color: inherit; }
-button { font-family: var(--font); }
+a {
+    color: inherit;
+}
+
+button {
+    font-family: var(--font);
+}
 
 /* ── Cabecera informativa unificada ── */
 .admin-info {
@@ -136,7 +205,8 @@ button { font-family: var(--font); }
 }
 
 /* Prevent transition flicker on page load */
-.preload, .preload * {
+.preload,
+.preload * {
     -webkit-transition: none !important;
     -moz-transition: none !important;
     -ms-transition: none !important;
@@ -144,3 +214,199 @@ button { font-family: var(--font); }
     transition: none !important;
 }
 
+/* Custom Scrollbar Styles for Neo-Brutalist Premium Aesthetic */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-bg);
+    border-left: 2px solid var(--color-ink);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-ink);
+    border: 2px solid var(--color-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+}
+
+/* ==========================================================================
+   Sistema de Componentes Interactivos Estandarizados (Neo-Brutalist Cobalto)
+   ========================================================================== */
+
+/* ── Botones ────────────────────────────────────────────────────────────── */
+.btn,
+.primary-button,
+.save-button,
+.back-button,
+.register-button-react,
+.btn-action,
+.edit-btn,
+.delete-btn,
+.hist-btn-secondary,
+.hist-btn-ghost,
+.page-link-btn,
+.dropdown-trigger,
+.header-actions-item,
+.dropdown-item {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 0px !important;
+    font-family: var(--font);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.01em;
+    box-sizing: border-box;
+}
+
+/* Primarios (Cobalto) */
+.btn-primary,
+.primary-button,
+.save-button,
+.register-button-react,
+.btn-action {
+    background: var(--color-accent) !important;
+    border: 2px solid var(--color-ink) !important;
+    color: var(--color-surface) !important;
+    box-shadow: 3px 3px 0px var(--color-ink) !important;
+}
+
+.btn-primary:hover,
+.primary-button:hover,
+.save-button:hover,
+.register-button-react:hover,
+.btn-action:hover {
+    background: var(--color-accent-hover) !important;
+    color: var(--color-surface) !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 5px 5px 0px var(--color-ink) !important;
+}
+
+/* Secundarios (Blancos) */
+.btn-secondary,
+.btn-ghost,
+.back-button,
+.edit-btn,
+.hist-btn-ghost,
+.page-link-btn {
+    background: var(--color-surface) !important;
+    border: 2px solid var(--color-ink) !important;
+    color: var(--color-ink) !important;
+    box-shadow: 3px 3px 0px var(--color-ink) !important;
+}
+
+.btn-secondary:hover,
+.btn-ghost:hover,
+.back-button:hover,
+.edit-btn:hover,
+.hist-btn-ghost:hover,
+.page-link-btn:hover {
+    background: var(--color-accent-bg) !important;
+    color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 5px 5px 0px var(--color-accent) !important;
+}
+
+/* Críticos (Rojos) */
+.btn-critical,
+.btn-danger,
+.delete-btn {
+    background: var(--color-surface) !important;
+    border: 2px solid var(--state-critical) !important;
+    color: var(--state-critical) !important;
+    box-shadow: 3px 3px 0px var(--state-critical) !important;
+}
+
+.btn-critical:hover,
+.btn-danger:hover,
+.delete-btn:hover {
+    background: var(--state-critical-bg) !important;
+    color: var(--state-critical) !important;
+    transform: translate(-2px, -2px) !important;
+    box-shadow: 5px 5px 0px var(--state-critical) !important;
+}
+
+/* Deshabilitados */
+.btn.disabled,
+.btn:disabled,
+.primary-button:disabled,
+.save-button:disabled,
+.page-link-btn.disabled {
+    opacity: 0.4 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* ── Controles de Formulario (Inputs y Selects) ────────────────────────── */
+.form-input,
+.form-select,
+.search-input,
+.filter-panel-select,
+.select-container select,
+.form-group input,
+.form-group select,
+.input-with-icon input,
+.input-with-icon select {
+    width: 100%;
+    height: 46px;
+    padding: 10px 14px;
+    border: 2px solid var(--color-ink);
+    border-radius: 0px !important;
+    font-size: var(--text-base);
+    font-family: var(--font);
+    color: var(--color-text-primary);
+    background: var(--color-surface);
+    box-sizing: border-box;
+    outline: none;
+    transition: all var(--transition-base);
+}
+
+.form-input:focus,
+.form-select:focus,
+.search-input:focus,
+.filter-panel-select:focus,
+.select-container select:focus,
+.form-group input:focus,
+.form-group select:focus,
+.input-with-icon input:focus,
+.input-with-icon select:focus {
+    border-color: var(--color-accent) !important;
+    box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
+}
+
+/* Fechas y otros inputs generales */
+input[type="date"],
+input[type="number"] {
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    outline: none;
+    transition: all var(--transition-base);
+}
+
+input[type="date"]:focus,
+input[type="number"]:focus {
+    border-color: var(--color-accent) !important;
+    box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
+}
+
+/* ── Estructura de Tarjetas y Envoltorios de Tablas ──────────────────────── */
+.perfil-card,
+.table-wrapper,
+.login-card,
+.register-card,
+.admin-info {
+    border-top: 6px solid var(--color-accent) !important;
+}

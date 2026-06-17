@@ -81,9 +81,9 @@
 }
 
 .sidebar-link:hover {
-    color: var(--color-ink);
-    border-left-color: var(--color-ink);
-    background: transparent;
+    color: var(--color-accent);
+    border-left-color: var(--color-accent);
+    background: var(--color-accent-bg);
 }
 
 .sidebar-link:hover i {
@@ -91,9 +91,10 @@
 }
 
 .sidebar-link.active {
-    color: var(--color-ink);
+    color: var(--color-accent);
     font-weight: var(--weight-bold);
-    border-left-color: var(--color-ink);
+    border-left-color: var(--color-accent);
+    background: var(--color-accent-bg);
 }
 
 .sidebar-link.active i {

@@ -1,113 +1,181 @@
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de edificios </title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+
+{% block title %}Administración de edificios{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
-    <script src="{% static 'core/modal.js' %}" defer></script>
-</head>
-<body class="preload">
-    <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
+    <style>
+        .equip-badge {
+            font-size: 20px;
+            line-height: 1;
+            margin-right: 4px;
+            display: inline-block;
+        }
+        .actions-dropdown {
+            position: relative;
+            display: inline-flex;
+        }
+        .dropdown-trigger {
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            color: var(--color-ink);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all var(--transition-fast);
+            box-shadow: 2px 2px 0px var(--color-ink);
+        }
+        .dropdown-trigger:hover {
+            background: var(--color-ink);
+            color: var(--color-surface);
+            transform: translate(-2px, -2px);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
+        }
+        .dropdown-menu {
+            position: absolute;
+            right: 0;
+            top: calc(100% + 4px);
+            min-width: 180px;
+            background: var(--color-surface);
+            border: 2px solid var(--color-ink);
+            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 4px 0;
+        }
+        .dropdown-menu.open {
+            display: flex;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            font-size: 13px;
+            font-family: var(--font);
+            text-decoration: none;
+            color: var(--color-text-primary);
+            background: none;
+            border: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            transition: background var(--transition-fast);
+            box-sizing: border-box;
+        }
+        .dropdown-item:hover {
+            background: var(--color-bg);
+        }
+        .dropdown-item-danger {
+            color: var(--state-critical, #dc2626);
+        }
+        .dropdown-item-danger:hover {
+            background: #fef2f2;
+        }
+        .dropdown-item i {
+            width: 16px;
+            text-align: center;
+        }
+        .table-wrapper {
+            overflow: visible !important;
+        }
+    </style>
+{% endblock %}
 
-        <main class="main-content">
-            <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card">
-                    <div class="admin-info">
-                        <h1>Edificios</h1>
-                        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y manténlos siempre actualizados.</p>
-                        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
-                            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
-                                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
-                                    <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
-                                    <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
-                                </div>
-                                <div class="select-container" style="min-width: 220px;">
-                                    <select name="equipamiento" onchange="this.form.submit()" style="width: 100%; padding: 10px var(--sp-3); border: 2px solid var(--color-ink); border-radius: 0px; font-size: var(--text-base); font-family: var(--font); background: var(--color-surface); color: var(--color-text-primary); transition: all var(--transition-base); outline: none; cursor: pointer; height: 44px;">
-                                        <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
-                                        <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
-                                        <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
-                                    </select>
-                                </div>
-                            </form>
-                            {% url 'register_building' as registro_url %}
-                            {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
-                        </div>
-                    </div>
-
-                    {% include 'core/components/toast_messages.html' %}
-
-                    <div class="table-wrapper">
-                        <div class="table-responsive">
-                            <table class="report-table centered-table">
-                                <thead>
-                                    <tr>
-                                        <th>Nombre</th>
-                                        <th>Equipamiento</th>
-                                        <th>RIF</th>
-                                        <th>Dirección</th>
-                                        <th>Acciones</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% if buildings %}
-                                        {% for building in buildings %}
-                                            <tr>
-                                                <td title="{{ building.name }}">{{ building.name }}</td>
-                                                <td>
-                                                    {% with equipment_list=building.equipment.all %}
-                                                        {% for eq in equipment_list %}
-                                                            {% if eq.equipment_type == "bomba" %}<span class="equip-badge" title="Bomba de agua">🔧</span>{% endif %}
-                                                            {% if eq.equipment_type == "elevador" %}<span class="equip-badge" title="Elevador">🛗</span>{% endif %}
-                                                        {% empty %}
-                                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
-                                                        {% endfor %}
-                                                    {% endwith %}
-                                                </td>
-                                                <td title="{{ building.rif }}">{{ building.rif }}</td>
-                                                <td title="{{ building.address }}">{{ building.address }}</td>
-                                                <td>
-                                                    <div class="actions-dropdown">
-                                                        <button class="dropdown-trigger" title="Acciones">
-                                                            <i class="fa-solid fa-ellipsis-vertical"></i>
-                                                        </button>
-                                                        <div class="dropdown-menu">
-                                                            <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
-                                                                <i class="fa-solid fa-pen-to-square"></i> Editar
-                                                            </a>
-                                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
-                                                                <i class="fa-solid fa-trash-can"></i> Eliminar
-                                                            </a>
-                                                            <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">
-                                                                <i class="fa-solid fa-file-pdf"></i> PDF
-                                                            </a>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    {% else %}
-                                        <tr>
-                                            <td colspan="5" style="text-align: center; padding: 24px 0;">
-                                                No hay edificios registrados.
-                                            </td>
-                                        </tr>
-                                    {% endif %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
+{% block content %}
+<div class="reportes-card">
+    <div class="admin-info">
+        <h1>Edificios</h1>
+        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y manténlos siempre actualizados.</p>
+        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
+                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 200px;">
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                    <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
-            </div>
-        </main>
+                <div class="select-container" style="min-width: 220px;">
+                    <select name="equipamiento" onchange="this.form.submit()" class="form-select" style="width: 100%; box-shadow: 3px 3px 0px var(--color-ink); height: 44px; padding-top: 8px; padding-bottom: 8px;">
+                        <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
+                        <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
+                        <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
+                    </select>
+                </div>
+            </form>
+            {% url 'register_building' as registro_url %}
+            {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
+        </div>
     </div>
+
+    <div class="table-wrapper">
+        <div class="table-responsive">
+            <table class="report-table centered-table">
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Equipamiento</th>
+                        <th>RIF</th>
+                        <th>Dirección</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if buildings %}
+                        {% for building in buildings %}
+                            <tr>
+                                <td title="{{ building.name }}">{{ building.name }}</td>
+                                <td>
+                                    {% with equipment_list=building.equipment.all %}
+                                        {% for eq in equipment_list %}
+                                            {% if eq.equipment_type == "bomba" %}<span class="equip-badge" title="Bomba de agua">🔧</span>{% endif %}
+                                            {% if eq.equipment_type == "elevador" %}<span class="equip-badge" title="Elevador">🛗</span>{% endif %}
+                                        {% empty %}
+                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
+                                        {% endfor %}
+                                    {% endwith %}
+                                </td>
+                                <td title="{{ building.rif }}">{{ building.rif }}</td>
+                                <td title="{{ building.address }}">{{ building.address }}</td>
+                                <td>
+                                    <div class="actions-dropdown">
+                                        <button class="dropdown-trigger" title="Acciones">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <div class="dropdown-menu">
+                                            <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
+                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                            </a>
+                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
+                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                            </a>
+                                            <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">
+                                                <i class="fa-solid fa-file-pdf"></i> PDF
+                                            </a>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 24px 0;">
+                                No hay edificios registrados.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // ── Dropdown toggle ──
@@ -150,86 +218,4 @@
             });
         });
     </script>
-<style>
-.equip-badge {
-    font-size: 20px;
-    line-height: 1;
-    margin-right: 4px;
-    display: inline-block;
-}
-.actions-dropdown {
-    position: relative;
-    display: inline-flex;
-}
-.dropdown-trigger {
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    color: var(--color-ink);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all var(--transition-fast);
-    box-shadow: 2px 2px 0px var(--color-ink);
-}
-.dropdown-trigger:hover {
-    background: var(--color-ink);
-    color: var(--color-surface);
-    transform: translate(-1px, -1px);
-    box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
-}
-.dropdown-menu {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 4px);
-    min-width: 180px;
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
-    z-index: 100;
-    display: none;
-    flex-direction: column;
-    padding: 4px 0;
-}
-.dropdown-menu.open {
-    display: flex;
-}
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-family: var(--font);
-    text-decoration: none;
-    color: var(--color-text-primary);
-    background: none;
-    border: none;
-    width: 100%;
-    text-align: left;
-    cursor: pointer;
-    transition: background var(--transition-fast);
-    box-sizing: border-box;
-}
-.dropdown-item:hover {
-    background: var(--color-bg);
-}
-.dropdown-item-danger {
-    color: var(--state-critical, #dc2626);
-}
-.dropdown-item-danger:hover {
-    background: #fef2f2;
-}
-.dropdown-item i {
-    width: 16px;
-    text-align: center;
-}
-.table-wrapper {
-    overflow: visible !important;
-}
-</style>
-</body>
-</html>
+{% endblock %}

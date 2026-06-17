@@ -16,12 +16,13 @@ class ReportViewTests(TestCase):
         response = self.client.get(reverse("history_pdf"))
         self.assertEqual(response.status_code, 302)
 
-    @patch("fpdf.FPDF")
-    def test_history_pdf_returns_pdf(self, mock_fpdf_class):
+    @patch("apps.reports.views.history._create_report_pdf")
+    def test_history_pdf_returns_pdf(self, mock_create):
         mock_pdf_instance = MagicMock()
+        mock_pdf_instance.get_y.return_value = 10
         mock_pdf_instance.page_no.return_value = 1
         mock_pdf_instance.output.return_value = b"%PDF-1.4 mock"
-        mock_fpdf_class.return_value = mock_pdf_instance
+        mock_create.return_value = mock_pdf_instance
         response = self.client.get(reverse("history_pdf"))
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "application/pdf")

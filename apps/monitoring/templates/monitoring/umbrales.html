@@ -1,132 +1,11 @@
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Umbrales de riesgo</title>
-    <meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+
+{% block title %}Umbrales de riesgo{% endblock %}
+{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <link rel="stylesheet" href="{% static 'core/modal.css' %}">
-    <script src="{% static 'core/modal.js' %}" defer></script>
-</head>
-<body class="preload">
-    <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
-
-        <main class="main-content">
-            <div class="perfil-page" style="padding-top: 0;">
-                <div class="reportes-card" style="max-width: 960px;">
-
-                    <!-- ── Cabecera ──────────────────────────────────────── -->
-                    <div class="admin-info">
-                        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                            <h1 style="margin:0;">Umbrales de riesgo</h1>
-                        </div>
-                        <p style="margin-top:6px;">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
-
-                        {% if edificios and edificios|length > 1 %}
-                        <!-- Selector de edificio -->
-                        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); white-space:nowrap;">Edificio:</span>
-                            <select id="buildingSelect"
-                                    style="padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); font-family: var(--font); font-size: var(--text-sm); font-weight: var(--weight-bold); border-radius: 0px; outline: none; cursor: pointer; box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px;">
-                                {% for ed in edificios %}
-                                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        {% elif edificios and edificios|length == 1 %}
-                        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px;">
-                            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink);">Edificio:</span>
-                            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink);">
-                                {{ edificios.0.name }}
-                                <input type="hidden" id="buildingSelect" value="{{ edificios.0.id }}">
-                            </span>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    {% if not edificios %}
-                    <!-- Sin edificios -->
-                    <div class="notif-card" style="margin-top: var(--sp-3);">
-                        <div class="no-notif">
-                            <i class="fa-solid fa-building"></i>
-                            {% if rol == 'SA' %}
-                            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
-                            {% else %}
-                            <p>No tienes edificios asignados. Contacta al administrador.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% else %}
-
-                    <!-- ── Estado de conexión: misma estructura que el dashboard ── -->
-                    <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
-                        <div id="stateLoading" class="no-notif" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-                            <i class="fa-solid fa-spinner fa-spin" style="font-size:2.5rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
-                            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Cargando umbrales...</h3>
-                            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Obteniendo configuración de umbrales de riesgo.</p>
-                        </div>
-                        <div id="stateOffline" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-                            <i class="fa-solid fa-triangle-exclamation" style="font-size:2.5rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-                            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin conexión</h3>
-                            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">No se pudo obtener la configuración. Verifica que el servidor esté activo.</p>
-                        </div>
-                        <div id="stateNoEquipment" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-                            <i class="fa-solid fa-circle-info" style="font-size:2.5rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
-                            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin equipos de monitoreo</h3>
-                            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos configurados.</p>
-                        </div>
-                    </div>
-
-                    <!-- ── Contenedor principal (gestionado por JS) ── -->
-                    <div id="activeMonitoring" style="display:none;">
-
-                        <!-- Leyenda de dirección -->
-                        <div class="notif-card" style="margin-top: var(--sp-3);">
-                            <div style="padding: var(--sp-3);">
-
-                                <div class="thresh-legend">
-                                    <span class="thresh-legend-item">
-                                        <span class="badge-dir-up">&#8593;</span> Mayor es peor
-                                    </span>
-                                    <span class="thresh-legend-item">
-                                        <span class="badge-dir-down">&#8595;</span> Menor es peor
-                                    </span>
-                                    <span class="thresh-legend-item">
-                                        <span class="badge-dir-range">&#10298;</span> Rango válido
-                                    </span>
-                                    <span style="margin-left:auto; font-size:var(--text-xs); color:var(--color-text-secondary);">
-                                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
-                                    </span>
-                                </div>
-
-                                <!-- Panel de umbrales: lo rellena JS con renderThresholdsPanel() -->
-                                <div id="thresholdsPanel" class="thresh-grid"></div>
-
-                                <!-- Acciones -->
-                                <div class="thresh-footer">
-                                    <button id="saveThresholdsBtn" class="thresh-save-btn">
-                                        <i class="fas fa-check"></i> Guardar Umbrales
-                                    </button>
-                                    <span id="saveMessage"></span>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div><!-- /activeMonitoring -->
-                    {% endif %}
-
-                </div><!-- /reportes-card -->
-            </div><!-- /perfil-page -->
-        </main>
-    </div><!-- /main-layout -->
-
     <style>
         /* ── Leyenda de dirección ── */
         .thresh-legend {
@@ -156,7 +35,7 @@
             gap: var(--sp-2);
         }
 
-        /* ── Cada tarjeta de umbral (hereda estilos del JS inline) ── */
+        /* ── Cada tarjeta de umbral ── */
         .thresh-grid > div {
             border: 1px solid var(--color-border) !important;
             border-radius: 0px;
@@ -164,7 +43,7 @@
             background: var(--color-bg);
         }
 
-        /* ── Inputs heredados del design system ── */
+        /* ── Inputs Neo-Brutalistas ── */
         .thresh-grid input[type="number"] {
             font-family: var(--font);
             font-size: var(--text-base);
@@ -179,12 +58,12 @@
             box-sizing: border-box;
         }
         .thresh-grid input[type="number"]:focus {
-            border-color: var(--color-ink);
-            background: var(--color-bg);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
+            border-color: var(--color-accent) !important;
+            background: var(--color-surface) !important;
+            box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
         }
 
-        /* ── Labels heredados ── */
+        /* ── Labels ── */
         .thresh-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
         .thresh-grid .form-label {
             font-size: var(--text-xs);
@@ -204,34 +83,7 @@
             gap: var(--sp-2);
         }
 
-        /* ── Botón guardar ── */
-        .thresh-save-btn {
-            font-family: var(--font);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            cursor: pointer;
-            border: 2px solid var(--state-ok);
-            background: var(--state-ok);
-            color: var(--color-surface);
-            padding: 9px var(--sp-2);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all var(--transition-fast);
-            border-radius: 0px;
-            box-shadow: 3px 3px 0px var(--state-ok);
-        }
-        .thresh-save-btn:hover {
-            background: var(--color-surface);
-            color: var(--state-ok);
-            transform: translate(-1px, -1px);
-            box-shadow: 4px 4px 0px rgba(22, 101, 52, 0.25);
-            opacity: 1;
-        }
-        .thresh-save-btn:disabled {
-            opacity: 0.35;
-            cursor: not-allowed;
-        }
+        /* Botón guardar unificado con las clases primarias del sistema */
 
         /* ── Tarjeta estilo notif-card ── */
         .notif-card {
@@ -247,38 +99,123 @@
             box-shadow: none;
         }
 
-        /* ── El stateNotifCard lo gestiona el JS (showState/hideAllStates) ── */
-        /* No usar display !important aquí: el JS controla la visibilidad con element.style */
-
-        /* ── Responsive ── */
+        /* Responsive */
         @media (max-width: 640px) {
             .thresh-grid { grid-template-columns: 1fr; }
             .thresh-legend { flex-direction: column; align-items: flex-start; }
         }
     </style>
+{% endblock %}
 
+{% block content %}
+<div class="reportes-card" style="max-width: 960px;">
+    <!-- ── Cabecera ── -->
+    <div class="admin-info">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <h1 style="margin:0;">Umbrales de riesgo</h1>
+        </div>
+        <p style="margin-top:6px;">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
+
+        {% if edificios and edificios|length > 1 %}
+        <!-- Selector de edificio -->
+        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); white-space:nowrap;">Edificio:</span>
+            <select id="buildingSelect" class="form-select"
+                    style="width: auto; min-width: 200px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                {% for ed in edificios %}
+                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% elif edificios and edificios|length == 1 %}
+        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px;">
+            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink);;">Edificio:</span>
+            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink);">
+                {{ edificios.0.name }}
+                <input type="hidden" id="buildingSelect" value="{{ edificios.0.id }}">
+            </span>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if not edificios %}
+    <!-- Sin edificios -->
+    <div class="notif-card" style="margin-top: var(--sp-3);">
+        <div class="no-notif">
+            <i class="fa-solid fa-building"></i>
+            {% if rol == 'SA' %}
+            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+            {% else %}
+            <p>No tienes edificios asignados. Contacta al administrador.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+
+    <!-- Estado de conexión -->
+    <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
+        <div id="stateLoading" class="no-notif" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:2.5rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Cargando umbrales...</h3>
+            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Obteniendo configuración de umbrales de riesgo.</p>
+        </div>
+        <div id="stateOffline" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:2.5rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin conexión</h3>
+            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">No se pudo obtener la configuración. Verifica que el servidor esté activo.</p>
+        </div>
+        <div id="stateNoEquipment" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
+            <i class="fa-solid fa-circle-info" style="font-size:2.5rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin equipos de monitoreo</h3>
+            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos configurados.</p>
+        </div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div id="activeMonitoring" style="display:none;">
+        <!-- Leyenda de dirección -->
+        <div class="notif-card" style="margin-top: var(--sp-3);">
+            <div style="padding: var(--sp-3);">
+                <div class="thresh-legend">
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-up">&#8593;</span> Mayor es peor
+                    </span>
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-down">&#8595;</span> Menor es peor
+                    </span>
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-range">&#10298;</span> Rango válido
+                    </span>
+                    <span style="margin-left:auto; font-size:var(--text-xs); color:var(--color-text-secondary);">
+                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
+                    </span>
+                </div>
+
+                <!-- Panel de umbrales -->
+                <div id="thresholdsPanel" class="thresh-grid"></div>
+
+                <!-- Acciones -->
+                <div class="thresh-footer">
+                    <button id="saveThresholdsBtn" class="btn btn-primary" style="padding: 8px 14px;">
+                        <i class="fas fa-check"></i> Guardar Umbrales
+                    </button>
+                    <span id="saveMessage"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
     {{ config_json|json_script:"dashConfig" }}
     <script>
         window.IS_ADMIN = true;
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.showAlert = function(message, type) {
-            return new Promise((resolve) => {
-                const el = document.getElementById('global-alert');
-                if (el) {
-                    el.textContent = message;
-                    el.className = 'global-alert ' + type;
-                    el.style.display = 'block';
-                    setTimeout(() => { el.style.display = 'none'; resolve(); }, 3000);
-                } else { resolve(); }
-            });
-        };
-        window.showConfirm = function(message) {
-            return new Promise((resolve) => { resolve(confirm(message)); });
-        };
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=4" defer></script>
     <script>
-        /* ── Selector de edificio ── */
         document.addEventListener('DOMContentLoaded', function () {
             const sel = document.getElementById('buildingSelect');
             if (sel && sel.tagName === 'SELECT') {
@@ -289,5 +226,4 @@
             }
         });
     </script>
-</body>
-</html>
+{% endblock %}

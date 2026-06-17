@@ -1,117 +1,107 @@
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
-    <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
+
+{% block title %}{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}{% endblock %}
+
+{% block extra_css %}
     <link rel="stylesheet" href="{% static 'buildings/perfil.css' %}">
+{% endblock %}
+
+{% block extra_head_js %}
     <script src="{% static 'users/validacion.js' %}" defer></script>
-</head>
-<body class="preload">
-    <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
+{% endblock %}
 
-        <main class="main-content">
-            <div class="perfil-page" style="padding-top: 0 !important;">
-                <div style="max-width: 720px; margin: 0 auto;">
-                    <div class="admin-info">
-                        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %} </h1>
-                        <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
+{% block content %}
+<div style="max-width: 720px; margin: 0 auto;">
+    <div class="admin-info">
+        <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}</h1>
+        <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
+    </div>
+
+    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
+        {% csrf_token %}
+        <div class="profile-form">
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="primerNombre">Primer nombre</label>
+                    <div class="input-with-icon">
+                        <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="20" required class="form-input {% if form_errors.primerNombre or form_errors.primerNombre_long %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
                     </div>
-
-                    {% include 'core/components/toast_messages.html' %}
-                    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
-                    {% csrf_token %}
-                     <div class="profile-form">
-                        <div class="form-row">
-                            <div class="form-group half-width">
-                                <label for="primerNombre">Primer nombre</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerNombre or form_errors.primerNombre_long %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.primerNombre %}{{ form_errors.primerNombre }}{% elif form_errors.primerNombre_long %}{{ form_errors.primerNombre_long }}{% endif %}</div>
-                            </div>
-                            <div class="form-group half-width">
-                                <label for="segundoNombre">Segundo nombre</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoNombre or form_errors.segundoNombre_long %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.segundoNombre %}{{ form_errors.segundoNombre }}{% elif form_errors.segundoNombre_long %}{{ form_errors.segundoNombre_long }}{% endif %}</div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group half-width">
-                                <label for="primerApellido">Primer apellido</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="20" required class="{% if form_errors.primerApellido or form_errors.primerApellido_long %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.primerApellido %}{{ form_errors.primerApellido }}{% elif form_errors.primerApellido_long %}{{ form_errors.primerApellido_long }}{% endif %}</div>
-                            </div>
-                            <div class="form-group half-width">
-                                <label for="segundoApellido">Segundo apellido</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="20" class="{% if form_errors.segundoApellido or form_errors.segundoApellido_long %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.segundoApellido %}{{ form_errors.segundoApellido }}{% elif form_errors.segundoApellido_long %}{{ form_errors.segundoApellido_long }}{% endif %}</div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group half-width">
-                                <label for="email">Correo electrónico</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="50" required class="{% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
-                            </div>
-                            <div class="form-group half-width">
-                                <label for="cedula">Cédula (CI)</label>
-                                <div class="input-with-icon">
-                                    <input placeholder="V-12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="cedula" data-exclude-id="{% if editing %}{{ usuario_id }}{% endif %}" maxlength="12" required class="{% if form_errors.cedula or form_errors.cedula_long or form_errors.cedula_unico %}input-error{% endif %}" />
-                                    <span class="edit-icon">&#9998;</span>
-                                </div>
-                                <div class="validation-error">{% if form_errors.cedula %}{{ form_errors.cedula }}{% elif form_errors.cedula_long %}{{ form_errors.cedula_long }}{% elif form_errors.cedula_unico %}{{ form_errors.cedula_unico }}{% endif %}</div>
-                            </div>
-                        </div>
-
-                        <div class="form-group full-width">
-                            <label for="id_edificio">Elegir edificio</label>
-                            <div class="input-with-icon">
-                                <select id="id_edificio" name="id_edificio" required class="{% if form_errors.id_edificio %}input-error{% endif %}">
-                                    {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
-                                    {% for edificio in edificios %}
-                                        <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
-                                    {% endfor %}
-                                </select>
-                                <span class="edit-icon">&#127970;</span>
-                            </div>
-                            <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>
-                        </div>
-
-                        <div class="actions-row">
-                            {% url 'user_list' as back_url %}
-                            {% include 'core/components/boton.html' with url=back_url class='back-button' text='Volver' %}
-                            {% if editing %}
-                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Guardar cambios' %}
-                            {% else %}
-                                {% include 'core/components/boton.html' with type='submit' class='save-button' text='Registrar usuario' %}
-                            {% endif %}
-                        </div>
+                    <div class="validation-error">{% if form_errors.primerNombre %}{{ form_errors.primerNombre }}{% elif form_errors.primerNombre_long %}{{ form_errors.primerNombre_long }}{% endif %}</div>
+                </div>
+                <div class="form-group half-width">
+                    <label for="segundoNombre">Segundo nombre</label>
+                    <div class="input-with-icon">
+                        <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="20" class="form-input {% if form_errors.segundoNombre or form_errors.segundoNombre_long %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
                     </div>
-                </form>
+                    <div class="validation-error">{% if form_errors.segundoNombre %}{{ form_errors.segundoNombre }}{% elif form_errors.segundoNombre_long %}{{ form_errors.segundoNombre_long }}{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="primerApellido">Primer apellido</label>
+                    <div class="input-with-icon">
+                        <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="20" required class="form-input {% if form_errors.primerApellido or form_errors.primerApellido_long %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
+                    </div>
+                    <div class="validation-error">{% if form_errors.primerApellido %}{{ form_errors.primerApellido }}{% elif form_errors.primerApellido_long %}{{ form_errors.primerApellido_long }}{% endif %}</div>
+                </div>
+                <div class="form-group half-width">
+                    <label for="segundoApellido">Segundo apellido</label>
+                    <div class="input-with-icon">
+                        <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="20" class="form-input {% if form_errors.segundoApellido or form_errors.segundoApellido_long %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
+                    </div>
+                    <div class="validation-error">{% if form_errors.segundoApellido %}{{ form_errors.segundoApellido }}{% elif form_errors.segundoApellido_long %}{{ form_errors.segundoApellido_long }}{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="email">Correo electrónico</label>
+                    <div class="input-with-icon">
+                        <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="50" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
+                    </div>
+                    <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
+                </div>
+                <div class="form-group half-width">
+                    <label for="cedula">Cédula (CI)</label>
+                    <div class="input-with-icon">
+                        <input placeholder="V-12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="cedula" data-exclude-id="{% if editing %}{{ usuario_id }}{% endif %}" maxlength="12" required class="form-input {% if form_errors.cedula or form_errors.cedula_long or form_errors.cedula_unico %}input-error{% endif %}" />
+                        <i class="fa-solid fa-pen edit-icon"></i>
+                    </div>
+                    <div class="validation-error">{% if form_errors.cedula %}{{ form_errors.cedula }}{% elif form_errors.cedula_long %}{{ form_errors.cedula_long }}{% elif form_errors.cedula_unico %}{{ form_errors.cedula_unico }}{% endif %}</div>
+                </div>
+            </div>
+
+            <div class="form-group full-width">
+                <label for="id_edificio">Elegir edificio</label>
+                <div class="input-with-icon">
+                    <select id="id_edificio" name="id_edificio" required class="form-select {% if form_errors.id_edificio %}input-error{% endif %}">
+                        {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
+                        {% for edificio in edificios %}
+                            <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <i class="fa-solid fa-building edit-icon"></i>
+                </div>
+                <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>
+            </div>
+
+            <div class="actions-row">
+                {% url 'user_list' as back_url %}
+                {% include 'core/components/boton.html' with url=back_url class='btn btn-secondary back-button' text='Volver' %}
+                {% if editing %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary save-button' text='Guardar cambios' %}
+                {% else %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary save-button' text='Registrar usuario' %}
+                {% endif %}
             </div>
         </div>
-    </main>
-    </div>
-</body>
-</html>
+    </form>
+</div>
+{% endblock %}
