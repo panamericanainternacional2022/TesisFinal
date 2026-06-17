@@ -476,9 +476,6 @@ function applyPayload(data) {
         }
         if (data.sim_paused !== undefined) updatePauseBtn(data.sim_paused);
         if (data.sim_speed !== undefined) {
-            const simSpd = document.getElementById('simSpeedDisplay');
-            if (simSpd) simSpd.textContent = data.sim_speed.toFixed(1) + 'x';
-            
             document.querySelectorAll('.speed-btn').forEach(btn => {
                 if (parseFloat(btn.dataset.speed) === data.sim_speed) {
                     btn.classList.add('active');
@@ -486,6 +483,20 @@ function applyPayload(data) {
                     btn.classList.remove('active');
                 }
             });
+        }
+        
+        const simSpd = document.getElementById('simSpeedDisplay');
+        if (simSpd) {
+            const isPaused = data.sim_paused !== undefined ? data.sim_paused : document.getElementById('simPauseBtn')?.querySelector('i.fa-play') !== null;
+            const speed = data.sim_speed !== undefined ? data.sim_speed : parseFloat(document.querySelector('.speed-btn.active')?.dataset.speed || 1.0);
+            
+            if (isPaused) {
+                simSpd.textContent = 'PAUSADA';
+                simSpd.className = 'badge badge-med'; 
+            } else {
+                simSpd.textContent = speed.toFixed(1) + 'x';
+                simSpd.className = 'badge badge-info';
+            }
         }
     }
 
@@ -690,7 +701,7 @@ function updateManualInputType() {
         sel.innerHTML = '';
         const opts = Object.entries(_VALUE_DISPLAY['door_status'] || {});
         opts.forEach(([val, label]) => {
-            if (val !== 'true' && val !== 'false') {
+            if (val === 'open' || val === 'closed') {
                 let opt = document.createElement('option');
                 opt.value = val;
                 opt.textContent = label;
@@ -786,8 +797,7 @@ async function sendManualValue() {
     let val = raw;
     if (v === 'door_status') {
         val = raw.toLowerCase();
-        const valoresValidos = Object.keys(_VALUE_DISPLAY['door_status'] || { open: 1, closed: 1 });
-        const aceptados = valoresValidos.length ? valoresValidos : ['open', 'closed'];
+        const aceptados = ['open', 'closed'];
         if (!aceptados.includes(val)) {
             window.showToast(`Valores aceptados: ${aceptados.join(', ')}.`, 'error');
             return;
