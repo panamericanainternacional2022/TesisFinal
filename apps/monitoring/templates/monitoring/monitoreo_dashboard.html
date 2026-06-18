@@ -39,8 +39,7 @@
         .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 
         .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
-
-        .form-select:disabled {
+        select.form-select:disabled {
             opacity: 0.4;
             cursor: not-allowed;
             box-shadow: none;
@@ -525,7 +524,7 @@
                             <option value="pump">Bomba de agua</option>
                             <option value="elevator">Elevador</option>
                         </select>
-                        <span id="manualEquipmentStatic" style="display:none; height:38px; padding:8px 12px; border:2px solid var(--color-ink); background:var(--color-surface); box-shadow:3px 3px 0px var(--color-ink); font-size:var(--text-sm); font-weight:var(--weight-bold); align-self:stretch;"></span>
+                        <span id="manualEquipmentStatic" style="display:none; height:38px; padding:8px 12px; border:2px solid var(--color-ink); background:var(--color-surface); box-shadow:3px 3px 0px var(--color-ink); font-size:var(--text-sm); font-weight:var(--weight-bold); align-self:stretch; box-sizing:border-box;"></span>
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Sensor</label>

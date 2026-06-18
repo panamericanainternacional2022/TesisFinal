@@ -420,21 +420,18 @@ function updateAdminControlsByEquipment(equipTypes) {
         eqSel.style.display = 'none';
         eqStatic.style.display = 'block';
         eqStatic.textContent = 'Bomba de agua';
-        if (eqSel.value !== 'pump') {
-            eqSel.value = 'pump';
-            populateManualSensorSelect();
-        }
+        eqSel.value = 'pump';
+        populateManualSensorSelect();
     } else if (hasElev) {
         eqSel.style.display = 'none';
         eqStatic.style.display = 'block';
         eqStatic.textContent = 'Elevador';
-        if (eqSel.value !== 'elevator') {
-            eqSel.value = 'elevator';
-            populateManualSensorSelect();
-        }
+        eqSel.value = 'elevator';
+        populateManualSensorSelect();
     } else {
         eqSel.style.display = 'none';
-        eqStatic.style.display = 'none';
+        eqStatic.style.display = 'block';
+        eqStatic.textContent = '—';
     }
 }
 
@@ -514,7 +511,7 @@ function applyPayload(data) {
 
     const hasEquipment = updateEquipmentVisibility(data.equipment_types);
 
-    updateAdminControlsByEquipment(data.equipment_types);
+    if (IS_ADMIN) updateAdminControlsByEquipment(data.equipment_types);
 
     if (data.current && hasEquipment) {
         updateSummaryValues(data);
@@ -1280,7 +1277,6 @@ function setupAdminEvents() {
 
     populateManualSensorSelect();
     updateSensorTypeIndicator();
-    updateAdminControlsByEquipment(['bomba', 'elevador']);
 }
 
 function setupBuildingSelector() {
