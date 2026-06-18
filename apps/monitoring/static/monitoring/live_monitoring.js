@@ -398,6 +398,46 @@ function updateEquipmentVisibility(equipTypes) {
     return true;
 }
 
+function updateAdminControlsByEquipment(equipTypes) {
+    if (!IS_ADMIN) return;
+    const et = equipTypes || [];
+    const hasPump = et.includes('bomba');
+    const hasElev = et.includes('elevador');
+
+    const fp = document.getElementById('simFaultPump');
+    const fe = document.getElementById('simFaultElevator');
+    if (fp) fp.disabled = !hasPump;
+    if (fe) fe.disabled = !hasElev;
+
+    const eqSel = document.getElementById('manualEquipmentSelect');
+    const eqStatic = document.getElementById('manualEquipmentStatic');
+    if (!eqSel || !eqStatic) return;
+
+    if (hasPump && hasElev) {
+        eqSel.style.display = '';
+        eqStatic.style.display = 'none';
+    } else if (hasPump) {
+        eqSel.style.display = 'none';
+        eqStatic.style.display = 'block';
+        eqStatic.textContent = 'Bomba de agua';
+        if (eqSel.value !== 'pump') {
+            eqSel.value = 'pump';
+            populateManualSensorSelect();
+        }
+    } else if (hasElev) {
+        eqSel.style.display = 'none';
+        eqStatic.style.display = 'block';
+        eqStatic.textContent = 'Elevador';
+        if (eqSel.value !== 'elevator') {
+            eqSel.value = 'elevator';
+            populateManualSensorSelect();
+        }
+    } else {
+        eqSel.style.display = 'none';
+        eqStatic.style.display = 'none';
+    }
+}
+
 function setNotificationBadge(count) {
     const badges = [
         document.getElementById('notificationBadgeCount'),
@@ -473,6 +513,8 @@ function applyPayload(data) {
     if (lastUpd) lastUpd.innerText = new Date().toLocaleTimeString();
 
     const hasEquipment = updateEquipmentVisibility(data.equipment_types);
+
+    updateAdminControlsByEquipment(data.equipment_types);
 
     if (data.current && hasEquipment) {
         updateSummaryValues(data);
@@ -1238,6 +1280,7 @@ function setupAdminEvents() {
 
     populateManualSensorSelect();
     updateSensorTypeIndicator();
+    updateAdminControlsByEquipment(['bomba', 'elevador']);
 }
 
 function setupBuildingSelector() {
