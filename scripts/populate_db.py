@@ -34,7 +34,9 @@ from apps.buildings.models import (
     UserBuilding,
     MonitoringEquipment,
 )
-from apps.alerts.models import Notification
+from apps.alerts.models import Notification, ThresholdConfig
+from apps.sensors.sensor_config import DEFAULT_THRESHOLDS
+
 
 
 def populate():
@@ -155,7 +157,22 @@ def populate():
         defaults={"name": "Bomba de agua"},
     )
 
+    print("Sembrando umbrales por edificio...")
+    for edificio in [e1, e2]:
+        for variable, cfg in DEFAULT_THRESHOLDS.items():
+            ThresholdConfig.objects.get_or_create(
+                building=edificio,
+                variable=variable,
+                defaults={
+                    "direction": cfg.get("direction", "higher"),
+                    "low": cfg.get("low", 0),
+                    "medium": cfg.get("medium"),
+                    "high": cfg.get("high", 0),
+                },
+            )
+
     print("¡Población de base de datos completada exitosamente!")
+
 
 
 if __name__ == "__main__":

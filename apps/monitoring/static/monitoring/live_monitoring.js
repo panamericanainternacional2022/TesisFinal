@@ -618,11 +618,17 @@ function updateStatsAndRecs(stats, recs, attempts) {
 // ═══════════════════════════════════════════════════════════════════
 
 function renderThresholdsPanel(th) {
-    const panel = document.getElementById('thresholdsPanel');
-    if (!panel) return;
-    panel.innerHTML = '';
-    for (let [k, cfg] of Object.entries(th)) {
-        if (_NO_RISK_VARS.includes(k)) continue;
+    // Split variables into pump and elevator groups
+    const bombaVars = _BOMBA_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
+    const elevadorVars = _ELEVADOR_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
+    // Also include any variable not in either list (fallback)
+    const otherVars = Object.keys(th).filter(k =>
+        !_NO_RISK_VARS.includes(k) &&
+        !_BOMBA_VARS.includes(k) &&
+        !_ELEVADOR_VARS.includes(k)
+    );
+
+    function buildCard(k, cfg) {
         let div = document.createElement('div');
         div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
 
@@ -633,13 +639,13 @@ function renderThresholdsPanel(th) {
             ? `Actual: ${formatNumeric(curVal, k)}${unit ? ' ' + unit : ''}`
             : '';
 
-        let dirBadge, dirTitle;
+        let dirBadge;
         if (cfg.direction === 'higher') {
-            dirBadge = '<span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor — valores altos aumentan el riesgo">\u2191</span>';
+            dirBadge = '<span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor">\u2191</span>';
         } else if (cfg.direction === 'lower') {
-            dirBadge = '<span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor — valores bajos aumentan el riesgo">\u2193</span>';
+            dirBadge = '<span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor">\u2193</span>';
         } else {
-            dirBadge = '<span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango válido — fuera del rango = riesgo Alto">\u27FA</span>';
+            dirBadge = '<span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango válido">\u27FA</span>';
         }
 
         let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -666,54 +672,100 @@ function renderThresholdsPanel(th) {
                 </div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
         }
-        panel.appendChild(div);
+        return div;
     }
+
+    function buildSection(containerId, vars) {
+        const panel = document.getElementById(containerId);
+        if (!panel) return;
+        panel.innerHTML = '';
+        vars.forEach(k => {
+            const cfg = th[k];
+            if (!cfg) return;
+            panel.appendChild(buildCard(k, cfg));
+        });
+    }
+
+    buildSection('thresholdsBombaPanel', bombaVars);
+    buildSection('thresholdsElevadorPanel', elevadorVars);
+    // fallback: any extra vars go to bomba panel
+    if (otherVars.length) {
+        const panel = document.getElementById('thresholdsBombaPanel');
+        if (panel) otherVars.forEach(k => panel.appendChild(buildCard(k, th[k])));
+    }
+
     // Guardar snapshot de valores originales para detectar cambios
     _originalThresholds = JSON.parse(JSON.stringify(th));
     validateThresholdInputs();
+    // Update manual override hint with the new thresholds
+    updateManualInputType();
 }
 
 function validateThresholdInputs() {
+    const PANEL_IDS = ['thresholdsBombaPanel', 'thresholdsElevadorPanel', 'thresholdsPanel'];
     let hasError = false;
     let btn = document.getElementById('saveThresholdsBtn');
     let processed = {};
-    document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
-        let v = inp.dataset.var;
-        if (!v || processed[v]) return;
-        processed[v] = true;
-        let dir = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`)?.value;
-        let low = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`)?.value);
-        let high = parseFloat(document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`)?.value);
-        let lowInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="low"]`);
-        let highInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="high"]`);
-        let medInp = document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="medium"]`);
-        [lowInp, medInp, highInp].forEach(el => { if (el) el.style.borderColor = ''; });
 
-        let valid = false;
-        if (dir === 'range') {
-            valid = !isNaN(low) && !isNaN(high) && low < high;
-            if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-        } else if (dir === 'higher') {
-            let medium = parseFloat(medInp?.value);
-            valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low < medium && medium < high;
-            if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-        } else if (dir === 'lower') {
-            let medium = parseFloat(medInp?.value);
-            valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
-            if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+    // Helper: find an input across all panels
+    function findInp(v, level) {
+        for (const pid of PANEL_IDS) {
+            const p = document.getElementById(pid);
+            if (!p) continue;
+            const el = p.querySelector(`input[data-var="${v}"][data-level="${level}"]`);
+            if (el) return el;
         }
-        if (!valid) hasError = true;
+        return null;
+    }
+
+    PANEL_IDS.forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            let v = inp.dataset.var;
+            if (!v || processed[v]) return;
+            processed[v] = true;
+            let dirInp = findInp(v, 'direction');
+            let dir = dirInp?.value;
+            let lowInp = findInp(v, 'low');
+            let medInp = findInp(v, 'medium');
+            let highInp = findInp(v, 'high');
+            let low = parseFloat(lowInp?.value);
+            let high = parseFloat(highInp?.value);
+            [lowInp, medInp, highInp].forEach(el => { if (el) el.style.borderColor = ''; });
+
+            let valid = false;
+            if (dir === 'range') {
+                valid = !isNaN(low) && !isNaN(high) && low < high;
+                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+            } else if (dir === 'higher') {
+                let medium = parseFloat(medInp?.value);
+                valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low < medium && medium < high;
+                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+            } else if (dir === 'lower') {
+                let medium = parseFloat(medInp?.value);
+                valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
+                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+            }
+            if (!valid) hasError = true;
+        });
     });
+
     // Detectar cambios respecto al snapshot original
     let hasChanges = false;
-    document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
-        const varKey = inp.dataset.var;
-        const lvl = inp.dataset.level;
-        if (!varKey || !lvl || lvl === 'direction') return;
-        if (_originalThresholds[varKey] !== undefined && _originalThresholds[varKey][lvl] !== undefined) {
-            if (parseFloat(inp.value) !== _originalThresholds[varKey][lvl]) hasChanges = true;
-        }
+    PANEL_IDS.forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const varKey = inp.dataset.var;
+            const lvl = inp.dataset.level;
+            if (!varKey || !lvl || lvl === 'direction') return;
+            if (_originalThresholds[varKey] !== undefined && _originalThresholds[varKey][lvl] !== undefined) {
+                if (parseFloat(inp.value) !== _originalThresholds[varKey][lvl]) hasChanges = true;
+            }
+        });
     });
+
     const shouldDisable = hasError || !hasChanges;
     if (btn) {
         btn.disabled = shouldDisable;
@@ -722,12 +774,19 @@ function validateThresholdInputs() {
     }
 }
 
+
 async function saveThresholds() {
-    let newTh = {};
-    document.querySelectorAll('#thresholdsPanel input[type="number"]').forEach(inp => {
-        let v = inp.dataset.var, l = inp.dataset.level;
-        if (!newTh[v]) newTh[v] = { direction: document.querySelector(`#thresholdsPanel input[data-var="${v}"][data-level="direction"]`).value };
-        newTh[v][l] = parseFloat(inp.value);
+    let newTh = { edificio_id: EDIFICIO_ID };
+    // Collect from both panels
+    ['thresholdsBombaPanel', 'thresholdsElevadorPanel', 'thresholdsPanel'].forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            let v = inp.dataset.var, l = inp.dataset.level;
+            if (!v || !l) return;
+            if (!newTh[v]) newTh[v] = { direction: panel.querySelector(`input[data-var="${v}"][data-level="direction"]`)?.value || 'higher' };
+            newTh[v][l] = parseFloat(inp.value);
+        });
     });
     let resp = await csrfFetch('/api/thresholds/update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newTh) });
     let res = await resp.json();
@@ -735,6 +794,8 @@ async function saveThresholds() {
         window.showToast('Umbrales guardados correctamente.', 'success');
         currentThresholds = res.thresholds;
         renderThresholdsPanel(res.thresholds);
+        // Update the manual override hint immediately
+        updateManualInputType();
     } else {
         window.showToast(`Error al guardar: ${res.message || 'Inténtelo de nuevo.'}`, 'error');
     }
@@ -743,6 +804,28 @@ async function saveThresholds() {
 // ═══════════════════════════════════════════════════════════════════
 // 13.  Admin: Manual sensor control
 // ═══════════════════════════════════════════════════════════════════
+
+/**
+ * Returns a human-readable hint string showing the current threshold
+ * levels for the given variable, e.g.
+ *   "Medio > 30 | Alto > 50 | Crítico > 80 L/s"
+ * Returns '' if the variable has no threshold config.
+ */
+function buildThresholdHint(varName) {
+    const cfg = currentThresholds[varName];
+    if (!cfg) return '';
+    const unit = getUnit(varName);
+    const u = unit ? ` ${unit}` : '';
+    if (cfg.direction === 'range') {
+        return `Rango válido: ${cfg.low}${u} – ${cfg.high}${u}`;
+    }
+    const low = cfg.low, med = cfg.medium, high = cfg.high;
+    if (cfg.direction === 'higher') {
+        return `Medio \u003e ${low}${u} \u00b7 Alto \u003e ${med}${u} \u00b7 Cr\u00edtico \u003e ${high}${u}`;
+    }
+    // lower
+    return `Medio \u003c ${low}${u} \u00b7 Alto \u003c ${med}${u} \u00b7 Cr\u00edtico \u003c ${high}${u}`;
+}
 
 function updateManualInputType() {
     const v = document.getElementById('manualSensorSelect')?.value;
@@ -825,7 +908,16 @@ function updateManualRiskPreview() {
         raw = inp.value;
     }
 
-    if (raw === undefined || raw === '') { span.innerHTML = ''; return; }
+    if (raw === undefined || raw === '') {
+        // Show threshold hint instead of blank
+        const hint = buildThresholdHint(v);
+        if (hint) {
+            span.innerHTML = `<span style="color:var(--color-text-secondary);font-size:0.6rem;">${hint}</span>`;
+        } else {
+            span.innerHTML = '';
+        }
+        return;
+    }
 
     let val = raw;
     if (v === 'door_status') { /* string */ }

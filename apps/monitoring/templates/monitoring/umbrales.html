@@ -98,12 +98,25 @@
             box-shadow: none;
         }
 
+        /* ── Títulos de sub-sección (Bomba / Elevador) ── */
+        .panel-subsection-title {
+            font-size: var(--text-xs);
+            font-weight: var(--weight-bold);
+            letter-spacing: var(--tracking-wide);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--sp-2);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
         /* Responsive */
         @media (max-width: 640px) {
             .thresh-grid { grid-template-columns: 1fr; }
             .thresh-legend { flex-direction: column; align-items: flex-start; }
         }
     </style>
+
 {% endblock %}
 
 {% block content %}
@@ -190,8 +203,23 @@
                     </span>
                 </div>
 
-                <!-- Panel de umbrales -->
-                <div id="thresholdsPanel" class="thresh-grid"></div>
+                <!-- Panel de umbrales: Bomba de agua -->
+                <div style="margin-bottom: var(--sp-3);">
+                    <div class="panel-subsection-title" style="margin-bottom: var(--sp-2);">
+                        <i class="fa-solid fa-oil-can"></i> Bomba de agua
+                    </div>
+                    <div id="thresholdsBombaPanel" class="thresh-grid"></div>
+                </div>
+
+                <!-- Panel de umbrales: Elevador -->
+                <div>
+                    <div class="panel-subsection-title" style="margin-bottom: var(--sp-2);">
+                        <i class="fa-solid fa-elevator"></i> Elevador
+                    </div>
+                    <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
+                </div>
+
+                <div id="thresholdsPanel" class="thresh-grid" style="display:none;"></div>
 
                 <!-- Acciones -->
                 <div class="thresh-footer">

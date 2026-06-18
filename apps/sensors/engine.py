@@ -46,6 +46,10 @@ def _get_alert_vars(sim: BuildingSimulator) -> set[str]:
 def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None:
     from apps.core.services.risk_service import classify_risk
     from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
+    from apps.alerts.services.threshold_service import get_thresholds
+
+    # Cargar umbrales del edificio una sola vez por tick
+    thresholds = get_thresholds(sim.edificio_id)
 
     # Determinar qué dispositivos están en modo protección activa.
     # Cuando un dispositivo está en protección, sus sensores bajan a 0.0
@@ -71,7 +75,7 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
             continue
         from apps.alerts.alerts.engine import send_alert
         from apps.alerts.services.alert_service import get_professional_action
-        risk, _ = classify_risk(var, value)
+        risk, _ = classify_risk(var, value, thresholds)
         if risk in (RISK_ALTO, RISK_CRITICO):
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action, sim=sim)
@@ -100,6 +104,11 @@ def _handle_motor_stuck_alert(
 
 def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None:
     from apps.core.services.risk_service import classify_risk
+    from apps.alerts.services.threshold_service import get_thresholds
+
+    # Reutilizar los umbrales del edificio para clasificar historial
+    thresholds = get_thresholds(sim.edificio_id)
+
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
     new_readings = []
     all_tracked_vars = set(alert_vars) | set(SYSTEM_VARS)
@@ -107,7 +116,7 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var not in all_tracked_vars:
             continue
         risk, color = (
-            classify_risk(var, value) if var not in BOOLEAN_VARS
+            classify_risk(var, value, thresholds) if var not in BOOLEAN_VARS
             else (RISK_CRITICO if value else RISK_BAJO, "red" if value else "green")
         )
         sensor_type = "Bomba" if var in PUMP_VARS else "Elevador"

@@ -55,7 +55,7 @@ def build_live_payload(ctx: PayloadContext) -> dict[str, Any]:
     from apps.alerts.services.alert_service import get_alert_log
     stats = _compute_stats(ctx.history)
     relevant_vars = _build_relevant_vars(ctx.equipment_types)
-    thresholds = get_thresholds()
+    thresholds = get_thresholds(ctx.active_edificio_id)
     sensors = _build_sensors_list(ctx.sensor_data, relevant_vars, thresholds)
     recommendations = ctx.generate_recommendations_fn(ctx.sensor_data, stats)
     pump_status, elevator_status = _fetch_equipment_status(

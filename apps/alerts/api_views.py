@@ -48,7 +48,13 @@ def view_notification_count(request: HttpRequest) -> JsonResponse:
 @login_required
 @require_http_methods(["GET"])
 def view_get_thresholds(request: HttpRequest) -> JsonResponse:
-    return JsonResponse(get_thresholds())
+    try:
+        building_id = int(request.GET.get("edificio_id", 0))
+    except (ValueError, TypeError):
+        building_id = 0
+    if not building_id:
+        return json_error("edificio_id requerido", status=400)
+    return JsonResponse(get_thresholds(building_id))
 
 
 VALID_DIRECTIONS = frozenset({"higher", "lower", "range"})
@@ -57,12 +63,21 @@ VALID_DIRECTIONS = frozenset({"higher", "lower", "range"})
 @require_http_methods(["POST"])
 def view_update_thresholds(request: HttpRequest) -> JsonResponse:
     try:
-        data = json.loads(request.body)
+        raw = json.loads(request.body)
     except json.JSONDecodeError:
         return json_error("Invalid JSON")
 
-    if not isinstance(data, dict):
+    if not isinstance(raw, dict):
         return json_error("Body must be a JSON object")
+
+    try:
+        building_id = int(raw.pop("edificio_id", 0))
+    except (ValueError, TypeError):
+        building_id = 0
+    if not building_id:
+        return json_error("edificio_id requerido")
+
+    data = raw
 
     errors: dict[str, str] = {}
 
@@ -110,11 +125,11 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
         return json_error(f"Validation errors: {errors}")
 
     try:
-        bulk_update(data)
+        bulk_update(data, building_id)
     except ThresholdPersistenceError as e:
         return json_error(str(e), status=500)
 
-    return json_ok({"thresholds": get_thresholds()})
+    return json_ok({"thresholds": get_thresholds(building_id)})
 
 
 @require_http_methods(["POST"])

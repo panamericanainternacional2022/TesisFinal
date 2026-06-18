@@ -55,7 +55,7 @@ def generate_building_report_bytes(edificio_id: int) -> tuple[bytes, str]:
     pdf = _create_report_pdf("Reporte de estado del edificio")
     now = dt.datetime.now()
     sim = simulators.get(edificio_id)
-    thresholds = get_thresholds()
+    thresholds = get_thresholds(edificio_id)
 
     equipment = list(MonitoringEquipment.objects.filter(building_id=edificio_id))
     pump_status = None
