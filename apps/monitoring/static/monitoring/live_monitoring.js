@@ -436,21 +436,22 @@ function updateAdminControlsByEquipment(equipTypes) {
 }
 
 function setNotificationBadge(count) {
-    const badges = [
-        document.getElementById('notificationBadgeCount'),
-        document.getElementById('notificationBadgeSidebar')
-    ].filter(Boolean);
-    badges.forEach((badge) => {
+    // Solo actualiza el badge de la página de notificaciones (notificationBadgeCount).
+    // El badge del sidebar (notificationBadgeSidebar) lo gestiona el context processor
+    // del servidor para reflejar la suma de TODOS los edificios del usuario, no solo
+    // el edificio activo seleccionado en el dashboard.
+    const pageBadge = document.getElementById('notificationBadgeCount');
+    if (pageBadge) {
         if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'inline-flex';
-            badge.hidden = false;
+            pageBadge.textContent = count;
+            pageBadge.style.display = 'inline-flex';
+            pageBadge.hidden = false;
         } else {
-            badge.textContent = '';
-            badge.style.display = 'none';
-            badge.hidden = true;
+            pageBadge.textContent = '';
+            pageBadge.style.display = 'none';
+            pageBadge.hidden = true;
         }
-    });
+    }
 }
 
 // ═══════════════════════════════════════════════════════════════════
