@@ -45,9 +45,27 @@ def _get_alert_vars(sim: BuildingSimulator) -> set[str]:
 
 def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None:
     from apps.core.services.risk_service import classify_risk
+    from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
+
+    # Determinar qué dispositivos están en modo protección activa.
+    # Cuando un dispositivo está en protección, sus sensores bajan a 0.0
+    # (via _set_pump_idle / _set_elevator_idle). No se debe generar una
+    # nueva alerta por esos ceros — el dispositivo ya está aislado.
+    pump_protected = "pump" in sim.protection_ends or not sim.pump_on
+    elev_protected = "elevator" in sim.protection_ends or not sim.elevator_on
+
     for var, value in sim.sensor_data.items():
         if var not in alert_vars:
             continue
+
+        # Suprimir alertas de sensores cuyo dispositivo ya está en protección
+        if pump_protected and var in PUMP_VARS:
+            sim.active_alerts.pop(var, None)
+            continue
+        if elev_protected and var in ELEVATOR_VARS:
+            sim.active_alerts.pop(var, None)
+            continue
+
         if var in BOOLEAN_VARS:
             _handle_motor_stuck_alert(sim, var, value)
             continue
@@ -60,7 +78,12 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         else:
             sim.active_alerts.pop(var, None)
     from apps.alerts.alerts.engine import check_rationing
-    check_rationing(sim.sensor_data["flow_rate"], sim=sim)
+    # Solo verificar racionamiento si la bomba no está en protección
+    if not pump_protected:
+        check_rationing(sim.sensor_data["flow_rate"], sim=sim)
+    else:
+        sim.active_alerts.pop("rationing", None)
+
 
 
 def _handle_motor_stuck_alert(

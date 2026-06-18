@@ -73,15 +73,26 @@ def _build_notification_query(
 
 
 def _make_parsed(
-    risk: str, variable: str, value: str, action: str
+    risk: str, variable: str, value: object, action: str
 ) -> Dict[str, Any]:
     var_display = VAR_NAMES.get(variable, variable.replace("_", " ").title())
-    value_str = str(value).lower().strip() if value is not None else ""
+
+    # Normalizar el valor a cadena de forma segura.
+    # IMPORTANTE: no usar `value or ""` porque el 0 numérico (p.ej. flow_rate=0.0)
+    # es falsy en Python pero es un valor real y válido que debe mostrarse.
+    if value is None:
+        raw_str = ""
+    else:
+        raw_str = str(value).strip()
+
+    value_str = raw_str.lower()
 
     if variable in VALUE_DISPLAY_ES:
-        value_display = VALUE_DISPLAY_ES[variable].get(value_str, str(value).capitalize())
-    elif value_str:
-        value_display = value_str.capitalize()
+        # Variables discretas (door_status, motor_stuck, …)
+        value_display = VALUE_DISPLAY_ES[variable].get(value_str, raw_str.capitalize())
+    elif raw_str:
+        # Variables numéricas: mostrar el valor tal cual (ya viene formateado como string)
+        value_display = raw_str
     else:
         value_display = ""
 
@@ -100,19 +111,23 @@ def parse_notification_for_display(notif: Notification) -> Notification:
     parsed_data: Optional[Dict[str, Any]] = None
 
     if isinstance(raw_msg, dict):
+        # El campo message es un JSONField — puede devolver floats (ej. 0.0) directamente.
+        # No usar `raw_msg.get("value") or ""` porque `0.0 or ""` evalúa a `""`.
+        raw_value = raw_msg.get("value")
         parsed_data = _make_parsed(
             risk=raw_msg.get("risk", ""),
             variable=raw_msg.get("variable", ""),
-            value=raw_msg.get("value") or "",
+            value=raw_value,
             action=raw_msg.get("action", ""),
         )
     elif isinstance(raw_msg, str) and raw_msg.strip().startswith("{"):
         try:
             data = json.loads(raw_msg.strip())
+            raw_value = data.get("value")
             parsed_data = _make_parsed(
                 risk=data.get("risk", ""),
                 variable=data.get("variable", ""),
-                value=data.get("value") or "",
+                value=raw_value,
                 action=data.get("action", ""),
             )
         except (ValueError, KeyError):
