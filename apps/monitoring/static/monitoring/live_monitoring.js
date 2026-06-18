@@ -547,7 +547,19 @@ function applyPayload(data) {
         }
     }
 
-    const totalAlerts = (data.alert_log || []).filter(a => a.risk !== _RISK.info).length;
+    // Filtra alert_log igual que el context processor y notifications_view:
+    // 1) Solo alertas posteriores a alerts_cleared_at (timestamp de "limpiar alertas")
+    // 2) Excluye severidades bajas: info, bajo, medio
+    const _EXCLUDED_RISKS = [_RISK.info, _RISK.bajo, _RISK.medio];
+    const _clearedAtMs = window.ALERTS_CLEARED_AT ? window.ALERTS_CLEARED_AT * 1000 : null;
+    const totalAlerts = (data.alert_log || []).filter(a => {
+        if (_EXCLUDED_RISKS.includes(a.risk)) return false;
+        if (_clearedAtMs) {
+            const alertMs = a.timestamp ? new Date(a.timestamp.replace(' ', 'T') + 'Z').getTime() : 0;
+            if (alertMs <= _clearedAtMs) return false;
+        }
+        return true;
+    }).length;
     unreadNotificationCount = totalAlerts;
     setNotificationBadge(totalAlerts);
 }
