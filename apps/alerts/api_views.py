@@ -93,6 +93,17 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["POST"])
 def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     request.session["alerts_cleared_at"] = time_module.time()
+
+    # Limpiar el bloqueo anti-duplicados de cada simulador para que las alertas
+    # vuelvan a generarse tras borrar las notificaciones de la BD.
+    try:
+        from apps.sensors.simulation.globals import simulators
+        for sim in simulators.values():
+            sim.active_alerts.clear()
+            sim.last_email_sent_time = 0.0
+    except Exception as exc:
+        logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
+
     return json_ok()
 
 

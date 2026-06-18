@@ -41,13 +41,8 @@ def get_simulator(building_id: int) -> BuildingSimulator | None:
     except Exception as e:
         logger.warning("Error al inicializar simulador dinámico para ID %s: %s", building_id, e)
 
-    # 3. Fallback: primer simulador activo en memoria
-    first_sim = next(iter(simulators.values()), None)
-    if first_sim:
-        logger.warning("Usando fallback de simulador %s para el ID solicitado %s", first_sim.edificio_id, building_id)
-        return first_sim
-
-    # 4. Sin simulador disponible
+    # 3. Sin simulador disponible — NO hacer fallback al primer edificio,
+    #    ya que eso confundiría silenciosamente los datos de dos edificios distintos.
     logger.warning("No hay simulador disponible para el ID %s", building_id)
     return None
 
