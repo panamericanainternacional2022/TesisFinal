@@ -21,6 +21,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 # Setup Django
 django.setup()
 
+import random
+
 from django.contrib.auth.hashers import make_password
 
 from apps.users.models import (  # noqa: E402
@@ -50,54 +52,49 @@ def populate():
     print("Iniciando población de base de datos...")
 
     print("Creando Personas...")
+
+    def random_ci(num):
+        prefix = random.choice(["V-", "E-"])
+        return f"{prefix}{num}"
+
     p1, _ = Persona.objects.get_or_create(
-        ci=12345678,
+        ci=random_ci(12345678),
         defaults={
             "first_name": "Juan",
             "middle_name": "",
             "first_last_name": "Perez",
             "second_last_name": "",
-            "email": "juan@example.com",
+            "email": "mantillaqed@gmail.com",
         },
     )
     p2, _ = Persona.objects.get_or_create(
-        ci=87654321,
+        ci=random_ci(87654321),
         defaults={
             "first_name": "Maria",
             "middle_name": "",
             "first_last_name": "Gomez",
             "second_last_name": "",
-            "email": "maria@example.com",
+            "email": "elvistek2012@gmail.com",
         },
     )
     p3, _ = Persona.objects.get_or_create(
-        ci=11223344,
+        ci=random_ci(44332211),
         defaults={
-            "first_name": "Tommy",
+            "first_name": "David",
             "middle_name": "",
-            "first_last_name": "Tupiza",
+            "first_last_name": "Mantilla",
             "second_last_name": "",
-            "email": "tjta3105@gmail.com",
+            "email": "mantillaquid@gmail.com",
         },
     )
     p4, _ = Persona.objects.get_or_create(
-        ci=44332211,
+        ci=random_ci(11223344),
         defaults={
             "first_name": "Admin",
             "middle_name": "",
-            "first_last_name": "Sistema",
+            "first_last_name": "Admin",
             "second_last_name": "",
             "email": "admin@example.com",
-        },
-    )
-    p5, _ = Persona.objects.get_or_create(
-        ci=55667788,
-        defaults={
-            "first_name": "Carlos",
-            "middle_name": "",
-            "first_last_name": "Rodriguez",
-            "second_last_name": "",
-            "email": "carlos@example.com",
         },
     )
 
@@ -112,16 +109,12 @@ def populate():
         defaults={"password": _hashed_pw, "id_persona": p2, "rol": "US", "registered": True},
     )
     u3, _ = Usuario.objects.get_or_create(
-        username="tommyt",
+        username="davidm",
         defaults={"password": _hashed_pw, "id_persona": p3, "rol": "US", "registered": True},
     )
     u4, _ = Usuario.objects.get_or_create(
         username="admin",
         defaults={"password": _hashed_pw, "id_persona": p4, "rol": "SA", "registered": True},
-    )
-    u5, _ = Usuario.objects.get_or_create(
-        username="carlosr",
-        defaults={"password": _hashed_pw, "id_persona": p5, "rol": "US", "registered": True},
     )
 
     print("Creando Edificios...")
@@ -144,7 +137,9 @@ def populate():
     UserBuilding.objects.get_or_create(user=u1, building=e1)
     UserBuilding.objects.get_or_create(user=u2, building=e2)
     UserBuilding.objects.get_or_create(user=u3, building=e1)
-    UserBuilding.objects.get_or_create(user=u5, building=e2)
+    UserBuilding.objects.get_or_create(user=u3, building=e2)
+    UserBuilding.objects.get_or_create(user=u4, building=e1)
+    UserBuilding.objects.get_or_create(user=u4, building=e2)
 
     print("Creando Equipos de Monitoreo...")
     eq1_bomba, _ = MonitoringEquipment.objects.get_or_create(
