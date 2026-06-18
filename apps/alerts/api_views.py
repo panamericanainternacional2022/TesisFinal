@@ -18,6 +18,33 @@ from apps.alerts.services.email_sender import build_report_email_html, send_emai
 logger = logging.getLogger(__name__)
 
 
+@require_http_methods(["GET"])
+def view_notification_count(request: HttpRequest) -> JsonResponse:
+    """Endpoint ultraligero usado por el polling del sidebar.
+
+    Devuelve solo el conteo de alertas no leídas para el usuario en sesión.
+    Misma lógica que el context_processor ``unread_notifications``.
+    """
+    import datetime as dt_mod
+    from apps.alerts.views.shared import _build_notification_query, exclude_severity_levels
+    from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
+
+    usuario_id = request.session.get("usuario_id")
+    if not usuario_id:
+        return JsonResponse({"count": 0})
+
+    rol = request.session.get("usuario_rol", "US")
+    notifications, _ = _build_notification_query(usuario_id, rol)
+
+    alerts_cleared_at = request.session.get("alerts_cleared_at")
+    if alerts_cleared_at:
+        cleared_dt = dt_mod.datetime.fromtimestamp(alerts_cleared_at, tz=dt_mod.timezone.utc)
+        notifications = notifications.filter(date__gt=cleared_dt)
+
+    notifications = exclude_severity_levels(notifications, [RISK_INFO, RISK_BAJO, RISK_MEDIO])
+    return JsonResponse({"count": notifications.distinct().count()})
+
+
 @login_required
 @require_http_methods(["GET"])
 def view_get_thresholds(request: HttpRequest) -> JsonResponse:

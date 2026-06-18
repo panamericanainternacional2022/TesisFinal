@@ -36,6 +36,48 @@
         // Coincide con la lógica del context_processor y de notifications_view.
         window.ALERTS_CLEARED_AT = {% if request.session.alerts_cleared_at %}{{ request.session.alerts_cleared_at }}{% else %}null{% endif %};
     </script>
+
+    {# ── Polling del badge de notificaciones (todas las páginas salvo el dashboard) ── #}
+    {% if request.session.usuario_id %}
+    <script>
+    (function () {
+        // El dashboard tiene su propio SSE que ya actualiza el badge en tiempo real.
+        // En el resto de páginas usamos un polling ligero cada 30 s.
+        var IS_DASHBOARD = !!document.getElementById('activeMonitoring');
+        if (IS_DASHBOARD) return;
+
+        var POLL_INTERVAL_MS = 30000;   // 30 segundos
+        var COUNT_URL        = '/api/notifications/count/';
+        var badgeEl          = document.getElementById('notificationBadgeSidebar');
+
+        function applyCount(count) {
+            if (!badgeEl) return;
+            if (count > 0) {
+                badgeEl.textContent   = count;
+                badgeEl.style.display = 'inline-flex';
+            } else {
+                badgeEl.textContent   = '';
+                badgeEl.style.display = 'none';
+            }
+        }
+
+        async function pollCount() {
+            try {
+                var resp = await fetch(COUNT_URL, { credentials: 'same-origin' });
+                if (!resp.ok) return;
+                var data = await resp.json();
+                applyCount(data.count || 0);
+            } catch (_) { /* red error — silent */ }
+        }
+
+        // Primera llamada inmediata (refresca el badge al navegar a una nueva página)
+        pollCount();
+        // Luego cada 30 s mientras la pestaña esté activa
+        setInterval(pollCount, POLL_INTERVAL_MS);
+    })();
+    </script>
+    {% endif %}
+
     {% block extra_js %}{% endblock %}
 </body>
 </html>

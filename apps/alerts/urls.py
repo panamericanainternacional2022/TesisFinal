@@ -8,6 +8,7 @@ from .api_views import (
     view_toggle_alerts,
     send_test_email,
     send_all_subscribers,
+    view_notification_count,
 )
 
 urlpatterns = [
@@ -22,6 +23,7 @@ urlpatterns = [
         clear_notifications_view,
         name="clear_notifications",
     ),
+    path("api/notifications/count/", view_notification_count, name="api_notification_count"),
     path("api/thresholds/", view_get_thresholds, name="api_thresholds"),
     path("api/thresholds/update/", view_update_thresholds, name="api_thresholds_update"),
     path("api/clear-alerts/", view_clear_alerts, name="api_clear_alerts"),
