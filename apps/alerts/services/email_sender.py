@@ -44,7 +44,10 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
     except Exception:
         return []
     try:
-        if not edificio_id:
+        if edificio_id is None:
+            # Fallback: ningún edificio especificado — usar el primero disponible.
+            # ADVERTENCIA: este fallback solo debería usarse en contextos sin simulador
+            # activo. Las alertas del engine siempre deben pasar un edificio_id explícito.
             equipo = MonitoringEquipment.objects.first()
             if equipo and equipo.building:
                 edificio_id = equipo.building.id
@@ -54,6 +57,11 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
                     edificio_id = first_edf.id
                 else:
                     return []
+            logger.warning(
+                "get_building_emails llamado sin edificio_id — usando fallback edificio %s. "
+                "Las alertas del simulador deberían pasar siempre un edificio_id explícito.",
+                edificio_id,
+            )
 
         users = UserBuilding.objects.filter(
             building_id=edificio_id,

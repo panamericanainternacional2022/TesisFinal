@@ -79,19 +79,33 @@ def _send_alert_email(
     sim: Optional['BuildingSimulator'],
     device_target: Optional[str] = None,
 ) -> float:
-    from apps.alerts.services.alert_service import send_email_alert
+    from apps.alerts.services.alert_service import send_email_alert, get_building_emails
     new_les = last_email_time
     send_email = risk_level in (RISK_ALTO, RISK_CRITICO)
     now = time.time()
     if send_email and now - last_email_time > COOLDOWN_SECONDS:
         new_les = now
         edificio_nombre = getattr(sim, "nombre", "") or ""
+        edificio_id = getattr(sim, "edificio_id", None)
         subject = _build_alert_email_subject(variable, risk_level)
         body = _build_alert_email_body(
             variable, value, risk_level, recommended_action, edificio_nombre, device_target
         )
+        # Resolver los destinatarios correctos para ESTE edificio antes de lanzar
+        # el hilo. Sin esto, send_email_alert llama a get_building_emails() sin
+        # edificio_id y siempre obtiene los usuarios del primer edificio registrado.
+        recipients = get_building_emails(edificio_id)
+        if not recipients:
+            logger.info(
+                "Sin destinatarios para alerta del edificio %s (variable=%s, nivel=%s)",
+                edificio_id, variable, risk_level,
+            )
+            return new_les
         threading.Thread(
-            target=send_email_alert, args=(risk_level, subject, body), daemon=True
+            target=send_email_alert,
+            args=(risk_level, subject, body),
+            kwargs={"recipients": recipients},
+            daemon=True,
         ).start()
     return new_les
 
