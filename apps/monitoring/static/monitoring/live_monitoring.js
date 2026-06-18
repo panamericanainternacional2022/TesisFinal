@@ -50,7 +50,7 @@ function formatNumeric(value, variable) {
         if (variable === 'trip_count' || variable === 'load') {
             return Math.round(value).toString();
         }
-        return value.toFixed(1);
+        return value.toFixed(2);
     }
     return safeText(value);
 }
@@ -206,7 +206,7 @@ function initCharts() {
         responsive: true,
         plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${ctx.raw}` } }
+            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${typeof ctx.raw === 'number' ? ctx.raw.toFixed(2) : ctx.raw}` } }
         },
         scales: {
             x: { ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } },
@@ -532,9 +532,9 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
     if (entries.length) {
         const rows = entries.map(([k, v]) =>
             `<tr><td style="padding:8px 10px;font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);font-size:var(--text-xs);border-bottom:1px solid var(--color-border);color:var(--color-ink);">${getVariableName(k)}</td>` +
-            `<td style="padding:8px 10px;font-weight:var(--weight-bold);text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-ink);">${v.avg.toFixed(1)}</td>` +
-            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${v.min}</td>` +
-            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${v.max}</td></tr>`
+            `<td style="padding:8px 10px;font-weight:var(--weight-bold);text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-ink);">${v.avg.toFixed(2)}</td>` +
+            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.min === 'number' ? v.min.toFixed(2) : v.min}</td>` +
+            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.max === 'number' ? v.max.toFixed(2) : v.max}</td></tr>`
         ).join('');
         div.innerHTML = `<div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15);border-left:6px solid ${accentColor};">
         <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
