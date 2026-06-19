@@ -1326,7 +1326,11 @@ function setupAdminEvents() {
     });
 
     if (saveThreshBtn) saveThreshBtn.addEventListener('click', saveThresholds);
+    const threshBombaPanel = document.getElementById('thresholdsBombaPanel');
+    const threshElevadorPanel = document.getElementById('thresholdsElevadorPanel');
     if (threshPanel) threshPanel.addEventListener('input', validateThresholdInputs);
+    if (threshBombaPanel) threshBombaPanel.addEventListener('input', validateThresholdInputs);
+    if (threshElevadorPanel) threshElevadorPanel.addEventListener('input', validateThresholdInputs);
     if (manualValInput) manualValInput.addEventListener('input', updateManualRiskPreview);
     if (manualValSelect) manualValSelect.addEventListener('change', updateManualRiskPreview);
     if (manualEquipSel) {
