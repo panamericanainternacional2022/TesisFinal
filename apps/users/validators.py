@@ -9,7 +9,7 @@ REGEX_ONLY_LETTERS: re.Pattern = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑü
 REGEX_EMAIL: re.Pattern = re.compile(
     r"^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$"
 )
-REGEX_VENEZUELAN_CI: re.Pattern = re.compile(r"^[VEve]\-?\d{6,9}$")
+REGEX_VENEZUELAN_CI: re.Pattern = re.compile(r"^[VEve]\-?\d{6,14}$")
 REGEX_BUILDING_RIF: re.Pattern = re.compile(r"^[Jj]\-?\d{7,9}\-?\d$")
 REGEX_ADDRESS: re.Pattern = re.compile(
     r"^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s\,\.\#\-\/\(\)]+$"
@@ -24,7 +24,7 @@ FIELD_SPECS = [
         "regex": REGEX_ONLY_LETTERS,
         "regex_msg": _("El primer nombre solo acepta letras."),
         "min": 2,
-        "max": 20,
+        "max": 40,
     },
     {
         "key": "segundoNombre",
@@ -32,7 +32,7 @@ FIELD_SPECS = [
         "regex": REGEX_ONLY_LETTERS,
         "regex_msg": _("El segundo nombre solo acepta letras."),
         "min": 2,
-        "max": 20,
+        "max": 40,
     },
     {
         "key": "primerApellido",
@@ -40,7 +40,7 @@ FIELD_SPECS = [
         "regex": REGEX_ONLY_LETTERS,
         "regex_msg": _("El primer apellido solo acepta letras."),
         "min": 2,
-        "max": 20,
+        "max": 40,
     },
     {
         "key": "segundoApellido",
@@ -48,15 +48,15 @@ FIELD_SPECS = [
         "regex": REGEX_ONLY_LETTERS,
         "regex_msg": _("El segundo apellido solo acepta letras."),
         "min": 2,
-        "max": 20,
+        "max": 40,
     },
     {
         "key": "cedula",
         "label": _("La cédula"),
         "regex": REGEX_VENEZUELAN_CI,
-        "regex_msg": _("La cédula debe comenzar con V o E, seguida de 6 a 9 dígitos (ej: V-12345678)."),
+        "regex_msg": _("La cédula debe comenzar con V o E, seguida de 6 a 14 dígitos (ej: V-12345678)."),
         "min": 7,
-        "max": 12,
+        "max": 16,
     },
 ]
 
@@ -130,6 +130,8 @@ def _validate_email(value: str) -> str:
         return _("La parte antes del @ no puede tener más de 30 caracteres.")
     if len(value) < 6:
         return _("El correo debe tener al menos 6 caracteres.")
+    if len(value) > 75:
+        return _("El correo no puede tener más de 75 caracteres.")
     return ""
 
 

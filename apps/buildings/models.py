@@ -3,9 +3,9 @@ from django.db import models
 
 class Building(models.Model):
     id = models.AutoField(primary_key=True, db_column="id_edificio")
-    name = models.CharField(max_length=255, db_column="nb_edificio")
-    rif = models.CharField(max_length=20, unique=True)
-    address = models.TextField(db_column="direccion")
+    name = models.CharField(max_length=40, db_column="nb_edificio")
+    rif = models.CharField(max_length=16, unique=True)
+    address = models.CharField(max_length=100, db_column="direccion")
 
     class Meta:
         db_table = "edificio"

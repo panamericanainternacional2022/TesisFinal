@@ -45,7 +45,7 @@
             <div class="form-group full-width">
                 <label for="email">Correo electrónico</label>
                 <div class="input-with-icon">
-                    <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="50" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
+                    <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
                     <i class="fa-solid fa-pen edit-icon"></i>
                 </div>
                 <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>

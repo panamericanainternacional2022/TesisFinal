@@ -35,7 +35,6 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
         buildings = buildings.filter(
             Q(name__icontains=query)
             | Q(rif__icontains=query)
-            | Q(address__icontains=query)
         )
 
     buildings = buildings.distinct()

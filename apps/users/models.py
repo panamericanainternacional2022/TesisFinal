@@ -4,12 +4,12 @@ from django.utils import timezone
 
 class Persona(models.Model):
     id_persona = models.AutoField(primary_key=True)
-    ci = models.CharField(max_length=20, unique=True)
-    first_name = models.CharField(max_length=255, db_column="primer_nombre")
-    middle_name = models.CharField(max_length=255, db_column="segundo_nombre", blank=True, default="")
-    first_last_name = models.CharField(max_length=255, db_column="primer_apellido")
-    second_last_name = models.CharField(max_length=255, db_column="segundo_apellido", blank=True, default="")
-    email = models.EmailField(max_length=255)
+    ci = models.CharField(max_length=16, unique=True)
+    first_name = models.CharField(max_length=40, db_column="primer_nombre")
+    middle_name = models.CharField(max_length=40, db_column="segundo_nombre", blank=True, default="")
+    first_last_name = models.CharField(max_length=40, db_column="primer_apellido")
+    second_last_name = models.CharField(max_length=40, db_column="segundo_apellido", blank=True, default="")
+    email = models.EmailField(max_length=75)
 
     class Meta:
         db_table = "persona"

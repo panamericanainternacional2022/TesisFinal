@@ -26,14 +26,16 @@ def validate_building_form(
                  "El nombre del edificio solo acepta letras.", errors, "nombreEdificio")
     _check_min_length(data, "nombreEdificio", 3, "El nombre del edificio",
                       errors, "nombreEdificio_min")
-    _check_max_length(data, "nombreEdificio", 20, "El nombre del edificio",
+    _check_max_length(data, "nombreEdificio", 40, "El nombre del edificio",
                       errors, "nombreEdificio_long")
     _check_field(data, "direccion", REGEX_ADDRESS,
                  "La dirección contiene caracteres no válidos.", errors, "direccion")
     _check_min_length(data, "direccion", 8, "La dirección",
                       errors, "direccion_min")
-    _check_max_length(data, "direccion", 50, "La dirección",
+    _check_max_length(data, "direccion", 100, "La dirección",
                       errors, "direccion_long")
+    _check_max_length(data, "rif", 16, "El RIF",
+                      errors, "rif_long")
     _check_rif(data, errors)
     _check_unique_rif(data, exclude_building_id, errors)
 
