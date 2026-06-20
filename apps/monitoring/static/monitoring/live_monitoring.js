@@ -23,7 +23,7 @@ const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
 const _RISK = _CONFIG.risk_labels || {};
 const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
-const _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
+let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
 const EDIFICIO_ID = _CONFIG.edificio_id || 0;
 const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
@@ -747,6 +747,33 @@ function validateThresholdInputs() {
                 valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
                 if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
             }
+
+            // Validación cruzada contra los límites máximos del sensor
+            const bounds = _SENSOR_RANGES[v];
+            if (bounds && valid) {
+                const minBound = bounds[0];
+                const maxBound = bounds[1];
+                if (dir === 'range') {
+                    if (low < minBound || high > maxBound) {
+                        valid = false;
+                        if (lowInp && low < minBound) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp && high > maxBound) highInp.style.borderColor = 'var(--state-critical)';
+                    }
+                } else if (dir === 'higher') {
+                    if (low < minBound || high > maxBound) {
+                        valid = false;
+                        if (lowInp && low < minBound) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp && high > maxBound) highInp.style.borderColor = 'var(--state-critical)';
+                    }
+                } else if (dir === 'lower') {
+                    if (low > maxBound || high < minBound) {
+                        valid = false;
+                        if (lowInp && low > maxBound) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp && high < minBound) highInp.style.borderColor = 'var(--state-critical)';
+                    }
+                }
+            }
+
             if (!valid) hasError = true;
         });
     });
@@ -795,6 +822,123 @@ async function saveThresholds() {
         currentThresholds = res.thresholds;
         renderThresholdsPanel(res.thresholds);
         // Update the manual override hint immediately
+        updateManualInputType();
+    } else {
+        window.showToast(`Error al guardar: ${res.message || 'Inténtelo de nuevo.'}`, 'error');
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// 12.5. Admin: Sensor limits configuration
+// ═══════════════════════════════════════════════════════════════════
+
+let _originalLimits = {};
+
+function renderLimitsPanel(ranges) {
+    const bombaVars = _BOMBA_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
+    const elevadorVars = _ELEVADOR_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
+
+    function buildLimitCard(k, r) {
+        let div = document.createElement('div');
+        div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
+
+        const name = getVariableName(k);
+        const unit = getUnit(k);
+        const minVal = r[0];
+        const maxVal = r[1];
+
+        div.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+                <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
+                    ${name}${unit ? ' (' + unit + ')' : ''}
+                </span>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="color:var(--color-ink);">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
+                <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" style="border-left:4px solid var(--color-ink);">
+            </div>
+        `;
+        return div;
+    }
+
+    function buildLimitSection(containerId, vars) {
+        const panel = document.getElementById(containerId);
+        if (!panel) return;
+        panel.innerHTML = '';
+        vars.forEach(k => {
+            panel.appendChild(buildLimitCard(k, ranges[k]));
+        });
+    }
+
+    buildLimitSection('limitsBombaPanel', bombaVars);
+    buildLimitSection('limitsElevadorPanel', elevadorVars);
+
+    _originalLimits = JSON.parse(JSON.stringify(ranges));
+    validateLimitInputs();
+}
+
+function validateLimitInputs() {
+    let hasError = false;
+    let hasChanges = false;
+    let btn = document.getElementById('saveLimitsBtn');
+
+    ['limitsBombaPanel', 'limitsElevadorPanel'].forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const v = inp.dataset.var;
+            const val = parseFloat(inp.value);
+
+            inp.style.borderColor = '';
+
+            if (isNaN(val)) {
+                hasError = true;
+                inp.style.borderColor = 'var(--state-critical)';
+                return;
+            }
+
+            const defaultMin = _originalLimits[v] ? _originalLimits[v][0] : 0;
+            if (val <= defaultMin) {
+                hasError = true;
+                inp.style.borderColor = 'var(--state-critical)';
+            }
+
+            if (_originalLimits[v] && val !== _originalLimits[v][1]) {
+                hasChanges = true;
+            }
+        });
+    });
+
+    const shouldDisable = hasError || !hasChanges;
+    if (btn) {
+        btn.disabled = shouldDisable;
+        btn.style.opacity = shouldDisable ? '0.5' : '1';
+        btn.style.cursor = shouldDisable ? 'not-allowed' : 'pointer';
+    }
+}
+
+async function saveLimits() {
+    let newLimits = { edificio_id: EDIFICIO_ID };
+    ['limitsBombaPanel', 'limitsElevadorPanel'].forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const v = inp.dataset.var;
+            newLimits[v] = parseFloat(inp.value);
+        });
+    });
+
+    let resp = await csrfFetch('/api/sensor-limits/update/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newLimits)
+    });
+    let res = await resp.json();
+    if (res.status === 'ok') {
+        window.showToast('Límites de sensores guardados correctamente.', 'success');
+        _CONFIG.sensor_ranges = res.sensor_ranges;
+        _SENSOR_RANGES = res.sensor_ranges;
+        renderLimitsPanel(res.sensor_ranges);
         updateManualInputType();
     } else {
         window.showToast(`Error al guardar: ${res.message || 'Inténtelo de nuevo.'}`, 'error');
@@ -1279,6 +1423,20 @@ function initLiveNotifications() {
 // ═══════════════════════════════════════════════════════════════════
 
 function fetchInitialData() {
+    if (window.IS_LIMITS_PAGE) {
+        const url = `/api/sensor-limits/?edificio_id=${EDIFICIO_ID}`;
+        fetch(url)
+            .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+            .then(data => {
+                hideAllStates();
+                renderLimitsPanel(data);
+            })
+            .catch(() => {
+                showState('stateOffline');
+            });
+        return;
+    }
+
     const url = EDIFICIO_ID ? `/api/status/?edificio_id=${EDIFICIO_ID}` : '/api/status/';
     fetch(url)
         .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
@@ -1326,6 +1484,13 @@ function setupAdminEvents() {
     });
 
     if (saveThreshBtn) saveThreshBtn.addEventListener('click', saveThresholds);
+    const saveLimitsBtn = document.getElementById('saveLimitsBtn');
+    const limitsBombaPanel = document.getElementById('limitsBombaPanel');
+    const limitsElevadorPanel = document.getElementById('limitsElevadorPanel');
+    if (saveLimitsBtn) saveLimitsBtn.addEventListener('click', saveLimits);
+    if (limitsBombaPanel) limitsBombaPanel.addEventListener('input', validateLimitInputs);
+    if (limitsElevadorPanel) limitsElevadorPanel.addEventListener('input', validateLimitInputs);
+
     const threshBombaPanel = document.getElementById('thresholdsBombaPanel');
     const threshElevadorPanel = document.getElementById('thresholdsElevadorPanel');
     if (threshPanel) threshPanel.addEventListener('input', validateThresholdInputs);
@@ -1400,6 +1565,16 @@ function setupBuildingSelector() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    if (window.IS_LIMITS_PAGE) {
+        showState('stateLoading');
+        fetchInitialData();
+        if (IS_ADMIN) {
+            setupAdminEvents();
+        }
+        setupBuildingSelector();
+        return;
+    }
+
     const isMonitoringPage = document.getElementById('activeMonitoring') !== null;
     if (!isMonitoringPage) {
         if (document.getElementById('live-notifications-list')) {

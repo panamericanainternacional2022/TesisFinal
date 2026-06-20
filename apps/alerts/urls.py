@@ -4,6 +4,8 @@ from .views.alert_controls import toggle_alerts_session_view, clear_notification
 from .api_views import (
     view_get_thresholds,
     view_update_thresholds,
+    view_get_sensor_limits,
+    view_update_sensor_limits,
     view_clear_alerts,
     view_toggle_alerts,
     send_test_email,
@@ -26,6 +28,8 @@ urlpatterns = [
     path("api/notifications/count/", view_notification_count, name="api_notification_count"),
     path("api/thresholds/", view_get_thresholds, name="api_thresholds"),
     path("api/thresholds/update/", view_update_thresholds, name="api_thresholds_update"),
+    path("api/sensor-limits/", view_get_sensor_limits, name="api_sensor_limits"),
+    path("api/sensor-limits/update/", view_update_sensor_limits, name="api_sensor_limits_update"),
     path("api/clear-alerts/", view_clear_alerts, name="api_clear_alerts"),
     path("api/toggle-alerts/", view_toggle_alerts, name="api_toggle_alerts"),
     path("api/send-test-email/", send_test_email, name="api_send_test_email"),

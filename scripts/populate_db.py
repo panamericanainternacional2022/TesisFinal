@@ -34,8 +34,8 @@ from apps.buildings.models import (
     UserBuilding,
     MonitoringEquipment,
 )
-from apps.alerts.models import Notification, ThresholdConfig
-from apps.sensors.sensor_config import DEFAULT_THRESHOLDS
+from apps.alerts.models import Notification, ThresholdConfig, SensorLimitConfig
+from apps.sensors.sensor_config import DEFAULT_THRESHOLDS, SENSOR_RANGES
 
 
 
@@ -46,7 +46,7 @@ def populate():
     with connection.cursor() as cursor:
         cursor.execute(
             "TRUNCATE TABLE edificio, equipo_monitoreo, notificacion, persona, "
-            "umbral_config, usuario, usuario_edificio RESTART IDENTITY CASCADE;"
+            "umbral_config, limite_sensor_config, usuario, usuario_edificio RESTART IDENTITY CASCADE;"
         )
     
     print("Base de datos limpia y secuencias reiniciadas desde 0.")
@@ -168,6 +168,18 @@ def populate():
                     "low": cfg.get("low", 0),
                     "medium": cfg.get("medium"),
                     "high": cfg.get("high", 0),
+                },
+            )
+
+    print("Sembrando límites de sensores por edificio...")
+    for edificio in [e1, e2]:
+        for variable, val_range in SENSOR_RANGES.items():
+            # El rango es una tupla: (min, max). Tomamos el max (segundo elemento)
+            SensorLimitConfig.objects.get_or_create(
+                building=edificio,
+                variable=variable,
+                defaults={
+                    "max_value": val_range[1],
                 },
             )
 

@@ -1,7 +1,7 @@
 from django.urls import path
 from django.views.generic import RedirectView
 
-from .views.dispatch import monitoring_view, history_view, thresholds_view
+from .views.dispatch import monitoring_view, history_view, thresholds_view, limits_view
 
 from .views.admin import (
     building_monitoring_view,
@@ -30,6 +30,7 @@ urlpatterns = [
     path("history/", history_view, name="history"),
     path("monitor/", monitoring_view, name="monitor"),
     path("thresholds/", thresholds_view, name="thresholds"),
+    path("limits/", limits_view, name="sensor_limits"),
     path(
         "monitor/building/<int:building_id>/",
         building_monitoring_view,

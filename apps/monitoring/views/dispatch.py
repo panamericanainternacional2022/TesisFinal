@@ -4,6 +4,7 @@ from .admin import (
     render_admin_monitoring,
     render_admin_history,
     render_admin_thresholds,
+    render_admin_limits,
 )
 from .user import (
     render_user_monitoring,
@@ -35,3 +36,13 @@ def thresholds_view(request: HttpRequest) -> HttpResponse:
         from django.shortcuts import redirect
         return redirect('monitor')
     return render_admin_thresholds(request)
+
+
+def limits_view(request: HttpRequest) -> HttpResponse:
+    """Sensor limits page is admin-only."""
+    from apps.core.auth_decorators import is_admin_role
+    rol = request.session.get("usuario_rol", "US")
+    if not is_admin_role(rol):
+        from django.shortcuts import redirect
+        return redirect('monitor')
+    return render_admin_limits(request)

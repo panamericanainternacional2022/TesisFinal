@@ -121,6 +121,27 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
                 errors[variable] = "Thresholds must be descending: low > medium > high"
                 continue
 
+        # Validar contra los límites físicos del sensor del edificio
+        from apps.alerts.services.sensor_limit_service import get_sensor_limits
+        sensor_limits = get_sensor_limits(building_id)
+        limits = sensor_limits.get(variable)
+        if limits:
+            min_bound, max_bound = limits
+            low_val = config["low"]
+            high_val = config["high"]
+            if direction == "range":
+                if low_val < min_bound or high_val > max_bound:
+                    errors[variable] = f"Los umbrales [{low_val}, {high_val}] deben estar dentro de los límites físicos del sensor [{min_bound}, {max_bound}]"
+                    continue
+            elif direction == "higher":
+                if low_val < min_bound or high_val > max_bound:
+                    errors[variable] = f"Los umbrales deben estar dentro de los límites físicos del sensor [{min_bound}, {max_bound}] (recibido low={low_val}, high={high_val})"
+                    continue
+            elif direction == "lower":
+                if low_val > max_bound or high_val < min_bound:
+                    errors[variable] = f"Los umbrales deben estar dentro de los límites físicos del sensor [{min_bound}, {max_bound}] (recibido low={low_val}, high={high_val})"
+                    continue
+
     if errors:
         return json_error(f"Validation errors: {errors}")
 
@@ -130,6 +151,68 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
         return json_error(str(e), status=500)
 
     return json_ok({"thresholds": get_thresholds(building_id)})
+
+
+@login_required
+@require_http_methods(["GET"])
+def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
+    from apps.alerts.services.sensor_limit_service import get_sensor_limits
+    try:
+        building_id = int(request.GET.get("edificio_id", 0))
+    except (ValueError, TypeError):
+        building_id = 0
+    if not building_id:
+        return json_error("edificio_id requerido", status=400)
+    return JsonResponse(get_sensor_limits(building_id))
+
+
+@require_http_methods(["POST"])
+def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
+    from apps.alerts.services.sensor_limit_service import bulk_update_limits, get_sensor_limits
+    from apps.sensors.sensor_config import SENSOR_RANGES
+    try:
+        raw = json.loads(request.body)
+    except json.JSONDecodeError:
+        return json_error("Invalid JSON")
+
+    if not isinstance(raw, dict):
+        return json_error("Body must be a JSON object")
+
+    try:
+        building_id = int(raw.pop("edificio_id", 0))
+    except (ValueError, TypeError):
+        building_id = 0
+    if not building_id:
+        return json_error("edificio_id requerido")
+
+    data = raw
+    errors: dict[str, str] = {}
+    cleaned_data: dict[str, float] = {}
+
+    for variable, max_val_raw in data.items():
+        try:
+            max_val = float(max_val_raw)
+            cleaned_data[variable] = max_val
+        except (ValueError, TypeError):
+            errors[variable] = "Value must be numeric"
+            continue
+
+        # Validar que el valor max sea mayor que el min por defecto
+        default_min = SENSOR_RANGES.get(variable, (0.0, 100.0))[0]
+        if max_val <= default_min:
+            errors[variable] = f"El límite máximo ({max_val}) debe ser mayor que el mínimo por defecto ({default_min})"
+
+    if errors:
+        return json_error(f"Validation errors: {errors}")
+
+    try:
+        bulk_update_limits(cleaned_data, building_id)
+    except Exception as e:
+        return json_error(str(e), status=500)
+
+    return json_ok({"sensor_ranges": get_sensor_limits(building_id)})
+
+
 
 
 @require_http_methods(["POST"])
