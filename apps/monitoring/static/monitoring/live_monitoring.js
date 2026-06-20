@@ -1175,14 +1175,16 @@ function updateManualRiskPreview() {
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
-    let raw = '';
-    if (v === 'door_status' || v === 'motor_stuck') {
-        raw = sel.value;
-    } else {
-        raw = inp.value;
+    // Run validation first
+    const status = validateManualInput();
+
+    if (status.hasError) {
+        // Show validation error in risk preview line
+        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:0.65rem;"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
+        return;
     }
 
-    if (raw === undefined || raw === '') {
+    if (status.empty) {
         // Show threshold hint instead of blank
         const hint = buildThresholdHint(v);
         if (hint) {
@@ -1193,24 +1195,20 @@ function updateManualRiskPreview() {
         return;
     }
 
+    let raw = '';
+    if (v === 'door_status' || v === 'motor_stuck') {
+        raw = sel.value;
+    } else {
+        raw = inp.value;
+    }
+
     let val = raw;
     if (v === 'door_status') { /* string */ }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
     else { 
         let n = parseFloat(raw); 
-        if (isNaN(n)) { 
-            span.innerHTML = '<span style="color:var(--state-critical)">Valor numérico requerido</span>'; 
-            return; 
-        } 
+        if (isNaN(n)) return; 
         val = n; 
-    }
-    
-    // Clear estimated risk badge if value is out of physical bounds
-    if (v !== 'door_status' && v !== 'motor_stuck' && _SENSOR_RANGES[v]) {
-        if (val < _SENSOR_RANGES[v][0] || val > _SENSOR_RANGES[v][1]) {
-            span.innerHTML = '';
-            return;
-        }
     }
     
     let ri = getRiskClass(v, val);
@@ -1221,9 +1219,8 @@ function validateManualInput() {
     const v = document.getElementById('manualSensorSelect')?.value;
     const inp = document.getElementById('manualValueInput');
     const sendBtn = document.getElementById('sendManualBtn');
-    const errorEl = document.getElementById('manualValueErrorMsg');
     
-    if (!sendBtn || !v) return;
+    if (!v) return { hasError: false, empty: true };
 
     let hasError = false;
     let errorText = '';
@@ -1256,15 +1253,14 @@ function validateManualInput() {
         inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
     }
 
-    if (errorEl) {
-        errorEl.textContent = errorText;
-        errorEl.style.display = hasError ? 'block' : 'none';
+    if (sendBtn) {
+        const disabled = empty || hasError;
+        sendBtn.disabled = disabled;
+        sendBtn.style.opacity = disabled ? '0.5' : '1';
+        sendBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
     }
 
-    const disabled = empty || hasError;
-    sendBtn.disabled = disabled;
-    sendBtn.style.opacity = disabled ? '0.5' : '1';
-    sendBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+    return { hasError, errorText, empty };
 }
 
 async function sendManualValue() {
