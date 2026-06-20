@@ -635,9 +635,23 @@ function renderThresholdsPanel(th) {
         const name = getVariableName(k);
         const unit = getUnit(k);
         const curVal = currentReadings[k];
-        const curStr = (curVal !== undefined && curVal !== null)
-            ? `Actual: ${formatNumeric(curVal, k)}${unit ? ' ' + unit : ''}`
-            : '';
+        
+        // Cargar límites físicos dinámicos
+        const bounds = _SENSOR_RANGES[k];
+        let boundsStr = '';
+        if (bounds) {
+            boundsStr = `Límite: ${bounds[0]} - ${bounds[1]}${unit ? ' ' + unit : ''}`;
+        }
+
+        let rightText = '';
+        if (curVal !== undefined && curVal !== null) {
+            rightText = `Actual: ${formatNumeric(curVal, k)}${unit ? ' ' + unit : ''}`;
+            if (boundsStr) {
+                rightText += ` · ${boundsStr}`;
+            }
+        } else if (boundsStr) {
+            rightText = boundsStr;
+        }
 
         let dirBadge;
         if (cfg.direction === 'higher') {
@@ -652,7 +666,7 @@ function renderThresholdsPanel(th) {
             <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
                 ${name}${unit ? ' (' + unit + ')' : ''} ${dirBadge}
             </span>
-            ${curStr ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">' + curStr + '</span>' : ''}
+            ${rightText ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">' + rightText + '</span>' : ''}
         </div>`;
 
         if (cfg.direction === 'range') {

@@ -96,7 +96,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="reportes-card" style="max-width: 960px;">
+<div class="reportes-card">
     <div class="admin-info">
         <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
             <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -233,5 +233,5 @@
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
     </script>
-    <script src="{% static 'monitoring/live_monitoring.js' %}" defer></script>
+    <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
 {% endblock %}

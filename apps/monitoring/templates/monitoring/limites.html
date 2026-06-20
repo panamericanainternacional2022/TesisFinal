@@ -10,7 +10,7 @@
         /* ── Grid de límites ── */
         .thresh-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--sp-2);
         }
 
@@ -88,6 +88,9 @@
         }
 
         /* Responsive */
+        @media (max-width: 1024px) {
+            .thresh-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 640px) {
             .thresh-grid { grid-template-columns: 1fr; }
         }
@@ -95,7 +98,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="reportes-card" style="max-width: 960px;">
+<div class="reportes-card">
     <!-- ── Cabecera ── -->
     <div class="admin-info">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
@@ -198,7 +201,7 @@
         window.CSRF_TOKEN = "{{ csrf_token }}";
         window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice límites en vez de umbrales
     </script>
-    <script src="{% static 'monitoring/live_monitoring.js' %}?v=6" defer></script>
+    <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const sel = document.getElementById('buildingSelect');

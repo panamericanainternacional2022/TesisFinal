@@ -5,6 +5,11 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'buildings/perfil.css' %}">
+    <style>
+        .perfil-card {
+            max-width: 1400px;
+        }
+    </style>
 {% endblock %}
 
 {% block extra_head_js %}
@@ -12,7 +17,7 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 720px; margin: 0 auto;">
+<div style="max-width: 1400px; margin: 0 auto;">
     <div class="admin-info">
         <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}</h1>
         <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
@@ -78,15 +83,17 @@
                 </div>
             </div>
 
-            <div class="form-group full-width">
-                <label for="id_edificio">Elegir edificio</label>
-                <select id="id_edificio" name="id_edificio" required class="form-select {% if form_errors.id_edificio %}input-error{% endif %}">
-                    {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
-                    {% for edificio in edificios %}
-                        <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
-                    {% endfor %}
-                </select>
-                <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>
+            <div class="form-row">
+                <div class="form-group half-width">
+                    <label for="id_edificio">Elegir edificio</label>
+                    <select id="id_edificio" name="id_edificio" required class="form-select {% if form_errors.id_edificio %}input-error{% endif %}">
+                        {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
+                        {% for edificio in edificios %}
+                            <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>
+                </div>
             </div>
 
             <div class="actions-row">
