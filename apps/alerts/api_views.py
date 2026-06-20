@@ -157,18 +157,26 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
     from apps.alerts.services.sensor_limit_service import get_sensor_limits
+    from apps.alerts.services.threshold_service import get_thresholds
     try:
         building_id = int(request.GET.get("edificio_id", 0))
     except (ValueError, TypeError):
         building_id = 0
     if not building_id:
         return json_error("edificio_id requerido", status=400)
-    return JsonResponse(get_sensor_limits(building_id))
+    
+    limits = get_sensor_limits(building_id)
+    thresholds = get_thresholds(building_id)
+    return JsonResponse({
+        "limits": limits,
+        "thresholds": thresholds
+    })
 
 
 @require_http_methods(["POST"])
 def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     from apps.alerts.services.sensor_limit_service import bulk_update_limits, get_sensor_limits
+    from apps.alerts.services.threshold_service import get_thresholds
     from apps.sensors.sensor_config import SENSOR_RANGES
     try:
         raw = json.loads(request.body)
@@ -185,6 +193,7 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     if not building_id:
         return json_error("edificio_id requerido")
 
+    thresholds = get_thresholds(building_id)
     data = raw
     errors: dict[str, str] = {}
     cleaned_data: dict[str, float] = {}
@@ -201,6 +210,16 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
         default_min = SENSOR_RANGES.get(variable, (0.0, 100.0))[0]
         if max_val <= default_min:
             errors[variable] = f"El límite máximo ({max_val}) debe ser mayor que el mínimo por defecto ({default_min})"
+            continue
+
+        # Validar que el límite máximo no sea inferior al umbral crítico existente
+        if variable in thresholds:
+            t_config = thresholds[variable]
+            if "high" in t_config:
+                high_thresh = float(t_config["high"])
+                if max_val < high_thresh:
+                    label = "máximo aceptable" if t_config.get("direction") == "range" else "crítico"
+                    errors[variable] = f"El límite máximo ({max_val}) no puede ser inferior al umbral {label} ({high_thresh})"
 
     if errors:
         return json_error(f"Validation errors: {errors}")
@@ -210,7 +229,10 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     except Exception as e:
         return json_error(str(e), status=500)
 
-    return json_ok({"sensor_ranges": get_sensor_limits(building_id)})
+    return json_ok({
+        "sensor_ranges": get_sensor_limits(building_id),
+        "thresholds": get_thresholds(building_id)
+    })
 
 
 

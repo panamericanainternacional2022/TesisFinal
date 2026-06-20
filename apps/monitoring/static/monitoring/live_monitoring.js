@@ -676,6 +676,7 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
                 </div>
                 <div style="margin-top:2px;font-size:0.6rem;color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
+                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
         } else {
             div.innerHTML = headerHtml + `
@@ -684,6 +685,7 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" style="border-left:4px solid #b45309;"></div>
                     <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
                 </div>
+                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
         }
         return div;
@@ -732,6 +734,17 @@ function validateThresholdInputs() {
         return null;
     }
 
+    // Helper: find a threshold card container
+    function findCard(v) {
+        for (const pid of PANEL_IDS) {
+            const p = document.getElementById(pid);
+            if (!p) continue;
+            const el = p.querySelector(`input[data-var="${v}"]`);
+            if (el) return el.closest('div[style*="border"]');
+        }
+        return null;
+    }
+
     PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
@@ -745,50 +758,111 @@ function validateThresholdInputs() {
             let medInp = findInp(v, 'medium');
             let highInp = findInp(v, 'high');
             let low = parseFloat(lowInp?.value);
+            let med = parseFloat(medInp?.value);
             let high = parseFloat(highInp?.value);
             [lowInp, medInp, highInp].forEach(el => { if (el) el.style.borderColor = ''; });
 
-            let valid = false;
-            if (dir === 'range') {
-                valid = !isNaN(low) && !isNaN(high) && low < high;
-                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-            } else if (dir === 'higher') {
-                let medium = parseFloat(medInp?.value);
-                valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low < medium && medium < high;
-                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
-            } else if (dir === 'lower') {
-                let medium = parseFloat(medInp?.value);
-                valid = !isNaN(low) && !isNaN(medium) && !isNaN(high) && low > medium && medium > high;
-                if (!valid) { if (lowInp) lowInp.style.borderColor = 'var(--state-critical)'; if (medInp) medInp.style.borderColor = 'var(--state-critical)'; if (highInp) highInp.style.borderColor = 'var(--state-critical)'; }
+            const card = findCard(v);
+            const errorMsgEl = card ? card.querySelector('.thresh-error-msg') : null;
+            if (errorMsgEl) {
+                errorMsgEl.textContent = '';
+                errorMsgEl.style.display = 'none';
             }
 
-            // Validación cruzada contra los límites máximos del sensor
-            const bounds = _SENSOR_RANGES[v];
-            if (bounds && valid) {
-                const minBound = bounds[0];
-                const maxBound = bounds[1];
+            let valid = false;
+            let errorText = '';
+
+            if (isNaN(low) || isNaN(high) || (dir !== 'range' && isNaN(med))) {
+                errorText = 'Introduzca valores numéricos válidos.';
+            } else {
                 if (dir === 'range') {
-                    if (low < minBound || high > maxBound) {
-                        valid = false;
-                        if (lowInp && low < minBound) lowInp.style.borderColor = 'var(--state-critical)';
-                        if (highInp && high > maxBound) highInp.style.borderColor = 'var(--state-critical)';
+                    valid = low < high;
+                    if (!valid) {
+                        errorText = 'El mínimo aceptable debe ser menor al máximo aceptable.';
+                        if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp) highInp.style.borderColor = 'var(--state-critical)';
                     }
                 } else if (dir === 'higher') {
-                    if (low < minBound || high > maxBound) {
-                        valid = false;
-                        if (lowInp && low < minBound) lowInp.style.borderColor = 'var(--state-critical)';
-                        if (highInp && high > maxBound) highInp.style.borderColor = 'var(--state-critical)';
+                    valid = low < med && med < high;
+                    if (!valid) {
+                        errorText = 'Los valores deben estar ordenados: Medio < Alto < Crítico.';
+                        if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (medInp) medInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp) highInp.style.borderColor = 'var(--state-critical)';
                     }
                 } else if (dir === 'lower') {
-                    if (low > maxBound || high < minBound) {
-                        valid = false;
-                        if (lowInp && low > maxBound) lowInp.style.borderColor = 'var(--state-critical)';
-                        if (highInp && high < minBound) highInp.style.borderColor = 'var(--state-critical)';
+                    valid = low > med && med > high;
+                    if (!valid) {
+                        errorText = 'Los valores deben estar ordenados: Medio > Alto > Crítico.';
+                        if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        if (medInp) medInp.style.borderColor = 'var(--state-critical)';
+                        if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                    }
+                }
+
+                // Validación cruzada contra los límites máximos del sensor
+                const bounds = _SENSOR_RANGES[v];
+                if (bounds && valid) {
+                    const minBound = bounds[0];
+                    const maxBound = bounds[1];
+                    const unit = getUnit(v);
+                    const unitStr = unit ? ' ' + unit : '';
+                    if (dir === 'range') {
+                        if (low < minBound && high > maxBound) {
+                            valid = false;
+                            errorText = `Los umbrales deben estar dentro de los límites del sensor (${minBound} - ${maxBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        } else if (low < minBound) {
+                            valid = false;
+                            errorText = `El mínimo aceptable no puede ser menor al límite físico (${minBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        } else if (high > maxBound) {
+                            valid = false;
+                            errorText = `El máximo aceptable no puede ser mayor al límite físico (${maxBound}${unitStr}).`;
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        }
+                    } else if (dir === 'higher') {
+                        if (low < minBound && high > maxBound) {
+                            valid = false;
+                            errorText = `Los umbrales deben estar dentro de los límites del sensor (${minBound} - ${maxBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        } else if (low < minBound) {
+                            valid = false;
+                            errorText = `El umbral medio no puede ser menor al límite físico (${minBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        } else if (high > maxBound) {
+                            valid = false;
+                            errorText = `El umbral crítico no puede ser mayor al límite físico (${maxBound}${unitStr}).`;
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        }
+                    } else if (dir === 'lower') {
+                        if (low > maxBound && high < minBound) {
+                            valid = false;
+                            errorText = `Los umbrales deben estar dentro de los límites del sensor (${minBound} - ${maxBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        } else if (low > maxBound) {
+                            valid = false;
+                            errorText = `El umbral medio no puede ser mayor al límite físico (${maxBound}${unitStr}).`;
+                            if (lowInp) lowInp.style.borderColor = 'var(--state-critical)';
+                        } else if (high < minBound) {
+                            valid = false;
+                            errorText = `El umbral crítico no puede ser menor al límite físico (${minBound}${unitStr}).`;
+                            if (highInp) highInp.style.borderColor = 'var(--state-critical)';
+                        }
                     }
                 }
             }
 
-            if (!valid) hasError = true;
+            if (!valid) {
+                hasError = true;
+                if (errorMsgEl && errorText) {
+                    errorMsgEl.textContent = errorText;
+                    errorMsgEl.style.display = 'block';
+                }
+            }
         });
     });
 
@@ -861,15 +935,25 @@ function renderLimitsPanel(ranges) {
         const minVal = r[0];
         const maxVal = r[1];
 
+        // Obtener el umbral crítico actual
+        const thresh = currentThresholds[k];
+        let threshStr = '';
+        if (thresh && thresh.high !== undefined) {
+            const label = (thresh.direction === 'range') ? 'Máx aceptable' : 'Crítico';
+            threshStr = `${label}: ${thresh.high}${unit ? ' ' + unit : ''}`;
+        }
+
         div.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
                     ${name}${unit ? ' (' + unit + ')' : ''}
                 </span>
+                ${threshStr ? `<span style="font-size:0.6rem;color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">
                 <label class="form-label" style="color:var(--color-ink);">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" style="border-left:4px solid var(--color-ink);">
+                <div class="limit-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:2px;display:none;"></div>
             </div>
         `;
         return div;
@@ -905,16 +989,46 @@ function validateLimitInputs() {
 
             inp.style.borderColor = '';
 
+            const card = inp.closest('.form-group') || inp.parentNode;
+            const errorMsgEl = card ? card.querySelector('.limit-error-msg') : null;
+            if (errorMsgEl) {
+                errorMsgEl.textContent = '';
+                errorMsgEl.style.display = 'none';
+            }
+
             if (isNaN(val)) {
                 hasError = true;
                 inp.style.borderColor = 'var(--state-critical)';
+                if (errorMsgEl) {
+                    errorMsgEl.textContent = 'Introduzca un número válido.';
+                    errorMsgEl.style.display = 'block';
+                }
                 return;
             }
 
-            const defaultMin = _originalLimits[v] ? _originalLimits[v][0] : 0;
+            const defaultMin = (_originalLimits && _originalLimits[v]) ? _originalLimits[v][0] : 0;
             if (val <= defaultMin) {
                 hasError = true;
                 inp.style.borderColor = 'var(--state-critical)';
+                if (errorMsgEl) {
+                    errorMsgEl.textContent = `Debe ser mayor que el mínimo (${defaultMin}).`;
+                    errorMsgEl.style.display = 'block';
+                }
+            }
+
+            // Validar contra el umbral crítico
+            const thresh = (window.currentThresholds || currentThresholds || {})[v];
+            if (thresh && thresh.high !== undefined) {
+                if (val < thresh.high) {
+                    hasError = true;
+                    inp.style.borderColor = 'var(--state-critical)';
+                    if (errorMsgEl) {
+                        const label = (thresh.direction === 'range') ? 'máximo aceptable' : 'crítico';
+                        const unit = getUnit(v);
+                        errorMsgEl.textContent = `No puede ser menor al umbral ${label} (${thresh.high}${unit ? ' ' + unit : ''}).`;
+                        errorMsgEl.style.display = 'block';
+                    }
+                }
             }
 
             if (_originalLimits[v] && val !== _originalLimits[v][1]) {
@@ -952,6 +1066,7 @@ async function saveLimits() {
         window.showToast('Límites de sensores guardados correctamente.', 'success');
         _CONFIG.sensor_ranges = res.sensor_ranges;
         _SENSOR_RANGES = res.sensor_ranges;
+        currentThresholds = res.thresholds || currentThresholds;
         renderLimitsPanel(res.sensor_ranges);
         updateManualInputType();
     } else {
@@ -1027,6 +1142,7 @@ function updateManualInputType() {
         }
     }
     updateManualRiskPreview();
+    validateManualInput();
 }
 
 function populateManualSensorSelect() {
@@ -1080,9 +1196,75 @@ function updateManualRiskPreview() {
     let val = raw;
     if (v === 'door_status') { /* string */ }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
-    else { let n = parseFloat(raw); if (isNaN(n)) { span.innerHTML = '<span style="color:var(--state-critical)">Valor numérico requerido</span>'; return; } val = n; }
+    else { 
+        let n = parseFloat(raw); 
+        if (isNaN(n)) { 
+            span.innerHTML = '<span style="color:var(--state-critical)">Valor numérico requerido</span>'; 
+            return; 
+        } 
+        val = n; 
+    }
+    
+    // Clear estimated risk badge if value is out of physical bounds
+    if (v !== 'door_status' && v !== 'motor_stuck' && _SENSOR_RANGES[v]) {
+        if (val < _SENSOR_RANGES[v][0] || val > _SENSOR_RANGES[v][1]) {
+            span.innerHTML = '';
+            return;
+        }
+    }
+    
     let ri = getRiskClass(v, val);
     span.innerHTML = `Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
+}
+
+function validateManualInput() {
+    const v = document.getElementById('manualSensorSelect')?.value;
+    const inp = document.getElementById('manualValueInput');
+    const sendBtn = document.getElementById('sendManualBtn');
+    const errorEl = document.getElementById('manualValueErrorMsg');
+    
+    if (!sendBtn || !v) return;
+
+    let hasError = false;
+    let errorText = '';
+    let empty = false;
+
+    if (v === 'door_status' || v === 'motor_stuck') {
+        empty = false;
+    } else if (inp) {
+        const raw = inp.value.trim();
+        empty = !raw;
+        if (!empty) {
+            const val = parseFloat(raw);
+            if (isNaN(val)) {
+                hasError = true;
+                errorText = 'Introduzca un número válido.';
+            } else if (_SENSOR_RANGES[v]) {
+                const min = _SENSOR_RANGES[v][0];
+                const max = _SENSOR_RANGES[v][1];
+                if (val < min || val > max) {
+                    hasError = true;
+                    const unit = getUnit(v);
+                    const unitStr = unit ? ' ' + unit : '';
+                    errorText = `El valor debe estar entre ${min} y ${max}${unitStr}.`;
+                }
+            }
+        }
+    }
+
+    if (inp) {
+        inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
+    }
+
+    if (errorEl) {
+        errorEl.textContent = errorText;
+        errorEl.style.display = hasError ? 'block' : 'none';
+    }
+
+    const disabled = empty || hasError;
+    sendBtn.disabled = disabled;
+    sendBtn.style.opacity = disabled ? '0.5' : '1';
+    sendBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
 }
 
 async function sendManualValue() {
@@ -1113,7 +1295,6 @@ async function sendManualValue() {
         let n = parseFloat(raw);
         if (isNaN(n)) { window.showToast('Introduzca un valor numérico válido.', 'error'); return; }
         if (_SENSOR_RANGES[v] && (n < _SENSOR_RANGES[v][0] || n > _SENSOR_RANGES[v][1])) {
-            window.showToast(`El valor debe estar entre ${_SENSOR_RANGES[v][0]} y ${_SENSOR_RANGES[v][1]}`, 'error');
             return;
         }
         val = n;
@@ -1122,7 +1303,7 @@ async function sendManualValue() {
         let resp = await csrfFetch('/api/manual-update/', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ variable: v, value: val, edificio_id: EDIFICIO_ID }) });
         let res = await resp.json();
         if (res.status === 'ok') {
-            window.showToast(`${getVariableName(v)}: ${res.value} — Nivel de riesgo: ${res.risk}.`, 'success');
+            window.showToast('Valor enviado correctamente.', 'success');
         } else {
             window.showToast(res.message || 'No se pudo aplicar el valor.', 'error');
         }
@@ -1443,7 +1624,35 @@ function fetchInitialData() {
             .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
             .then(data => {
                 hideAllStates();
-                renderLimitsPanel(data);
+                currentThresholds = data.thresholds || {};
+                renderLimitsPanel(data.limits || {});
+            })
+            .catch(() => {
+                showState('stateOffline');
+            });
+        return;
+    }
+
+    const isThresholdsPage = document.getElementById('saveThresholdsBtn') !== null;
+    if (isThresholdsPage) {
+        // Fetch thresholds directly so the page works even without a running simulator
+        const url = `/api/thresholds/?edificio_id=${EDIFICIO_ID}`;
+        fetch(url)
+            .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+            .then(data => {
+                hideAllStates();
+                currentThresholds = data || {};
+                renderThresholdsPanel(currentThresholds);
+                
+                // Then try to fetch status to populate current values, but ignore failure
+                fetch(`/api/status/?edificio_id=${EDIFICIO_ID}`)
+                    .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
+                    .then(statusData => {
+                        if (statusData.current) {
+                            currentReadings = statusData.current;
+                            renderThresholdsPanel(currentThresholds);
+                        }
+                    }).catch(() => {});
             })
             .catch(() => {
                 showState('stateOffline');
@@ -1527,24 +1736,31 @@ function setupAdminEvents() {
     if (sendManualBtn) sendManualBtn.addEventListener('click', sendManualValue);
 
     // Deshabilitar botón "Enviar" cuando el campo está vacío
-    function updateSendBtnState() {
-        if (!sendManualBtn) return;
-        const v = manualSensorSel?.value;
-        let empty = false;
-        if (v === 'door_status' || v === 'motor_stuck') {
-            empty = false; // El select siempre tiene un valor predeterminado
-        } else if (manualValInput) {
-            empty = !manualValInput.value.trim();
-        }
-        sendManualBtn.disabled = empty;
-        sendManualBtn.style.opacity = empty ? '0.5' : '1';
-        sendManualBtn.style.cursor = empty ? 'not-allowed' : 'pointer';
+    validateManualInput();
+    if (manualValInput) {
+        manualValInput.addEventListener('input', () => {
+            validateManualInput();
+            updateManualRiskPreview();
+        });
     }
-    updateSendBtnState();
-    if (manualValInput) manualValInput.addEventListener('input', updateSendBtnState);
-    if (manualValSelect) manualValSelect.addEventListener('change', updateSendBtnState);
-    if (manualSensorSel) manualSensorSel.addEventListener('change', updateSendBtnState);
-    if (manualEquipSel) manualEquipSel.addEventListener('change', updateSendBtnState);
+    if (manualValSelect) {
+        manualValSelect.addEventListener('change', () => {
+            validateManualInput();
+            updateManualRiskPreview();
+        });
+    }
+    if (manualSensorSel) {
+        manualSensorSel.addEventListener('change', () => {
+            validateManualInput();
+            updateManualRiskPreview();
+        });
+    }
+    if (manualEquipSel) {
+        manualEquipSel.addEventListener('change', () => {
+            validateManualInput();
+            updateManualRiskPreview();
+        });
+    }
 
     fetchSimStatus().then(data => {
         if (data) {
