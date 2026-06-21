@@ -6,7 +6,7 @@ import logging
 from django.http import JsonResponse, HttpRequest
 from django.views.decorators.http import require_http_methods
 
-from apps.core.auth_decorators import login_required
+from apps.core.auth_decorators import login_required, admin_required
 from apps.core.services.http_response import json_error, json_ok
 from apps.alerts.services.threshold_service import get_thresholds, bulk_update, ThresholdPersistenceError
 from apps.alerts.services.alert_service import (
@@ -61,6 +61,8 @@ VALID_DIRECTIONS = frozenset({"higher", "lower", "range"})
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def view_update_thresholds(request: HttpRequest) -> JsonResponse:
     try:
         raw = json.loads(request.body)
@@ -174,6 +176,8 @@ def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     from apps.alerts.services.sensor_limit_service import bulk_update_limits, get_sensor_limits
     from apps.alerts.services.threshold_service import get_thresholds
@@ -238,6 +242,7 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
 def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     request.session["alerts_cleared_at"] = time_module.time()
 
@@ -255,6 +260,7 @@ def view_clear_alerts(request: HttpRequest) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
 def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
@@ -290,6 +296,8 @@ def _build_report_email_body(sim) -> tuple[str, str]:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def send_test_email(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)
@@ -330,6 +338,8 @@ def send_test_email(request: HttpRequest) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def send_all_subscribers(request: HttpRequest) -> JsonResponse:
     try:
         data = json.loads(request.body)

@@ -35,7 +35,8 @@ def _find_equipment(variable: str, edificio_id: Optional[int]) -> Any:
     if not equipo:
         equipo = MonitoringEquipment.objects.first() if MonitoringEquipment.objects.exists() else None
 
-    usuario = Usuario.objects.filter(rol="SA").first() or Usuario.objects.first()
+    from apps.core.auth_decorators import ADMIN_ROLES
+    usuario = Usuario.objects.filter(rol__in=ADMIN_ROLES).first() or Usuario.objects.first()
     return equipo, usuario
 
 

@@ -4,6 +4,7 @@ import time as time_module
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 
+from apps.core.auth_decorators import login_required, admin_required
 from apps.sensors.simulation.exceptions import SimulatorError
 from .shared import get_simulator, get_first_simulator, json_error_response, json_success_response, parse_json_body
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def manual_update(request) -> JsonResponse:
     from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS, ENUM_VARS
     from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
@@ -88,6 +91,7 @@ def manual_update(request) -> JsonResponse:
     return json_success_response({"variable": variable, "value": sensor_data[variable], "risk": risk})
 
 
+@login_required
 def sim_status(request, building_id: int) -> JsonResponse:
     sim = get_simulator(building_id)
     if sim is None:
@@ -110,6 +114,8 @@ def sim_status(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_pause(request, building_id: int) -> JsonResponse:
     sim = get_simulator(building_id)
     if sim is None:
@@ -129,6 +135,8 @@ def sim_pause(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_reset(request, building_id: int) -> JsonResponse:
     from apps.sensors.simulation.controls import reset_simulator
 
@@ -140,6 +148,8 @@ def sim_reset(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_inject_fault(request, building_id: int) -> JsonResponse:
     try:
         body = parse_json_body(request)
@@ -161,6 +171,8 @@ def sim_inject_fault(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_clear_fault(request, building_id: int) -> JsonResponse:
     try:
         body = parse_json_body(request)
@@ -179,6 +191,8 @@ def sim_clear_fault(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_set_speed(request, building_id: int) -> JsonResponse:
     sim = get_simulator(building_id)
     if sim is None:
@@ -196,6 +210,8 @@ def sim_set_speed(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_toggle_pump(request, building_id: int) -> JsonResponse:
     sim = get_simulator(building_id)
     if sim is None:
@@ -215,6 +231,8 @@ def sim_toggle_pump(request, building_id: int) -> JsonResponse:
 
 
 @require_http_methods(["POST"])
+@login_required
+@admin_required
 def sim_toggle_elevator(request, building_id: int) -> JsonResponse:
     sim = get_simulator(building_id)
     if sim is None:

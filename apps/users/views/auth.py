@@ -133,10 +133,7 @@ def _verify_password(raw_password: str, user: Usuario) -> bool:
 def _setup_session(request: HttpRequest, user: Usuario) -> None:
     request.session["usuario_id"] = user.id_usuario
     request.session["usuario_username"] = user.username
-    user_role = user.rol or "US"
-    if user_role == "ADMIN":
-        user_role = "SA"
-    request.session["usuario_rol"] = user_role
+    request.session["usuario_rol"] = user.rol or "US"
 
     person = user.id_persona
     if person:

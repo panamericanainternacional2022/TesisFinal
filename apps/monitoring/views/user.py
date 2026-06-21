@@ -67,7 +67,7 @@ def render_user_history(request) -> HttpResponse:
     buildings = Building.objects.filter(pk__in=user_building_ids)
 
     from apps.alerts.views.shared import _build_notification_query
-    notifications, _ = _build_notification_query(user_id, "US", building_id)
+    notifications, _ = _build_notification_query(user_id, rol, building_id)
 
     # Solo filtro de fecha a nivel DB; severidad se filtra en Python
     # después de extraer las opciones disponibles.

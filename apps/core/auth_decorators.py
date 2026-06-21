@@ -3,7 +3,7 @@ import functools
 from django.shortcuts import redirect
 from django.contrib import messages
 
-ADMIN_ROLES = ("SA", "ADMIN")
+ADMIN_ROLES = ("SA",)
 
 
 def is_admin_role(rol: str) -> bool:

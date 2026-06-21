@@ -57,11 +57,12 @@ class AuthMiddleware:
             return redirect("monitor")
 
         if is_logged_in:
+            from apps.core.auth_decorators import is_admin_role
             rol = request.session.get("usuario_rol", "US")
             admin_paths = self._get_admin_paths()
 
             if any(path.startswith(p) for p in admin_paths if p):
-                if rol not in ("SA", "ADMIN"):
+                if not is_admin_role(rol):
                     return redirect("monitor")
 
         response = self.get_response(request)

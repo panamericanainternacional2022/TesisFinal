@@ -58,7 +58,7 @@
     </div>
 
     <nav class="sidebar-nav">
-        {% if request.session.usuario_rol == 'SA' or request.session.usuario_rol == 'ADMIN' %}
+        {% if request.session.usuario_rol == 'SA' %}
         <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high"></i> Panel de control
         </a>
