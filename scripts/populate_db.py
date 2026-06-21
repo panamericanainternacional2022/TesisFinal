@@ -125,6 +125,7 @@ def populate():
         defaults={
             "name": "Conjunto Junin",
             "address": "Centro de la ciudad",
+            "floors": 10,
         },
     )
     e2, _ = Building.objects.get_or_create(
@@ -132,6 +133,7 @@ def populate():
         defaults={
             "name": "Residencia La Campiña",
             "address": "Norte de la ciudad",
+            "floors": 15,
         },
     )
 

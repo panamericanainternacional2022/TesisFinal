@@ -6,6 +6,7 @@ class Building(models.Model):
     name = models.CharField(max_length=40, db_column="nb_edificio")
     rif = models.CharField(max_length=16, unique=True)
     address = models.CharField(max_length=100, db_column="direccion")
+    floors = models.PositiveIntegerField(db_column="cantidad_pisos")
 
     class Meta:
         db_table = "edificio"

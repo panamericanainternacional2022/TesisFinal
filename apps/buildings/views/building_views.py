@@ -67,14 +67,15 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
         building_data = data
         config = extract_equipment_config(request)
 
-        if not (data["name"] and data["rif"] and data["address"]):
-            messages.error(request, "Complete el nombre, la dirección y el RIF del edificio.")
+        if not (data["name"] and data["rif"] and data["address"] and data.get("floors")):
+            messages.error(request, "Complete el nombre, la dirección, el RIF y la cantidad de pisos del edificio.")
             form_errors = build_required_errors(data)
         else:
             form_errors = validate_building_form({
                 "nombreEdificio": data["name"],
                 "direccion": data["address"],
                 "rif": data["rif"],
+                "cantidadPisos": data.get("floors"),
             })
             if form_errors:
                 messages.error(request, "Corrija los errores indicados en el formulario.")
@@ -82,6 +83,7 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
                 with transaction.atomic():
                     building = Building.objects.create(
                         name=data["name"], rif=data["rif"], address=data["address"],
+                        floors=int(data["floors"]),
                     )
                     create_equipment_for_building(building, config)
                 messages.success(request, "Edificio registrado correctamente.")
@@ -121,13 +123,18 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
         building.name = data["name"]
         building.address = data["address"]
         building.rif = data["rif"]
+        if data.get("floors"):
+            try:
+                building.floors = int(data["floors"])
+            except ValueError:
+                pass
 
         has_pump = request.POST.get("con_bomba") == "true"
         has_elevator = request.POST.get("con_elevador") == "true"
         config = EquipmentConfig(has_pump=has_pump, has_elevator=has_elevator)
 
-        if not (data["name"] and data["rif"] and data["address"]):
-            messages.error(request, "Complete el nombre, la dirección y el RIF del edificio.")
+        if not (data["name"] and data["rif"] and data["address"] and data.get("floors")):
+            messages.error(request, "Complete el nombre, la dirección, el RIF y la cantidad de pisos del edificio.")
             form_errors = build_required_errors(data)
         else:
             form_errors = validate_building_form(
@@ -135,6 +142,7 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
                     "nombreEdificio": data["name"],
                     "direccion": data["address"],
                     "rif": data["rif"],
+                    "cantidadPisos": data.get("floors"),
                 },
                 exclude_building_id=building.id,
             )

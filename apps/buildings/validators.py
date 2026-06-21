@@ -39,6 +39,15 @@ def validate_building_form(
     _check_rif(data, errors)
     _check_unique_rif(data, exclude_building_id, errors)
 
+    floors_val = data.get("cantidadPisos")
+    if floors_val:
+        try:
+            val = int(floors_val)
+            if val <= 0:
+                errors["cantidadPisos"] = "La cantidad de pisos debe ser mayor a 0."
+        except ValueError:
+            errors["cantidadPisos"] = "La cantidad de pisos debe ser un número entero."
+
     return errors
 
 

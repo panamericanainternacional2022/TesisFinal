@@ -214,10 +214,10 @@ VALUE_DISPLAY_ES = {
         "false":    "Normal",
     },
     "motor_stuck": {
-        "true":  "Atascado",
-        "false": "Normal",
-        "1":     "Atascado",
-        "0":     "Normal",
+        "true":  "Sí",
+        "false": "No",
+        "1":     "Sí",
+        "0":     "No",
     },
 }
 

@@ -15,7 +15,7 @@ class NotificationModelTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", first_name="Test", first_last_name="User", email="t@t.com")
         self.usuario = Usuario.objects.create(username="testuser", password="abc", id_persona=self.persona, rol="US")
-        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir", floors=10)
         self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
 
     def test_create_notification(self):
@@ -41,7 +41,7 @@ class NotificationsViewTests(TestCase):
         self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir", floors=10)
         self.equipment = MonitoringEquipment.objects.create(name="Bomba", building=self.building, equipment_type="bomba")
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
@@ -71,7 +71,7 @@ class AlertApiViewTests(TestCase):
         self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
         from django.contrib.auth.hashers import make_password
         self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir")
+        self.building = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir", floors=10)
         self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
 
     @patch("apps.alerts.api_views.get_thresholds")

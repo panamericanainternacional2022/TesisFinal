@@ -2,7 +2,7 @@ import random
 
 from apps.sensors.sensor_config import SENSOR_RANGES
 from apps.sensors.simulation.constants import (
-    T_AMBIENT, FLOOR_COUNT, FLOOR_HEIGHT,
+    T_AMBIENT, FLOOR_HEIGHT,
     CRUISING_SPEED, ACCELERATION, PASSENGER_WAIT_TICKS,
 )
 from apps.sensors.simulation.models import BuildingSimulator
@@ -32,7 +32,8 @@ def _update_elevator(sim: BuildingSimulator) -> None:
 
 def _set_elevator_idle(sim: BuildingSimulator, sd: dict) -> None:
     sd["speed"] = 0.0
-    sd["position"] = round(sd["position"], 1)
+    sd["position"] = 0.0
+    sim._elev_position_meters = 0.0
     sd["load"] = 0
     sd["door_status"] = "closed"
     sd["energy"] = 0.0
@@ -72,8 +73,8 @@ def _apply_door_blocked(sim: BuildingSimulator, sd: dict, dt: float) -> None:
 
 def _apply_overspeed(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sd["speed"] = _clamp(sd["speed"] + 0.5 * dt, _SPEED_LOW, _SPEED_HIGH)
-    sd["position"] = _clamp(
-        sd["position"] + sd["speed"] * dt * 0.5, 0, FLOOR_COUNT * FLOOR_HEIGHT,
+    sim._elev_position_meters = _clamp(
+        sim._elev_position_meters + sd["speed"] * dt * 0.5, 0, sim.floors * FLOOR_HEIGHT,
     )
     sd["door_status"] = "closed"
     sd["motor_stuck"] = False
@@ -83,8 +84,8 @@ def _apply_overspeed(sim: BuildingSimulator, sd: dict, dt: float) -> None:
 
 def _run_elevator_fsm(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sim._elev_timer += dt
-    prev_pos = sd["position"]
-    pos = sd["position"]
+    prev_pos = sim._elev_position_meters
+    pos = sim._elev_position_meters
     spd = sd["speed"]
     load = sd["load"]
     door = sd["door_status"]
@@ -103,9 +104,8 @@ def _run_elevator_fsm(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     handler = _ELEV_STATE_HANDLERS.get(state)
     if handler:
         handler(sim, sd, dt, spd, pos, load, door, target, direction)
-    pos = sd["position"]
     spd = sd["speed"]
-    _run_elevator_post_fsm(sim, sd, dt, prev_pos, pos, spd, load, door, state)
+    _run_elevator_post_fsm(sim, sd, dt, prev_pos, spd, load, door, state)
 
 
 def _handle_elev_idle(
@@ -117,10 +117,10 @@ def _handle_elev_idle(
     door = "closed"
     if sim._elev_timer >= random.uniform(2, 5):
         sim._elev_timer = 0
-        sim._elev_target_floor = random.randint(0, FLOOR_COUNT)
+        sim._elev_target_floor = random.randint(0, sim.floors)
         floor_num = round(pos / FLOOR_HEIGHT)
         while sim._elev_target_floor == floor_num:
-            sim._elev_target_floor = random.randint(0, FLOOR_COUNT)
+            sim._elev_target_floor = random.randint(0, sim.floors)
         sim._elev_direction = 1 if sim._elev_target_floor > floor_num else -1
         sim._elev_state = "DOOR_OPENING"
     sd["speed"] = spd
@@ -186,7 +186,7 @@ def _handle_elev_accelerating(
         sim._elev_state = "MOVING"
     sd["speed"] = spd
     sd["door_status"] = door
-    sd["position"] = round(pos, 1)
+    sim._elev_position_meters = pos
 
 
 def _handle_elev_moving(
@@ -205,7 +205,7 @@ def _handle_elev_moving(
         sim._elev_timer = 0
     sd["speed"] = spd
     sd["door_status"] = door
-    sd["position"] = round(pos, 1)
+    sim._elev_position_meters = pos
 
 
 def _handle_elev_decelerating(
@@ -224,18 +224,20 @@ def _handle_elev_decelerating(
         sim._elev_at_floor = True
     sd["speed"] = spd
     sd["door_status"] = door
-    sd["position"] = round(pos, 1)
+    sim._elev_position_meters = pos
 
 
 def _run_elevator_post_fsm(
     sim: BuildingSimulator, sd: dict, dt: float,
-    prev_pos: float, pos: float, spd: float,
+    prev_pos: float, spd: float,
     load: float, door: str, old_state: str,
 ) -> None:
-    pos = _clamp(pos, 0, FLOOR_COUNT * FLOOR_HEIGHT)
+    pos = _clamp(sim._elev_position_meters, 0, sim.floors * FLOOR_HEIGHT)
+    sim._elev_position_meters = pos
     current_state = sim._elev_state
     if current_state in ("IDLE", "DOOR_OPENING", "DOORS_OPEN", "DOOR_CLOSING"):
         pos = round(pos / FLOOR_HEIGHT) * FLOOR_HEIGHT
+        sim._elev_position_meters = pos
     if spd != 0:
         sim.door_close_attempts = 0
     if current_state == "DOOR_CLOSING" and sim._elev_timer >= 1:
@@ -248,7 +250,7 @@ def _run_elevator_post_fsm(
         
     energy = _compute_elevator_energy(load, spd, current_state, sim)
     stuck = _check_motor_stuck(current_state, spd, load, sd.get("temperature", 50.0))
-    sd["position"] = round(pos, 1)
+    sd["position"] = round(sim._elev_position_meters / FLOOR_HEIGHT, 1)
     sd["speed"] = round(spd, 1)
     sd["load"] = round(load)
     sd["door_status"] = door

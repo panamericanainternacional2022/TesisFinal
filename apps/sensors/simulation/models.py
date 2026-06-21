@@ -5,10 +5,11 @@ from apps.sensors.simulation.constants import FLOOR_COUNT, DEFAULT_SENSOR_DATA
 
 
 class BuildingSimulator:
-    def __init__(self, edificio_id: int, nombre: str, equipment_types: set = None):
+    def __init__(self, edificio_id: int, nombre: str, equipment_types: set = None, floors: int = 20):
         self.edificio_id: int = edificio_id
         self.nombre: str = nombre
         self.equipment_types: set = equipment_types or set()
+        self.floors: int = floors
         self.sensor_data: dict = {k: v for k, v in DEFAULT_SENSOR_DATA.items()}
         self.has_pump: bool = "bomba" in self.equipment_types
         self.has_elevator: bool = "elevador" in self.equipment_types
@@ -35,10 +36,11 @@ class BuildingSimulator:
 
         self._elev_state: str = "IDLE"
         self._elev_timer: float = 0
-        self._elev_target_floor: int = random.randint(1, FLOOR_COUNT)
+        self._elev_target_floor: int = random.randint(1, floors)
         self._elev_direction: int = 1
         self._elev_at_floor: bool = True
         self._elev_prev_position: float = 0
+        self._elev_position_meters: float = float(self.sensor_data.get("position", 0.0) * 3.5)
 
     def __repr__(self) -> str:
         return (

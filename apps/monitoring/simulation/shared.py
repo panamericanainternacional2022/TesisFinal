@@ -27,7 +27,7 @@ def get_simulator(building_id: int) -> BuildingSimulator | None:
         building = Building.objects.get(pk=building_id)
         equipos = MonitoringEquipment.objects.filter(building_id=building_id)
         if equipos.exists():
-            sim = BuildingSimulator(building_id, building.name)
+            sim = BuildingSimulator(building_id, building.name, floors=building.floors)
             for eq in equipos:
                 sim.equipment_types.add(eq.equipment_type)
             sim.has_pump = "bomba" in sim.equipment_types

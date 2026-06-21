@@ -9,28 +9,53 @@ from apps.users.models import Persona, Usuario
 
 class ValidateBuildingFormTests(TestCase):
     def test_valid_data_returns_empty(self) -> None:
-        data = {"nombreEdificio": "Edificio Principal", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
+        data = {
+            "nombreEdificio": "Edificio Principal",
+            "direccion": "Av. Principal, Urb. Centro, calle 1",
+            "rif": "J-12345678-0",
+            "cantidadPisos": "10",
+        }
         errores = validate_building_form(data)
         self.assertEqual(errores, {})
 
     def test_nombre_too_short(self) -> None:
-        data = {"nombreEdificio": "AB", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-12345678-0"}
+        data = {
+            "nombreEdificio": "AB",
+            "direccion": "Av. Principal, Urb. Centro, calle 1",
+            "rif": "J-12345678-0",
+            "cantidadPisos": "10",
+        }
         errores = validate_building_form(data)
         self.assertIn("nombreEdificio_min", errores)
 
     def test_invalid_rif(self) -> None:
-        data = {"nombreEdificio": "Edificio", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "invalid"}
+        data = {
+            "nombreEdificio": "Edificio",
+            "direccion": "Av. Principal, Urb. Centro, calle 1",
+            "rif": "invalid",
+            "cantidadPisos": "10",
+        }
         errores = validate_building_form(data)
         self.assertIn("rif", errores)
 
     def test_direccion_too_short(self) -> None:
-        data = {"nombreEdificio": "Edificio", "direccion": "Corta", "rif": "J-12345678-0"}
+        data = {
+            "nombreEdificio": "Edificio",
+            "direccion": "Corta",
+            "rif": "J-12345678-0",
+            "cantidadPisos": "10",
+        }
         errores = validate_building_form(data)
         self.assertIn("direccion_min", errores)
 
     def test_rif_duplicate(self) -> None:
-        Building.objects.create(name="Existente", rif="J-11111111-0", address="Dir 1")
-        data = {"nombreEdificio": "Nuevo", "direccion": "Av. Principal, Urb. Centro, calle 1", "rif": "J-11111111-0"}
+        Building.objects.create(name="Existente", rif="J-11111111-0", address="Dir 1", floors=10)
+        data = {
+            "nombreEdificio": "Nuevo",
+            "direccion": "Av. Principal, Urb. Centro, calle 1",
+            "rif": "J-11111111-0",
+            "cantidadPisos": "10",
+        }
         errores = validate_building_form(data)
         self.assertIn("rif_unico", errores)
 
@@ -40,7 +65,7 @@ class ValidateUniqueRifTests(TestCase):
         self.assertIsNone(validate_unique_rif("J-99999999-0"))
 
     def test_duplicate_rif_raises_error(self) -> None:
-        Building.objects.create(name="Test", rif="J-88888888-0", address="Dir")
+        Building.objects.create(name="Test", rif="J-88888888-0", address="Dir", floors=10)
         from django.core.exceptions import ValidationError
         with self.assertRaises(ValidationError):
             validate_unique_rif("J-88888888-0")
@@ -49,7 +74,7 @@ class ValidateUniqueRifTests(TestCase):
         self.assertIsNone(validate_unique_rif(""))
 
     def test_exclude_self(self) -> None:
-        building = Building.objects.create(name="Test", rif="J-77777777-0", address="Dir")
+        building = Building.objects.create(name="Test", rif="J-77777777-0", address="Dir", floors=10)
         self.assertIsNone(validate_unique_rif("J-77777777-0", exclude_building_id=building.id))
 
 
@@ -75,6 +100,7 @@ class RegisterBuildingViewTests(BuildingViewTestBase):
             "nombreEdificio": "Edificio Test",
             "direccion": "Av. Principal, Urb. Centro",
             "rif": "J-11111111-0",
+            "cantidadPisos": "10",
             "con_bomba": "true",
             "con_elevador": "true",
         })
@@ -89,14 +115,14 @@ class RegisterBuildingViewTests(BuildingViewTestBase):
 
 class BuildingListViewTests(BuildingViewTestBase):
     def test_lists_buildings(self) -> None:
-        Building.objects.create(name="Test Edificio", rif="J-22222222-0", address="Dir")
+        Building.objects.create(name="Test Edificio", rif="J-22222222-0", address="Dir", floors=10)
         response = self.client.get(reverse("building_list"))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Test Edificio")
 
     def test_search_by_name(self) -> None:
-        Building.objects.create(name="Buscado", rif="J-33333333-0", address="Dir")
-        Building.objects.create(name="Otro", rif="J-44444444-0", address="Dir")
+        Building.objects.create(name="Buscado", rif="J-33333333-0", address="Dir", floors=10)
+        Building.objects.create(name="Otro", rif="J-44444444-0", address="Dir", floors=10)
         response = self.client.get(reverse("building_list"), {"q": "Buscado"})
         self.assertContains(response, "Buscado")
         self.assertNotContains(response, "Otro")
@@ -104,13 +130,13 @@ class BuildingListViewTests(BuildingViewTestBase):
 
 class DeleteBuildingViewTests(BuildingViewTestBase):
     def test_delete_building(self) -> None:
-        building = Building.objects.create(name="Test", rif="J-55555555-0", address="Dir")
+        building = Building.objects.create(name="Test", rif="J-55555555-0", address="Dir", floors=10)
         response = self.client.post(reverse("delete_building", args=[building.id]), {"confirmed": "1"})
         self.assertEqual(response.status_code, 302)
         self.assertFalse(Building.objects.filter(id=building.id).exists())
 
     def test_cascade_deletes_equipment(self) -> None:
-        building = Building.objects.create(name="Test", rif="J-66666666-0", address="Dir")
+        building = Building.objects.create(name="Test", rif="J-66666666-0", address="Dir", floors=10)
         equipo = MonitoringEquipment.objects.create(name="Bomba 1", building=building, equipment_type="bomba")
         self.client.post(reverse("delete_building", args=[building.id]), {"confirmed": "1"})
         self.assertFalse(MonitoringEquipment.objects.filter(id=equipo.id).exists())

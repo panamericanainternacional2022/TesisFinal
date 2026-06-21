@@ -16,6 +16,7 @@ def extract_building_data(request: HttpRequest) -> dict:
         "name": request.POST.get("nombreEdificio", "").strip(),
         "address": request.POST.get("direccion", "").strip(),
         "rif": request.POST.get("rif", "").strip(),
+        "floors": request.POST.get("cantidadPisos", "").strip(),
     }
 
 
@@ -34,6 +35,8 @@ def build_required_errors(data: dict) -> dict[str, str]:
         errors["rif"] = "Este campo es obligatorio."
     if not data["address"]:
         errors["direccion"] = "Este campo es obligatorio."
+    if not data.get("floors"):
+        errors["cantidadPisos"] = "Este campo es obligatorio."
     return errors
 
 

@@ -235,7 +235,7 @@ def simulator_start_view(request) -> JsonResponse:
             building_id = equipment.building.pk
             building_name = equipment.building.name or f"Edificio #{building_id}"
             if building_id not in simulators:
-                simulators[building_id] = BuildingSimulator(building_id, building_name)
+                simulators[building_id] = BuildingSimulator(building_id, building_name, floors=equipment.building.floors)
             simulator = simulators[building_id]
             simulator.equipment_types.add(equipment.equipment_type)
             simulator.has_pump = "bomba" in simulator.equipment_types

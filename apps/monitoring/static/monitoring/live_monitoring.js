@@ -154,12 +154,16 @@ function renderCard(variable, value, risk, badgeClass, cardClass) {
     const displayValue = translateSensorValue(variable, value)
         ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
 
+    const isNoRisk = _NO_RISK_VARS.includes(variable);
+    const finalCardClass = isNoRisk ? '' : cardClass;
+    const badgeHtml = isNoRisk ? '' : `<span class="badge ${badgeClass}">${risk}</span>`;
+
     return `
-        <div class="sensor-card ${cardClass}">
+        <div class="sensor-card ${finalCardClass}">
             <div class="sensor-card-name">${name}</div>
             <div class="sensor-card-value">${displayValue}</div>
             <div class="sensor-card-footer">
-                <span class="badge ${badgeClass}">${risk}</span>
+                ${badgeHtml}
             </div>
         </div>
     `;
@@ -1123,7 +1127,7 @@ function updateManualInputType() {
     } else if (v === 'motor_stuck') {
         inp.style.display = 'none';
         sel.style.display = 'block';
-        sel.innerHTML = '<option value="true">Atascado</option><option value="false">Normal</option>';
+        sel.innerHTML = '<option value="true">Sí</option><option value="false">No</option>';
         inp.value = '';
     } else {
         inp.style.display = 'block';
@@ -1211,8 +1215,12 @@ function updateManualRiskPreview() {
         val = n; 
     }
     
-    let ri = getRiskClass(v, val);
-    span.innerHTML = `Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
+    if (_NO_RISK_VARS.includes(v)) {
+        span.innerHTML = '';
+    } else {
+        let ri = getRiskClass(v, val);
+        span.innerHTML = `Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`;
+    }
 }
 
 function validateManualInput() {
