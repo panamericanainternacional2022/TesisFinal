@@ -6,6 +6,8 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.application import MIMEApplication
 from typing import Any, Dict, List, Optional
 
+from apps.core.auth_decorators import ADMIN_ROLES
+
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +69,8 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
             building_id=edificio_id,
             user__registered=True,
             user__email_alerts_disabled=False,
+        ).exclude(
+            user__rol__in=ADMIN_ROLES,
         ).select_related("user__id_persona")
         emails: List[str] = []
         for u in users:

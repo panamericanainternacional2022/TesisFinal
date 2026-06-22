@@ -30,7 +30,7 @@ class Usuario(models.Model):
     registered = models.BooleanField(default=False, db_column="registrado")
     alerts_disabled = models.BooleanField(default=False)
     alerts_disabled_until = models.DateTimeField(null=True, blank=True)
-    email_alerts_disabled = models.BooleanField(default=False)
+    email_alerts_disabled = models.BooleanField(default=True)
 
     class Meta:
         db_table = "usuario"
