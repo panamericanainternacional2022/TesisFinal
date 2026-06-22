@@ -221,7 +221,16 @@ function initCharts() {
         responsive: true,
         plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: ctx => `${ctx.label}: ${typeof ctx.raw === 'number' ? ctx.raw.toFixed(2) : ctx.raw}` } }
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        const dataset = ctx.chart.data.datasets[ctx.datasetIndex];
+                        const variable = dataset.variables ? dataset.variables[ctx.dataIndex] : null;
+                        const formattedVal = variable ? formatNumeric(ctx.raw, variable) : (typeof ctx.raw === 'number' ? ctx.raw.toFixed(2) : ctx.raw);
+                        return `${ctx.label}: ${formattedVal}`;
+                    }
+                }
+            }
         },
         scales: {
             x: { ticks: { font: { family: "'DM Sans', system-ui", size: 10 } } },
@@ -231,14 +240,15 @@ function initCharts() {
 
     const pumpNumVars = _BOMBA_VARS.filter(v => v !== 'tank_level');
     const pumpLabels = pumpNumVars.map(v => `${getVariableName(v)} (${getUnit(v)})`);
-    const elevLabels = _ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck')
-        .map(v => `${getVariableName(v)} (${getUnit(v)})`);
+    const elevChartVars = _ELEVADOR_VARS.filter(v => v !== 'position' && v !== 'door_status' && v !== 'motor_stuck');
+    const elevLabels = elevChartVars.map(v => `${getVariableName(v)} (${getUnit(v)})`);
 
     chart1 = new Chart(canvas1.getContext('2d'), {
         type: 'bar',
         data: {
             labels: pumpLabels,
             datasets: [{
+                variables: pumpNumVars,
                 backgroundColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderWidth: 1,
@@ -253,6 +263,7 @@ function initCharts() {
         data: {
             labels: elevLabels,
             datasets: [{
+                variables: elevChartVars,
                 backgroundColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderColor: getCSSVar('--color-ink') || '#0a0a0a',
                 borderWidth: 1,
@@ -610,22 +621,28 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
     if (!div) return;
     if (entries.length) {
         const rows = entries.map(([k, v]) =>
-            `<tr><td style="padding:8px 10px;font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);font-size:var(--text-xs);border-bottom:1px solid var(--color-border);color:var(--color-ink);">${getVariableName(k)}</td>` +
-            `<td style="padding:8px 10px;font-weight:var(--weight-bold);text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-ink);">${v.avg.toFixed(2)}</td>` +
-            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.min === 'number' ? v.min.toFixed(2) : v.min}</td>` +
-            `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.max === 'number' ? v.max.toFixed(2) : v.max}</td></tr>`
+            `<tr>` +
+            `<td style="padding:8px var(--sp-3); font-weight:var(--weight-bold); font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-ink);">${getVariableName(k)}</td>` +
+            `<td style="padding:8px var(--sp-3); font-weight:var(--weight-bold); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-ink);">${formatNumeric(v.avg, k)}</td>` +
+            `<td style="padding:8px var(--sp-3); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-text-secondary);">${formatNumeric(v.min, k)}</td>` +
+            `<td style="padding:8px var(--sp-3); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-text-secondary);">${formatNumeric(v.max, k)}</td>` +
+            `</tr>`
         ).join('');
-        div.innerHTML = `<div class="chart-panel" style="border-left: 6px solid ${accentColor} !important;">
-            <div class="chart-panel-title"><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</div>
-            <div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15);overflow-x:auto;">
-                <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
-                    <thead><tr>
-                        <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Parámetro</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Prom.</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Mín.</th>
-                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Máx.</th>
-                    </tr></thead>
-                    <tbody>${rows}</tbody>
+        div.innerHTML = `
+        <div class="table-wrapper" style="border-top: 6px solid ${accentColor} !important; margin-bottom: var(--sp-3);">
+            <div class="table-responsive" style="overflow-x:auto;">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th style="padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;"><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</th>
+                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Prom.</th>
+                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Mín.</th>
+                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Máx.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rows}
+                    </tbody>
                 </table>
             </div>
         </div>`;
