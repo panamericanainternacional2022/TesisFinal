@@ -568,20 +568,19 @@
         </div>
 
         <div class="grid-charts">
-            <div id="chartPumpPanel" class="chart-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
-                    <canvas id="chart1" style="margin-bottom: var(--sp-3);"></canvas>
-                </div>
-                <div id="statsBombaPanel"></div>
+            <div id="chartPumpPanel" class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
+                <canvas id="chart1" style="margin-bottom: var(--sp-3);"></canvas>
             </div>
-            <div id="chartElevatorPanel" class="chart-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
-                    <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
-                    <canvas id="chart2" style="margin-bottom: var(--sp-3);"></canvas>
-                </div>
-                <div id="statsElevadorPanel"></div>
+            <div id="chartElevatorPanel" class="chart-panel">
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
+                <canvas id="chart2" style="margin-bottom: var(--sp-3);"></canvas>
             </div>
+        </div>
+
+        <div class="grid-charts">
+            <div id="statsBombaPanel"></div>
+            <div id="statsElevatorPanel"></div>
         </div>
     </div><!-- /activeMonitoring -->
     {% endif %}

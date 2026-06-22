@@ -232,13 +232,13 @@ VALUE_DISPLAY_ES = {
 # ─── Umbrales de riesgo por defecto ────────────────────────────────────
 # Cada entrada: {"direction": "higher"|"lower"|"range", "low": ..., "medium": ..., "high": ...}
 DEFAULT_THRESHOLDS = {
-    "flow_rate":   {"direction": "higher", "low": 20,   "medium": 35,  "high": 45},
-    "pressure":    {"direction": "higher", "low": 5,    "medium": 7,   "high": 9},
+    "flow_rate":   {"direction": "lower",  "low": 8.0,  "medium": 5.0, "high": 2.0},
+    "pressure":    {"direction": "range",  "low": 2.0,  "high": 8.0},
     "temperature": {"direction": "higher", "low": 70,   "medium": 85,  "high": 100},
     "vibration":   {"direction": "higher", "low": 4,    "medium": 7,   "high": 10},
     "tank_level":  {"direction": "lower",  "low": 30,   "medium": 15,  "high": 5},
-    "speed":       {"direction": "higher", "low": 1.5,  "medium": 2.5, "high": 3.5},
-    "load":        {"direction": "higher", "low": 400,  "medium": 700, "high": 900},
+    "speed":       {"direction": "higher", "low": 2.5,  "medium": 3.0, "high": 4.0},
+    "load":        {"direction": "higher", "low": 600,  "medium": 800, "high": 900},
     "trip_count":  {"direction": "higher", "low": 10000,"medium": 20000,"high": 30000},
     "energy":      {"direction": "higher", "low": 8,    "medium": 12,  "high": 15},
     "voltage":     {"direction": "range",  "low": 200,  "high": 240},
@@ -251,8 +251,8 @@ DEFAULT_THRESHOLDS = {
 # se vuelva crítico.
 RECOMMENDATION_THRESHOLDS = {
     "temperature": {"max_warn": 70,  "max_crit": 85},
-    "flow_rate":   {"min_warn": 20,  "min_crit": 10},
-    "pressure":    {"max_warn": 8},
+    "flow_rate":   {"min_warn": 8.0, "min_crit": 5.0},
+    "pressure":    {"min_warn": 2.0, "max_warn": 8.0},
     "vibration":   {"max_warn": 7},
     "tank_level":  {"min_warn": 30,  "min_crit": 20},
     "load":        {"max_warn": 800},
@@ -264,7 +264,7 @@ RECOMMENDATION_THRESHOLDS = {
 RECOMMENDATION_WARN_MSGS: dict[str, str] = {
     "temperature": "Temperatura elevada. Monitorear.",
     "flow_rate": "Caudal óptimo bajo. Verificar filtros.",
-    "pressure": "Presión excesiva. Riesgo de fuga.",
+    "pressure": "Presión fuera de rango. Riesgo de fuga o bloqueo.",
     "vibration": "Vibración anormal. Verificar alineación.",
     "tank_level": "Nivel de tanque bajo.",
     "load": "Sobrecarga de elevador. Reducir carga.",
@@ -289,15 +289,14 @@ RECOMMENDATION_FALLBACK_ACTION_TEMPLATE: str = "Verificar el sensor {}. Programa
 ACTIONS: dict[str, dict[str, str]] = {
     "flow_rate": {
         RISK_BAJO: "Caudal dentro del rango normal. Monitoreo rutinario activo.",
-        RISK_MEDIO: "Caudal moderado. Verifique fugas menores o restricciones en la línea.",
-        RISK_ALTO: "Caudal elevado. Monitoree válvulas de alivio y posibles fugas.",
-        RISK_CRITICO: "Caudal crítico (interrupción total o exceso severo). Parada preventiva de bomba activada. Inspeccione tubería principal.",
+        RISK_MEDIO: "Caudal ligeramente bajo. Verifique posibles obstrucciones o filtros sucios.",
+        RISK_ALTO: "Caudal significativamente bajo. Verifique posibles fugas o fallas parciales en la bomba.",
+        RISK_CRITICO: "Caudal crítico bajo (flujo casi nulo). Parada preventiva de bomba activada. Inspeccione la tubería de succión y la bomba.",
     },
     "pressure": {
-        RISK_BAJO: "Presión dentro del rango operativo. No se requiere acción.",
-        RISK_MEDIO: "Presión en zona de precaución. Verifique el regulador de presión preventivamente.",
-        RISK_ALTO: "Presión por encima del límite recomendado. Verifique el regulador y manómetros.",
-        RISK_CRITICO: "Presión crítica. Riesgo inminente de rotura de tubería. Apague la bomba y libere presión.",
+        RISK_BAJO: "Presión dentro del rango normal. Monitoreo rutinario activo.",
+        RISK_ALTO: "Presión fuera del rango operativo seguro (2.0 - 8.0 bar). Verifique posibles fugas (presión baja) o bloqueos (presión alta).",
+        RISK_CRITICO: "Presión en nivel crítico (flujo nulo o sobrepresión extrema). Detenga la bomba de inmediato y verifique la tubería.",
     },
     "temperature": {
         RISK_BAJO: "Temperatura normal. Ventilación adecuada.",

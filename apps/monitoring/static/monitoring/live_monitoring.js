@@ -615,14 +615,22 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
             `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.min === 'number' ? v.min.toFixed(2) : v.min}</td>` +
             `<td style="padding:8px 10px;text-align:right;border-bottom:1px solid var(--color-border);color:var(--color-text-secondary);">${typeof v.max === 'number' ? v.max.toFixed(2) : v.max}</td></tr>`
         ).join('');
-        div.innerHTML = `<div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15);border-left:6px solid ${accentColor};">
-        <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
-            <thead><tr>
-                <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">${firstColLabel}</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Prom.</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Mín.</th>
-                <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink);font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#fff;">Máx.</th>
-            </tr></thead><tbody>${rows}</tbody></table></div>`;
+        div.innerHTML = `<div class="chart-panel" style="border-left: 6px solid ${accentColor} !important;">
+            <div class="chart-panel-title"><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</div>
+            <div style="border:2px solid var(--color-ink);box-shadow:4px 4px 0px rgba(10,10,10,0.15);overflow-x:auto;">
+                <table style="width:100%;border-collapse:collapse;font-size:var(--text-xs);">
+                    <thead><tr>
+                        <th style="text-align:left;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Parámetro</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Prom.</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Mín.</th>
+                        <th style="text-align:right;padding:10px;border-bottom:2px solid var(--color-ink);background:var(--color-ink) !important;font-size:var(--text-xs);font-weight:var(--weight-bold);letter-spacing:var(--tracking-wide);color:#ffffff !important;">Máx.</th>
+                    </tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        </div>`;
+    } else {
+        div.innerHTML = '';
     }
 }
 

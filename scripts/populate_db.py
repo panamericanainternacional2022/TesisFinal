@@ -162,7 +162,7 @@ def populate():
     print("Sembrando umbrales por edificio...")
     for edificio in [e1, e2]:
         for variable, cfg in DEFAULT_THRESHOLDS.items():
-            ThresholdConfig.objects.get_or_create(
+            ThresholdConfig.objects.update_or_create(
                 building=edificio,
                 variable=variable,
                 defaults={
