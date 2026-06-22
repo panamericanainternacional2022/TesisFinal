@@ -120,11 +120,6 @@ def send_alert(
     aa = get_attribute(sim, "active_alerts")
     les = get_attribute(sim, "last_email_sent_time")
 
-    alert_enabled = sim.alert_enabled if sim else True
-    if not alert_enabled:
-        logger.info("Alerts disabled by user")
-        return
-
     if variable in aa and aa[variable] == risk_level:
         return
     aa[variable] = risk_level

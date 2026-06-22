@@ -259,34 +259,6 @@ def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     return json_ok()
 
 
-@require_http_methods(["POST"])
-@login_required
-def view_toggle_alerts(request: HttpRequest) -> JsonResponse:
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return json_error("Invalid JSON")
-
-    edificio_id = data.get("edificio_id")
-    enabled = data.get("enabled")
-    if enabled is None:
-        return json_error("Missing field 'enabled'")
-
-    from apps.sensors.simulation.globals import simulators
-    try:
-        eid = int(edificio_id) if edificio_id is not None else None
-    except (ValueError, TypeError):
-        eid = None
-    if eid and eid in simulators:
-        sim = simulators[eid]
-        sim.alert_enabled = bool(enabled)
-        return json_ok({"alert_enabled": sim.alert_enabled})
-    else:
-        for sim in simulators.values():
-            sim.alert_enabled = bool(enabled)
-        return json_ok({"alert_enabled": bool(enabled)})
-
-
 def _build_report_email_body(sim) -> tuple[str, str]:
     timestamp = time_module.strftime("%d/%m/%Y %H:%M:%S")
     edificio = getattr(sim, "nombre", "") or ""

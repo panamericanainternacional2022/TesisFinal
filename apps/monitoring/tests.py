@@ -67,7 +67,6 @@ class SseStreamTests(TestCase):
         mock_sim.elevator_on = False
         mock_sim.protection_ends = {}
         mock_sim.active_alerts = {}
-        mock_sim.alert_enabled = True
         mock_sim.edificio_id = 1
         mock_sim.history = []
         mock_get_sim.return_value = mock_sim

@@ -27,7 +27,6 @@ class PayloadContext:
     sim_paused: bool
     sim_speed: float
     generate_recommendations_fn: Callable = _noop_recommendations
-    alert_enabled: bool = True
     active_edificio_id: int = None
     django_connected: bool = False
 
@@ -68,7 +67,6 @@ def build_live_payload(ctx: PayloadContext) -> dict[str, Any]:
         "sensors": sensors,
         "history": [h for h in ctx.history[-PAYLOAD_HISTORY_SLICE:] if h.get("variable") in relevant_vars],
         "thresholds": thresholds,
-        "alert_enabled": ctx.alert_enabled,
         "alert_log": get_alert_log(ctx.active_edificio_id, API_NOTIFICATION_LIMIT),
         "stats": stats,
         "recommendations": recommendations,

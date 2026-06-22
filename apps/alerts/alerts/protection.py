@@ -47,13 +47,11 @@ def enter_protection_mode(
     }
     pn.append(notification_payload)
 
-    alert_enabled = sim.alert_enabled if sim else True
-    if alert_enabled:
-        from apps.alerts.services.alert_service import persist_notification_in_django
-        eid = sim.edificio_id if sim else None
-        persist_notification_in_django(
-            "auto_protection", targets_text_es, RISK_CRITICO, action, edificio_id=eid
-        )
+    from apps.alerts.services.alert_service import persist_notification_in_django
+    eid = sim.edificio_id if sim else None
+    persist_notification_in_django(
+        "auto_protection", targets_text_es, RISK_CRITICO, action, edificio_id=eid
+    )
 
 
 def _get_expired_devices(protection_ends_dict: dict[str, float]) -> list[str]:
@@ -88,12 +86,10 @@ def _notify_protection_ended(device: str, sim: Optional['BuildingSimulator'], pn
     from .utils import translate_device_to_spanish
     device_es = translate_device_to_spanish(device)
     action = get_professional_action(f"protection_{device}", RISK_INFO, None)
-    alert_enabled = sim.alert_enabled if sim else True
-    if alert_enabled:
-        eid = sim.edificio_id if sim else None
-        persist_notification_in_django(
-            f"protection_{device}", None, RISK_INFO, action, edificio_id=eid,
-        )
+    eid = sim.edificio_id if sim else None
+    persist_notification_in_django(
+        f"protection_{device}", None, RISK_INFO, action, edificio_id=eid,
+    )
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": f"protection_{device}",

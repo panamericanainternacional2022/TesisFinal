@@ -26,7 +26,6 @@ def build_live_payload() -> dict:
         sim_paused=sim_paused,
         sim_speed=sim_speed,
         generate_recommendations_fn=generate_recommendations,
-        alert_enabled=True,
         active_edificio_id=None,
         django_connected=True,
     )
@@ -48,7 +47,6 @@ def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
         sim_paused=sim.sim_paused,
         sim_speed=sim.sim_speed,
         generate_recommendations_fn=generate_recommendations,
-        alert_enabled=sim.alert_enabled,
         active_edificio_id=sim.edificio_id,
         django_connected=True,
     )

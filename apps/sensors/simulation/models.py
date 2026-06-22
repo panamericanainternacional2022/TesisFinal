@@ -21,7 +21,6 @@ class BuildingSimulator:
         self.history: list = []
         self.pending_notifications: deque = deque()
         self.last_email_sent_time: float = 0.0
-        self.alert_enabled: bool = True
 
         self.sim_paused: bool = False
         self.sim_speed: float = 1.0

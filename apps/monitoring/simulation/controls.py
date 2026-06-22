@@ -62,7 +62,7 @@ def manual_update(request) -> JsonResponse:
     else:
         risk, _ = classify_risk(variable, sensor_data[variable])
 
-    if risk in (RISK_ALTO, RISK_CRITICO) and sim.alert_enabled:
+    if risk in (RISK_ALTO, RISK_CRITICO):
         from apps.alerts.services.alert_service import get_professional_action
         from apps.alerts.alerts.engine import send_alert
 
@@ -109,7 +109,6 @@ def sim_status(request, building_id: int) -> JsonResponse:
         "faults": dict(sim.sim_faults),
         "protection_active": bool(sim.protection_ends),
         "protection_targets": list(sim.protection_ends.keys()),
-        "alert_enabled": sim.alert_enabled,
     })
 
 
