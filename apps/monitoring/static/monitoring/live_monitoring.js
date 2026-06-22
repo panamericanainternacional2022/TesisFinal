@@ -1547,10 +1547,7 @@ async function reEnableAlerts() {
     btn.dataset.disabledUntilMs = '';
     btn.className = 'btn-alerts-toggle enabled';
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
-    await Promise.allSettled([
-        csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
-        csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
-    ]);
+    await csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) });
     await window.showAlert('Alertas reactivadas.', 'success');
     window.location.reload();
 }
@@ -1566,10 +1563,7 @@ function initLiveNotifications() {
                 toggleBtn.dataset.disabledUntilMs = '';
                 toggleBtn.className = 'btn-alerts-toggle enabled';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
-                await Promise.allSettled([
-                    csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) }),
-                    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true, edificio_id: EDIFICIO_ID }) }),
-                ]);
+                await csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
                 window.location.reload();
             } else {
@@ -1585,10 +1579,7 @@ function initLiveNotifications() {
                     toggleBtn.dataset.disabledUntilMs = '';
                     toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
                 }
-                await Promise.allSettled([
-                    csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) }),
-                    csrfFetch('/api/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, edificio_id: EDIFICIO_ID }) }),
-                ]);
+                await csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: false, duration_minutes: minutes }) });
                 const label = minutes === null ? 'indefinidamente'
                     : minutes < 60 ? `por ${minutes} min`
                         : minutes === 60 ? 'por 1 hora'
@@ -1598,6 +1589,26 @@ function initLiveNotifications() {
             }
         });
     }
+
+    const emailToggleBtn = document.getElementById('toggleEmailAlertsBtn');
+    if (emailToggleBtn) {
+        emailToggleBtn.addEventListener('click', async () => {
+            const isCurrentlyEnabled = emailToggleBtn.dataset.enabled === 'true';
+            const newEnabled = !isCurrentlyEnabled;
+            emailToggleBtn.dataset.enabled = newEnabled ? 'true' : 'false';
+            emailToggleBtn.className = newEnabled ? 'btn-alerts-toggle enabled' : 'btn-alerts-toggle disabled';
+            emailToggleBtn.innerHTML = newEnabled
+                ? '<i class="fa-solid fa-envelope"></i> Desactivar correos'
+                : '<i class="fa-solid fa-envelope-slash"></i> Activar correos';
+            await csrfFetch('/notifications/toggle-email-alerts/', {
+                method: 'POST',
+                body: JSON.stringify({ enabled: newEnabled }),
+            });
+            const msg = newEnabled ? 'Correos activados con éxito.' : 'Correos desactivados con éxito.';
+            await window.showAlert(msg, 'success');
+        });
+    }
+
     const clearBtn = document.getElementById('clearDbNotificationsBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
@@ -1832,6 +1843,21 @@ window.addEventListener('DOMContentLoaded', () => {
             } else {
                 toggleBtn.className = 'btn-alerts-toggle disabled';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
+            }
+        }
+
+        const emailToggleBtn = document.getElementById('toggleEmailAlertsBtn');
+        if (emailToggleBtn) {
+            emailToggleBtn.disabled = false;
+            emailToggleBtn.style.opacity = '1';
+            emailToggleBtn.style.display = '';
+            const emailEnabled = emailToggleBtn.dataset.enabled === 'true';
+            if (emailEnabled) {
+                emailToggleBtn.className = 'btn-alerts-toggle enabled';
+                emailToggleBtn.innerHTML = '<i class="fa-solid fa-envelope"></i> Desactivar correos';
+            } else {
+                emailToggleBtn.className = 'btn-alerts-toggle disabled';
+                emailToggleBtn.innerHTML = '<i class="fa-solid fa-envelope-slash"></i> Activar correos';
             }
         }
         return;

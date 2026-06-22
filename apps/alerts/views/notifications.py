@@ -25,6 +25,7 @@ def notifications_view(request: HttpRequest):
         return render(request, "alerts/notifications.html", {
             "notifications": None, "buildings": [], "rol": "US",
             "alerts_disabled": False, "alerts_disabled_until_ms": None,
+            "email_alerts_disabled": False,
         })
 
     rol = request.session.get("usuario_rol", "US")
@@ -65,6 +66,8 @@ def notifications_view(request: HttpRequest):
     alerts_disabled_until_ts = request.session.get("alerts_disabled_until_ts", None)
     alerts_disabled_until_ms = int(alerts_disabled_until_ts * 1000) if alerts_disabled_until_ts else None
 
+    email_alerts_disabled = request.session.get("email_alerts_disabled", False)
+
     return render(
         request,
         "alerts/notifications.html",
@@ -75,6 +78,7 @@ def notifications_view(request: HttpRequest):
             "rol": rol,
             "alerts_disabled": alerts_disabled,
             "alerts_disabled_until_ms": alerts_disabled_until_ms,
+            "email_alerts_disabled": email_alerts_disabled,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
             "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },
@@ -111,3 +115,6 @@ def _update_alert_disabled_state(request: HttpRequest, usuario_id: int) -> None:
     request.session["alerts_disabled"] = alerts_disabled
     if alerts_disabled_until_ts:
         request.session["alerts_disabled_until_ts"] = alerts_disabled_until_ts
+
+    if user_obj:
+        request.session["email_alerts_disabled"] = user_obj.email_alerts_disabled

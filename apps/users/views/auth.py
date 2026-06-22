@@ -165,3 +165,4 @@ def _setup_alert_session(request: HttpRequest, user: Usuario) -> None:
         request.session["alerts_disabled_until_ts"] = alerts_until.timestamp()
     else:
         request.session.pop("alerts_disabled_until_ts", None)
+    request.session["email_alerts_disabled"] = user.email_alerts_disabled
