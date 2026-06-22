@@ -29,6 +29,8 @@ class PayloadContext:
     generate_recommendations_fn: Callable = _noop_recommendations
     active_edificio_id: int = None
     django_connected: bool = False
+    sim_faults: dict = None
+    active_alerts: dict = None
 
 
 def _compute_stats(history: list, max_entries: int = MAX_HISTORY_SIZE) -> dict[str, Any]:
@@ -58,7 +60,7 @@ def build_live_payload(ctx: PayloadContext) -> dict[str, Any]:
     sensors = _build_sensors_list(ctx.sensor_data, relevant_vars, thresholds)
     recommendations = ctx.generate_recommendations_fn(ctx.sensor_data, stats)
     pump_status, elevator_status = _fetch_equipment_status(
-        ctx.django_connected, ctx.active_edificio_id,
+        ctx.django_connected, ctx.active_edificio_id, ctx.sim_faults, ctx.active_alerts, ctx.protection_ends
     )
     protection_pump, protection_elevator = _compute_protection_info(ctx.protection_ends)
     now = time.time()
@@ -118,19 +120,72 @@ def _build_sensors_list(sensor_data: dict, relevant_vars: set[str], thresholds: 
     return sensors
 
 
-def _fetch_equipment_status(django_connected: bool, active_edificio_id: int) -> tuple:
+def _fetch_equipment_status(
+    django_connected: bool,
+    active_edificio_id: int,
+    sim_faults: dict = None,
+    active_alerts: dict = None,
+    protection_ends: dict = None,
+) -> tuple:
     pump_status = None
     elevator_status = None
+    
+    # 1. Determinar el estado dinámico basado en fallas activas y alertas
+    # Para la bomba
+    has_pump_fault = False
+    if sim_faults and "pump" in sim_faults:
+        has_pump_fault = True
+    elif active_alerts:
+        from apps.sensors.sensor_config import PUMP_VARS
+        if any(var in PUMP_VARS for var in active_alerts):
+            has_pump_fault = True
+            
+    if has_pump_fault:
+        dynamic_pump = "falla"
+    elif protection_ends and "pump" in protection_ends:
+        dynamic_pump = "mantenimiento"
+    else:
+        dynamic_pump = "operativo"
+
+    # Para el elevador
+    has_elev_fault = False
+    if sim_faults and "elevator" in sim_faults:
+        has_elev_fault = True
+    elif active_alerts:
+        from apps.sensors.sensor_config import ELEVATOR_VARS
+        if any(var in ELEVATOR_VARS for var in active_alerts):
+            has_elev_fault = True
+            
+    if has_elev_fault:
+        dynamic_elev = "falla"
+    elif protection_ends and "elevator" in protection_ends:
+        dynamic_elev = "mantenimiento"
+    else:
+        dynamic_elev = "operativo"
+
+    # 2. Obtener y actualizar en la base de datos de Django para sincronización
     if django_connected and active_edificio_id:
         try:
             from apps.buildings.models import MonitoringEquipment
             for eq in MonitoringEquipment.objects.filter(building_id=active_edificio_id):
                 if eq.equipment_type == "bomba":
-                    pump_status = eq.status
+                    if eq.status != dynamic_pump:
+                        eq.status = dynamic_pump
+                        eq.save(update_fields=["status"])
+                    pump_status = dynamic_pump
                 elif eq.equipment_type == "elevador":
-                    elevator_status = eq.status
+                    if eq.status != dynamic_elev:
+                        eq.status = dynamic_elev
+                        eq.save(update_fields=["status"])
+                    elevator_status = dynamic_elev
         except Exception as e:
-            logger.warning("Error fetching equipment status: %s", e)
+            logger.warning("Error fetching and syncing equipment status: %s", e)
+            pump_status = dynamic_pump
+            elevator_status = dynamic_elev
+    else:
+        pump_status = dynamic_pump
+        elevator_status = dynamic_elev
+        
     return pump_status, elevator_status
 
 

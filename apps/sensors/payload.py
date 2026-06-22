@@ -10,7 +10,7 @@ def build_live_payload() -> dict:
     from apps.sensors.simulation.globals import (
         sensor_data, protection_ends, history,
         door_close_attempts, pump_on, elevator_on, equipment_types,
-        sim_paused, sim_speed,
+        sim_paused, sim_speed, active_alerts,
     )
     from apps.sensors.sensor_config import RATIONING_THRESHOLD
     from apps.alerts.services.alert_service import generate_recommendations
@@ -28,6 +28,8 @@ def build_live_payload() -> dict:
         generate_recommendations_fn=generate_recommendations,
         active_edificio_id=None,
         django_connected=True,
+        sim_faults=None,
+        active_alerts=active_alerts,
     )
     return _build_live_payload(ctx)
 
@@ -49,5 +51,7 @@ def build_live_payload_for_sim(sim: BuildingSimulator) -> dict:
         generate_recommendations_fn=generate_recommendations,
         active_edificio_id=sim.edificio_id,
         django_connected=True,
+        sim_faults=sim.sim_faults,
+        active_alerts=sim.active_alerts,
     )
     return _build_live_payload(ctx)

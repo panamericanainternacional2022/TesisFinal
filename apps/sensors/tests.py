@@ -160,3 +160,46 @@ class SimulatorPhysicsAndAlertsTests(TestCase):
             send_alert("door_status", "open", "Crítico", "Puerta abierta", sim=self.sim)
             # El conteo se debe mantener en 2 (no incrementa)
             self.assertEqual(mock_thread.call_count, 2)
+
+    def test_dynamic_equipment_status(self):
+        """Verifica que el estado de los equipos cambie dinámicamente y se sincronice con la DB."""
+        from apps.sensors.services.payload_service import _fetch_equipment_status
+        from apps.buildings.models import MonitoringEquipment
+        
+        # Estado inicial en DB: operativo
+        self.equipment_pump.status = "operativo"
+        self.equipment_pump.save()
+        
+        # 1. Sin fallas ni alertas -> Debe retornar "operativo"
+        pump_s, elev_s = _fetch_equipment_status(
+            django_connected=True,
+            active_edificio_id=self.building.id,
+            sim_faults={},
+            active_alerts={},
+            protection_ends={}
+        )
+        self.assertEqual(pump_s, "operativo")
+        
+        # 2. Con falla inyectada en la bomba -> Debe retornar "falla" y actualizar DB
+        pump_s, elev_s = _fetch_equipment_status(
+            django_connected=True,
+            active_edificio_id=self.building.id,
+            sim_faults={"pump": "dry_run"},
+            active_alerts={},
+            protection_ends={}
+        )
+        self.assertEqual(pump_s, "falla")
+        self.equipment_pump.refresh_from_db()
+        self.assertEqual(self.equipment_pump.status, "falla")
+        
+        # 3. Con protección activa -> Debe retornar "mantenimiento"
+        pump_s, elev_s = _fetch_equipment_status(
+            django_connected=True,
+            active_edificio_id=self.building.id,
+            sim_faults={},
+            active_alerts={},
+            protection_ends={"pump": time.time() + 30}
+        )
+        self.assertEqual(pump_s, "mantenimiento")
+        self.equipment_pump.refresh_from_db()
+        self.assertEqual(self.equipment_pump.status, "mantenimiento")
