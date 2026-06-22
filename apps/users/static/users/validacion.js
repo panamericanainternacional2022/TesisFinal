@@ -30,7 +30,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function tieneErrores(form) {
-        return form.querySelectorAll('.input-error').length > 0;
+        if (form.querySelectorAll('.input-error').length > 0) return true;
+        // Validar si hay campos obligatorios vacíos
+        const requiredFields = form.querySelectorAll('input[required], select[required]');
+        for (let i = 0; i < requiredFields.length; i++) {
+            const el = requiredFields[i];
+            if (!el.value || el.value.trim() === '') {
+                return true;
+            }
+        }
+        return false;
     }
 
     function toggleSubmit(form) {
@@ -247,7 +256,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'rif': validarRIF(input); break;
                 case 'cedula': validarCedula(input); break;
                 case 'email': validarEmail(input); break;
-                case 'password': validarPassword(input); break;
+                case 'password': 
+                    validarPassword(input); 
+                    // Re-validar confirmación de contraseña si ya tiene valor
+                    const confirmField = input.form.querySelector('[data-validate="confirm-password"]');
+                    if (confirmField && confirmField.value) {
+                        validarConfirmPassword(confirmField);
+                    }
+                    break;
                 case 'confirm-password': validarConfirmPassword(input); break;
                 case 'username': validarUsername(input); break;
             }
@@ -325,6 +341,28 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
         toggleSubmit(form);
+
+        // Prevenir envío si hay errores o campos obligatorios vacíos
+        form.addEventListener('submit', function (e) {
+            let hasErrors = false;
+            form.querySelectorAll('input[required], select[required]').forEach(function (input) {
+                if (!input.value || input.value.trim() === '') {
+                    mostrarError(input, 'Este campo es obligatorio.');
+                    hasErrors = true;
+                }
+            });
+            if (hasErrors || tieneErrores(form)) {
+                e.preventDefault();
+                toggleSubmit(form);
+                
+                // Hacer scroll al primer error
+                const firstError = form.querySelector('.input-error');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstError.focus();
+                }
+            }
+        });
     });
 
 });

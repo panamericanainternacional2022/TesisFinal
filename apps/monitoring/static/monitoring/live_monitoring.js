@@ -184,16 +184,48 @@ function updateCards(data) {
     const b = document.getElementById('bombaCards');
     const a = document.getElementById('elevadorCards');
     if (!b || !a) return;
-    b.innerHTML = '';
-    a.innerHTML = '';
     for (let [k, v] of Object.entries(data)) {
         let ri = getRiskClass(k, v);
-        let cardHtml = renderCard(k, v, ri.label, ri.badge, ri.card);
-        let wrapper = document.createElement('div');
-        wrapper.innerHTML = cardHtml.trim();
-        let card = wrapper.firstElementChild;
-        if (_BOMBA_VARS.includes(k)) b.appendChild(card);
-        else if (_ELEVADOR_VARS.includes(k)) a.appendChild(card);
+        let card = document.getElementById(`sensor-card-${k}`);
+        const displayValue = translateSensorValue(k, v)
+            ?? `${formatNumeric(v, k)} ${getUnit(k)}`;
+        const isNoRisk = _NO_RISK_VARS.includes(k);
+        const finalCardClass = isNoRisk ? '' : ri.card;
+        
+        if (!card) {
+            card = document.createElement('div');
+            card.id = `sensor-card-${k}`;
+            card.className = `sensor-card ${finalCardClass}`;
+            
+            const badgeHtml = isNoRisk ? '' : `<span class="badge ${ri.badge}">${ri.label}</span>`;
+            card.innerHTML = `
+                <div class="sensor-card-name">${getVariableName(k)}</div>
+                <div class="sensor-card-value">${displayValue}</div>
+                <div class="sensor-card-footer">${badgeHtml}</div>
+            `;
+            if (_BOMBA_VARS.includes(k)) b.appendChild(card);
+            else if (_ELEVADOR_VARS.includes(k)) a.appendChild(card);
+        } else {
+            card.className = `sensor-card ${finalCardClass}`;
+            const valEl = card.querySelector('.sensor-card-value');
+            if (valEl && valEl.textContent !== displayValue) {
+                valEl.textContent = displayValue;
+            }
+            const footerEl = card.querySelector('.sensor-card-footer');
+            if (footerEl) {
+                const badgeEl = footerEl.querySelector('.badge');
+                if (!isNoRisk) {
+                    if (badgeEl) {
+                        badgeEl.className = `badge ${ri.badge}`;
+                        badgeEl.textContent = ri.label;
+                    } else {
+                        footerEl.innerHTML = `<span class="badge ${ri.badge}">${ri.label}</span>`;
+                    }
+                } else if (badgeEl) {
+                    badgeEl.remove();
+                }
+            }
+        }
     }
 }
 
@@ -1530,20 +1562,59 @@ function addLiveNotificationEvent(data) {
     if (!container) return;
     const placeholder = document.getElementById('live-no-notif');
     if (placeholder) placeholder.remove();
-    const item = document.createElement('div');
-    item.className = 'notif-item live-notif-item';
-    item.innerHTML = `
-        <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
+    
+    let ul = container.querySelector('.notif-list');
+    if (!ul) {
+        ul = document.createElement('ul');
+        ul.className = 'notif-list';
+        container.appendChild(ul);
+    }
+
+    const riskLower = String(data.risk || 'info').toLowerCase();
+    const li = document.createElement('li');
+    li.className = `notif-item hist-item-${riskLower} live-notif-item`;
+
+    let badgeClass = 'sensor-info';
+    if (data.risk === 'CRÍTICO') badgeClass = 'sensor-critical';
+    else if (data.risk === 'ALTO') badgeClass = 'sensor-high';
+    else if (data.risk === 'MEDIO') badgeClass = 'sensor-warning';
+    else if (data.risk === 'BAJO') badgeClass = 'sensor-active';
+
+    const valueStr = String(data.value);
+    const unit = getUnit(data.variable);
+    const showValueBox = valueStr !== 'true' && valueStr !== 'True' && valueStr !== 'false' && valueStr !== 'False' && valueStr !== 'undefined' && valueStr !== 'null' && valueStr.trim() !== '';
+    const valueHtml = showValueBox 
+        ? `<span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">${formatNumeric(data.value, data.variable)}${unit ? ' ' + unit : ''}</span>`
+        : '';
+
+    let dateStr = '';
+    if (data.timestamp) {
+        try {
+            const parsedDate = new Date(data.timestamp.replace(' ', 'T') + 'Z');
+            if (!isNaN(parsedDate.getTime())) {
+                dateStr = parsedDate.toLocaleString();
+            } else {
+                dateStr = data.timestamp;
+            }
+        } catch (e) {
+            dateStr = data.timestamp;
+        }
+    }
+
+    li.innerHTML = `
         <div class="notif-body">
-            <p>${safeText(data.message || '')}</p>
-            <div class="notif-meta">
-                <span><i class="fa-solid fa-clock"></i> ${data.timestamp ? new Date(data.timestamp).toLocaleString() : ''}</span>
-                <span><strong>Variable:</strong> ${safeText(getVariableName(data.variable) || data.variable)}</span>
-                <span><strong>Riesgo:</strong> ${safeText(data.risk)}</span>
+            <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                <span class="sensor-badge ${badgeClass}">${safeText(data.risk)}</span>
+                ${valueHtml}
+                <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">${safeText(getVariableName(data.variable))}</span>
+            </div>
+            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">${safeText(data.message)}</p>
+            <div class="notif-meta" style="margin-top: 8px;">
+                <span><i class="fa-solid fa-clock"></i> ${dateStr}</span>
             </div>
         </div>
     `;
-    container.prepend(item);
+    ul.prepend(li);
     unreadNotificationCount++;
     setNotificationBadge(unreadNotificationCount);
 }

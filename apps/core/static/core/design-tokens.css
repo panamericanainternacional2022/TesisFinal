@@ -443,3 +443,24 @@ input[type="number"]:focus {
     color: var(--state-warn);
     border-color: var(--state-warn);
 }
+
+/* ── Clases globales de validación de campos ── */
+.validation-error {
+    color: var(--state-critical);
+    font-size: var(--text-xs);
+    margin-top: 4px;
+    padding-left: 2px;
+    min-height: 16px;
+    font-weight: var(--weight-medium);
+}
+
+.input-error {
+    border-color: var(--state-critical) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 4px 4px 0px var(--state-critical-bg) !important;
+}
+
+.input-valid {
+    border-color: var(--state-ok) !important;
+    box-shadow: 4px 4px 0px var(--state-ok-bg) !important;
+}
