@@ -639,7 +639,7 @@ function renderThresholdsPanel(th) {
         const name = getVariableName(k);
         const unit = getUnit(k);
         const curVal = currentReadings[k];
-        
+
         // Cargar límites físicos dinámicos
         const bounds = _SENSOR_RANGES[k];
         let boundsStr = '';
@@ -1209,12 +1209,12 @@ function updateManualRiskPreview() {
     let val = raw;
     if (v === 'door_status') { /* string */ }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
-    else { 
-        let n = parseFloat(raw); 
-        if (isNaN(n)) return; 
-        val = n; 
+    else {
+        let n = parseFloat(raw);
+        if (isNaN(n)) return;
+        val = n;
     }
-    
+
     if (_NO_RISK_VARS.includes(v)) {
         span.innerHTML = '';
     } else {
@@ -1227,7 +1227,7 @@ function validateManualInput() {
     const v = document.getElementById('manualSensorSelect')?.value;
     const inp = document.getElementById('manualValueInput');
     const sendBtn = document.getElementById('sendManualBtn');
-    
+
     if (!v) return { hasError: false, empty: true };
 
     let hasError = false;
@@ -1599,7 +1599,7 @@ function initLiveNotifications() {
             emailToggleBtn.className = newEnabled ? 'btn-alerts-toggle enabled' : 'btn-alerts-toggle disabled';
             emailToggleBtn.innerHTML = newEnabled
                 ? '<i class="fa-solid fa-envelope"></i> Desactivar correos'
-                : '<i class="fa-solid fa-envelope-slash"></i> Activar correos';
+                : '<i class="fa-solid fa-envelope"></i> Activar correos';
             await csrfFetch('/notifications/toggle-email-alerts/', {
                 method: 'POST',
                 body: JSON.stringify({ enabled: newEnabled }),
@@ -1658,7 +1658,7 @@ function fetchInitialData() {
                 hideAllStates();
                 currentThresholds = data || {};
                 renderThresholdsPanel(currentThresholds);
-                
+
                 // Then try to fetch status to populate current values, but ignore failure
                 fetch(`/api/status/?edificio_id=${EDIFICIO_ID}`)
                     .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
@@ -1667,7 +1667,7 @@ function fetchInitialData() {
                             currentReadings = statusData.current;
                             renderThresholdsPanel(currentThresholds);
                         }
-                    }).catch(() => {});
+                    }).catch(() => { });
             })
             .catch(() => {
                 showState('stateOffline');
