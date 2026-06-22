@@ -722,7 +722,7 @@ function renderThresholdsPanel(th) {
 
         let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
-                ${name}${unit ? ' (' + unit + ')' : ''} ${dirBadge}
+                ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''} ${dirBadge}
             </span>
             ${rightText ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">' + rightText + '</span>' : ''}
         </div>`;
@@ -1004,7 +1004,7 @@ function renderLimitsPanel(ranges) {
         div.innerHTML = `
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
                 <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
-                    ${name}${unit ? ' (' + unit + ')' : ''}
+                    ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''}
                 </span>
                 ${threshStr ? `<span style="font-size:0.6rem;color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
@@ -1214,7 +1214,7 @@ function populateManualSensorSelect() {
         let opt = document.createElement('option');
         opt.value = v;
         let unit = getUnit(v);
-        opt.textContent = getVariableName(v) + (unit ? ` (${unit})` : '');
+        opt.textContent = getVariableName(v) + (unit && v !== 'trip_count' ? ` (${unit})` : '');
         sel.appendChild(opt);
     });
     updateManualInputType();
