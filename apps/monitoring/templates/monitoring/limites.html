@@ -110,8 +110,8 @@
         <!-- Selector de edificio -->
         <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); white-space:nowrap;">Edificio:</span>
-            <select id="buildingSelect" class="form-select"
-                    style="width: auto; min-width: 200px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+            <select id="buildingSelect" class="form-select form-select-sm"
+                    style="width: auto; min-width: 200px;">
                 {% for ed in edificios %}
                 <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
                 {% endfor %}
@@ -183,7 +183,7 @@
 
                 <!-- Acciones -->
                 <div class="thresh-footer">
-                    <button id="saveLimitsBtn" class="btn btn-primary" style="padding: 8px 14px;">
+                    <button id="saveLimitsBtn" class="btn btn-primary">
                         <i class="fas fa-check"></i> Guardar límites
                     </button>
                 </div>

@@ -72,33 +72,7 @@
     align-items: center;
 }
 
-.input-with-icon input,
-.input-with-icon select {
-    width: 100%;
-    padding: 11px var(--sp-2);
-    border: 2px solid var(--color-ink);
-    border-radius: 0px;
-    font-size: var(--text-base);
-    font-family: var(--font);
-    color: var(--color-text-primary);
-    background: var(--color-bg);
-    transition: all var(--transition-base);
-    box-sizing: border-box;
-    height: 46px;
-    outline: none;
-}
 
-.input-with-icon input::placeholder {
-    color: var(--color-text-placeholder);
-    font-weight: var(--weight-normal);
-}
-
-.input-with-icon input:focus,
-.input-with-icon select:focus {
-    border-color: var(--color-accent);
-    background: var(--color-surface);
-    box-shadow: 4px 4px 0px var(--color-accent-bg);
-}
 
 /* Icono de edición */
 .edit-icon {
@@ -122,36 +96,7 @@
     text-align: right;
 }
 
-.save-button {
-    background: var(--color-accent);
-    color: var(--color-surface) !important;
-    padding: 12px var(--sp-4);
-    border-radius: 0px;
-    border: 2px solid var(--color-ink);
-    font-family: var(--font);
-    font-weight: var(--weight-bold);
-    font-size: var(--text-base);
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    transition: all var(--transition-base);
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    box-shadow: 3px 3px 0px var(--color-ink);
-}
 
-.save-button:hover {
-    background: var(--color-accent-hover);
-    color: var(--color-surface) !important;
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px var(--color-ink);
-}
-
-.save-button:disabled,
-.primary-button:disabled {
-    opacity: 0.4 !important;
-    cursor: not-allowed !important;
-}
 
 /* ── Validación de Campos ─────────────────────────────────────────────────── */
 .validation-error {

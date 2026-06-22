@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function toggleSubmit(form) {
-        const btn = form.querySelector('button[type="submit"], .save-button, .primary-button');
+        const btn = form.querySelector('button[type="submit"], .btn-primary');
         if (!btn) return;
         if (tieneErrores(form)) {
             btn.disabled = true;

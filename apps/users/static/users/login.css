@@ -76,63 +76,7 @@ body {
     margin-top: var(--sp-1);
 }
 
-.login-form input {
-    width: 100%;
-    padding: 13px var(--sp-2);
-    border: 2px solid var(--color-ink);
-    border-radius: 0px;
-    background: var(--color-bg);
-    color: var(--color-text-primary);
-    font-size: var(--text-base);
-    font-family: var(--font);
-    box-sizing: border-box;
-    transition: all var(--transition-base);
-    outline: none;
-}
 
-.login-form input::placeholder {
-    color: var(--color-text-placeholder);
-    font-weight: var(--weight-normal);
-}
-
-.login-form input:focus {
-    border-color: var(--color-accent);
-    background: var(--color-surface);
-    box-shadow: 4px 4px 0px var(--color-accent-bg);
-}
-
-/* ── Botón Principal ──────────────────────────────────────────────────────── */
-.primary-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    padding: 14px var(--sp-3);
-    background: var(--color-accent);
-    color: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    border-radius: 0px;
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
-    font-family: var(--font);
-    letter-spacing: 0.03em;
-    cursor: pointer;
-    text-decoration: none;
-    transition: all var(--transition-base);
-    margin-top: var(--sp-1);
-    box-shadow: 3px 3px 0px var(--color-ink);
-}
-
-.primary-button:hover {
-    background: var(--color-accent-hover);
-    color: var(--color-surface);
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px var(--color-ink);
-}
-
-.primary-button:active {
-    background: #000;
-}
 
 /* ── Error de login ─────────────────────────────────────────────────────────── */
 .login-error {

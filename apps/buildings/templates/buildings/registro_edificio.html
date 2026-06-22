@@ -115,11 +115,11 @@
 
             <div class="actions-row">
                 {% url 'building_list' as back_url %}
-                {% include 'core/components/boton.html' with url=back_url class='btn btn-secondary back-button' text='Volver' %}
+                {% include 'core/components/boton.html' with url=back_url class='btn btn-secondary' text='Volver' %}
                 {% if editing %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary save-button' text='Guardar cambios' %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Guardar cambios' %}
                 {% else %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary save-button' text='Registrar edificio' %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Registrar edificio' %}
                 {% endif %}
             </div>
         </div>
@@ -141,7 +141,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             var form = document.querySelector('form');
             if (!form) return;
-            var submitBtn = form.querySelector('.save-button');
+            var submitBtn = form.querySelector('.btn-primary');
             if (!submitBtn) return;
             var isEditing = {% if editing %}true{% else %}false{% endif %};
 

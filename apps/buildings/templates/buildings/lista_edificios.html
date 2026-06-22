@@ -66,12 +66,6 @@
         .dropdown-item:hover {
             background: var(--color-bg);
         }
-        .dropdown-item-danger {
-            color: var(--state-critical, #dc2626);
-        }
-        .dropdown-item-danger:hover {
-            background: #fef2f2;
-        }
         .dropdown-item i {
             width: 16px;
             text-align: center;
@@ -94,7 +88,7 @@
                     <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" style="padding-left: 40px;" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
-                    <select name="equipamiento" onchange="this.form.submit()" class="form-select" style="width: 100%; box-shadow: 3px 3px 0px var(--color-ink); height: 44px; padding-top: 8px; padding-bottom: 8px;">
+                    <select name="equipamiento" onchange="this.form.submit()" class="form-select">
                         <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
                         <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
                         <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
@@ -102,7 +96,7 @@
                 </div>
             </form>
             {% url 'register_building' as registro_url %}
-            {% include 'core/components/boton.html' with url=registro_url class='register-button-react fab-inline' text='Agregar edificio' %}
+            {% include 'core/components/boton.html' with url=registro_url class='btn btn-primary' text='Agregar edificio' %}
         </div>
     </div>
 

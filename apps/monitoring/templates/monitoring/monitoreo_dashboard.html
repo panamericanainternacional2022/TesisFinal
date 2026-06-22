@@ -315,18 +315,6 @@
             align-items: flex-end;
         }
 
-        /* ── Speed Button Group ── */
-        .speed-group { display: flex; height: 38px; border: 2px solid var(--color-ink); box-shadow: 3px 3px 0px var(--color-ink); background: var(--color-surface); }
-        .speed-btn {
-            flex: 1; border: none; background: transparent; color: var(--color-text-secondary);
-            font-size: var(--text-xs); font-weight: var(--weight-bold); cursor: pointer;
-            border-right: 1px solid var(--color-border); padding: 0 10px; transition: all var(--transition-fast);
-            font-family: var(--font);
-        }
-        .speed-btn:last-child { border-right: none; }
-        .speed-btn:hover { background: var(--color-bg); color: var(--color-ink); }
-        .speed-btn.active { background: var(--color-accent-bg); color: var(--color-accent); font-weight: 800; }
-
         /* Responsive */
         @media (max-width: 1024px) {
             .grid-2, .grid-3 { grid-template-columns: 1fr; }
@@ -361,8 +349,8 @@
                 <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
             </span>
             {% else %}
-            <select id="buildingSelect" class="form-select"
-                    style="width: auto; min-width: 200px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+            <select id="buildingSelect" class="form-select form-select-sm"
+                    style="width: auto; min-width: 200px;">
                 {% for ed in edificios %}
                 <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
                 {% endfor %}
@@ -465,7 +453,7 @@
                 </div>
                 <div id="simControls" class="admin-controls-row">
                     <div class="form-group">
-                        <button id="simPauseBtn" class="btn btn-secondary" style="height:38px; min-width:120px; padding: 6px 16px;">
+                        <button id="simPauseBtn" class="btn btn-secondary btn-sm btn-min-width">
                             <i class="fas fa-pause"></i> <span>Pausar</span>
                         </button>
                     </div>
@@ -480,7 +468,7 @@
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Falla (Bomba de agua)</label>
-                        <select id="simFaultPump" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                        <select id="simFaultPump" class="form-select form-select-sm">
                             <option value="">Ninguna</option>
                             {% for key, name in PUMP_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
@@ -489,7 +477,7 @@
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Falla (Elevador)</label>
-                        <select id="simFaultElevator" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                        <select id="simFaultElevator" class="form-select form-select-sm">
                             <option value="">Ninguna</option>
                             {% for key, name in ELEVATOR_FAULT_OPTIONS %}
                             <option value="{{ key }}">{{ name }}</option>
@@ -497,7 +485,7 @@
                         </select>
                     </div>
                     <div style="align-self:flex-end;">
-                        <button id="simResetBtn" class="btn btn-critical" style="height:38px; padding: 6px 16px;">
+                        <button id="simResetBtn" class="btn btn-critical btn-sm">
                             <i class="fas fa-rotate-left"></i> Reiniciar
                         </button>
                     </div>
@@ -512,7 +500,7 @@
                 <div class="admin-controls-row">
                     <div class="form-group" style="flex:1; min-width:140px;">
                         <label class="form-label">Equipo</label>
-                        <select id="manualEquipmentSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                        <select id="manualEquipmentSelect" class="form-select form-select-sm">
                             <option value="pump">Bomba de agua</option>
                             <option value="elevator">Elevador</option>
                         </select>
@@ -520,17 +508,16 @@
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Sensor</label>
-                        <select id="manualSensorSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"></select>
+                        <select id="manualSensorSelect" class="form-select form-select-sm"></select>
                     </div>
                     <div class="form-group" style="flex:1; min-width:140px;" id="manualValueContainer">
                         <label class="form-label">Valor</label>
-                        <input type="number" step="any" id="manualValueInput" class="form-input"
-                               style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);"
+                        <input type="number" step="any" id="manualValueInput" class="form-input form-input-sm"
                                placeholder="Ej: 42.5">
-                        <select id="manualValueSelect" class="form-select" style="height:38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink); display:none;"></select>
+                        <select id="manualValueSelect" class="form-select form-select-sm" style="display:none;"></select>
                     </div>
                     <div style="align-self:flex-end;">
-                        <button id="sendManualBtn" class="btn btn-primary" style="height:38px; padding: 6px 16px;">
+                        <button id="sendManualBtn" class="btn btn-primary btn-sm">
                             <i class="fas fa-paper-plane"></i> Enviar
                         </button>
                     </div>

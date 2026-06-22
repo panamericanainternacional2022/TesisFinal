@@ -40,8 +40,6 @@
         .filter-panel { position:fixed; top:0; right:0; height:100vh; width:320px; max-width:90vw; background:var(--color-surface); border-left:2px solid var(--color-ink); box-shadow:-8px 0px 32px rgba(10,10,10,0.15); z-index:1201; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 300ms cubic-bezier(0.4,0,0.2,1); }
         .filter-panel.open { transform:translateX(0); }
         .filter-panel-header { display:flex; align-items:center; justify-content:space-between; padding:var(--sp-3); border-bottom:2px solid var(--color-ink); font-size:var(--text-base); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); flex-shrink:0; }
-        .filter-panel-close { background:none; border:2px solid var(--color-ink); color:var(--color-ink); width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:1rem; box-shadow:2px 2px 0px var(--color-ink); transition:all var(--transition-fast); }
-        .filter-panel-close:hover { background:var(--color-ink); color:var(--color-surface); transform:translate(-2px,-2px); box-shadow:4px 4px 0px rgba(10,10,10,0.25); }
         .filter-panel-body { flex:1; overflow-y:auto; padding:var(--sp-3); display:flex; flex-direction:column; gap:var(--sp-3); }
         .filter-panel-section { display:flex; flex-direction:column; gap:10px; }
         .filter-section-label { font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); padding-bottom:6px; border-bottom:1px solid var(--color-ink); display:flex; align-items:center; gap:6px; }
@@ -80,8 +78,8 @@
             <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center;">
                 <!-- Etiqueta + select de período -->
                 <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Ver historial de:</span>
-                <select id="periodoSelect" name="periodo" class="form-select"
-                        style="width: 160px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                <select id="periodoSelect" name="periodo" class="form-select form-select-sm"
+                        style="width: 160px;">
                     <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
                     <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
                     <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
@@ -91,7 +89,7 @@
                 </select>
                 
                 {% if periodo_seleccionado == 'custom' %}
-                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: var(--text-sm); display: inline-flex; align-items: center; gap: 6px; box-shadow: 3px 3px 0px var(--color-ink);">
+                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary btn-sm">
                     <i class="fa-solid fa-calendar-days"></i> Editar fechas
                 </button>
                 {% endif %}
@@ -100,7 +98,7 @@
                 <div style="width:1px; height:28px; background: var(--color-ink); opacity:0.15; margin: 0 2px;"></div>
 
                 <!-- Filtrar (panel lateral) -->
-                <button id="openFilterPanel" type="button" class="btn btn-primary" style="padding: 8px 14px;">
+                <button id="openFilterPanel" type="button" class="btn btn-primary btn-sm">
                     <i class="fa-solid fa-sliders"></i> Filtrar
                     {% if severidad or variable_filter or selected_edificio_id %}
                     <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--state-warn);"></span>
@@ -110,9 +108,8 @@
                 <!-- Descargar PDF -->
                 <a id="pdfDownloadBtn"
                    href="{% url 'history_pdf' %}?{{ filter_query_string }}"
-                   class="btn btn-secondary"
-                   title="Descargar PDF con los filtros actuales"
-                   style="box-shadow: 3px 3px 0px var(--color-ink); padding: 8px 14px;">
+                   class="btn btn-secondary btn-sm"
+                   title="Descargar PDF con los filtros actuales">
                     <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                 </a>
             </div>
@@ -179,19 +176,19 @@
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
-            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn"><i class="fa-solid fa-angles-left"></i></a>
-            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn"><i class="fa-solid fa-angle-left"></i></a>
+            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-secondary"><i class="fa-solid fa-angles-left"></i></a>
+            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-secondary"><i class="fa-solid fa-angle-left"></i></a>
         {% else %}
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angles-left"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angle-left"></i></span>
         {% endif %}
         <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
-            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn"><i class="fa-solid fa-angle-right"></i></a>
-            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="page-link-btn"><i class="fa-solid fa-angles-right"></i></a>
+            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-secondary"><i class="fa-solid fa-angle-right"></i></a>
+            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-secondary"><i class="fa-solid fa-angles-right"></i></a>
         {% else %}
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angle-right"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angles-right"></i></span>
         {% endif %}
     </div>
     {% endif %}
@@ -209,7 +206,7 @@
         {% if edificios|length > 1 %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-building"></i> Edificio</div>
-            <select id="panel-edificio" class="form-select" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+            <select id="panel-edificio" class="form-select form-select-sm">
                 <option value="">Todos los edificios</option>
                 {% for edif in edificios %}
                 <option value="{{ edif.id }}" {% if selected_edificio_id == edif.id %}selected{% endif %}>{{ edif.name }}</option>
@@ -219,7 +216,7 @@
         {% endif %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation"></i> Severidad</div>
-            <select id="panel-severidad" class="form-select" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+            <select id="panel-severidad" class="form-select form-select-sm">
                 <option value="">Todas las severidades</option>
                 {% for sev in ALL_SEVERITIES %}
                 <option value="{{ sev }}" {% if severidad == sev %}selected{% endif %}>{{ sev }}</option>
@@ -228,7 +225,7 @@
         </div>
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-gauge"></i> Variable</div>
-            <select id="panel-variable" class="form-select" style="height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+            <select id="panel-variable" class="form-select form-select-sm">
                 <option value="">Todas las variables</option>
                 {% for var in all_variables %}
                 <option value="{{ var }}" {% if variable_filter == var %}selected{% endif %}>{{ var }}</option>
@@ -237,10 +234,10 @@
         </div>
     </div>
     <div class="filter-panel-footer">
-        <button type="button" id="applyPanelFilters" class="btn btn-primary" style="flex:1;">
+        <button type="button" id="applyPanelFilters" class="btn btn-primary btn-flex">
             <i class="fa-solid fa-filter"></i> Aplicar
         </button>
-        <a href="{% url 'history' %}?periodo={{ periodo_seleccionado }}{% if periodo_seleccionado == 'custom' %}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}{% endif %}" class="btn btn-secondary" style="flex:1; box-shadow: 3px 3px 0px var(--color-ink);">
+        <a href="{% url 'history' %}?periodo={{ periodo_seleccionado }}{% if periodo_seleccionado == 'custom' %}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}{% endif %}" class="btn btn-secondary btn-flex">
             <i class="fa-solid fa-rotate-left"></i> Limpiar
         </a>
     </div>
@@ -260,14 +257,14 @@
             <div>
                 <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Desde</div>
                 <input type="date" id="modal-fecha-desde"
-                       value="{{ fecha_desde }}" class="form-input"
-                       style="height: 38px; padding: 4px 10px; box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;">
+                       value="{{ fecha_desde }}" class="form-input form-input-sm"
+                       style="cursor:pointer;">
             </div>
             <div>
                 <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Hasta</div>
                 <input type="date" id="modal-fecha-hasta"
-                       value="{{ fecha_hasta }}" class="form-input"
-                       style="height: 38px; padding: 4px 10px; box-shadow:3px 3px 0px var(--color-ink); cursor:pointer;">
+                       value="{{ fecha_hasta }}" class="form-input form-input-sm"
+                       style="cursor:pointer;">
             </div>
             <!-- Error de validación -->
             <div id="customDateError" style="display:none; padding:8px 12px; background:var(--state-critical-bg); border:2px solid var(--state-critical); color:var(--state-critical); font-size:var(--text-xs); font-weight:var(--weight-bold);">
@@ -277,10 +274,10 @@
 
         <!-- Botones -->
         <div style="display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-3);">
-            <button id="cancelCustomDate" type="button" class="btn btn-secondary" style="box-shadow:2px 2px 0px var(--color-ink); padding:6px 16px;">
+            <button id="cancelCustomDate" type="button" class="btn btn-secondary btn-sm">
                 Cancelar
             </button>
-            <button id="applyCustomDate" type="button" class="btn btn-primary" disabled style="padding:6px 16px;">
+            <button id="applyCustomDate" type="button" class="btn btn-primary btn-sm" disabled>
                 <i class="fa-solid fa-magnifying-glass"></i> Ver historial
             </button>
         </div>

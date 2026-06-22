@@ -46,52 +46,6 @@
             border: 2px solid transparent;
         }
 
-        /* ── Botón toggle de alertas ── */
-        .btn-alerts-toggle {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            color: var(--color-ink);
-            border-radius: 0px;
-            font-family: var(--font);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            padding: 6px 12px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            transition: all var(--transition-fast);
-            letter-spacing: 0.01em;
-            box-shadow: 3px 3px 0px var(--color-ink);
-            margin-top: 0;
-        }
-        .btn-alerts-toggle:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 5px 5px 0px rgba(10, 10, 10, 0.25);
-        }
-        .btn-alerts-toggle.enabled {
-            background: var(--state-ok-bg);
-            color: var(--state-ok);
-            border-color: var(--state-ok);
-            box-shadow: 3px 3px 0px var(--state-ok);
-        }
-        .btn-alerts-toggle.enabled:hover {
-            background: var(--state-ok);
-            color: var(--color-surface);
-            box-shadow: 5px 5px 0px var(--state-ok);
-        }
-        .btn-alerts-toggle.disabled {
-            background: var(--state-warn-bg);
-            color: var(--state-warn);
-            border-color: var(--state-warn);
-            box-shadow: 3px 3px 0px var(--state-warn);
-        }
-        .btn-alerts-toggle.disabled:hover {
-            background: var(--state-warn);
-            color: var(--color-surface);
-            box-shadow: 5px 5px 0px var(--state-warn);
-        }
     </style>
 {% endblock %}
 
@@ -111,7 +65,7 @@
             {% if buildings|length > 1 %}
             <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <select name="edificio" id="edificio-filter" onchange="this.form.submit()" class="form-select" style="min-width: 220px; height: 38px; padding: 4px 10px; box-shadow: 3px 3px 0px var(--color-ink);">
+                    <select name="edificio" id="edificio-filter" onchange="this.form.submit()" class="form-select form-select-sm" style="min-width: 220px;">
                         <option value="">Todos los edificios</option>
                         {% for building in buildings %}
                         <option value="{{ building.id }}" {% if selected_building_id == building.id %}selected{% endif %}>
@@ -126,15 +80,15 @@
             {% endif %}
             
             <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
-                <button id="toggleAlertsBtn" class="btn-alerts-toggle {% if alerts_disabled %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}" style="display:none;">
+                <button id="toggleAlertsBtn" class="btn-alerts-toggle is-hidden {% if alerts_disabled %}disabled{% else %}enabled{% endif %}" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}">
                     <!-- Rendered by JS on DOMContentLoaded -->
                 </button>
                 {% if rol != 'SA' %}
-                <button id="toggleEmailAlertsBtn" class="btn-alerts-toggle {% if email_alerts_disabled %}disabled{% else %}enabled{% endif %}" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}" style="display:none;">
+                <button id="toggleEmailAlertsBtn" class="btn-alerts-toggle is-hidden {% if email_alerts_disabled %}disabled{% else %}enabled{% endif %}" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
                     <!-- Rendered by JS on DOMContentLoaded -->
                 </button>
                 {% endif %}
-                <button id="clearDbNotificationsBtn" class="btn-action delete-btn" style="margin-top: 0;">
+                <button id="clearDbNotificationsBtn" class="btn btn-critical">
                     <i class="fa-solid fa-trash-can"></i> Limpiar alertas
                 </button>
             </div>
@@ -202,15 +156,15 @@
     {% if notifications.has_other_pages %}
     <div class="pagination-container">
         {% if notifications.has_previous %}
-            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Primera página">
+            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-secondary" title="Primera página">
                 <i class="fa-solid fa-angles-left"></i>
             </a>
-            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Anterior">
+            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-secondary" title="Anterior">
                 <i class="fa-solid fa-angle-left"></i>
             </a>
         {% else %}
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-left"></i></span>
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-left"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angles-left"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angle-left"></i></span>
         {% endif %}
 
         <span class="page-current-info">
@@ -218,15 +172,15 @@
         </span>
 
         {% if notifications.has_next %}
-            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Siguiente">
+            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-secondary" title="Siguiente">
                 <i class="fa-solid fa-angle-right"></i>
             </a>
-            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="page-link-btn" title="Última página">
+            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-secondary" title="Última página">
                 <i class="fa-solid fa-angles-right"></i>
             </a>
         {% else %}
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angle-right"></i></span>
-            <span class="page-link-btn disabled"><i class="fa-solid fa-angles-right"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angle-right"></i></span>
+            <span class="btn-secondary disabled"><i class="fa-solid fa-angles-right"></i></span>
         {% endif %}
     </div>
     {% endif %}

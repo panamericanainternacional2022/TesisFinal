@@ -240,16 +240,6 @@ button {
 
 /* ── Botones ────────────────────────────────────────────────────────────── */
 .btn,
-.primary-button,
-.save-button,
-.back-button,
-.register-button-react,
-.btn-action,
-.edit-btn,
-.delete-btn,
-.hist-btn-secondary,
-.hist-btn-ghost,
-.page-link-btn,
 .dropdown-trigger,
 .header-actions-item,
 .dropdown-item {
@@ -270,22 +260,14 @@ button {
 }
 
 /* Primarios (Cobalto) */
-.btn-primary,
-.primary-button,
-.save-button,
-.register-button-react,
-.btn-action {
+.btn-primary {
     background: var(--color-accent) !important;
     border: 2px solid var(--color-ink) !important;
     color: var(--color-surface) !important;
     box-shadow: 3px 3px 0px var(--color-ink) !important;
 }
 
-.btn-primary:hover,
-.primary-button:hover,
-.save-button:hover,
-.register-button-react:hover,
-.btn-action:hover {
+.btn-primary:hover {
     background: var(--color-accent-hover) !important;
     color: var(--color-surface) !important;
     transform: translate(-2px, -2px) !important;
@@ -294,11 +276,7 @@ button {
 
 /* Secundarios (Blancos) */
 .btn-secondary,
-.btn-ghost,
-.back-button,
-.edit-btn,
-.hist-btn-ghost,
-.page-link-btn {
+.btn-ghost {
     background: var(--color-surface) !important;
     border: 2px solid var(--color-ink) !important;
     color: var(--color-ink) !important;
@@ -306,11 +284,7 @@ button {
 }
 
 .btn-secondary:hover,
-.btn-ghost:hover,
-.back-button:hover,
-.edit-btn:hover,
-.hist-btn-ghost:hover,
-.page-link-btn:hover {
+.btn-ghost:hover {
     background: var(--color-accent-bg) !important;
     color: var(--color-accent) !important;
     border-color: var(--color-accent) !important;
@@ -319,35 +293,169 @@ button {
 }
 
 /* Críticos (Rojos) */
-.btn-critical,
-.btn-danger,
-.delete-btn {
+.btn-critical {
     background: var(--color-surface) !important;
     border: 2px solid var(--state-critical) !important;
     color: var(--state-critical) !important;
     box-shadow: 3px 3px 0px var(--state-critical) !important;
 }
 
-.btn-critical:hover,
-.btn-danger:hover,
-.delete-btn:hover {
+.btn-critical:hover {
     background: var(--state-critical-bg) !important;
     color: var(--state-critical) !important;
     transform: translate(-2px, -2px) !important;
     box-shadow: 5px 5px 0px var(--state-critical) !important;
 }
 
+/* Clases utilitarias compactas (para filtros y barras secundarias) */
+.btn-sm {
+    padding: 6px 12px !important;
+    font-size: var(--text-xs) !important;
+    box-shadow: 3px 3px 0px var(--color-ink) !important;
+}
+.btn-sm:hover {
+    transform: translate(-1px, -1px) !important;
+    box-shadow: 4px 4px 0px var(--color-ink) !important;
+}
+
 /* Deshabilitados */
 .btn.disabled,
 .btn:disabled,
-.primary-button:disabled,
-.save-button:disabled,
-.page-link-btn.disabled {
+.btn-secondary.disabled {
     opacity: 0.4 !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
     box-shadow: none !important;
     transform: none !important;
+}
+
+/* ── Utility classes for buttons ──────────────────────────────────────── */
+.is-hidden { display: none !important; }
+.btn-min-width { min-width: 120px; }
+.btn-flex { flex: 1; }
+
+/* ── Toast close button ───────────────────────────────────────────────── */
+.close-msg-btn {
+    position: absolute;
+    right: 12px;
+    top: 12px;
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: inherit;
+    line-height: 1;
+    font-weight: bold;
+    padding: 2px;
+}
+
+/* ── Dropdown danger variant ──────────────────────────────────────────── */
+.dropdown-item-danger {
+    color: var(--state-critical, #dc2626);
+}
+.dropdown-item-danger:hover {
+    background: #fef2f2;
+}
+
+/* ── Speed Button Group (Simulación) ──────────────────────────────────── */
+.speed-group {
+    display: flex;
+    height: 38px;
+    border: 2px solid var(--color-ink);
+    box-shadow: 3px 3px 0px var(--color-ink);
+    background: var(--color-surface);
+}
+.speed-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    cursor: pointer;
+    border-right: 1px solid var(--color-border);
+    padding: 0 10px;
+    transition: all var(--transition-fast);
+    font-family: var(--font);
+}
+.speed-btn:last-child { border-right: none; }
+.speed-btn:hover {
+    background: var(--color-bg);
+    color: var(--color-ink);
+}
+.speed-btn.active {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+    font-weight: 800;
+}
+
+/* ── Botón toggle de alertas ──────────────────────────────────────────── */
+.btn-alerts-toggle {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    border-radius: 0px;
+    font-family: var(--font);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    padding: 6px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.01em;
+    box-shadow: 3px 3px 0px var(--color-ink);
+    margin-top: 0;
+}
+.btn-alerts-toggle:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px rgba(10, 10, 10, 0.25);
+}
+.btn-alerts-toggle.enabled {
+    background: var(--state-ok-bg);
+    color: var(--state-ok);
+    border-color: var(--state-ok);
+    box-shadow: 3px 3px 0px var(--state-ok);
+}
+.btn-alerts-toggle.enabled:hover {
+    background: var(--state-ok);
+    color: var(--color-surface);
+    box-shadow: 5px 5px 0px var(--state-ok);
+}
+.btn-alerts-toggle.disabled {
+    background: var(--state-warn-bg);
+    color: var(--state-warn);
+    border-color: var(--state-warn);
+    box-shadow: 3px 3px 0px var(--state-warn);
+}
+.btn-alerts-toggle.disabled:hover {
+    background: var(--state-warn);
+    color: var(--color-surface);
+    box-shadow: 5px 5px 0px var(--state-warn);
+}
+
+/* ── Cerrar panel de filtros ──────────────────────────────────────────── */
+.filter-panel-close {
+    background: none;
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    box-shadow: 2px 2px 0px var(--color-ink);
+    transition: all var(--transition-fast);
+}
+.filter-panel-close:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
 }
 
 /* ── Controles de Formulario (Inputs y Selects) ────────────────────────── */
@@ -359,7 +467,9 @@ button {
 .form-group input,
 .form-group select,
 .input-with-icon input,
-.input-with-icon select {
+.input-with-icon select,
+input[type="date"],
+input[type="number"] {
     width: 100%;
     height: 46px;
     padding: 10px 14px;
@@ -382,25 +492,22 @@ button {
 .form-group input:focus,
 .form-group select:focus,
 .input-with-icon input:focus,
-.input-with-icon select:focus {
-    border-color: var(--color-accent) !important;
-    box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
-}
-
-/* Fechas y otros inputs generales */
-input[type="date"],
-input[type="number"] {
-    border: 2px solid var(--color-ink);
-    background: var(--color-surface);
-    outline: none;
-    transition: all var(--transition-base);
-}
-
+.input-with-icon select:focus,
 input[type="date"]:focus,
 input[type="number"]:focus {
     border-color: var(--color-accent) !important;
     box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
 }
+
+/* Clases utilitarias compactas para selects e inputs (filtros, modales) */
+.form-input-sm,
+.form-select-sm {
+    height: 38px !important;
+    padding: 4px 10px !important;
+    font-size: var(--text-sm) !important;
+    box-shadow: 3px 3px 0px var(--color-ink) !important;
+}
+
 
 /* ── Estructura de Tarjetas y Envoltorios de Tablas ──────────────────────── */
 .perfil-card,

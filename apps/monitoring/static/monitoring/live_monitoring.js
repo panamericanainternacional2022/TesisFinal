@@ -1984,7 +1984,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (toggleBtn) {
             toggleBtn.disabled = false;
             toggleBtn.style.opacity = '1';
-            toggleBtn.style.display = '';
+            toggleBtn.classList.remove('is-hidden');
             const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
@@ -2003,7 +2003,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (emailToggleBtn) {
             emailToggleBtn.disabled = false;
             emailToggleBtn.style.opacity = '1';
-            emailToggleBtn.style.display = '';
+            emailToggleBtn.classList.remove('is-hidden');
             const emailEnabled = emailToggleBtn.dataset.enabled === 'true';
             if (emailEnabled) {
                 emailToggleBtn.className = 'btn-alerts-toggle enabled';
