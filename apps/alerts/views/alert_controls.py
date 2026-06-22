@@ -1,5 +1,4 @@
 import json
-import time as _time
 from datetime import timedelta
 from typing import Optional
 
@@ -101,7 +100,8 @@ def clear_notifications_view(request: HttpRequest) -> JsonResponse:
     import logging
     _logger = logging.getLogger(__name__)
 
-    request.session["alerts_cleared_at"] = _time.time()
+    now = timezone.now()
+    request.session["alerts_cleared_at"] = now.timestamp()
 
     # Limpiar el bloqueo anti-duplicados de cada simulador para que las alertas
     # vuelvan a generarse desde cero tras borrar las notificaciones de la BD.
@@ -117,5 +117,14 @@ def clear_notifications_view(request: HttpRequest) -> JsonResponse:
         )
     except Exception as exc:
         _logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
+
+    # Persistir a DB para que el clear sea permanente para este usuario
+    usuario_id = request.session.get("usuario_id")
+    try:
+        usuario_obj = Usuario.objects.get(pk=usuario_id)
+        usuario_obj.alerts_cleared_at = now
+        usuario_obj.save(update_fields=["alerts_cleared_at"])
+    except Usuario.DoesNotExist:
+        pass
 
     return json_ok({"message": "Notifications cleared successfully"})

@@ -4,8 +4,10 @@ import threading
 import logging
 
 from django.http import JsonResponse, HttpRequest
+from django.utils import timezone
 from django.views.decorators.http import require_http_methods
 
+from apps.users.models import Usuario
 from apps.core.auth_decorators import login_required, admin_required
 from apps.core.services.http_response import json_error, json_ok
 from apps.alerts.services.threshold_service import get_thresholds, bulk_update, ThresholdPersistenceError
@@ -244,7 +246,8 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["POST"])
 @login_required
 def view_clear_alerts(request: HttpRequest) -> JsonResponse:
-    request.session["alerts_cleared_at"] = time_module.time()
+    now = timezone.now()
+    request.session["alerts_cleared_at"] = now.timestamp()
 
     # Limpiar el bloqueo anti-duplicados de cada simulador para que las alertas
     # vuelvan a generarse tras borrar las notificaciones de la BD.
@@ -255,6 +258,15 @@ def view_clear_alerts(request: HttpRequest) -> JsonResponse:
             sim.last_email_sent_time = 0.0
     except Exception as exc:
         logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
+
+    # Persistir a DB para que el clear sea permanente para este usuario
+    usuario_id = request.session.get("usuario_id")
+    try:
+        usuario_obj = Usuario.objects.get(pk=usuario_id)
+        usuario_obj.alerts_cleared_at = now
+        usuario_obj.save(update_fields=["alerts_cleared_at"])
+    except Usuario.DoesNotExist:
+        pass
 
     return json_ok()
 
