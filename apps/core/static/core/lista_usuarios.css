@@ -149,6 +149,33 @@
     border-bottom-color: var(--color-ink);
 }
 
+/* ── Header Actions Menu (lista_usuario) ────────────────────────────────── */
+.header-actions-wrap {
+    position: relative;
+    display: inline-flex;
+}
+.header-actions-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    min-width: 200px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+}
+.header-actions-menu.open {
+    display: flex;
+}
+
+/* ── Table wrapper overflow ──────────────────────────────────────────────── */
+.table-wrapper {
+    overflow: visible !important;
+}
+
 /* ── Fila de acciones (bajo la tabla) ────────────────────────────────────── */
 .table-actions-row {
     margin-top: var(--sp-3);

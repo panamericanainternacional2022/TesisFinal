@@ -169,41 +169,6 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-    color: inherit;
-}
-
-button {
-    font-family: var(--font);
-}
-
-/* ── Cabecera informativa unificada ── */
-.admin-info {
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    border-left: 6px solid var(--color-ink);
-    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-    padding: var(--sp-3);
-    margin-bottom: var(--sp-3);
-    border-radius: 0px;
-}
-
-.admin-info h1 {
-    font-size: var(--text-xl);
-    font-weight: var(--weight-bold);
-    letter-spacing: var(--tracking-tight);
-    color: var(--color-ink);
-    margin-bottom: var(--sp-1);
-    line-height: var(--leading-tight);
-}
-
-.admin-info p {
-    font-size: var(--text-sm);
-    color: var(--color-text-secondary);
-    margin-top: 4px;
-    line-height: var(--leading-normal);
-}
-
 /* Prevent transition flicker on page load */
 .preload,
 .preload * {
@@ -239,10 +204,7 @@ button {
    ========================================================================== */
 
 /* ── Botones ────────────────────────────────────────────────────────────── */
-.btn,
-.dropdown-trigger,
-.header-actions-item,
-.dropdown-item {
+.btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -349,7 +311,72 @@ button {
     padding: 2px;
 }
 
-/* ── Dropdown danger variant ──────────────────────────────────────────── */
+/* ── Dropdown system (tablas) ─────────────────────────────────────────── */
+.actions-dropdown {
+    position: relative;
+    display: inline-flex;
+}
+.dropdown-trigger {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 16px;
+    font-family: var(--font);
+    transition: all var(--transition-fast);
+    box-shadow: 2px 2px 0px var(--color-ink);
+}
+.dropdown-trigger:hover {
+    background: var(--color-ink);
+    color: var(--color-surface);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
+}
+.dropdown-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    min-width: 180px;
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    z-index: 100;
+    display: none;
+    flex-direction: column;
+    padding: 4px 0;
+}
+.dropdown-menu.open {
+    display: flex;
+}
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-family: var(--font);
+    text-decoration: none;
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    box-sizing: border-box;
+}
+.dropdown-item:hover {
+    background: var(--color-bg);
+}
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
 .dropdown-item-danger {
     color: var(--state-critical, #dc2626);
 }

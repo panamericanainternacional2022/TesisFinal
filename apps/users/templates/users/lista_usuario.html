@@ -5,126 +5,6 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <style>
-        .actions-dropdown {
-            position: relative;
-            display: inline-flex;
-        }
-        .dropdown-trigger {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            color: var(--color-ink);
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-size: 16px;
-            transition: all var(--transition-fast);
-            box-shadow: 2px 2px 0px var(--color-ink);
-        }
-        .dropdown-trigger:hover {
-            background: var(--color-ink);
-            color: var(--color-surface);
-            transform: translate(-1px, -1px);
-            box-shadow: 3px 3px 0px rgba(10,10,10,0.25);
-        }
-        .dropdown-menu {
-            position: absolute;
-            right: 0;
-            top: calc(100% + 4px);
-            min-width: 180px;
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            padding: 4px 0;
-        }
-        .dropdown-menu.open {
-            display: flex;
-        }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 14px;
-            font-size: 13px;
-            font-family: var(--font);
-            text-decoration: none;
-            color: var(--color-text-primary);
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            transition: background var(--transition-fast);
-            box-sizing: border-box;
-        }
-        .dropdown-item:hover {
-            background: var(--color-bg);
-        }
-        .dropdown-item-disabled {
-            color: var(--color-text-secondary);
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
-        .dropdown-item i {
-            width: 16px;
-            text-align: center;
-        }
-        .table-wrapper {
-            overflow: visible !important;
-        }
-
-        /* ── Actions dropdown en header ── */
-        .header-actions-wrap {
-            position: relative;
-            display: inline-flex;
-        }
-        .header-actions-menu {
-            position: absolute;
-            top: calc(100% + 4px);
-            right: 0;
-            min-width: 200px;
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
-            z-index: 100;
-            display: none;
-            flex-direction: column;
-            padding: 4px 0;
-        }
-        .header-actions-menu.open {
-            display: flex;
-        }
-        .btn-secondary {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            font-family: var(--font);
-            text-decoration: none;
-            color: var(--color-text-primary);
-            background: none;
-            border: none;
-            width: 100%;
-            text-align: left;
-            cursor: pointer;
-            transition: background var(--transition-fast);
-            box-sizing: border-box;
-        }
-        .btn-secondary:hover {
-            background: var(--color-bg);
-        }
-        .btn-secondary i {
-            width: 16px;
-            text-align: center;
-        }
-    </style>
 {% endblock %}
 
 {% block content %}
@@ -160,14 +40,14 @@
                 </button>
                 <div class="header-actions-menu" id="userActionsMenu">
                     {% url 'user_create' as registro_url %}
-                    <a href="{{ registro_url }}" class="btn-secondary">
+                    <a href="{{ registro_url }}" class="dropdown-item">
                         <i class="fa-solid fa-plus"></i> Agregar usuario
                     </a>
                     {% if usuarios %}
-                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="btn-secondary">
+                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="dropdown-item">
                         <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                     </a>
-                    <button class="btn-secondary" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
+                    <button class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
                         <i class="fa-solid fa-paper-plane"></i> Enviar a todos
                     </button>
                     {% endif %}
