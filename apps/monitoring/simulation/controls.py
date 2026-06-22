@@ -55,6 +55,12 @@ def manual_update(request) -> JsonResponse:
         except (ValueError, TypeError):
             return json_error_response("Valor numérico inválido")
 
+    # Registrar bloqueo manual por 90 segundos
+    import time
+    if not hasattr(sim, "manual_overrides") or not isinstance(sim.manual_overrides, dict):
+        sim.manual_overrides = {}
+    sim.manual_overrides[variable] = time.time() + 90.0
+
     from apps.core.services.risk_service import classify_risk
     from apps.alerts.services.threshold_service import get_thresholds
 

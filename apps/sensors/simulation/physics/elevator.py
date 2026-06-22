@@ -1,6 +1,7 @@
 import random
+import time
 
-from apps.sensors.sensor_config import SENSOR_RANGES
+from apps.sensors.sensor_config import SENSOR_RANGES, ELEVATOR_VARS
 from apps.sensors.simulation.constants import (
     T_AMBIENT, FLOOR_HEIGHT,
     CRUISING_SPEED, ACCELERATION, PASSENGER_WAIT_TICKS,
@@ -18,11 +19,17 @@ def _clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
 
+def _is_locked(sim: BuildingSimulator, var: str) -> bool:
+    if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
+        return time.time() < sim.manual_overrides.get(var, 0)
+    return False
+
+
 def _update_elevator(sim: BuildingSimulator) -> None:
     sd = sim.sensor_data
     dt = sim.sim_speed
     if not sim.elevator_on or "elevator" in sim.protection_ends:
-        _set_elevator_idle(sim, sd)
+        _set_elevator_idle(sim, sd, dt)
         return
     if "elevator" in sim.sim_faults:
         _apply_elevator_fault(sim, sd, dt)
@@ -30,20 +37,28 @@ def _update_elevator(sim: BuildingSimulator) -> None:
     _run_elevator_fsm(sim, sd, dt)
 
 
-def _set_elevator_idle(sim: BuildingSimulator, sd: dict) -> None:
-    sd["speed"] = 0.0
-    sd["position"] = 0.0
-    sim._elev_position_meters = 0.0
-    sd["load"] = 0
-    sd["door_status"] = "closed"
-    sd["energy"] = 0.0
-    sd["motor_stuck"] = False
+def _set_elevator_idle(sim: BuildingSimulator, sd: dict, dt: float) -> None:
+    if not _is_locked(sim, "speed"):
+        sd["speed"] = 0.0
+    if not _is_locked(sim, "position"):
+        sd["position"] = 0.0
+        sim._elev_position_meters = 0.0
+    if not _is_locked(sim, "load"):
+        sd["load"] = 0
+    if not _is_locked(sim, "door_status"):
+        sd["door_status"] = "closed"
+    if not _is_locked(sim, "energy"):
+        sd["energy"] = 0.0
+    if not _is_locked(sim, "motor_stuck"):
+        sd["motor_stuck"] = False
     sim.door_close_attempts = 0
     sim._elev_state = "IDLE"
 
 
 def _apply_elevator_fault(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     fault_type = sim.sim_faults.get("elevator")
+    temp_sd = sd.copy()
+    
     _ELEV_FAULT_HANDLERS = {
         "motor_stuck": _apply_motor_stuck,
         "door_blocked": _apply_door_blocked,
@@ -51,16 +66,19 @@ def _apply_elevator_fault(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     }
     handler = _ELEV_FAULT_HANDLERS.get(fault_type)
     if handler:
-        handler(sim, sd, dt)
+        handler(sim, temp_sd, dt)
+        
+    for k in ELEVATOR_VARS:
+        if not _is_locked(sim, k):
+            sd[k] = temp_sd[k]
 
 
 def _apply_motor_stuck(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sd["speed"] = 0.0
     sd["motor_stuck"] = True
-    sd["load"] = _clamp(sd["load"] + 5 * dt, _LOAD_LOW, _LOAD_HIGH)
     sd["door_status"] = "closed"
-    sd["energy"] = _clamp(sd["energy"] + 0.5 * dt, _ENERGY_LOW, _ENERGY_HIGH)
-    sd["temperature"] = _clamp(sd["temperature"] + 0.5 * dt, _TEMP_LOW, _TEMP_HIGH)
+    sd["energy"] = _clamp(sd["energy"] + 1.2 * dt, _ENERGY_LOW, _ENERGY_HIGH)  # Sobrecorriente
+    sd["temperature"] = _clamp(sd.get("temperature", 50.0) + 1.5 * dt, _TEMP_LOW, _TEMP_HIGH)
 
 
 def _apply_door_blocked(sim: BuildingSimulator, sd: dict, dt: float) -> None:
@@ -105,6 +123,8 @@ def _run_elevator_fsm(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     if handler:
         handler(sim, sd, dt, spd, pos, load, door, target, direction)
     spd = sd["speed"]
+    door = sd["door_status"]
+    load = sd["load"]
     _run_elevator_post_fsm(sim, sd, dt, prev_pos, spd, load, door, state)
 
 
@@ -136,7 +156,8 @@ def _handle_elev_door_opening(
     door = "opening"
     if sim._elev_timer >= 1:
         sim._elev_timer = 0
-        load = _clamp(load + random.randint(-50, 150), _LOAD_LOW, _LOAD_HIGH)
+        if not _is_locked(sim, "load"):
+            load = _clamp(load + random.randint(-50, 150), _LOAD_LOW, _LOAD_HIGH)
         sim._elev_state = "DOORS_OPEN"
     sd["speed"] = spd
     sd["door_status"] = door
@@ -152,7 +173,8 @@ def _handle_elev_doors_open(
     door = "open"
     if sim._elev_timer >= PASSENGER_WAIT_TICKS / max(sim.sim_speed, 0.1):
         sim._elev_timer = 0
-        load = _clamp(load + random.randint(-100, 100), _LOAD_LOW, _LOAD_HIGH)
+        if not _is_locked(sim, "load"):
+            load = _clamp(load + random.randint(-100, 100), _LOAD_LOW, _LOAD_HIGH)
         sim._elev_state = "DOOR_CLOSING"
     sd["speed"] = spd
     sd["door_status"] = door
@@ -166,6 +188,15 @@ def _handle_elev_door_closing(
 ) -> None:
     spd = 0.0
     door = "closing"
+    
+    # Si hay sobrecarga, impedimos que la puerta se cierre (se vuelve a abrir)
+    if load > 900:
+        sim._elev_state = "DOOR_OPENING"
+        sim._elev_timer = 0
+        sd["door_status"] = "open"
+        sd["speed"] = 0.0
+        return
+
     if sim._elev_timer >= 1:
         sim._elev_timer = 0
         sim._elev_state = "ACCELERATING"
@@ -246,16 +277,26 @@ def _run_elevator_post_fsm(
     
     moving_states = {"ACCELERATING", "MOVING", "DECELERATING"}
     if old_state in moving_states and current_state not in moving_states:
-        sd["trip_count"] += 1
+        if not _is_locked(sim, "trip_count"):
+            sd["trip_count"] += 1
         
     energy = _compute_elevator_energy(load, spd, current_state, sim)
     stuck = _check_motor_stuck(current_state, spd, load, sd.get("temperature", 50.0))
-    sd["position"] = round(sim._elev_position_meters / FLOOR_HEIGHT, 1)
-    sd["speed"] = round(spd, 1)
-    sd["load"] = round(load)
-    sd["door_status"] = door
-    sd["energy"] = round(_clamp(energy, _ENERGY_LOW, _ENERGY_HIGH), 1)
-    sd["motor_stuck"] = stuck
+    
+    # Aplicar cambios respetando los bloqueos
+    if not _is_locked(sim, "position"):
+        sd["position"] = round(sim._elev_position_meters / FLOOR_HEIGHT, 1)
+    if not _is_locked(sim, "speed"):
+        sd["speed"] = round(spd, 1)
+    if not _is_locked(sim, "load"):
+        sd["load"] = round(load)
+    if not _is_locked(sim, "door_status"):
+        sd["door_status"] = door
+    if not _is_locked(sim, "energy"):
+        sd["energy"] = round(_clamp(energy, _ENERGY_LOW, _ENERGY_HIGH), 1)
+    if not _is_locked(sim, "motor_stuck"):
+        sd["motor_stuck"] = stuck
+        
     sim._elev_prev_position = prev_pos
 
 

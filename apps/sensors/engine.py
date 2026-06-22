@@ -111,15 +111,18 @@ def _handle_enum_alert(
 ) -> None:
     from apps.alerts.alerts.engine import send_alert
     from apps.alerts.services.alert_service import get_professional_action
-    from apps.sensors.sensor_config import ENUM_RISK_VALUES
+    from apps.sensors.sensor_config import ENUM_RISK_VALUES, RISK_CRITICO
     from apps.sensors.simulation.constants import MAX_DOOR_CLOSE_ATTEMPTS
 
     risky_values = ENUM_RISK_VALUES.get(var, set())
     str_val = str(value).lower() if value is not None else ""
     if str_val in risky_values:
-        if var == "door_status" and sim.door_close_attempts < MAX_DOOR_CLOSE_ATTEMPTS:
-            sim.active_alerts.pop(var, None)
-            return
+        if var == "door_status":
+            is_moving = sim._elev_state in ("ACCELERATING", "MOVING", "DECELERATING") or sim.sensor_data.get("speed", 0.0) > 0.05
+            has_failed_to_close = sim.door_close_attempts >= MAX_DOOR_CLOSE_ATTEMPTS
+            if not is_moving and not has_failed_to_close:
+                sim.active_alerts.pop(var, None)
+                return
         risk = RISK_CRITICO
         action = get_professional_action(var, risk, value)
         send_alert(var, value, risk, action, sim=sim)

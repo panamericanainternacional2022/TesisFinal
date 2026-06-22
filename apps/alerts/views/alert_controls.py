@@ -111,6 +111,10 @@ def clear_notifications_view(request: HttpRequest) -> JsonResponse:
         for sim in simulators.values():
             sim.active_alerts.clear()
             sim.last_email_sent_time = 0.0
+            if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
+                sim.manual_overrides.clear()
+            if hasattr(sim, "last_email_sent_time_per_var") and isinstance(sim.last_email_sent_time_per_var, dict):
+                sim.last_email_sent_time_per_var.clear()
         _logger.info(
             "active_alerts y last_email_sent_time limpiados en %d simulador(es)",
             len(simulators),

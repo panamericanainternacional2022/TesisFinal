@@ -256,6 +256,10 @@ def view_clear_alerts(request: HttpRequest) -> JsonResponse:
         for sim in simulators.values():
             sim.active_alerts.clear()
             sim.last_email_sent_time = 0.0
+            if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
+                sim.manual_overrides.clear()
+            if hasattr(sim, "last_email_sent_time_per_var") and isinstance(sim.last_email_sent_time_per_var, dict):
+                sim.last_email_sent_time_per_var.clear()
     except Exception as exc:
         logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
 

@@ -79,6 +79,27 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
 
     _notify_faults_resolved(edificio_id, old_faults)
 
+    # Limpiar bloqueos manuales y cooldowns
+    if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
+        if device == "pump":
+            for v in PUMP_VARS:
+                sim.manual_overrides.pop(v, None)
+        elif device == "elevator":
+            for v in ELEVATOR_VARS:
+                sim.manual_overrides.pop(v, None)
+        else:
+            sim.manual_overrides.clear()
+
+    if hasattr(sim, "last_email_sent_time_per_var") and isinstance(sim.last_email_sent_time_per_var, dict):
+        if device == "pump":
+            for v in PUMP_VARS:
+                sim.last_email_sent_time_per_var.pop(v, None)
+        elif device == "elevator":
+            for v in ELEVATOR_VARS:
+                sim.last_email_sent_time_per_var.pop(v, None)
+        else:
+            sim.last_email_sent_time_per_var.clear()
+
     _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
     if device:
         nombre_dispositivo = _DEVICE_ES.get(device, device)
@@ -134,6 +155,10 @@ def reset_simulator(edificio_id: int) -> str:
     sim.pending_notifications.clear()
     sim.sim_faults.clear()
     sim.fault_injected_at.clear()
+    if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
+        sim.manual_overrides.clear()
+    if hasattr(sim, "last_email_sent_time_per_var") and isinstance(sim.last_email_sent_time_per_var, dict):
+        sim.last_email_sent_time_per_var.clear()
     sim.sim_paused = False
     sim.sim_speed = 1.0
     sim._pump_demand = 15.0

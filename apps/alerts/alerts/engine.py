@@ -83,7 +83,17 @@ def _send_alert_email(
     new_les = last_email_time
     send_email = risk_level in (RISK_ALTO, RISK_CRITICO)
     now = time.time()
-    if send_email and now - last_email_time > COOLDOWN_SECONDS:
+    
+    # Control de cooldown individual por variable
+    times_dict = get_attribute(sim, "last_email_sent_time_per_var")
+    if not isinstance(times_dict, dict):
+        times_dict = {}
+        set_attribute(sim, "last_email_sent_time_per_var", times_dict)
+        
+    last_sent = times_dict.get(variable, 0.0)
+    
+    if send_email and now - last_sent > COOLDOWN_SECONDS:
+        times_dict[variable] = now
         new_les = now
         edificio_nombre = getattr(sim, "nombre", "") or ""
         edificio_id = getattr(sim, "edificio_id", None)
