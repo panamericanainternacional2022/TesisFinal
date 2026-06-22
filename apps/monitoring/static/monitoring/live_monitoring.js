@@ -544,10 +544,11 @@ function applyPayload(data) {
         updateSummaryValues(data);
     }
 
+    if (data.stats || data.recommendations) {
+        updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
+    }
+
     if (IS_ADMIN) {
-        if (data.stats || data.recommendations) {
-            updateStatsAndRecs(data.stats, data.recommendations, data.door_close_attempts);
-        }
         if (data.sim_paused !== undefined) updatePauseBtn(data.sim_paused);
         if (data.sim_speed !== undefined) {
             document.querySelectorAll('.speed-btn').forEach(btn => {
@@ -629,12 +630,43 @@ function updateStatsAndRecs(stats, recs, attempts) {
     const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
     renderStatsTable(entries.filter(([k]) => _BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba', '#2563eb');
     renderStatsTable(entries.filter(([k]) => _ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador', '#7c3aed');
-    const inlineEl = document.getElementById('inlineRec');
-    if (inlineEl) {
+    
+    const recsContent = document.getElementById('recommendationsContent');
+    if (recsContent) {
         if (recs && recs.length) {
-            let doorNote = (typeof attempts === 'number' && attempts > 0) ? ` | 🚪 ${attempts} intentos` : '';
-            inlineEl.innerHTML = recs[0] + doorNote;
-            inlineEl.style.color = 'var(--state-warn)';
+            recsContent.innerHTML = '';
+            const isOk = recs.length === 1 && recs[0].includes("normales");
+            recs.forEach(rec => {
+                let cardHtml = '';
+                if (isOk) {
+                    cardHtml = `
+                        <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
+                            <span>${rec}</span>
+                        </div>
+                    `;
+                } else {
+                    const isCrit = rec.toLowerCase().includes("crític") || rec.toLowerCase().includes("urgente") || rec.toLowerCase().includes("atascado");
+                    const bgColor = isCrit ? 'var(--state-critical-bg)' : 'var(--state-warn-bg)';
+                    const borderColor = isCrit ? 'var(--state-critical)' : 'var(--state-warn)';
+                    const icon = isCrit ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-triangle-exclamation';
+                    
+                    let doorNote = '';
+                    if (rec.includes("puertas") && typeof attempts === 'number' && attempts > 0) {
+                        doorNote = ` (Intentos fallidos: ${attempts})`;
+                    }
+                    
+                    cardHtml = `
+                        <div style="background: ${bgColor}; color: ${borderColor}; border: 2px solid var(--color-ink); border-left: 6px solid ${borderColor}; padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
+                            <i class="${icon}" style="font-size: var(--text-md);"></i>
+                            <span>${rec}${doorNote}</span>
+                        </div>
+                    `;
+                }
+                const div = document.createElement('div');
+                div.innerHTML = cardHtml.trim();
+                recsContent.appendChild(div.firstElementChild);
+            });
         }
     }
 }

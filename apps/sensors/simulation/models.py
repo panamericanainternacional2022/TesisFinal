@@ -23,6 +23,7 @@ class BuildingSimulator:
         self.last_email_sent_time: float = 0.0
         self.last_email_sent_time_per_var: dict = {}
         self.manual_overrides: dict = {}
+        self.manual_targets: dict = {}
 
         self.sim_paused: bool = False
         self.sim_speed: float = 1.0

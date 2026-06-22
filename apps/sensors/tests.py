@@ -96,6 +96,35 @@ class SimulatorPhysicsAndAlertsTests(TestCase):
         pressure = self.sim.sensor_data["pressure"]
         self.assertAlmostEqual(pressure, 5.8, delta=0.5)
 
+    def test_gradual_manual_transition(self):
+        """Verifica que la transición de un cambio manual ocurra gradualmente en varios ticks."""
+        from apps.sensors.simulation.simulation_engine import update_sensor_data
+        
+        # Iniciar voltaje en 220.0
+        self.sim.sensor_data["voltage"] = 220.0
+        # Establecer target manual a 185.0 V (mínimo es 180V)
+        self.sim.manual_targets["voltage"] = 185.0
+        self.sim.manual_overrides["voltage"] = time.time() + 90.0
+        
+        # Ejecutar 1 tick de simulación (velocidad de cambio es 15V por segundo)
+        update_sensor_data(self.sim)
+        
+        # Debe haber bajado 15V (a 205.0V)
+        self.assertEqual(self.sim.sensor_data["voltage"], 205.0)
+        
+        # Siguiente tick
+        update_sensor_data(self.sim)
+        self.assertEqual(self.sim.sensor_data["voltage"], 190.0)
+        
+        # Siguiente tick (baja otros 5V para llegar al target 185V)
+        update_sensor_data(self.sim)
+        self.assertEqual(self.sim.sensor_data["voltage"], 185.0)
+        
+        # Ejecutar más ticks y verificar que se mantiene en 185V
+        for _ in range(3):
+            update_sensor_data(self.sim)
+        self.assertEqual(self.sim.sensor_data["voltage"], 185.0)
+
     def test_elevator_overload_behavior(self):
         """Si la carga del elevador supera 900kg, se abren puertas, speed=0."""
         self.sim._elev_state = "DOOR_CLOSING"

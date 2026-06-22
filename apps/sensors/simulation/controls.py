@@ -157,6 +157,8 @@ def reset_simulator(edificio_id: int) -> str:
     sim.fault_injected_at.clear()
     if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
         sim.manual_overrides.clear()
+    if hasattr(sim, "manual_targets") and isinstance(sim.manual_targets, dict):
+        sim.manual_targets.clear()
     if hasattr(sim, "last_email_sent_time_per_var") and isinstance(sim.last_email_sent_time_per_var, dict):
         sim.last_email_sent_time_per_var.clear()
     sim.sim_paused = False

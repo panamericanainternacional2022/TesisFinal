@@ -368,9 +368,7 @@
                 {% endfor %}
             </select>
             {% endif %}
-            {% if is_admin %}
-            <span id="inlineRec" style="font-size:var(--text-sm); font-weight:var(--weight-bold);">Conectando al simulador...</span>
-            {% endif %}
+
         </div>
         {% endif %}
     </div>
@@ -457,12 +455,6 @@
         </div>
 
         {% if is_admin %}
-        <div class="grid-2" style="margin-bottom: var(--sp-3);">
-            <div id="statsBombaPanel"></div>
-            <div id="statsElevadorPanel"></div>
-        </div>
-
-        <!-- Controles administrativos (simulación + override manual) -->
         <div class="panel admin-controls-panel" style="margin-bottom: var(--sp-3);">
             <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
 
@@ -563,14 +555,32 @@
             </div>
             <div class="sensor-cards-grid" id="elevadorCards"></div>
         </div>
-        <div class="grid-charts">
-            <div id="chartPumpPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
-                <canvas id="chart1"></canvas>
+
+        <!-- Panel de Recomendaciones -->
+        <div id="recommendationsPanel" class="panel" style="margin-bottom: var(--sp-3);">
+            <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones del sistema</h2>
+            <div id="recommendationsContent" style="display: flex; flex-direction: column; gap: var(--sp-2);">
+                <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
+                    <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
+                    <span>Cargando recomendaciones...</span>
+                </div>
             </div>
-            <div id="chartElevatorPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
-                <canvas id="chart2"></canvas>
+        </div>
+
+        <div class="grid-charts">
+            <div id="chartPumpPanel" class="chart-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
+                    <canvas id="chart1" style="margin-bottom: var(--sp-3);"></canvas>
+                </div>
+                <div id="statsBombaPanel"></div>
+            </div>
+            <div id="chartElevatorPanel" class="chart-panel" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
+                    <canvas id="chart2" style="margin-bottom: var(--sp-3);"></canvas>
+                </div>
+                <div id="statsElevadorPanel"></div>
             </div>
         </div>
     </div><!-- /activeMonitoring -->

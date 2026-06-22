@@ -403,7 +403,7 @@ PROTECTION_VARS = {
 }
 
 # ─── Constantes del engine de simulación ───────────────────────────────
-SIM_TICK_INTERVAL = 5
+SIM_TICK_INTERVAL = 1
 MAX_CONSECUTIVE_FAILURES = 5
 
 # ─── Constantes operativas del sistema ─────────────────────────────────

@@ -38,47 +38,42 @@ def manual_update(request) -> JsonResponse:
     if not sim:
         return json_error_response("No hay simuladores activos", 404)
 
-    sensor_data = sim.sensor_data
-    if variable not in sensor_data:
+    if variable not in sim.sensor_data:
         return json_error_response("Variable no válida")
 
     if variable in ENUM_VARS:
         if variable == "door_status":
             if value not in ("open", "closed"):
                 return json_error_response('door_status debe ser "open" o "closed"')
-            sensor_data[variable] = value
+            parsed_value = str(value)
     elif variable in BOOLEAN_VARS:
-        sensor_data[variable] = bool(value)
+        parsed_value = bool(value)
     else:
         try:
-            sensor_data[variable] = float(value)
+            parsed_value = float(value)
         except (ValueError, TypeError):
             return json_error_response("Valor numérico inválido")
 
-    # Registrar bloqueo manual por 90 segundos
+    # Registrar target manual y bloqueo por 90 segundos
     import time
     if not hasattr(sim, "manual_overrides") or not isinstance(sim.manual_overrides, dict):
         sim.manual_overrides = {}
+    if not hasattr(sim, "manual_targets") or not isinstance(sim.manual_targets, dict):
+        sim.manual_targets = {}
+
     sim.manual_overrides[variable] = time.time() + 90.0
+    sim.manual_targets[variable] = parsed_value
 
     from apps.core.services.risk_service import classify_risk
     from apps.alerts.services.threshold_service import get_thresholds
 
     thresholds = get_thresholds(sim.edificio_id)
-    risk, _ = classify_risk(variable, sensor_data[variable], thresholds)
-
-    if risk in (RISK_ALTO, RISK_CRITICO):
-        from apps.alerts.services.alert_service import get_professional_action
-        from apps.alerts.alerts.engine import send_alert
-
-        action = get_professional_action(variable, risk, sensor_data[variable])
-        send_alert(
-            variable,
-            sensor_data[variable],
-            risk,
-            f"Valor manual ({sensor_data[variable]}): {action}",
-            sim=sim,
-        )
+    if variable in BOOLEAN_VARS:
+        risk = RISK_CRITICO if parsed_value else RISK_BAJO
+    elif variable in ENUM_VARS:
+        risk = RISK_CRITICO if parsed_value == "open" else RISK_BAJO
+    else:
+        risk, _ = classify_risk(variable, parsed_value, thresholds)
 
     timestamp = time_module.strftime("%Y-%m-%d %H:%M:%S")
     sensor_type = "Bomba" if variable in PUMP_VARS else "Elevador"
@@ -86,14 +81,14 @@ def manual_update(request) -> JsonResponse:
         "timestamp": timestamp,
         "type": sensor_type,
         "variable": f"{variable} (manual)",
-        "value": sensor_data[variable],
+        "value": parsed_value,
         "risk": risk,
         "color": "red" if risk in (RISK_ALTO, RISK_CRITICO) else "green",
     })
     if len(sim.history) > MAX_HISTORY_SIZE:
         sim.history = sim.history[-MAX_HISTORY_SIZE:]
 
-    return json_success_response({"variable": variable, "value": sensor_data[variable], "risk": risk})
+    return json_success_response({"variable": variable, "value": parsed_value, "risk": risk})
 
 
 @login_required
