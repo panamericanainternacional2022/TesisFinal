@@ -22,6 +22,9 @@ const _BOMBA_VARS = _CONFIG.pump_vars || [];
 const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
 const _RISK = _CONFIG.risk_labels || {};
 const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
+const _BOOLEAN_VARS = _CONFIG.boolean_vars || [];
+const _ENUM_VARS = _CONFIG.enum_vars || [];
+const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
 let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
@@ -117,9 +120,17 @@ function getRiskBadge(risk) {
 }
 
 function getRiskClass(varName, value) {
-    if (_NO_RISK_VARS.includes(varName)) {
-        let crit = (varName === 'motor_stuck' && value);
+    if (_BOOLEAN_VARS.includes(varName)) {
+        let crit = !!value;
         return { card: 'risk-' + (crit ? 'crit' : 'low'), badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
+    }
+    if (_ENUM_VARS.includes(varName)) {
+        let risky = _ENUM_RISK_VALUES[varName] || [];
+        let crit = risky.includes(String(value).toLowerCase());
+        return { card: 'risk-' + (crit ? 'crit' : 'low'), badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
+    }
+    if (_NO_RISK_VARS.includes(varName)) {
+        return { card: 'risk-low', badge: 'badge-low', label: _RISK.bajo };
     }
     let cfg = currentThresholds[varName];
     if (!cfg) return { card: '', badge: 'badge-info', label: _RISK.unknown };

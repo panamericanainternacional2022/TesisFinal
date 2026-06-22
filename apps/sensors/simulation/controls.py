@@ -3,7 +3,7 @@ import time
 import logging
 from typing import Optional
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES
+from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, RISK_BAJO
 from apps.sensors.simulation.constants import (
     DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
     CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
@@ -65,15 +65,25 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
     sim = simulators.get(edificio_id)
     if not sim:
         raise SimulatorNotFoundError(edificio_id)
-    _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
+
+    old_faults: dict[str, str] = {}
     if device:
+        if device in sim.sim_faults:
+            old_faults[device] = sim.sim_faults[device]
         sim.sim_faults.pop(device, None)
         sim.fault_injected_at.pop(device, None)
+    else:
+        old_faults = dict(sim.sim_faults)
+        sim.sim_faults.clear()
+        sim.fault_injected_at.clear()
+
+    _notify_faults_resolved(edificio_id, old_faults)
+
+    _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
+    if device:
         nombre_dispositivo = _DEVICE_ES.get(device, device)
         msg = f"Falla limpiada para {nombre_dispositivo}"
     else:
-        sim.sim_faults.clear()
-        sim.fault_injected_at.clear()
         msg = "Todas las fallas limpiadas"
     sd = sim.sensor_data
     if device in (None, "pump"):
@@ -91,6 +101,23 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
         sim._elev_state = "IDLE"
     logger.info(msg)
     return msg
+
+
+def _notify_faults_resolved(edificio_id: int, old_faults: dict[str, str]) -> None:
+    if not old_faults:
+        return
+    try:
+        from apps.alerts.services.alert_service import persist_notification_in_django
+        _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
+        for dev, fault_type in old_faults.items():
+            nombre_falla = FAULT_NAMES_ES.get(fault_type, fault_type)
+            nombre_dispositivo = _DEVICE_ES.get(dev, dev)
+            action = f"Falla '{nombre_falla}' en {nombre_dispositivo} resuelta. Operación normal restaurada."
+            persist_notification_in_django(
+                f"fault_resolved_{dev}", fault_type, RISK_BAJO, action, edificio_id=edificio_id,
+            )
+    except Exception as exc:
+        logger.warning("No se pudo enviar notificación de resolución de falla: %s", exc)
 
 
 def reset_simulator(edificio_id: int) -> str:

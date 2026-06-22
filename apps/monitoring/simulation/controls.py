@@ -57,7 +57,9 @@ def manual_update(request) -> JsonResponse:
 
     from apps.core.services.risk_service import classify_risk
 
-    if variable in BOOLEAN_VARS:
+    if variable in ENUM_VARS:
+        risk = RISK_BAJO
+    elif variable in BOOLEAN_VARS:
         risk = RISK_CRITICO if sensor_data[variable] else RISK_BAJO
     else:
         risk, _ = classify_risk(variable, sensor_data[variable])

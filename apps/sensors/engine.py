@@ -5,7 +5,8 @@ import eventlet
 
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
-    RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS,
+    RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS, ENUM_VARS,
+    ENUM_RISK_VALUES,
     SIM_TICK_INTERVAL,
 )
 from apps.sensors.simulation.constants import (
@@ -73,6 +74,9 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var in BOOLEAN_VARS:
             _handle_motor_stuck_alert(sim, var, value)
             continue
+        if var in ENUM_VARS:
+            _handle_enum_alert(sim, var, value)
+            continue
         from apps.alerts.alerts.engine import send_alert
         from apps.alerts.services.alert_service import get_professional_action
         risk, _ = classify_risk(var, value, thresholds)
@@ -98,6 +102,27 @@ def _handle_motor_stuck_alert(
         from apps.alerts.services.alert_service import get_professional_action
         action = get_professional_action(var, RISK_CRITICO, value)
         send_alert(var, value, RISK_CRITICO, action, sim=sim)
+    else:
+        sim.active_alerts.pop(var, None)
+
+
+def _handle_enum_alert(
+    sim: BuildingSimulator, var: str, value: object,
+) -> None:
+    from apps.alerts.alerts.engine import send_alert
+    from apps.alerts.services.alert_service import get_professional_action
+    from apps.sensors.sensor_config import ENUM_RISK_VALUES
+    from apps.sensors.simulation.constants import MAX_DOOR_CLOSE_ATTEMPTS
+
+    risky_values = ENUM_RISK_VALUES.get(var, set())
+    str_val = str(value).lower() if value is not None else ""
+    if str_val in risky_values:
+        if var == "door_status" and sim.door_close_attempts < MAX_DOOR_CLOSE_ATTEMPTS:
+            sim.active_alerts.pop(var, None)
+            return
+        risk = RISK_CRITICO
+        action = get_professional_action(var, risk, value)
+        send_alert(var, value, risk, action, sim=sim)
     else:
         sim.active_alerts.pop(var, None)
 

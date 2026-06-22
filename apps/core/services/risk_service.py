@@ -3,13 +3,16 @@ from typing import Optional
 from apps.sensors.sensor_config import (
     RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
     NO_RISK_VARS, RISK_UNKNOWN, ZERO_IS_CRITICAL_VARS,
-    BOOLEAN_VARS,
+    BOOLEAN_VARS, ENUM_VARS, ENUM_RISK_VALUES,
 )
 
 
 def classify_risk(variable: str, value, thresholds: Optional[dict] = None) -> tuple[str, str]:
     if variable in BOOLEAN_VARS:
         return (RISK_CRITICO, "red") if value else (RISK_BAJO, "green")
+    if variable in ENUM_VARS:
+        risky_values = ENUM_RISK_VALUES.get(variable, set())
+        return (RISK_CRITICO, "red") if str(value).lower() in risky_values else (RISK_BAJO, "green")
     if variable in NO_RISK_VARS:
         return RISK_BAJO, "green"
     if variable in ZERO_IS_CRITICAL_VARS and value == 0:

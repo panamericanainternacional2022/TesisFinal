@@ -35,10 +35,12 @@ VAR_NAMES = {
     "position":     "Posición",
     "door_status":  "Estado de puerta",
     # Eventos de sistema
-    "rationing":            "Caudal (racionamiento)",
-    "auto_protection":      "Protección automática",
-    "protection_pump":      "Protección para la bomba de agua",
-    "protection_elevator":  "Protección para el elevador",
+    "rationing":                "Caudal (racionamiento)",
+    "auto_protection":          "Protección automática",
+    "protection_pump":          "Protección para la bomba de agua",
+    "protection_elevator":      "Protección para el elevador",
+    "fault_resolved_pump":      "Falla de bomba resuelta",
+    "fault_resolved_elevator":  "Falla de elevador resuelta",
 }
 
 # ─── Unidades de medida ───────────────────────────────────────────────────
@@ -144,7 +146,7 @@ DEVICE_NAMES_ES = {
 }
 
 # ─── Variables excluidas de clasificación de riesgo ───────────────────────
-NO_RISK_VARS = ["position", "door_status", "motor_stuck"]
+NO_RISK_VARS = ["position"]
 
 # ─── Variables cuyo valor 0 se considera crítico ──────────────────────────
 ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
@@ -154,6 +156,12 @@ BOOLEAN_VARS = {"motor_stuck"}
 
 # ─── Variables de tipo enum (valores string fijos) ───────────────────────
 ENUM_VARS = {"door_status"}
+
+# ─── Valores de riesgo para variables enum ─────────────────────────
+# Cuando una variable enum toma uno de estos valores, se considera en riesgo.
+ENUM_RISK_VALUES = {
+    "door_status": {"open"},  # Abierta permanentemente = atascada/bloqueada
+}
 
 # ─── Variables de sensores agrupadas por dispositivo ──────────────────────
 PUMP_VARS = [
@@ -368,14 +376,22 @@ ACTIONS: dict[str, dict[str, str]] = {
     },
     "protection_pump": {
         RISK_INFO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
+        RISK_BAJO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
     },
     "protection_elevator": {
         RISK_INFO: "Protección para el elevador finalizada. Operación normal restaurada.",
+        RISK_BAJO: "Protección para el elevador finalizada. Operación normal restaurada.",
+    },
+    "fault_resolved_pump": {
+        RISK_BAJO: "Falla en la bomba de agua resuelta. Operación normal restaurada.",
+    },
+    "fault_resolved_elevator": {
+        RISK_BAJO: "Falla en el elevador resuelta. Operación normal restaurada.",
     },
 }
 
 # ─── Variables de sistema (eventos, no sensores físicos) ───────────────
-SYSTEM_VARS = ["rationing", "auto_protection", "protection_pump", "protection_elevator"]
+SYSTEM_VARS = ["rationing", "auto_protection", "protection_pump", "protection_elevator", "fault_resolved_pump", "fault_resolved_elevator"]
 
 # ─── Todas las variables que generan alertas ───────────────────────────
 ALERT_VARS = list(set(PUMP_VARS + ELEVATOR_VARS + SYSTEM_VARS))
