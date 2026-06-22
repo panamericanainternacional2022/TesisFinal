@@ -237,6 +237,7 @@
 {% block extra_js %}
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
+        window.SELECTED_BUILDING_ID = {% if selected_building_id %}{{ selected_building_id }}{% elif buildings|length == 1 %}{{ buildings.0.id }}{% else %}0{% endif %};
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
 {% endblock %}

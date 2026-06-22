@@ -28,8 +28,8 @@ const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
 let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
-const EDIFICIO_ID = _CONFIG.edificio_id || 0;
-const SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
+let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_BUILDING_ID || 0;
+let SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 
 let sseSource = null;
 let monitorConnectionTimeout = null;
@@ -475,23 +475,26 @@ function setNotificationBadge(count) {
 
 function connectSSE() {
     if (sseSource) sseSource.close();
+    const isMonitoring = document.getElementById('activeMonitoring') !== null;
     if (!SSE_URL) {
-        fetchInitialData();
+        if (isMonitoring) fetchInitialData();
         return;
     }
     if (typeof EventSource === 'undefined') {
-        fetchInitialData();
+        if (isMonitoring) fetchInitialData();
         return;
     }
 
     sseSource = new EventSource(SSE_URL);
 
     sseSource.onopen = () => {
-        renderConnectionStatus(true, 'Sistema de monitoreo conectado');
+        if (isMonitoring) {
+            renderConnectionStatus(true, 'Sistema de monitoreo conectado');
+        }
     };
 
     sseSource.onerror = () => {
-        if (!monitorConnectionTimeout) {
+        if (isMonitoring && !monitorConnectionTimeout) {
             monitorConnectionTimeout = setTimeout(() => {
                 showState('stateOffline');
                 monitorConnectionTimeout = null;
@@ -505,7 +508,15 @@ function connectSSE() {
         } catch (e) { /* ignore parse errors */ }
     };
 
-    fetchInitialData();
+    sseSource.addEventListener("notification", (event) => {
+        try {
+            addLiveNotificationEvent(JSON.parse(event.data));
+        } catch (e) { /* ignore parse errors */ }
+    });
+
+    if (isMonitoring) {
+        fetchInitialData();
+    }
 }
 
 function applyPayload(data) {
@@ -1837,6 +1848,9 @@ window.addEventListener('DOMContentLoaded', () => {
             const badgeCountEl = document.getElementById('notificationBadgeCount');
             if (badgeCountEl) unreadNotificationCount = parseInt(badgeCountEl.textContent, 10) || 0;
             initLiveNotifications();
+            if (EDIFICIO_ID) {
+                connectSSE();
+            }
         }
         const toggleBtn = document.getElementById('toggleAlertsBtn');
         if (toggleBtn) {

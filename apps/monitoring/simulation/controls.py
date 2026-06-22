@@ -56,13 +56,10 @@ def manual_update(request) -> JsonResponse:
             return json_error_response("Valor numérico inválido")
 
     from apps.core.services.risk_service import classify_risk
+    from apps.alerts.services.threshold_service import get_thresholds
 
-    if variable in ENUM_VARS:
-        risk = RISK_BAJO
-    elif variable in BOOLEAN_VARS:
-        risk = RISK_CRITICO if sensor_data[variable] else RISK_BAJO
-    else:
-        risk, _ = classify_risk(variable, sensor_data[variable])
+    thresholds = get_thresholds(sim.edificio_id)
+    risk, _ = classify_risk(variable, sensor_data[variable], thresholds)
 
     if risk in (RISK_ALTO, RISK_CRITICO):
         from apps.alerts.services.alert_service import get_professional_action
