@@ -787,8 +787,8 @@ function renderThresholdsPanel(th) {
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:#166534;">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" style="border-left:4px solid #166534;"></div>
-                    <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
+                    <div class="form-group"><label class="form-label" style="color:#166534;">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div style="margin-top:2px;font-size:0.6rem;color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
                 <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
@@ -796,9 +796,9 @@ function renderThresholdsPanel(th) {
         } else {
             div.innerHTML = headerHtml + `
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:#166534;">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" style="border-left:4px solid #166534;"></div>
-                    <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" style="border-left:4px solid #b45309;"></div>
-                    <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" style="border-left:4px solid #991b1b;"></div>
+                    <div class="form-group"><label class="form-label" style="color:#166534;">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
@@ -1067,7 +1067,7 @@ function renderLimitsPanel(ranges) {
             </div>
             <div class="form-group">
                 <label class="form-label" style="color:var(--color-ink);">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
-                <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" style="border-left:4px solid var(--color-ink);">
+                <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
                 <div class="limit-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:2px;display:none;"></div>
             </div>
         `;

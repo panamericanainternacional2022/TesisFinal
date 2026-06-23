@@ -63,26 +63,11 @@
 }
 
 .search-input {
-    width: 100%;
     padding: 10px var(--sp-2) 10px 40px;
-    border: 2px solid var(--color-ink);
-    border-radius: 0px;
-    font-size: var(--text-base);
-    font-family: var(--font);
-    background: var(--color-surface);
-    color: var(--color-text-primary);
-    transition: all var(--transition-base);
-    outline: none;
 }
 
 .search-input::placeholder {
     color: var(--color-text-placeholder);
-}
-
-.search-input:focus {
-    border-color: var(--color-accent);
-    background: var(--color-surface);
-    box-shadow: 4px 4px 0px var(--color-accent-bg);
 }
 
 /* ── Wrapper de Tabla ─────────────────────────────────────────────────────── */

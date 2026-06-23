@@ -16,7 +16,7 @@
             <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
                 <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 240px;">
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
-                    <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" style="padding-left: 40px;" value="{{ request.GET.q|default:'' }}" />
+                    <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
                     <select name="equipamiento" onchange="this.form.submit()" class="form-select">

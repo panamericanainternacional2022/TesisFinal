@@ -396,15 +396,7 @@ body {
 /* ── Controles de Formulario (Inputs y Selects) ────────────────────────── */
 .form-input,
 .form-select,
-.search-input,
-.filter-panel-select,
-.select-container select,
-.form-group input,
-.form-group select,
-.input-with-icon input,
-.input-with-icon select,
-input[type="date"],
-input[type="number"] {
+.search-input {
     width: 100%;
     height: 46px;
     padding: 10px 14px;
@@ -421,26 +413,9 @@ input[type="number"] {
 
 .form-input:focus,
 .form-select:focus,
-.search-input:focus,
-.filter-panel-select:focus,
-.select-container select:focus,
-.form-group input:focus,
-.form-group select:focus,
-.input-with-icon input:focus,
-.input-with-icon select:focus,
-input[type="date"]:focus,
-input[type="number"]:focus {
+.search-input:focus {
     border-color: var(--color-accent) !important;
     box-shadow: 4px 4px 0px var(--color-accent-bg) !important;
-}
-
-/* Clases utilitarias compactas para selects e inputs (filtros, modales) */
-.form-input-sm,
-.form-select-sm {
-    height: 38px !important;
-    padding: 4px 10px !important;
-    font-size: var(--text-sm) !important;
-    box-shadow: 3px 3px 0px var(--color-ink) !important;
 }
 
 

@@ -78,8 +78,7 @@
             <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center;">
                 <!-- Etiqueta + select de período -->
                 <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Ver historial de:</span>
-                <select id="periodoSelect" name="periodo" class="form-select form-select-sm"
-                        style="width: 160px;">
+                <select id="periodoSelect" name="periodo" class="form-select">
                     <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
                     <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
                     <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
@@ -206,7 +205,7 @@
         {% if edificios|length > 1 %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-building"></i> Edificio</div>
-            <select id="panel-edificio" class="form-select form-select-sm">
+            <select id="panel-edificio" class="form-select">
                 <option value="">Todos los edificios</option>
                 {% for edif in edificios %}
                 <option value="{{ edif.id }}" {% if selected_edificio_id == edif.id %}selected{% endif %}>{{ edif.name }}</option>
@@ -216,7 +215,7 @@
         {% endif %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation"></i> Severidad</div>
-            <select id="panel-severidad" class="form-select form-select-sm">
+            <select id="panel-severidad" class="form-select">
                 <option value="">Todas las severidades</option>
                 {% for sev in ALL_SEVERITIES %}
                 <option value="{{ sev }}" {% if severidad == sev %}selected{% endif %}>{{ sev }}</option>
@@ -225,7 +224,7 @@
         </div>
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-gauge"></i> Variable</div>
-            <select id="panel-variable" class="form-select form-select-sm">
+            <select id="panel-variable" class="form-select">
                 <option value="">Todas las variables</option>
                 {% for var in all_variables %}
                 <option value="{{ var }}" {% if variable_filter == var %}selected{% endif %}>{{ var }}</option>
@@ -257,14 +256,12 @@
             <div>
                 <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Desde</div>
                 <input type="date" id="modal-fecha-desde"
-                       value="{{ fecha_desde }}" class="form-input form-input-sm"
-                       style="cursor:pointer;">
+                       value="{{ fecha_desde }}" class="form-input">
             </div>
             <div>
                 <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Hasta</div>
                 <input type="date" id="modal-fecha-hasta"
-                       value="{{ fecha_hasta }}" class="form-input form-input-sm"
-                       style="cursor:pointer;">
+                       value="{{ fecha_hasta }}" class="form-input">
             </div>
             <!-- Error de validación -->
             <div id="customDateError" style="display:none; padding:8px 12px; background:var(--state-critical-bg); border:2px solid var(--state-critical); color:var(--state-critical); font-size:var(--text-xs); font-weight:var(--weight-bold);">
