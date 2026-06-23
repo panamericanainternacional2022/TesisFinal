@@ -70,13 +70,12 @@
 
     // Register toast close listener globally immediately on load
     document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('close-msg-btn')) {
-            const t = e.target.closest('.toast-item');
-            if (t) {
-                t.style.transform = 'translateX(120%)';
-                t.style.opacity = '0';
-                setTimeout(function() { t.remove(); }, 350);
-            }
+        const btn = e.target.closest('.toast-item .btn-icon');
+        if (btn) {
+            const t = btn.closest('.toast-item');
+            t.style.transform = 'translateX(120%)';
+            t.style.opacity = '0';
+            setTimeout(function() { t.remove(); }, 350);
         }
     });
 
@@ -100,7 +99,9 @@
         const toast = document.createElement('div');
         toast.className = 'credentials-box toast-item';
         toast.style.cssText = 'pointer-events:auto;padding:15px;position:relative;border-radius:0;box-sizing:border-box;border:2px solid var(--color-ink);box-shadow:4px 4px 0px var(--color-ink);transform:translateX(120%);opacity:0;transition:transform 350ms cubic-bezier(0.4,0,0.2,1),opacity 350ms ease;' + itemStyle;
-        toast.innerHTML = '<button type="button" class="close-msg-btn" style="position:absolute;right:12px;top:12px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:inherit;line-height:1;font-weight:bold;padding:2px;">&times;</button><div class="toast-body-content" style="padding-right:15px;">' + message + '</div>';
+        const hasClose = type !== 'success';
+        toast.innerHTML = (hasClose ? '<button type="button" class="btn-icon" style="position:absolute;right:12px;top:12px;">&times;</button>' : '')
+            + '<div class="toast-body-content" style="' + (hasClose ? 'padding-right:15px;' : 'padding-right:0;') + '">' + message + '</div>';
         container.appendChild(toast);
         requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });
         setTimeout(function() {

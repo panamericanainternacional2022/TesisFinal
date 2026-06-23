@@ -18,8 +18,10 @@
                         background-color: var(--state-inactive-bg); color: var(--state-inactive); border-left: 6px solid var(--state-inactive);
                     {% endif %}
                  ">
-                <button type="button" class="close-msg-btn">&times;</button>
-                <div class="toast-body-content" style="padding-right: 15px;">
+                {% if message.tags != 'success' %}
+                <button type="button" class="btn-icon" style="position: absolute; right: 12px; top: 12px;">&times;</button>
+                {% endif %}
+                <div class="toast-body-content" style="{% if message.tags == 'success' %}padding-right: 0;{% else %}padding-right: 15px;{% endif %}">
                     {{ message.message|safe }}
                 </div>
             </div>

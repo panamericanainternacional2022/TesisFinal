@@ -272,7 +272,8 @@ body {
 /* Deshabilitados */
 .btn.disabled,
 .btn:disabled,
-.btn-secondary.disabled {
+.btn-secondary.disabled,
+.btn-icon.disabled {
     opacity: 0.4 !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
@@ -284,19 +285,29 @@ body {
 .is-hidden { display: none !important; }
 .btn-flex { flex: 1; }
 
-/* ── Toast close button ───────────────────────────────────────────────── */
-.close-msg-btn {
-    position: absolute;
-    right: 12px;
-    top: 12px;
-    background: none;
-    border: none;
-    font-size: 1.3rem;
+/* ── Botón icono compacto (32×32) ─────────────────────────────────────── */
+.btn-icon {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    color: var(--color-ink);
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    color: inherit;
+    font-size: 1rem;
+    padding: 0;
     line-height: 1;
-    font-weight: bold;
-    padding: 2px;
+    font-family: var(--font);
+    box-shadow: 3px 3px 0px var(--color-ink);
+    transition: all var(--transition-fast);
+}
+.btn-icon:hover {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
 }
 
 /* ── Dropdown system (tablas) ─────────────────────────────────────────── */
@@ -304,27 +315,7 @@ body {
     position: relative;
     display: inline-flex;
 }
-.dropdown-trigger {
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    color: var(--color-ink);
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 16px;
-    font-family: var(--font);
-    transition: all var(--transition-fast);
-    box-shadow: 2px 2px 0px var(--color-ink);
-}
-.dropdown-trigger:hover {
-    background: var(--color-ink);
-    color: var(--color-surface);
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.25);
-}
+
 .dropdown-menu {
     position: absolute;
     right: 0;
@@ -365,13 +356,6 @@ body {
     width: 16px;
     text-align: center;
 }
-.dropdown-item-danger {
-    color: var(--state-critical, #dc2626);
-}
-.dropdown-item-danger:hover {
-    background: #fef2f2;
-}
-
 /* ── Speed Button Group (Simulación) ──────────────────────────────────── */
 .speed-group {
     display: flex;
@@ -402,28 +386,6 @@ body {
     background: var(--color-accent-bg);
     color: var(--color-accent);
     font-weight: 800;
-}
-
-/* ── Cerrar panel de filtros ──────────────────────────────────────────── */
-.filter-panel-close {
-    background: none;
-    border: 2px solid var(--color-ink);
-    color: var(--color-ink);
-    width: 32px;
-    height: 32px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1rem;
-    box-shadow: 2px 2px 0px var(--color-ink);
-    transition: all var(--transition-fast);
-}
-.filter-panel-close:hover {
-    background: var(--color-ink);
-    color: var(--color-surface);
-    transform: translate(-2px, -2px);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.25);
 }
 
 /* ── Controles de Formulario (Inputs y Selects) ────────────────────────── */

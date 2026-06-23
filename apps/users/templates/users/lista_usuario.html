@@ -80,14 +80,14 @@
                                 <td>{{ usuario.email|default:'—' }}</td>
                                 <td>
                                     <div class="actions-dropdown">
-                                        <button class="dropdown-trigger" title="Acciones">
+                                        <button class="btn-icon" title="Acciones">
                                             <i class="fa-solid fa-ellipsis-vertical"></i>
                                         </button>
                                         <div class="dropdown-menu">
                                             <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                             </a>
-                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item dropdown-item-danger btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}
@@ -129,7 +129,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // ── Dropdown toggle ──
             document.addEventListener('click', function(e) {
-                const trigger = e.target.closest('.dropdown-trigger');
+                const trigger = e.target.closest('.actions-dropdown .btn-icon');
                 if (trigger) {
                     e.stopPropagation();
                     const menu = trigger.nextElementSibling;
