@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         errEl.textContent = mensaje;
         input.classList.add('input-error');
-        input.classList.remove('input-valid');
     }
 
     function limpiarError(input) {
@@ -26,7 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const errEl = grupo.querySelector('.validation-error');
         if (errEl) errEl.textContent = '';
         input.classList.remove('input-error');
-        input.classList.add('input-valid');
     }
 
     function tieneErrores(form) {
