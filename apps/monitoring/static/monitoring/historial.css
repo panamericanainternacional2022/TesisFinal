@@ -1,0 +1,96 @@
+/* ==========================================================================
+   historial.css — Historial de eventos del sistema
+   Estilos específicos del historial: panel lateral de filtros deslizante.
+   Los componentes globales (.notif-card, .hist-item-*, .pagination-container,
+   .sensor-badge.sensor-high/info) viven en components.css
+   ========================================================================== */
+
+/* ── Panel lateral de filtros (slide-in desde la derecha) ───────────────── */
+.filter-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 10, 10, 0.35);
+    backdrop-filter: blur(3px);
+    z-index: 1200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 280ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-overlay.open {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.filter-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 320px;
+    max-width: 90vw;
+    background: var(--color-surface);
+    border-left: var(--border-brutal);
+    box-shadow: -8px 0px 32px rgba(10, 10, 10, 0.15);
+    z-index: 1201;
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filter-panel.open { transform: translateX(0); }
+
+.filter-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--sp-3);
+    border-bottom: var(--border-brutal);
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-ink);
+    flex-shrink: 0;
+}
+
+.filter-panel-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--sp-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3);
+}
+
+.filter-panel-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-section-label {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-ink);
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--color-ink);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.filter-panel-footer {
+    padding: var(--sp-3);
+    border-top: var(--border-brutal);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+    .reportes-card { max-width: 100% !important; }
+    .filter-panel  { width: 100%; max-width: 100%; }
+}

@@ -1,0 +1,544 @@
+/* ==========================================================================
+   components.css — Swiss Typographic Grid
+   Componentes compartidos: tablas, búsqueda, modales, badges, notificaciones
+   Usado por: todos los templates con sidebar (lista_usuario, lista_edificios,
+              notificaciones, monitoreo, historial, umbrales, limites)
+   ========================================================================== */
+
+/* ── Contenedor de página ─────────────────────────────────────────────────── */
+.perfil-page {
+    padding: var(--sp-5) var(--sp-4) var(--sp-5);
+    display: flex;
+    justify-content: center;
+}
+
+.reportes-card {
+    background: transparent;
+    width: 100%;
+    max-width: 1400px;
+    padding: 0;
+}
+
+/* ── Encabezado de sección ────────────────────────────────────────────────── */
+.report-header {
+    margin-bottom: var(--sp-4);
+    padding-bottom: var(--sp-3);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.profile-title {
+    font-size: var(--text-2xl);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin: 0;
+    line-height: var(--leading-tight);
+}
+
+.profile-subtitle {
+    color: var(--color-text-secondary);
+    margin-top: 6px;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-normal);
+    letter-spacing: 0.01em;
+}
+
+/* ── Buscador ──────────────────────────────────────────────────────────────── */
+.search-container {
+    margin-bottom: var(--sp-3);
+    max-width: 360px;
+}
+
+.input-with-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon-inside {
+    position: absolute;
+    left: var(--sp-2);
+    color: var(--color-text-placeholder);
+    font-size: 0.8rem;
+    pointer-events: none;
+}
+
+.search-input {
+    padding: 0 var(--sp-2) 0 40px;
+}
+
+.search-input::placeholder {
+    color: var(--color-text-placeholder);
+}
+
+/* ── Wrapper de Tabla ─────────────────────────────────────────────────────── */
+.table-wrapper {
+    border: 2px solid var(--color-ink);
+    border-top: 6px solid var(--color-accent);
+    border-radius: 0px;
+    overflow: visible; /* visible: permite que los dropdowns de acción no sean recortados */
+    background: var(--color-surface);
+    box-shadow: var(--shadow-brutal);
+}
+
+.table-title-bar {
+    background: var(--color-bg);
+    color: var(--color-ink);
+    padding: 10px var(--sp-3);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-xs);
+    letter-spacing: var(--tracking-wide);
+    border-bottom: 2px solid var(--color-ink);
+}
+
+/* ── Tabla ─────────────────────────────────────────────────────────────────── */
+.report-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.report-table th {
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    padding: 10px var(--sp-3);
+    text-align: left;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    border-bottom: 2px solid var(--color-ink);
+    /* línea gruesa cabecera/cuerpo */
+}
+
+.report-table td {
+    padding: 13px var(--sp-3);
+    border-top: 1px solid var(--color-ink);
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+    white-space: normal;
+    word-break: break-word;
+}
+
+.report-table tbody tr:hover td {
+    background: var(--color-accent-bg);
+}
+
+/* ── Links dentro de celdas ───────────────────────────────────────────────── */
+.report-table td a {
+    color: var(--color-ink);
+    text-decoration: none;
+    font-weight: var(--weight-medium);
+    border-bottom: 1px solid var(--color-border);
+    transition: border-color var(--transition-fast);
+}
+
+.report-table td a:hover {
+    border-bottom-color: var(--color-ink);
+}
+
+
+
+/* ── Fila de acciones (bajo la tabla) ────────────────────────────────────── */
+.table-actions-row {
+    margin-top: var(--sp-3);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    flex-wrap: wrap;
+}
+
+.action-buttons-row {
+    margin-top: var(--sp-4);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-4);
+}
+
+/* ── Botones de Acción — estilo cuadrado Neo-brutalista ──────────────────────────── */
+
+
+/* ── Modal de selección ────────────────────────────────────────────────────── */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.45);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal-overlay.active {
+    display: flex;
+}
+
+.modal-box {
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    border-radius: 0px;
+    padding: var(--sp-3);
+    max-width: 480px;
+    width: 90%;
+    max-height: 72vh;
+    overflow-y: auto;
+}
+
+.modal-box h3 {
+    margin: 0 0 var(--sp-2);
+    color: var(--color-ink);
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+}
+
+.modal-close {
+    float: right;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: var(--color-text-secondary);
+    background: none;
+    border: none;
+    font-family: var(--font);
+    padding: 0;
+    transition: color var(--transition-fast);
+}
+
+.modal-close:hover {
+    color: var(--color-ink);
+}
+
+.modal-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.modal-list li {
+    border-bottom: 1px solid var(--color-border);
+}
+
+.modal-list li:last-child {
+    border-bottom: none;
+}
+
+.modal-list li a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-decoration: none;
+    color: inherit;
+    width: 100%;
+    padding: var(--sp-1) var(--sp-2);
+    transition: background var(--transition-fast);
+}
+
+.modal-list li a:hover {
+    background: var(--color-bg);
+}
+
+.modal-list li .item-name {
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+}
+
+.modal-list li .item-id {
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+}
+
+/* ── Notificaciones ────────────────────────────────────────────────────────── */
+.notif-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    border-radius: 0px;
+}
+
+.notif-count-badge {
+    display: none;
+    background: var(--state-critical);
+    color: var(--color-surface);
+    border-radius: var(--radius-badge);
+    padding: 2px 8px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    margin-left: var(--sp-2);
+    vertical-align: middle;
+}
+
+.notif-item {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    padding: var(--sp-2) var(--sp-3);
+    border-bottom: 2px solid var(--color-ink);
+    transition: background var(--transition-fast);
+}
+
+.notif-item:last-child {
+    border-bottom: none;
+}
+
+.notif-item:hover {
+    background: var(--color-bg);
+}
+
+.notif-icon {
+    width: 36px;
+    height: 36px;
+    border: 2px solid var(--color-ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--color-text-secondary);
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+
+.notif-body {
+    flex: 1;
+}
+
+.notif-body p {
+    margin: 0 0 4px;
+    color: var(--color-text-primary);
+    font-size: var(--text-base);
+    line-height: var(--leading-normal);
+}
+
+.notif-meta {
+    font-size: var(--text-xs);
+    color: var(--color-text-secondary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-2);
+}
+
+.no-notif,
+.no-data {
+    text-align: center;
+    padding: var(--sp-8) var(--sp-3);
+    color: var(--color-text-secondary);
+    border: 2px solid var(--color-ink);
+    background: var(--color-surface);
+    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    border-radius: 0px;
+}
+
+.no-notif i,
+.no-data i {
+    font-size: 2rem;
+    margin-bottom: var(--sp-2);
+    display: block;
+    color: var(--color-ink);
+}
+
+/* ── Sensor Badges (semáforos funcionales) ────────────────────────────────── */
+.sensor-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 0px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.03em;
+    border: 2px solid var(--color-ink);
+}
+
+.sensor-active {
+    background: var(--state-ok-bg);
+    color: var(--state-ok);
+}
+
+.sensor-warning {
+    background: var(--state-warn-bg);
+    color: var(--state-warn);
+}
+
+.sensor-critical {
+    background: var(--state-critical-bg);
+    color: var(--state-critical);
+}
+
+.sensor-inactive {
+    background: var(--state-inactive-bg);
+    color: var(--state-inactive);
+}
+
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .reportes-card {
+        padding: 0;
+    }
+
+    .profile-title {
+        font-size: var(--text-xl);
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .report-table {
+        min-width: 580px;
+    }
+}
+
+@media (max-width: 480px) {
+    .perfil-page {
+        padding: var(--sp-3) var(--sp-2);
+    }
+
+    .table-actions-row,
+    .action-buttons-row {
+        justify-content: flex-start;
+        gap: var(--sp-3);
+    }
+}
+
+/* ==========================================================================
+   COMPONENTES COMPARTIDOS — extraídos de inline styles (Fase 2)
+   ========================================================================== */
+
+/* ── Tarjeta contenedora (notificaciones, umbrales, límites) ────────────── */
+.notif-card {
+    background: var(--color-surface);
+    border: var(--border-brutal);
+    border-top: 6px solid var(--color-accent);
+    box-shadow: var(--shadow-brutal);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-top: var(--sp-3);
+}
+.notif-card .notif-list { border: none; box-shadow: none; }
+.notif-card .no-notif   { border: none; box-shadow: none; }
+
+/* ── Panel genérico (dashboard, configuración) ──────────────────────────── */
+.panel {
+    background: var(--color-surface);
+    border: var(--border-brutal);
+    box-shadow: var(--shadow-brutal);
+    padding: var(--sp-3);
+    margin-bottom: var(--sp-3);
+    border-radius: var(--radius);
+}
+
+.panel-title {
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-tight);
+    color: var(--color-ink);
+    margin-bottom: var(--sp-2);
+    padding-bottom: var(--sp-1);
+    border-bottom: var(--border-brutal);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel-title i { color: var(--color-ink); font-size: 0.9rem; }
+
+/* ── Sub-sección de panel (umbrales, límites, dashboard) ────────────────── */
+.panel-subsection-title {
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-secondary);
+    margin-bottom: var(--sp-2);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Badges de riesgo (sistema unificado) ────────────────────────────────── */
+/* Variantes de severidad sobre .sensor-badge base (definida arriba) */
+.sensor-badge.sensor-high {
+    background: var(--state-high-bg);
+    color: var(--state-high);
+    border-color: var(--state-high);
+}
+.sensor-badge.sensor-info {
+    background: var(--state-inactive-bg);
+    color: var(--state-inactive);
+    border-color: var(--state-inactive);
+}
+
+/* Badges tipo .badge (Dashboard) — unificados con sensor-badge */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    letter-spacing: 0.03em;
+    border: var(--border-brutal);
+    border-radius: var(--radius);
+}
+.badge-low  { background: var(--state-ok-bg);       color: var(--state-ok);       }
+.badge-med  { background: var(--state-warn-bg);     color: var(--state-warn);     }
+.badge-high { background: var(--state-high-bg);     color: var(--state-high);     }
+.badge-crit { background: var(--state-critical-bg); color: var(--state-critical); }
+.badge-info { background: var(--state-inactive-bg); color: var(--state-inactive); }
+
+/* ── Accent lateral por severidad en filas de lista ─────────────────────── */
+.hist-item-crítico { border-left: 4px solid var(--state-critical)  !important; }
+.hist-item-alto    { border-left: 4px solid var(--state-high)       !important; }
+.hist-item-medio   { border-left: 4px solid var(--state-warn)       !important; }
+.hist-item-bajo    { border-left: 4px solid var(--state-ok)         !important; }
+.hist-item-info    { border-left: 4px solid var(--state-inactive)   !important; }
+
+/* ── Paginación Neo-Brutalista ────────────────────────────────────────────── */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    margin-top: var(--sp-4);
+    flex-wrap: wrap;
+}
+
+.page-current-info {
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--color-ink);
+    padding: 8px var(--sp-2);
+    border: 2px solid transparent;
+}
+
+/* ── Alertas de sistema (sys-alert) ──────────────────────────────────────── */
+.sys-alert {
+    padding: var(--sp-1) var(--sp-2);
+    margin-bottom: var(--sp-2);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    display: flex;
+    align-items: center;
+    gap: var(--sp-1);
+    border: var(--border-brutal);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-brutal-sm);
+}
+.sys-alert-warn {
+    background: var(--state-warn-bg);
+    color: var(--state-warn);
+    border-color: var(--state-warn);
+}
+.sys-alert-crit {
+    background: var(--state-critical-bg);
+    color: var(--state-critical);
+    border-color: var(--state-critical);
+}
+
+/* ── Badges de dirección de umbral ──────────────────────────────────────── */
+.badge-dir-up    { color: var(--state-critical); font-weight: var(--weight-bold); font-size: var(--text-sm); }
+.badge-dir-down  { color: var(--state-high);     font-weight: var(--weight-bold); font-size: var(--text-sm); }
+.badge-dir-range { color: var(--state-inactive); font-weight: var(--weight-bold); font-size: var(--text-sm); }
