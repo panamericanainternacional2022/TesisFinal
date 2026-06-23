@@ -26,8 +26,8 @@
                     ${message}
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: var(--sp-2, 16px);">
-                    ${showCancel ? `<button id="customModalCancelBtn" style="background: none; border: 1px solid var(--color-ink, #0a0a0a); padding: 8px var(--sp-2, 16px); cursor: pointer; font-family: var(--font, sans-serif); font-size: var(--text-sm, 0.875rem); font-weight: var(--weight-medium, 500); border-radius: 0px !important;">Cancelar</button>` : ''}
-                    <button id="customModalConfirmBtn" style="background: var(--color-ink, #0a0a0a); color: var(--color-surface, #ffffff); border: 1px solid var(--color-ink, #0a0a0a); padding: 8px var(--sp-2, 16px); cursor: pointer; font-family: var(--font, sans-serif); font-size: var(--text-sm, 0.875rem); font-weight: var(--weight-medium, 500); border-radius: 0px !important;">Aceptar</button>
+                    ${showCancel ? `<button id="customModalCancelBtn" class="btn btn-secondary">Cancelar</button>` : ''}
+                    <button id="customModalConfirmBtn" class="btn btn-primary">Aceptar</button>
                 </div>
             `;
 
@@ -100,7 +100,7 @@
         toast.className = 'credentials-box toast-item';
         toast.style.cssText = 'pointer-events:auto;padding:15px;position:relative;border-radius:0;box-sizing:border-box;border:2px solid var(--color-ink);box-shadow:4px 4px 0px var(--color-ink);transform:translateX(120%);opacity:0;transition:transform 350ms cubic-bezier(0.4,0,0.2,1),opacity 350ms ease;' + itemStyle;
         const hasClose = type !== 'success';
-        toast.innerHTML = (hasClose ? '<button type="button" class="btn-icon" style="position:absolute;right:12px;top:12px;">&times;</button>' : '')
+        toast.innerHTML = (hasClose ? '<button type="button" class="btn-icon toast-close">&times;</button>' : '')
             + '<div class="toast-body-content" style="' + (hasClose ? 'padding-right:15px;' : 'padding-right:0;') + '">' + message + '</div>';
         container.appendChild(toast);
         requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });

@@ -1642,10 +1642,10 @@ function showDurationPicker() {
             </div>
             <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);">¿Por cuánto tiempo deseas desactivar las alertas?</p>
             <div id="durationGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-3);">
-                ${durations.map(d => `<button data-minutes="${d.value === null ? 'null' : d.value}" style="background:var(--color-surface);border:2px solid var(--color-ink);color:var(--color-ink);padding:12px 8px;font-family:var(--font);font-size:var(--text-sm);font-weight:var(--weight-bold);cursor:pointer;box-shadow:3px 3px 0px var(--color-ink);transition:all 120ms ease;border-radius:0 !important;">${d.label}</button>`).join('')}
+                ${durations.map(d => `<button class="btn btn-secondary" data-minutes="${d.value === null ? 'null' : d.value}">${d.label}</button>`).join('')}
             </div>
             <div style="display:flex;justify-content:flex-end;">
-                <button id="durationCancelBtn" style="background:none;border:1px solid var(--color-ink);padding:8px var(--sp-2);cursor:pointer;font-family:var(--font);font-size:var(--text-sm);font-weight:var(--weight-medium);border-radius:0px !important;">Cancelar</button>
+                <button id="durationCancelBtn" class="btn btn-secondary">Cancelar</button>
             </div>`;
         backdrop.appendChild(container);
         document.body.appendChild(backdrop);

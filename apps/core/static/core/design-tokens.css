@@ -282,6 +282,7 @@ body {
 /* ── Utility classes for buttons ──────────────────────────────────────── */
 .is-hidden { display: none !important; }
 .btn-flex { flex: 1; }
+.toast-close { position: absolute; right: 12px; top: 12px; }
 
 /* ── Botón icono compacto (32×32) ─────────────────────────────────────── */
 .btn-icon {
@@ -296,6 +297,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    text-decoration: none;
     font-size: 1rem;
     padding: 0;
     line-height: 1;
