@@ -421,6 +421,118 @@ body {
     cursor: pointer;
 }
 
+/* ── Custom Select (reemplazo de <select>) ─────────────────────────────── */
+.custom-select {
+    position: relative;
+    display: block;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 36px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 2px solid var(--color-ink);
+    border-radius: 0px;
+    background: var(--color-surface);
+    box-shadow: 3px 3px 0px var(--color-ink);
+    font-family: var(--font);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--color-text-primary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    letter-spacing: 0.01em;
+    box-sizing: border-box;
+    outline: none;
+}
+
+.custom-select-trigger:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
+}
+
+.custom-select-trigger.open {
+    border-color: var(--color-accent);
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
+}
+
+.custom-select-value {
+    flex: 1;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.custom-select-arrow {
+    font-size: 0.65rem;
+    color: var(--color-text-secondary);
+    transition: transform var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.custom-select-trigger.open .custom-select-arrow {
+    transform: rotate(180deg);
+}
+
+.custom-select-menu {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--color-surface);
+    border: 2px solid var(--color-ink);
+    box-shadow: 3px 3px 0px var(--color-ink);
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.custom-select-menu.open {
+    display: flex;
+}
+
+.custom-select-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: var(--text-sm);
+    font-family: var(--font);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-primary);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--color-border);
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background var(--transition-fast);
+    box-sizing: border-box;
+}
+
+.custom-select-item:last-child {
+    border-bottom: none;
+}
+
+.custom-select-item:hover {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+}
+
+.custom-select-item.selected {
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
+    font-weight: var(--weight-bold);
+}
+
 .form-input:focus,
 .form-select:focus,
 .search-input:focus {

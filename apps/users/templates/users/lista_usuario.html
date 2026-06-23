@@ -19,7 +19,7 @@
                     <input type="text" name="q" placeholder="Buscar por nombre o cédula" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
-                    <select name="edificio" onchange="this.form.submit()" class="form-select">
+                    <select name="edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for edf in edificios %}
                             <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
@@ -27,7 +27,7 @@
                     </select>
                 </div>
                 <div class="select-container" style="min-width: 200px;">
-                    <select name="estado" onchange="this.form.submit()" class="form-select">
+                    <select name="estado" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
                         <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
                         <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>

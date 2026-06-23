@@ -456,6 +456,27 @@ function updateEquipmentVisibility(equipTypes) {
     return true;
 }
 
+function _csSelect(el) {
+    return el && el._customSelect ? el._customSelect : null;
+}
+
+function _csSetValue(el, val) {
+    const cs = _csSelect(el);
+    if (cs) { cs.value = String(val); } else if (el) { el.value = val; }
+}
+
+function _csSetDisabled(el, disabled) {
+    const cs = _csSelect(el);
+    if (cs && cs.trigger) cs.trigger.disabled = disabled;
+    if (el) el.disabled = disabled;
+}
+
+function _csSetDisplay(el, display) {
+    const cs = _csSelect(el);
+    if (el) el.style.display = display;
+    if (cs && cs.wrapper) cs.wrapper.style.display = display;
+}
+
 function updateAdminControlsByEquipment(equipTypes) {
     if (!IS_ADMIN) return;
     const et = equipTypes || [];
@@ -464,30 +485,30 @@ function updateAdminControlsByEquipment(equipTypes) {
 
     const fp = document.getElementById('simFaultPump');
     const fe = document.getElementById('simFaultElevator');
-    if (fp) fp.disabled = !hasPump;
-    if (fe) fe.disabled = !hasElev;
+    _csSetDisabled(fp, !hasPump);
+    _csSetDisabled(fe, !hasElev);
 
     const eqSel = document.getElementById('manualEquipmentSelect');
     const eqStatic = document.getElementById('manualEquipmentStatic');
     if (!eqSel || !eqStatic) return;
 
     if (hasPump && hasElev) {
-        eqSel.style.display = '';
+        _csSetDisplay(eqSel, '');
         eqStatic.style.display = 'none';
     } else if (hasPump) {
-        eqSel.style.display = 'none';
+        _csSetDisplay(eqSel, 'none');
         eqStatic.style.display = 'block';
         eqStatic.textContent = 'Bomba de agua';
-        eqSel.value = 'pump';
+        _csSetValue(eqSel, 'pump');
         populateManualSensorSelect();
     } else if (hasElev) {
-        eqSel.style.display = 'none';
+        _csSetDisplay(eqSel, 'none');
         eqStatic.style.display = 'block';
         eqStatic.textContent = 'Elevador';
-        eqSel.value = 'elevator';
+        _csSetValue(eqSel, 'elevator');
         populateManualSensorSelect();
     } else {
-        eqSel.style.display = 'none';
+        _csSetDisplay(eqSel, 'none');
         eqStatic.style.display = 'block';
         eqStatic.textContent = '—';
     }
@@ -1473,8 +1494,8 @@ async function resetSim() {
             updatePauseBtn(false);
             const fp = document.getElementById('simFaultPump');
             const fe = document.getElementById('simFaultElevator');
-            if (fp) fp.value = '';
-            if (fe) fe.value = '';
+            _csSetValue(fp, '');
+            _csSetValue(fe, '');
         } else { setSimMessage(data.message, 'error'); }
     } catch (e) { setSimMessage('Error al reiniciar la simulación.', 'error'); }
 }
@@ -1939,8 +1960,8 @@ function setupAdminEvents() {
             });
             const fp = document.getElementById('simFaultPump');
             const fe = document.getElementById('simFaultElevator');
-            if (fp) fp.value = data.faults && data.faults.pump ? data.faults.pump : '';
-            if (fe) fe.value = data.faults && data.faults.elevator ? data.faults.elevator : '';
+            _csSetValue(fp, data.faults && data.faults.pump ? data.faults.pump : '');
+            _csSetValue(fe, data.faults && data.faults.elevator ? data.faults.elevator : '');
         }
     });
 

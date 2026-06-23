@@ -86,7 +86,7 @@
             <div class="form-row">
                 <div class="form-group half-width">
                     <label for="id_edificio">Elegir edificio</label>
-                    <select id="id_edificio" name="id_edificio" required class="form-select {% if form_errors.id_edificio %}input-error{% endif %}">
+                    <select id="id_edificio" name="id_edificio" required class="custom-select-init {% if form_errors.id_edificio %}input-error{% endif %}">
                         {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
                         {% for edificio in edificios %}
                             <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>

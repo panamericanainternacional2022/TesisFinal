@@ -19,7 +19,7 @@
                     <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
-                    <select name="equipamiento" onchange="this.form.submit()" class="form-select">
+                    <select name="equipamiento" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
                         <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
                         <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
