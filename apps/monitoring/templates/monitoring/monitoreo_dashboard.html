@@ -186,7 +186,7 @@
                             <option value="pump">Bomba de agua</option>
                             <option value="elevator">Elevador</option>
                         </select>
-                        <span id="manualEquipmentStatic" style="display:none; height:38px; padding:8px 12px; border:2px solid var(--color-ink); background:var(--color-surface); box-shadow:3px 3px 0px var(--color-ink); font-size:var(--text-sm); font-weight:var(--weight-bold); align-self:stretch; box-sizing:border-box;"></span>
+                        <span id="manualEquipmentStatic" class="input-static" style="display:none;"></span>
                     </div>
                     <div class="form-group flex-1">
                         <label class="form-label">Sensor</label>
@@ -229,8 +229,8 @@
         <div id="recommendationsPanel" class="panel mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Recomendaciones del sistema</h2>
             <div id="recommendationsContent" class="col-stack">
-                <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);" aria-hidden="true"></i>
+                <div class="status-banner">
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                     <span>Cargando recomendaciones...</span>
                 </div>
             </div>

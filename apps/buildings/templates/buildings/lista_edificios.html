@@ -15,8 +15,8 @@
         <div class="filter-row">
             <form method="get" action="" class="row-center m-0">
                 <label for="q-edificios" class="sr-only">Buscar edificios</label>
-                <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 240px;">
-                    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                <div class="input-with-icon search-input-filter">
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
                     <input type="text" id="q-edificios" name="q" placeholder="Buscar por nombre o RIF" aria-label="Buscar edificios por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container">

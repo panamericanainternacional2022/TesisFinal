@@ -15,7 +15,7 @@
         <div class="filter-row">
             <form method="get" action="" class="row-center m-0">
                 <label for="q-usuarios" class="sr-only">Buscar usuarios</label>
-                <div class="input-with-icon" style="max-width: 360px; flex: 1; min-width: 260px;">
+                <div class="input-with-icon search-input-filter">
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
                     <input type="text" id="q-usuarios" name="q" placeholder="Buscar por nombre o c&#233;dula" aria-label="Buscar usuarios por nombre o c&#233;dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
