@@ -63,7 +63,7 @@
 }
 
 .search-input {
-    padding: 10px var(--sp-2) 10px 40px;
+    padding: 0 var(--sp-2) 0 40px;
 }
 
 .search-input::placeholder {
