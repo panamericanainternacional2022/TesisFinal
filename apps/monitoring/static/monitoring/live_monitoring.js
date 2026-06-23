@@ -1455,10 +1455,10 @@ function updatePauseBtn(paused) {
     if (!btn) return;
     if (paused) {
         btn.innerHTML = '<i class="fas fa-play"></i> <span>Reanudar</span>';
-        btn.className = 'btn btn-secondary';
+        btn.className = 'btn btn-primary';
     } else {
         btn.innerHTML = '<i class="fas fa-pause"></i> <span>Pausar</span>';
-        btn.className = 'btn btn-ghost';
+        btn.className = 'btn btn-secondary';
     }
 }
 

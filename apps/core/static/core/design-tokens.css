@@ -209,7 +209,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 10px 16px;
+    height: 36px;
+    padding: 0 16px;
     border-radius: 0px !important;
     font-family: var(--font);
     font-size: var(--text-sm);
@@ -237,36 +238,33 @@ body {
 }
 
 /* Secundarios (Blancos) */
-.btn-secondary,
-.btn-ghost {
+.btn-secondary {
     background: var(--color-surface) !important;
     border: 2px solid var(--color-ink) !important;
     color: var(--color-ink) !important;
     box-shadow: 3px 3px 0px var(--color-ink) !important;
 }
 
-.btn-secondary:hover,
-.btn-ghost:hover {
+.btn-secondary:hover {
     background: var(--color-accent-bg) !important;
     color: var(--color-accent) !important;
-    border-color: var(--color-accent) !important;
     transform: translate(-2px, -2px) !important;
-    box-shadow: 5px 5px 0px var(--color-accent) !important;
+    box-shadow: 5px 5px 0px var(--color-ink) !important;
 }
 
 /* Críticos (Rojos) */
 .btn-critical {
     background: var(--color-surface) !important;
-    border: 2px solid var(--state-critical) !important;
+    border: 2px solid var(--color-ink) !important;
     color: var(--state-critical) !important;
-    box-shadow: 3px 3px 0px var(--state-critical) !important;
+    box-shadow: 3px 3px 0px var(--color-ink) !important;
 }
 
 .btn-critical:hover {
     background: var(--state-critical-bg) !important;
     color: var(--state-critical) !important;
     transform: translate(-2px, -2px) !important;
-    box-shadow: 5px 5px 0px var(--state-critical) !important;
+    box-shadow: 5px 5px 0px var(--color-ink) !important;
 }
 
 /* Deshabilitados */
@@ -274,11 +272,11 @@ body {
 .btn:disabled,
 .btn-secondary.disabled,
 .btn-icon.disabled {
-    opacity: 0.4 !important;
+    background: var(--color-bg) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text-secondary) !important;
     cursor: not-allowed !important;
     pointer-events: none !important;
-    box-shadow: none !important;
-    transform: none !important;
 }
 
 /* ── Utility classes for buttons ──────────────────────────────────────── */
@@ -289,6 +287,8 @@ body {
 .btn-icon {
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
+    border-radius: 0px;
+    box-sizing: border-box;
     color: var(--color-ink);
     width: 32px;
     height: 32px;
