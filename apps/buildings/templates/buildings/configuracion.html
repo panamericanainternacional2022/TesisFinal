@@ -129,15 +129,7 @@
                     const hasChanges = (currentUsername !== initialUsername || currentEmail !== initialEmail);
                     const hasErrors = profileForm.querySelectorAll('.input-error').length > 0;
 
-                    if (!hasChanges || hasErrors) {
-                        submitBtn.disabled = true;
-                        submitBtn.style.opacity = '0.5';
-                        submitBtn.style.cursor = 'not-allowed';
-                    } else {
-                        submitBtn.disabled = false;
-                        submitBtn.style.opacity = '1';
-                        submitBtn.style.cursor = 'pointer';
-                    }
+                    submitBtn.disabled = !hasChanges || hasErrors;
                 }
 
                 // Run check initially
@@ -169,15 +161,7 @@
                     const hasAllFields = (currentVal !== "" && newVal !== "" && confirmVal !== "");
                     const hasErrors = passwordForm.querySelectorAll('.input-error').length > 0;
 
-                    if (!hasAllFields || hasErrors) {
-                        passSubmitBtn.disabled = true;
-                        passSubmitBtn.style.opacity = '0.5';
-                        passSubmitBtn.style.cursor = 'not-allowed';
-                    } else {
-                        passSubmitBtn.disabled = false;
-                        passSubmitBtn.style.opacity = '1';
-                        passSubmitBtn.style.cursor = 'pointer';
-                    }
+                    passSubmitBtn.disabled = !hasAllFields || hasErrors;
                 }
 
                 // Run check initially

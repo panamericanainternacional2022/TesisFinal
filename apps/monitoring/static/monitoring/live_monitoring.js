@@ -1028,8 +1028,6 @@ function validateThresholdInputs() {
     const shouldDisable = hasError || !hasChanges;
     if (btn) {
         btn.disabled = shouldDisable;
-        btn.style.opacity = shouldDisable ? '0.5' : '1';
-        btn.style.cursor = shouldDisable ? 'not-allowed' : 'pointer';
     }
 }
 
@@ -1184,8 +1182,6 @@ function validateLimitInputs() {
     const shouldDisable = hasError || !hasChanges;
     if (btn) {
         btn.disabled = shouldDisable;
-        btn.style.opacity = shouldDisable ? '0.5' : '1';
-        btn.style.cursor = shouldDisable ? 'not-allowed' : 'pointer';
     }
 }
 
@@ -1407,10 +1403,7 @@ function validateManualInput() {
     }
 
     if (sendBtn) {
-        const disabled = empty || hasError;
-        sendBtn.disabled = disabled;
-        sendBtn.style.opacity = disabled ? '0.5' : '1';
-        sendBtn.style.cursor = disabled ? 'not-allowed' : 'pointer';
+        sendBtn.disabled = empty || hasError;
     }
 
     return { hasError, errorText, empty };
