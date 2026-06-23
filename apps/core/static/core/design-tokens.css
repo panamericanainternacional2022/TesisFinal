@@ -685,3 +685,19 @@ body {
     background: var(--color-surface) !important;
     box-shadow: 5px 5px 0px var(--state-critical-bg) !important;
 }
+
+/* ── Visually hidden (screen-reader only) ────────────────────────────────────
+   Oculta el elemento visualmente pero lo mantiene accesible para lectores de
+   pantalla. Usar en <label> cuando el placeholder no es suficiente como label.
+   ── */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

@@ -1,4 +1,4 @@
-﻿{% extends 'core/base_sidebar.html' %}
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Panel de control{% endblock %}
@@ -30,7 +30,7 @@
                 <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
             </span>
             {% else %}
-            <select id="buildingSelect" class="custom-select-init">
+            <select id="buildingSelect" aria-label="Seleccionar edificio activo" class="custom-select-init">
                 {% for ed in edificios %}
                 <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
                 {% endfor %}

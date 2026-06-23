@@ -34,7 +34,7 @@
             <div class="row-center">
                 <!-- Etiqueta + select de perÃ­odo -->
                 <span class="inline-label">Ver historial de:</span>
-                <select id="periodoSelect" name="periodo" class="custom-select-init">
+                <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
                     <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Ãšltimas 24 horas</option>
                     <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Ãšltima hora</option>
                     <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Ãšltimas 12 horas</option>
@@ -131,19 +131,19 @@
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
-            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></a>
-            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></a>
+            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="Primera p&#225;gina"><i class="fa-solid fa-angles-left"></i></a>
+            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior"><i class="fa-solid fa-angle-left"></i></a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Primera p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
         <span class="page-current-info">PÃ¡gina {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
-            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></a>
-            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></a>
+            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente"><i class="fa-solid fa-angle-right"></i></a>
+            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="&#218;ltima p&#225;gina"><i class="fa-solid fa-angles-right"></i></a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="&#218;ltima p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-right"></i></button>
         {% endif %}
     </div>
     {% endif %}
@@ -155,13 +155,13 @@
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
         <div class="row-sm"><i class="fa-solid fa-sliders" style="font-size:1.1rem;"></i><span>Filtros</span></div>
-        <button type="button" class="btn btn-icon" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="btn btn-icon" aria-label="Cerrar panel de filtros" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="filter-panel-body">
         {% if edificios|length > 1 %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-building"></i> Edificio</div>
-            <select id="panel-edificio" class="custom-select-init">
+            <select id="panel-edificio" aria-label="Filtrar por edificio" class="custom-select-init">
                 <option value="">Todos los edificios</option>
                 {% for edif in edificios %}
                 <option value="{{ edif.id }}" {% if selected_edificio_id == edif.id %}selected{% endif %}>{{ edif.name }}</option>
@@ -171,7 +171,7 @@
         {% endif %}
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation"></i> Severidad</div>
-            <select id="panel-severidad" class="custom-select-init">
+            <select id="panel-severidad" aria-label="Filtrar por severidad" class="custom-select-init">
                 <option value="">Todas las severidades</option>
                 {% for sev in ALL_SEVERITIES %}
                 <option value="{{ sev }}" {% if severidad == sev %}selected{% endif %}>{{ sev }}</option>
@@ -180,7 +180,7 @@
         </div>
         <div class="filter-panel-section">
             <div class="filter-section-label"><i class="fa-solid fa-gauge"></i> Variable</div>
-            <select id="panel-variable" class="custom-select-init">
+            <select id="panel-variable" aria-label="Filtrar por variable" class="custom-select-init">
                 <option value="">Todas las variables</option>
                 {% for var in all_variables %}
                 <option value="{{ var }}" {% if variable_filter == var %}selected{% endif %}>{{ var }}</option>

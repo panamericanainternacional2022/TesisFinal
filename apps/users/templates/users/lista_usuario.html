@@ -1,4 +1,4 @@
-﻿{% extends 'core/base_sidebar.html' %}
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Usuarios{% endblock %}
@@ -13,13 +13,14 @@
         <h1>Usuarios</h1>
         <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal tÃ©cnico.</p>
         <div class="filter-row">
-            <form class="filters-row" method="get" action="" class="row-center m-0">
+            <form method="get" action="" class="row-center m-0">
+                <label for="q-usuarios" class="sr-only">Buscar usuarios</label>
                 <div class="input-with-icon" style="max-width: 360px; flex: 1; min-width: 260px;">
-                    <i class="fa-solid fa-magnifying-glass search-icon-inside"></i>
-                    <input type="text" name="q" placeholder="Buscar por nombre o cÃ©dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
+                    <input type="text" id="q-usuarios" name="q" placeholder="Buscar por nombre o c&#233;dula" aria-label="Buscar usuarios por nombre o c&#233;dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
-                    <select name="edificio" onchange="this.form.submit()" class="custom-select-init">
+                    <select name="edificio" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for edf in edificios %}
                             <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
@@ -27,7 +28,7 @@
                     </select>
                 </div>
                 <div class="select-container" style="min-width: 200px;">
-                    <select name="estado" onchange="this.form.submit()" class="custom-select-init">
+                    <select name="estado" aria-label="Filtrar por estado" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
                         <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
                         <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
@@ -35,8 +36,8 @@
                 </div>
             </form>
             <div class="actions-dropdown">
-                <button type="button" id="userActionsToggle" class="btn btn-icon">
-                    <i class="fa-solid fa-ellipsis-vertical"></i>
+                <button type="button" id="userActionsToggle" class="btn btn-icon" aria-label="M&#225;s acciones" aria-haspopup="true" aria-expanded="false">
+                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                 </button>
                 <div class="dropdown-menu" id="userActionsMenu">
                     {% url 'user_create' as registro_url %}

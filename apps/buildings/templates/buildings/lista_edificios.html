@@ -1,4 +1,4 @@
-﻿{% extends 'core/base_sidebar.html' %}
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Edificios{% endblock %}
@@ -13,13 +13,14 @@
         <h1>Edificios</h1>
         <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y mantÃ©nlos siempre actualizados.</p>
         <div class="filter-row">
-            <form class="filters-row" method="get" action="" class="row-center m-0">
+            <form method="get" action="" class="row-center m-0">
+                <label for="q-edificios" class="sr-only">Buscar edificios</label>
                 <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 240px;">
-                    <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
-                    <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
+                    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true" style="color: #94a3b8; font-size: 0.9rem;"></i>
+                    <input type="text" id="q-edificios" name="q" placeholder="Buscar por nombre o RIF" aria-label="Buscar edificios por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container" style="min-width: 220px;">
-                    <select name="equipamiento" onchange="this.form.submit()" class="custom-select-init">
+                    <select name="equipamiento" aria-label="Filtrar por equipamiento" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
                         <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
                         <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
@@ -62,8 +63,8 @@
                                 <td title="{{ building.address }}">{{ building.address }}</td>
                                 <td>
                                     <div class="actions-dropdown">
-                                        <button type="button" class="btn btn-icon" title="Acciones">
-                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        <button type="button" class="btn btn-icon" aria-label="Acciones para {{ building.name }}" aria-haspopup="true" aria-expanded="false" title="Acciones">
+                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                                         </button>
                                         <div class="dropdown-menu">
                                             <a href="{% url 'edit_building' building.id %}" class="dropdown-item">

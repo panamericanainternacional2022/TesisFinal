@@ -1,4 +1,4 @@
-﻿{% extends 'core/base_sidebar.html' %}
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Alertas{% endblock %}
@@ -23,7 +23,7 @@
             {% if buildings|length > 1 %}
             <form method="GET" action="" class="row-center m-0">
                 <div class="row-sm">
-                    <select name="edificio" id="edificio-filter" onchange="this.form.submit()" class="custom-select-init">
+                    <select name="edificio" id="edificio-filter" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for building in buildings %}
                         <option value="{{ building.id }}" {% if selected_building_id == building.id %}selected{% endif %}>
@@ -121,8 +121,8 @@
                 <i class="fa-solid fa-angle-left"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Primera página" aria-disabled="true"><i class="fa-solid fa-angles-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Página anterior" aria-disabled="true"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
 
         <span class="page-current-info">
@@ -137,8 +137,8 @@
                 <i class="fa-solid fa-angles-right"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Página siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Última página" aria-disabled="true"><i class="fa-solid fa-angles-right"></i></button>
         {% endif %}
     </div>
     {% endif %}
