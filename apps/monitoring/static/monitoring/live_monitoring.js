@@ -1695,7 +1695,7 @@ async function reEnableAlerts() {
     if (!btn) return;
     btn.dataset.enabled = 'true';
     btn.dataset.disabledUntilMs = '';
-    btn.className = 'btn-alerts-toggle enabled';
+    btn.className = 'btn btn-primary';
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
     await csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) });
     await window.showAlert('Alertas reactivadas.', 'success');
@@ -1711,7 +1711,7 @@ function initLiveNotifications() {
                 if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
                 toggleBtn.dataset.enabled = 'true';
                 toggleBtn.dataset.disabledUntilMs = '';
-                toggleBtn.className = 'btn-alerts-toggle enabled';
+                toggleBtn.className = 'btn btn-primary';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
                 await csrfFetch('/notifications/toggle-alerts/', { method: 'POST', body: JSON.stringify({ enabled: true }) });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
@@ -1720,7 +1720,7 @@ function initLiveNotifications() {
                 const minutes = await showDurationPicker();
                 if (minutes === undefined) return;
                 toggleBtn.dataset.enabled = 'false';
-                toggleBtn.className = 'btn-alerts-toggle disabled';
+                toggleBtn.className = 'btn btn-secondary';
                 if (minutes !== null) {
                     const untilMs = Date.now() + minutes * 60 * 1000;
                     toggleBtn.dataset.disabledUntilMs = untilMs;
@@ -1746,7 +1746,7 @@ function initLiveNotifications() {
             const isCurrentlyEnabled = emailToggleBtn.dataset.enabled === 'true';
             const newEnabled = !isCurrentlyEnabled;
             emailToggleBtn.dataset.enabled = newEnabled ? 'true' : 'false';
-            emailToggleBtn.className = newEnabled ? 'btn-alerts-toggle enabled' : 'btn-alerts-toggle disabled';
+            emailToggleBtn.className = newEnabled ? 'btn btn-primary' : 'btn btn-secondary';
             emailToggleBtn.innerHTML = newEnabled
                 ? '<i class="fa-solid fa-envelope"></i> Desactivar correos'
                 : '<i class="fa-solid fa-envelope"></i> Activar correos';
@@ -1983,18 +1983,17 @@ window.addEventListener('DOMContentLoaded', () => {
         const toggleBtn = document.getElementById('toggleAlertsBtn');
         if (toggleBtn) {
             toggleBtn.disabled = false;
-            toggleBtn.style.opacity = '1';
             toggleBtn.classList.remove('is-hidden');
             const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
-                toggleBtn.className = 'btn-alerts-toggle enabled';
+                toggleBtn.className = 'btn btn-primary';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
             } else if (disabledUntilMs && disabledUntilMs > Date.now()) {
-                toggleBtn.className = 'btn-alerts-toggle disabled';
+                toggleBtn.className = 'btn btn-secondary';
                 startAlertCountdown(disabledUntilMs);
             } else {
-                toggleBtn.className = 'btn-alerts-toggle disabled';
+                toggleBtn.className = 'btn btn-secondary';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
             }
         }
@@ -2002,14 +2001,13 @@ window.addEventListener('DOMContentLoaded', () => {
         const emailToggleBtn = document.getElementById('toggleEmailAlertsBtn');
         if (emailToggleBtn) {
             emailToggleBtn.disabled = false;
-            emailToggleBtn.style.opacity = '1';
             emailToggleBtn.classList.remove('is-hidden');
             const emailEnabled = emailToggleBtn.dataset.enabled === 'true';
             if (emailEnabled) {
-                emailToggleBtn.className = 'btn-alerts-toggle enabled';
+                emailToggleBtn.className = 'btn btn-primary';
                 emailToggleBtn.innerHTML = '<i class="fa-solid fa-envelope"></i> Desactivar correos';
             } else {
-                emailToggleBtn.className = 'btn-alerts-toggle disabled';
+                emailToggleBtn.className = 'btn btn-secondary';
                 emailToggleBtn.innerHTML = '<i class="fa-solid fa-envelope-slash"></i> Activar correos';
             }
         }

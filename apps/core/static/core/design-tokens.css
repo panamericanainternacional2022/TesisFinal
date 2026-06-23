@@ -269,17 +269,6 @@ body {
     box-shadow: 5px 5px 0px var(--state-critical) !important;
 }
 
-/* Clases utilitarias compactas (para filtros y barras secundarias) */
-.btn-sm {
-    padding: 6px 12px !important;
-    font-size: var(--text-xs) !important;
-    box-shadow: 3px 3px 0px var(--color-ink) !important;
-}
-.btn-sm:hover {
-    transform: translate(-1px, -1px) !important;
-    box-shadow: 4px 4px 0px var(--color-ink) !important;
-}
-
 /* Deshabilitados */
 .btn.disabled,
 .btn:disabled,
@@ -293,7 +282,6 @@ body {
 
 /* ── Utility classes for buttons ──────────────────────────────────────── */
 .is-hidden { display: none !important; }
-.btn-min-width { min-width: 120px; }
 .btn-flex { flex: 1; }
 
 /* ── Toast close button ───────────────────────────────────────────────── */
@@ -414,53 +402,6 @@ body {
     background: var(--color-accent-bg);
     color: var(--color-accent);
     font-weight: 800;
-}
-
-/* ── Botón toggle de alertas ──────────────────────────────────────────── */
-.btn-alerts-toggle {
-    background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    color: var(--color-ink);
-    border-radius: 0px;
-    font-family: var(--font);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
-    padding: 6px 12px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all var(--transition-fast);
-    letter-spacing: 0.01em;
-    box-shadow: 3px 3px 0px var(--color-ink);
-    margin-top: 0;
-}
-.btn-alerts-toggle:hover {
-    transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px rgba(10, 10, 10, 0.25);
-}
-.btn-alerts-toggle.enabled {
-    background: var(--state-ok-bg);
-    color: var(--state-ok);
-    border-color: var(--state-ok);
-    box-shadow: 3px 3px 0px var(--state-ok);
-}
-.btn-alerts-toggle.enabled:hover {
-    background: var(--state-ok);
-    color: var(--color-surface);
-    box-shadow: 5px 5px 0px var(--state-ok);
-}
-.btn-alerts-toggle.disabled {
-    background: var(--state-warn-bg);
-    color: var(--state-warn);
-    border-color: var(--state-warn);
-    box-shadow: 3px 3px 0px var(--state-warn);
-}
-.btn-alerts-toggle.disabled:hover {
-    background: var(--state-warn);
-    color: var(--color-surface);
-    box-shadow: 5px 5px 0px var(--state-warn);
 }
 
 /* ── Cerrar panel de filtros ──────────────────────────────────────────── */

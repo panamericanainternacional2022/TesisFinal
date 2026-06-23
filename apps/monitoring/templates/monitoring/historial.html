@@ -89,7 +89,7 @@
                 </select>
                 
                 {% if periodo_seleccionado == 'custom' %}
-                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary btn-sm">
+                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary ">
                     <i class="fa-solid fa-calendar-days"></i> Editar fechas
                 </button>
                 {% endif %}
@@ -98,7 +98,7 @@
                 <div style="width:1px; height:28px; background: var(--color-ink); opacity:0.15; margin: 0 2px;"></div>
 
                 <!-- Filtrar (panel lateral) -->
-                <button id="openFilterPanel" type="button" class="btn btn-primary btn-sm">
+                <button id="openFilterPanel" type="button" class="btn btn-primary ">
                     <i class="fa-solid fa-sliders"></i> Filtrar
                     {% if severidad or variable_filter or selected_edificio_id %}
                     <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--state-warn);"></span>
@@ -108,7 +108,7 @@
                 <!-- Descargar PDF -->
                 <a id="pdfDownloadBtn"
                    href="{% url 'history_pdf' %}?{{ filter_query_string }}"
-                   class="btn btn-secondary btn-sm"
+                   class="btn btn-secondary "
                    title="Descargar PDF con los filtros actuales">
                     <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                 </a>
@@ -274,10 +274,10 @@
 
         <!-- Botones -->
         <div style="display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-3);">
-            <button id="cancelCustomDate" type="button" class="btn btn-secondary btn-sm">
+            <button id="cancelCustomDate" type="button" class="btn btn-secondary ">
                 Cancelar
             </button>
-            <button id="applyCustomDate" type="button" class="btn btn-primary btn-sm" disabled>
+            <button id="applyCustomDate" type="button" class="btn btn-primary " disabled>
                 <i class="fa-solid fa-magnifying-glass"></i> Ver historial
             </button>
         </div>
