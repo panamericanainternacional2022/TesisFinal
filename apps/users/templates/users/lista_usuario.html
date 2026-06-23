@@ -47,7 +47,7 @@
                     <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="dropdown-item">
                         <i class="fa-solid fa-file-pdf"></i> Descargar PDF
                     </a>
-                    <button class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
+                    <button type="button" class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
                         <i class="fa-solid fa-paper-plane"></i> Enviar a todos
                     </button>
                     {% endif %}
@@ -80,7 +80,7 @@
                                 <td>{{ usuario.email|default:'—' }}</td>
                                 <td>
                                     <div class="actions-dropdown">
-                                        <button class="btn-icon" title="Acciones">
+                                        <button type="button" class="btn-icon" title="Acciones">
                                             <i class="fa-solid fa-ellipsis-vertical"></i>
                                         </button>
                                         <div class="dropdown-menu">
@@ -91,7 +91,7 @@
                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}
-                                            <button class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
+                                            <button type="button" class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
                                                 <i class="fa-solid fa-paper-plane"></i> Enviar correo
                                             </button>
                                             {% endif %}

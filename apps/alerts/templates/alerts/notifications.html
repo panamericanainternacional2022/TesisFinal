@@ -80,15 +80,15 @@
             {% endif %}
             
             <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
-                <button id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}">
+                <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}">
                     <!-- Rendered by JS on DOMContentLoaded -->
                 </button>
                 {% if rol != 'SA' %}
-                <button id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
+                <button type="button" id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
                     <!-- Rendered by JS on DOMContentLoaded -->
                 </button>
                 {% endif %}
-                <button id="clearDbNotificationsBtn" class="btn btn-critical">
+                <button type="button" id="clearDbNotificationsBtn" class="btn btn-critical">
                     <i class="fa-solid fa-trash-can"></i> Limpiar alertas
                 </button>
             </div>
