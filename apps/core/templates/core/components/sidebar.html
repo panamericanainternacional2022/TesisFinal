@@ -31,27 +31,6 @@
 })();
 </script>
 <aside class="sidebar" id="sidebar">
-    <style>
-        /* Badge de notificaciones: inline, alineado al texto "Notificaciones"
-           La visibilidad la controla setNotificationBadge() en live_monitoring.js
-           mediante badge.style.display = 'inline-flex' / 'none'  */
-        .sidebar-notif-badge {
-            display: none;              /* oculto por defecto */
-            align-items: center;
-            justify-content: center;
-            min-width: 18px;
-            height: 18px;
-            padding: 0 5px;
-            background: var(--state-critical, #991b1b);
-            color: var(--color-surface, #ffffff);
-            font-size: 0.7rem;
-            font-weight: var(--weight-bold, 700);
-            line-height: 1;
-            border-radius: 0;           /* cuadrado, coherente con el diseño */
-            flex-shrink: 0;
-            vertical-align: middle;
-        }
-    </style>
     <div class="sidebar-header">
         <span class="sidebar-logo">INES</span>
         <span class="sidebar-system-name">Sistema inteligente de automatización</span>

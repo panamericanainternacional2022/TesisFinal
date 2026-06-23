@@ -190,3 +190,55 @@
     }
 
 }
+
+/* ==========================================================================
+   VARIANTES Y COMPONENTES EXTRA — extraídos de inline styles (Fase 3)
+   ========================================================================== */
+
+/* ── Tarjeta ancha: formularios de administración (configuración, edificios) */
+.perfil-card--wide,
+.config-card {
+    max-width: 1400px;
+}
+
+/* ── Selector de equipos (registro_edificio.html) ───────────────────────── */
+.equipment-grid {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.equip-card {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 16px;
+    border: var(--border-brutal);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    cursor: pointer;
+    box-shadow: 3px 3px 0px var(--color-ink);
+    transition: all var(--transition-fast);
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.equip-card:hover {
+    border-color: var(--color-accent);
+    background: var(--color-accent-bg);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px var(--color-accent);
+}
+
+.equip-card.equip-active {
+    border-color: var(--color-accent);
+    background: var(--color-accent-bg);
+    box-shadow: 4px 4px 0px var(--color-accent);
+}
+
+.equip-label {
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    color: var(--color-ink);
+}

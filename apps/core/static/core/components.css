@@ -542,3 +542,24 @@
 .badge-dir-up    { color: var(--state-critical); font-weight: var(--weight-bold); font-size: var(--text-sm); }
 .badge-dir-down  { color: var(--state-high);     font-weight: var(--weight-bold); font-size: var(--text-sm); }
 .badge-dir-range { color: var(--state-inactive); font-weight: var(--weight-bold); font-size: var(--text-sm); }
+
+/* ── Badge de notificaciones del sidebar ─────────────────────────────────────
+   Visibilidad controlada dinámicamente por setNotificationBadge() en
+   live_monitoring.js via badge.style.display = 'inline-flex' | 'none'
+   ── */
+.sidebar-notif-badge {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--state-critical);
+    color: var(--color-surface);
+    font-size: 0.7rem;
+    font-weight: var(--weight-bold);
+    line-height: 1;
+    border-radius: var(--radius);
+    flex-shrink: 0;
+    vertical-align: middle;
+}
