@@ -78,6 +78,10 @@ class CustomSelect {
                 this._hiddenInput.value = opt.value;
             }
 
+            if (opt.disabled) {
+                item.disabled = true;
+            }
+
             this.menu.appendChild(item);
             this._items.push(item);
         });
@@ -92,6 +96,7 @@ class CustomSelect {
 
         this._items.forEach((item) => {
             item.addEventListener('click', (e) => {
+                if (item.disabled) return;
                 e.stopPropagation();
                 this._selectItem(item);
                 this.close();
@@ -112,14 +117,20 @@ class CustomSelect {
                 case 'ArrowDown':
                     e.preventDefault();
                     newIndex = Math.min(currentIndex + 1, this._items.length - 1);
+                    while (newIndex < this._items.length - 1 && this._items[newIndex].disabled) {
+                        newIndex++;
+                    }
                     break;
                 case 'ArrowUp':
                     e.preventDefault();
                     newIndex = Math.max(currentIndex - 1, 0);
+                    while (newIndex > 0 && this._items[newIndex].disabled) {
+                        newIndex--;
+                    }
                     break;
                 case 'Enter':
                     e.preventDefault();
-                    if (currentIndex >= 0) {
+                    if (currentIndex >= 0 && !this._items[currentIndex].disabled) {
                         this._selectItem(this._items[currentIndex]);
                         this.close();
                     }
@@ -207,6 +218,7 @@ class CustomSelect {
     _rebindItems() {
         this._items.forEach((item) => {
             item.addEventListener('click', (e) => {
+                if (item.disabled) return;
                 e.stopPropagation();
                 this._selectItem(item);
                 this.close();

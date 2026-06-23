@@ -100,7 +100,7 @@
         toast.className = 'credentials-box toast-item';
         toast.style.cssText = 'pointer-events:auto;padding:15px;position:relative;border-radius:0;box-sizing:border-box;border:2px solid var(--color-ink);box-shadow:4px 4px 0px var(--color-ink);transform:translateX(120%);opacity:0;transition:transform 350ms cubic-bezier(0.4,0,0.2,1),opacity 350ms ease;' + itemStyle;
         const hasClose = type !== 'success';
-        toast.innerHTML = (hasClose ? '<button type="button" class="btn-icon toast-close">&times;</button>' : '')
+        toast.innerHTML = (hasClose ? '<button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark"></i></button>' : '')
             + '<div class="toast-body-content" style="' + (hasClose ? 'padding-right:15px;' : 'padding-right:0;') + '">' + message + '</div>';
         container.appendChild(toast);
         requestAnimationFrame(function() { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });

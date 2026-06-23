@@ -175,19 +175,19 @@
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
-            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-icon"><i class="fa-solid fa-angles-left"></i></a>
-            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-icon"><i class="fa-solid fa-angle-left"></i></a>
+            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></a>
+            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></a>
         {% else %}
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
         <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
-            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-icon"><i class="fa-solid fa-angle-right"></i></a>
-            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn-icon"><i class="fa-solid fa-angles-right"></i></a>
+            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></a>
+            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></a>
         {% else %}
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></button>
         {% endif %}
     </div>
     {% endif %}
@@ -199,7 +199,7 @@
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
         <div style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-sliders" style="font-size:1.1rem;"></i><span>Filtros</span></div>
-        <button type="button" class="btn-icon" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark"></i></button>
+        <button type="button" class="btn btn-icon" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="filter-panel-body">
         {% if edificios|length > 1 %}
@@ -270,7 +270,7 @@
         </div>
 
         <!-- Botones -->
-        <div style="display:flex; justify-content:flex-end; gap:var(--sp-2); margin-top:var(--sp-3);">
+        <div class="flex justify-end gap-2" style="margin-top:var(--sp-3);">
             <button id="cancelCustomDate" type="button" class="btn btn-secondary">
                 Cancelar
             </button>

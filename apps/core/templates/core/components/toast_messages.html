@@ -19,7 +19,7 @@
                     {% endif %}
                  ">
                 {% if message.tags != 'success' %}
-                <button type="button" class="btn-icon toast-close">&times;</button>
+                <button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark"></i></button>
                 {% endif %}
                 <div class="toast-body-content" style="{% if message.tags == 'success' %}padding-right: 0;{% else %}padding-right: 15px;{% endif %}">
                     {{ message.message|safe }}

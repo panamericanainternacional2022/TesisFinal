@@ -79,7 +79,7 @@
             <div></div>
             {% endif %}
             
-            <div style="display: flex; align-items: center; gap: var(--sp-2); margin-top: 0;">
+            <div class="flex items-center gap-2">
                 <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}">
                     <!-- Rendered by JS on DOMContentLoaded -->
                 </button>
@@ -156,15 +156,15 @@
     {% if notifications.has_other_pages %}
     <div class="pagination-container">
         {% if notifications.has_previous %}
-            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-icon" title="Primera página">
+            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Primera página">
                 <i class="fa-solid fa-angles-left"></i>
             </a>
-            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-icon" title="Anterior">
+            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Anterior">
                 <i class="fa-solid fa-angle-left"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
 
         <span class="page-current-info">
@@ -172,15 +172,15 @@
         </span>
 
         {% if notifications.has_next %}
-            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-icon" title="Siguiente">
+            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Siguiente">
                 <i class="fa-solid fa-angle-right"></i>
             </a>
-            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn-icon" title="Última página">
+            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Última página">
                 <i class="fa-solid fa-angles-right"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn-icon"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></button>
+            <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></button>
         {% endif %}
     </div>
     {% endif %}

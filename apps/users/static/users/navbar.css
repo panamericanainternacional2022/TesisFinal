@@ -71,3 +71,8 @@
     color: var(--color-ink);
     border-bottom-color: var(--color-ink);
 }
+
+.ines-header-link.active {
+    color: var(--color-ink);
+    border-bottom-color: var(--color-ink);
+}

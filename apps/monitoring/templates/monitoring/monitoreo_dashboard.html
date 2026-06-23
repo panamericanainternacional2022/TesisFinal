@@ -451,11 +451,11 @@
                     </div>
                     <div class="form-group">
                         <label class="form-label">Velocidad</label>
-                        <div class="speed-group">
-                            <button type="button" class="speed-btn" data-speed="0.5">0.5x</button>
-                            <button type="button" class="speed-btn active" data-speed="1.0">1.0x</button>
-                            <button type="button" class="speed-btn" data-speed="1.5">1.5x</button>
-                            <button type="button" class="speed-btn" data-speed="2.0">2.0x</button>
+                        <div class="flex">
+                            <button type="button" class="btn btn-secondary" data-speed="0.5">0.5x</button>
+                            <button type="button" class="btn btn-primary" data-speed="1.0">1.0x</button>
+                            <button type="button" class="btn btn-secondary" data-speed="1.5">1.5x</button>
+                            <button type="button" class="btn btn-secondary" data-speed="2.0">2.0x</button>
                         </div>
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
@@ -476,7 +476,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div style="align-self:flex-end;">
+                    <div class="self-end">
                         <button type="button" id="simResetBtn" class="btn btn-critical">
                             <i class="fas fa-rotate-left"></i> Reiniciar
                         </button>
@@ -508,7 +508,7 @@
                                placeholder="Ej: 42.5">
                         <select id="manualValueSelect" class="custom-select-init"></select>
                     </div>
-                    <div style="align-self:flex-end;">
+                    <div class="self-end">
                         <button type="button" id="sendManualBtn" class="btn btn-primary">
                             <i class="fas fa-paper-plane"></i> Enviar
                         </button>

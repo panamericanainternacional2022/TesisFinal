@@ -623,11 +623,13 @@ function applyPayload(data) {
     if (IS_ADMIN) {
         if (data.sim_paused !== undefined) updatePauseBtn(data.sim_paused);
         if (data.sim_speed !== undefined) {
-            document.querySelectorAll('.speed-btn').forEach(btn => {
+            document.querySelectorAll('[data-speed]').forEach(btn => {
                 if (parseFloat(btn.dataset.speed) === data.sim_speed) {
-                    btn.classList.add('active');
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
                 } else {
-                    btn.classList.remove('active');
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-secondary');
                 }
             });
         }
@@ -635,7 +637,7 @@ function applyPayload(data) {
         const simSpd = document.getElementById('simSpeedDisplay');
         if (simSpd) {
             const isPaused = data.sim_paused !== undefined ? data.sim_paused : document.getElementById('simPauseBtn')?.querySelector('i.fa-play') !== null;
-            const speed = data.sim_speed !== undefined ? data.sim_speed : parseFloat(document.querySelector('.speed-btn.active')?.dataset.speed || 1.0);
+            const speed = data.sim_speed !== undefined ? data.sim_speed : parseFloat(document.querySelector('[data-speed].btn-primary')?.dataset.speed || 1.0);
 
             if (isPaused) {
                 simSpd.textContent = 'Pausada';
@@ -1529,11 +1531,13 @@ async function injectFault(device) {
 async function setSpeed(speed) {
     if (!EDIFICIO_ID) return;
 
-    document.querySelectorAll('.speed-btn').forEach(btn => {
+    document.querySelectorAll('[data-speed]').forEach(btn => {
         if (parseFloat(btn.dataset.speed) === speed) {
-            btn.classList.add('active');
+            btn.classList.remove('btn-secondary');
+            btn.classList.add('btn-primary');
         } else {
-            btn.classList.remove('active');
+            btn.classList.remove('btn-primary');
+            btn.classList.add('btn-secondary');
         }
     });
 
@@ -1891,7 +1895,7 @@ function setupAdminEvents() {
     if (faultPump) faultPump.addEventListener('change', () => injectFault('pump'));
     if (faultElev) faultElev.addEventListener('change', () => injectFault('elevator'));
 
-    document.querySelectorAll('.speed-btn').forEach(btn => {
+    document.querySelectorAll('[data-speed]').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const speed = parseFloat(e.target.dataset.speed);
             setSpeed(speed);
@@ -1957,11 +1961,13 @@ function setupAdminEvents() {
     fetchSimStatus().then(data => {
         if (data) {
             updatePauseBtn(data.paused);
-            document.querySelectorAll('.speed-btn').forEach(btn => {
+            document.querySelectorAll('[data-speed]').forEach(btn => {
                 if (parseFloat(btn.dataset.speed) === data.speed) {
-                    btn.classList.add('active');
+                    btn.classList.remove('btn-secondary');
+                    btn.classList.add('btn-primary');
                 } else {
-                    btn.classList.remove('active');
+                    btn.classList.remove('btn-primary');
+                    btn.classList.add('btn-secondary');
                 }
             });
             const fp = document.getElementById('simFaultPump');
