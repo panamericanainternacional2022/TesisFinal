@@ -270,7 +270,6 @@ body {
 /* Deshabilitados */
 .btn.disabled,
 .btn:disabled,
-.btn-secondary.disabled,
 .btn-icon.disabled {
     background: var(--color-bg) !important;
     border-color: var(--color-border) !important;
