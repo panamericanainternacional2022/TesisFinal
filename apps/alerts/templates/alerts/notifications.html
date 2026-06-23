@@ -10,19 +10,19 @@
 {% block content %}
 <div class="reportes-card">
     <div class="admin-info">
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; width: 100%;">
-            <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-                <h1 style="margin:0;">Alertas</h1>
+        <div class="row-between">
+            <div class="row-start">
+                <h1 class="m-0">Alertas</h1>
                 <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
             </div>
         </div>
-        <p style="margin-top: 6px;">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+        <p class="mt-1">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
         {% if buildings %}
         <!-- Filtro de Edificio y BotÃ³n Limpiar -->
         <div style="margin-top: var(--sp-2); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
             {% if buildings|length > 1 %}
-            <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
-                <div style="display: flex; align-items: center; gap: 8px;">
+            <form method="GET" action="" class="row-center m-0">
+                <div class="row-sm">
                     <select name="edificio" id="edificio-filter" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for building in buildings %}
@@ -63,18 +63,18 @@
             <li class="notif-item hist-item-{{ notif.parsed_data.risk|lower|default:'info' }}">
                 <div class="notif-body">
                     {% if notif.parsed_data.parsed %}
-                        <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+                        <div class="row-center mb-1">
                             <span class="sensor-badge
                                 {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
                                 {% else %}sensor-high{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
                             {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
-                            <span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">
+                            <span class="code-badge">
                                 {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                             </span>
                             {% endif %}
-                            <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">
+                            <span class="value-bold">
                                 {{ notif.parsed_data.variable }}
                             </span>
                         </div>

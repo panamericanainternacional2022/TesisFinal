@@ -13,16 +13,16 @@
 <div class="reportes-card">
     <!-- â”€â”€ Cabecera â”€â”€ -->
     <div class="admin-info">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <h1 style="margin:0;">Historial</h1>
-            <span class="notif-count-badge" style="background: var(--color-ink); color: var(--color-surface); font-size: var(--text-xs); font-weight: var(--weight-bold); padding: 2px 10px; border: 2px solid var(--color-ink);">
+        <div class="row-start">
+            <h1 class="m-0">Historial</h1>
+            <span class="notif-count-badge" class="count-badge">
                 {{ total_count }}
             </span>
         </div>
-        <p style="margin-top:6px;">Registro cronolÃ³gico de todos los eventos del sistema. Filtra por severidad, variable o perÃ­odo para analizar el comportamiento de los sensores.</p>
+        <p class="mt-1">Registro cronolÃ³gico de todos los eventos del sistema. Filtra por severidad, variable o perÃ­odo para analizar el comportamiento de los sensores.</p>
         {% if edificios %}
         <!-- â”€â”€ Barra de controles â”€â”€ -->
-        <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-2);">
+        <form method="GET" action="" id="historialFilterForm" class="mt-2">
             <!-- Inputs ocultos -->
             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
             <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
@@ -31,9 +31,9 @@
             <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
 
             <!-- Fila Ãºnica de controles -->
-            <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center;">
+            <div class="row-center">
                 <!-- Etiqueta + select de perÃ­odo -->
-                <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Ver historial de:</span>
+                <span class="inline-label">Ver historial de:</span>
                 <select id="periodoSelect" name="periodo" class="custom-select-init">
                     <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Ãšltimas 24 horas</option>
                     <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Ãšltima hora</option>
@@ -50,13 +50,13 @@
                 {% endif %}
 
                 <!-- Separador -->
-                <div style="width:1px; height:28px; background: var(--color-ink); opacity:0.15; margin: 0 2px;"></div>
+                <div class="divider-v"></div>
 
                 <!-- Filtrar (panel lateral) -->
                 <button id="openFilterPanel" type="button" class="btn btn-primary">
                     <i class="fa-solid fa-sliders"></i> Filtrar
                     {% if severidad or variable_filter or selected_edificio_id %}
-                    <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background: var(--state-warn);"></span>
+                    <span class="filter-dot"></span>
                     {% endif %}
                 </button>
 
@@ -82,7 +82,7 @@
             <li class="notif-item hist-item-{{ notif.parsed_data.risk|lower|default:'info' }}">
                 <div class="notif-body">
                     {% if notif.parsed_data.parsed %}
-                        <div style="display:flex; align-items:center; gap:var(--sp-1); flex-wrap:wrap; margin-bottom:6px;">
+                        <div class="row-center mb-1">
                             <span class="sensor-badge
                                 {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
                                 {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
@@ -92,11 +92,11 @@
                                 {{ notif.parsed_data.risk }}
                             </span>
                             {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" %}
-                            <span style="font-family:monospace; font-size:var(--text-xs); border:2px solid var(--color-ink); background:var(--color-bg); padding:2px 6px; font-weight:var(--weight-bold); color:var(--color-ink);">
+                            <span class="code-badge">
                                 {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                             </span>
                             {% endif %}
-                            <span style="font-weight:var(--weight-bold); color:var(--color-ink); font-size:var(--text-base);">
+                            <span class="value-bold">
                                 {{ notif.parsed_data.variable }}
                             </span>
                         </div>
@@ -154,7 +154,7 @@
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
-        <div style="display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-sliders" style="font-size:1.1rem;"></i><span>Filtros</span></div>
+        <div class="row-sm"><i class="fa-solid fa-sliders" style="font-size:1.1rem;"></i><span>Filtros</span></div>
         <button type="button" class="btn btn-icon" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="filter-panel-body">
@@ -226,7 +226,7 @@
         </div>
 
         <!-- Botones -->
-        <div class="flex justify-end gap-2" style="margin-top:var(--sp-3);">
+        <div class="flex justify-end gap-2" class="mt-3">
             <button id="cancelCustomDate" type="button" class="btn btn-secondary">
                 Cancelar
             </button>

@@ -1,28 +1,27 @@
-﻿{% extends 'core/base_sidebar.html' %}
+{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Umbrales{% endblock %}
-{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
     <link rel="stylesheet" href="{% static 'monitoring/thresholds.css' %}">
-
 {% endblock %}
 
 {% block content %}
 <div class="reportes-card">
-    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <!-- ── Cabecera ── -->
     <div class="admin-info">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <h1 style="margin:0;">Umbrales</h1>
+        <div class="row-start">
+            <h1 class="m-0">Umbrales</h1>
         </div>
-        <p style="margin-top:6px;">Configura los lÃ­mites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
+        <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
 
         {% if edificios and edificios|length > 1 %}
         <!-- Selector de edificio -->
-        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); white-space:nowrap;">Edificio:</span>
+        <div class="filter-row">
+            <span class="inline-label">Edificio:</span>
             <select id="buildingSelect" class="custom-select-init">
                 {% for ed in edificios %}
                 <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
@@ -30,9 +29,9 @@
             </select>
         </div>
         {% elif edificios and edificios|length == 1 %}
-        <div style="margin-top: var(--sp-2); display:flex; align-items:center; gap:8px;">
-            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink);;">Edificio:</span>
-            <span style="font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink);">
+        <div class="row-sm mt-2">
+            <span class="inline-label">Edificio:</span>
+            <span class="btn btn-secondary">
                 {{ edificios.0.name }}
                 <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
             </span>
@@ -42,7 +41,7 @@
 
     {% if not edificios %}
     <!-- Sin edificios -->
-    <div class="notif-card" style="margin-top: var(--sp-3);">
+    <div class="notif-card mt-3">
         <div class="no-notif">
             <i class="fa-solid fa-building"></i>
             {% if rol == 'SA' %}
@@ -54,48 +53,48 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexiÃ³n -->
-    <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
-        <div id="stateLoading" class="no-notif" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size:2.5rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Cargando umbrales...</h3>
-            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Obteniendo configuraciÃ³n de umbrales de riesgo.</p>
+    <!-- Estado de conexión -->
+    <div class="notif-card mt-3" id="stateNotifCard">
+        <div id="stateLoading" class="no-notif empty-state">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" style="color:var(--color-ink);"></i>
+            <h3 class="section-label">Cargando umbrales...</h3>
+            <p class="help-text">Obteniendo configuración de umbrales de riesgo.</p>
         </div>
-        <div id="stateOffline" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size:2.5rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin conexiÃ³n</h3>
-            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">No se pudo obtener la configuraciÃ³n. Verifica que el servidor estÃ© activo.</p>
+        <div id="stateOffline" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--state-warn);"></i>
+            <h3 class="section-label">Sin conexión</h3>
+            <p class="help-text">No se pudo obtener la configuración. Verifica que el servidor esté activo.</p>
         </div>
-        <div id="stateNoEquipment" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-circle-info" style="font-size:2.5rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin equipos de monitoreo</h3>
-            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos configurados.</p>
+        <div id="stateNoEquipment" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-circle-info empty-state-icon" style="color:var(--color-text-secondary);"></i>
+            <h3 class="section-label">Sin equipos de monitoreo</h3>
+            <p class="help-text">Este edificio no tiene equipos configurados.</p>
         </div>
     </div>
 
     <!-- Contenedor principal -->
-    <div id="activeMonitoring" style="display:none;">
-        <!-- Leyenda de direcciÃ³n -->
-        <div class="notif-card" style="margin-top: var(--sp-3);">
+    <div id="activeMonitoring" class="d-none">
+        <!-- Leyenda de dirección -->
+        <div class="notif-card mt-3">
             <div style="padding: var(--sp-3);">
                 <div class="thresh-legend">
                     <span class="thresh-legend-item">
-                        <span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor â€” valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor â€” valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango vÃ¡lido â€” fuera del rango = riesgo Alto">&#10234;</span> Rango vÃ¡lido
+                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
                     </span>
                     <span style="margin-left:auto; font-size:var(--text-xs); color:var(--color-text-secondary);">
-                        Cada nÃºmero es el <strong>lÃ­mite</strong> donde comienza ese nivel de riesgo
+                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
                     </span>
                 </div>
 
                 <!-- Panel de umbrales: Bomba de agua -->
-                <div style="margin-bottom: var(--sp-3);">
-                    <div class="panel-subsection-title" style="margin-bottom: var(--sp-2);">
+                <div class="mb-3">
+                    <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-oil-can"></i> Bomba de agua
                     </div>
                     <div id="thresholdsBombaPanel" class="thresh-grid"></div>
@@ -103,13 +102,13 @@
 
                 <!-- Panel de umbrales: Elevador -->
                 <div>
-                    <div class="panel-subsection-title" style="margin-bottom: var(--sp-2);">
+                    <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-elevator"></i> Elevador
                     </div>
                     <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
                 </div>
 
-                <div id="thresholdsPanel" class="thresh-grid" style="display:none;"></div>
+                <div id="thresholdsPanel" class="thresh-grid d-none"></div>
 
                 <!-- Acciones -->
                 <div class="thresh-footer">

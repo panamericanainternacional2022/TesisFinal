@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Edificios{% endblock %}
@@ -11,8 +11,8 @@
 <div class="reportes-card">
     <div class="admin-info">
         <h1>Edificios</h1>
-        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y manténlos siempre actualizados.</p>
-        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
+        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y mantÃ©nlos siempre actualizados.</p>
+        <div class="filter-row">
             <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
                 <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 240px;">
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
@@ -39,7 +39,7 @@
                         <th>Nombre</th>
                         <th>Equipamiento</th>
                         <th>RIF</th>
-                        <th>Dirección</th>
+                        <th>DirecciÃ³n</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -54,7 +54,7 @@
                                             {% if eq.equipment_type == "bomba" %}Bomba de agua{% if not forloop.last %} y {% endif %}{% endif %}
                                             {% if eq.equipment_type == "elevador" %}{% if equipment_list|length > 1 %}elevador{% else %}Elevador{% endif %}{% if not forloop.last %} y {% endif %}{% endif %}
                                         {% empty %}
-                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
+                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">â€”</span>
                                         {% endfor %}
                                     {% endwith %}
                                 </td>
@@ -69,7 +69,7 @@
                                             <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                             </a>
-                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
+                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Â¿EstÃ¡s seguro de eliminar {{ building.name }}? Se eliminarÃ¡ todo el historial, las alertas asociadas y se desvincularÃ¡n los usuarios de este edificio.">
                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                             </a>
                                             <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">

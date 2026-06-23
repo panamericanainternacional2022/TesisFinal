@@ -12,13 +12,13 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1400px; margin: 0 auto;">
+<div class="page-container">
     <div class="admin-info">
         <h1>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %}</h1>
         <p>{% if editing %}Actualiza los datos de infraestructura, RIF y direcciÃ³n fÃ­sica del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la informaciÃ³n bÃ¡sica para registrar una nueva edificaciÃ³n y permitir la asignaciÃ³n posterior de sensores.{% endif %}</p>
     </div>
 
-    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
+    <form class="perfil-card user-profile-container" method="post" novalidate class="mt-0">
         {% csrf_token %}
 
         <div class="profile-form">

@@ -12,13 +12,13 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1400px; margin: 0 auto;">
+<div class="page-container">
     <div class="admin-info">
         <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}</h1>
         <p>{% if editing %}Actualiza la informaciÃ³n personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automÃ¡ticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
     </div>
 
-    <form class="perfil-card user-profile-container" method="post" novalidate style="margin-top: 0;">
+    <form class="perfil-card user-profile-container" method="post" novalidate class="mt-0">
         {% csrf_token %}
         <div class="profile-form">
             <div class="form-row">

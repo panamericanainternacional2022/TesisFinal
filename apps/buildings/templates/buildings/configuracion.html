@@ -12,7 +12,7 @@
 {% endblock %}
 
 {% block content %}
-<div style="max-width: 1400px; margin: 0 auto;">
+<div class="page-container">
     <div class="admin-info">
         <h1>ConfiguraciÃ³n</h1>
         <p>Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrÃ³nico y opciones de seguridad.</p>
@@ -23,7 +23,7 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="profile-header" style="margin-bottom: var(--sp-2);">
+        <div class="profile-header" class="mb-2">
             <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
                 Datos del perfil
             </h2>
@@ -57,11 +57,11 @@
     </form>
 
     <!-- Tarjeta 2: Seguridad y ContraseÃ±a -->
-    <form class="perfil-card config-card" method="post" novalidate style="margin-top: 0;">
+    <form class="perfil-card config-card" method="post" novalidate class="mt-0">
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
-        <div class="profile-header" style="margin-bottom: var(--sp-2);">
+        <div class="profile-header" class="mb-2">
             <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
                 Seguridad y contraseÃ±a
             </h2>

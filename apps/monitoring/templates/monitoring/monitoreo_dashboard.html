@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Panel de control{% endblock %}
@@ -17,13 +17,13 @@
     <div class="admin-info">
         <h1>Panel de control</h1>
         {% if is_admin %}
-        <p>VisiÃ³n general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
+        <p>VisiÃƒÂ³n general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
         {% else %}
-        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadÃ­sticas actualizadas al instante.</p>
+        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadÃƒÂ­sticas actualizadas al instante.</p>
         {% endif %}
         {% if edificios %}
-        <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
-            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Edificio activo:</span>
+        <div class="filter-row">
+            <span class="inline-label">Edificio activo:</span>
             {% if edificios|length == 1 %}
             <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px; display: inline-block;">
                 {{ edificios.0.name }}
@@ -42,7 +42,7 @@
     </div>
 
     {% if not edificios %}
-    <div class="notif-card" style="margin-top: var(--sp-3);">
+    <div class="notif-card" class="mt-3">
         <div class="no-notif">
             <i class="fa-solid fa-building"></i>
             {% if is_admin %}
@@ -54,37 +54,37 @@
     </div>
     {% else %}
 
-    <!-- Estados de conexiÃ³n -->
-    <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
-        <div class="no-notif" id="stateLoading" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetrÃ­a y estado de sensores en tiempo real.</p>
+    <!-- Estados de conexiÃƒÂ³n -->
+    <div class="notif-card" id="stateNotifCard" class="mt-3">
+        <div class="no-notif" id="stateLoading" class="empty-state">
+            <i class="fa-solid fa-spinner fa-spin" class="empty-state-icon" style="color:var(--color-ink);"></i>
+            <h3 class="section-label">Conectando al simulador...</h3>
+            <p class="help-text-lg">Obteniendo lecturas de telemetrÃƒÂ­a y estado de sensores en tiempo real.</p>
         </div>
 
-        <div class="no-notif" id="stateOffline" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de lÃ­nea</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetrÃ­a y sensores en tiempo real no estÃ¡ transmitiendo datos en este momento. PÃ³ngase en contacto con el administrador del edificio.</p>
+        <div class="no-notif" id="stateOffline" class="empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation" class="empty-state-icon" style="color:var(--state-warn);"></i>
+            <h3 class="section-label">Sistema fuera de lÃƒÂ­nea</h3>
+            <p class="help-text-lg">El servicio de telemetrÃƒÂ­a y sensores en tiempo real no estÃƒÂ¡ transmitiendo datos en este momento. PÃƒÂ³ngase en contacto con el administrador del edificio.</p>
         </div>
 
-        <div class="no-notif" id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; text-align:center;">
-            <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
+        <div class="no-notif" id="stateNoEquipment" class="empty-state d-none">
+            <i class="fa-solid fa-circle-info" class="empty-state-icon" style="color:var(--color-text-secondary);"></i>
+            <h3 class="section-label">Edificio sin equipos de monitoreo</h3>
             {% if is_admin %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningÃºn equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administraciÃ³n para comenzar la simulaciÃ³n.</p>
+            <p class="help-text-lg">Este edificio no tiene configurado ningÃƒÂºn equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administraciÃƒÂ³n para comenzar la simulaciÃƒÂ³n.</p>
             {% else %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para mÃ¡s informaciÃ³n.</p>
+            <p class="help-text-lg">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para mÃƒÂ¡s informaciÃƒÂ³n.</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Contenedor de telemetrÃ­a activa -->
-    <div id="activeMonitoring" style="display:none;">
+    <!-- Contenedor de telemetrÃƒÂ­a activa -->
+    <div id="activeMonitoring" class="d-none">
 
         <!-- Credenciales (admin) -->
         {% if is_admin %}
-        <div id="credsWarning" class="sys-alert sys-alert-warn" style="display:none;">
+        <div id="credsWarning" class="sys-alert sys-alert-warn" class="d-none">
             <i class="fas fa-triangle-exclamation"></i>
             <span id="credsMsg"></span>
         </div>
@@ -95,7 +95,7 @@
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
-                    <span id="pumpStatusBadge" class="badge" style="display:none;"></span>
+                    <span id="pumpStatusBadge" class="badge" class="d-none"></span>
                     <span id="pumpStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
                     <span id="pumpNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
                 </div>
@@ -103,33 +103,33 @@
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
-                    <span id="elevatorStatusBadge" class="badge" style="display:none;"></span>
+                    <span id="elevatorStatusBadge" class="badge" class="d-none"></span>
                     <span id="elevatorStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
                     <span id="elevatorNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
                 </div>
             </div>
             {% if is_admin %}
             <div id="simStatusRow" class="status-cell">
-                <div class="status-cell-label">SimulaciÃ³n</div>
+                <div class="status-cell-label">SimulaciÃƒÂ³n</div>
                 <div class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
                 </div>
             </div>
             {% endif %}
             <div class="status-cell">
-                <div class="status-cell-label">Ãšltima actualizaciÃ³n</div>
+                <div class="status-cell-label">ÃƒÅ¡ltima actualizaciÃƒÂ³n</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
         </div>
 
         {% if is_admin %}
-        <div class="panel admin-controls-panel" style="margin-bottom: var(--sp-3);">
+        <div class="panel admin-controls-panel" class="mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
 
-            <!-- Sub-secciÃ³n: SimulaciÃ³n -->
+            <!-- Sub-secciÃƒÂ³n: SimulaciÃƒÂ³n -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
-                    <i class="fa-solid fa-gamepad"></i> SimulaciÃ³n
+                    <i class="fa-solid fa-gamepad"></i> SimulaciÃƒÂ³n
                 </div>
                 <div id="simControls" class="admin-controls-row">
                     <div class="form-group">
@@ -146,7 +146,7 @@
                             <button type="button" class="btn btn-secondary" data-speed="2.0">2.0x</button>
                         </div>
                     </div>
-                    <div class="form-group" style="flex:1; min-width:160px;">
+                    <div class="form-group flex-1">
                         <label class="form-label">Falla (Bomba de agua)</label>
                         <select id="simFaultPump" class="custom-select-init">
                             <option value="">Ninguna</option>
@@ -155,7 +155,7 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-group" style="flex:1; min-width:160px;">
+                    <div class="form-group flex-1">
                         <label class="form-label">Falla (Elevador)</label>
                         <select id="simFaultElevator" class="custom-select-init">
                             <option value="">Ninguna</option>
@@ -172,13 +172,13 @@
                 </div>
             </div>
 
-            <!-- Sub-secciÃ³n: Override manual de sensor -->
+            <!-- Sub-secciÃƒÂ³n: Override manual de sensor -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
                     <i class="fa-solid fa-sliders"></i> Manuales
                 </div>
                 <div class="admin-controls-row">
-                    <div class="form-group" style="flex:1; min-width:140px;">
+                    <div class="form-group flex-1">
                         <label class="form-label">Equipo</label>
                         <select id="manualEquipmentSelect" class="custom-select-init">
                             <option value="pump">Bomba de agua</option>
@@ -186,11 +186,11 @@
                         </select>
                         <span id="manualEquipmentStatic" style="display:none; height:38px; padding:8px 12px; border:2px solid var(--color-ink); background:var(--color-surface); box-shadow:3px 3px 0px var(--color-ink); font-size:var(--text-sm); font-weight:var(--weight-bold); align-self:stretch; box-sizing:border-box;"></span>
                     </div>
-                    <div class="form-group" style="flex:1; min-width:160px;">
+                    <div class="form-group flex-1">
                         <label class="form-label">Sensor</label>
                         <select id="manualSensorSelect" class="custom-select-init"></select>
                     </div>
-                    <div class="form-group" style="flex:1; min-width:140px;" id="manualValueContainer">
+                    <div class="form-group flex-1" id="manualValueContainer">
                         <label class="form-label">Valor</label>
                         <input type="number" step="any" id="manualValueInput" class="form-input"
                                placeholder="Ej: 42.5">
@@ -224,9 +224,9 @@
         </div>
 
         <!-- Panel de Recomendaciones -->
-        <div id="recommendationsPanel" class="panel" style="margin-bottom: var(--sp-3);">
+        <div id="recommendationsPanel" class="panel" class="mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones del sistema</h2>
-            <div id="recommendationsContent" style="display: flex; flex-direction: column; gap: var(--sp-2);">
+            <div id="recommendationsContent" class="col-stack">
                 <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
                     <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
                     <span>Cargando recomendaciones...</span>
@@ -237,11 +237,11 @@
         <div class="grid-charts">
             <div id="chartPumpPanel" class="chart-panel">
                 <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
-                <canvas id="chart1" style="margin-bottom: var(--sp-3);"></canvas>
+                <canvas id="chart1" class="mb-3"></canvas>
             </div>
             <div id="chartElevatorPanel" class="chart-panel">
                 <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
-                <canvas id="chart2" style="margin-bottom: var(--sp-3);"></canvas>
+                <canvas id="chart2" class="mb-3"></canvas>
             </div>
         </div>
 
