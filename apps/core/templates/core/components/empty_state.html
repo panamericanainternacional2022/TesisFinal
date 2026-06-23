@@ -1,0 +1,37 @@
+{% comment %}
+    Componente: empty_state.html
+    Muestra los tres estados de conexión/carga en paneles de monitoreo en tiempo real.
+
+    Variables requeridas (ninguna — usa IDs estándar controlados por live_monitoring.js):
+      - #stateLoading     : visible mientras carga (spinner)
+      - #stateOffline     : visible si el servidor no responde
+      - #stateNoEquipment : visible si el edificio no tiene equipos configurados
+
+    Variables opcionales:
+      - loading_text       : texto del título de carga          (default: "Cargando...")
+      - loading_subtext    : subtexto de carga                  (default: "Obteniendo datos del sensor.")
+      - offline_subtext    : subtexto de sin conexión           (default: genérico)
+      - no_equipment_title : título de sin equipos              (default: "Sin equipos de monitoreo")
+      - no_equipment_text  : subtexto de sin equipos            (default: genérico)
+
+    Uso:
+      {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." %}
+{% endcomment %}
+
+<div id="stateLoading" class="no-notif empty-state">
+    <i class="fa-solid fa-spinner fa-spin empty-state-icon" style="color:var(--color-ink);"></i>
+    <h3 class="section-label">{{ loading_text|default:"Cargando..." }}</h3>
+    <p class="help-text">{{ loading_subtext|default:"Obteniendo datos del sensor." }}</p>
+</div>
+
+<div id="stateOffline" class="no-notif empty-state d-none">
+    <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--state-warn);"></i>
+    <h3 class="section-label">Sin conexión</h3>
+    <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuración. Verifica que el servidor esté activo." }}</p>
+</div>
+
+<div id="stateNoEquipment" class="no-notif empty-state d-none">
+    <i class="fa-solid fa-circle-info empty-state-icon" style="color:var(--color-text-secondary);"></i>
+    <h3 class="section-label">{{ no_equipment_title|default:"Sin equipos de monitoreo" }}</h3>
+    <p class="help-text">{{ no_equipment_text|default:"Este edificio no tiene equipos configurados." }}</p>
+</div>

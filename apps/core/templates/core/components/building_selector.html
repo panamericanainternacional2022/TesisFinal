@@ -1,0 +1,30 @@
+{% comment %}
+    Componente: building_selector.html
+    Muestra un selector de edificio en los paneles de monitoreo.
+
+    Variables requeridas:
+      - edificios   : queryset de edificios disponibles para el usuario
+      - edificio_id : ID del edificio actualmente seleccionado
+
+    Uso:
+      {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
+{% endcomment %}
+
+{% if edificios and edificios|length > 1 %}
+<div class="filter-row">
+    <span class="inline-label">Edificio:</span>
+    <select id="buildingSelect" class="custom-select-init">
+        {% for ed in edificios %}
+        <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+        {% endfor %}
+    </select>
+</div>
+{% elif edificios and edificios|length == 1 %}
+<div class="row-sm mt-2">
+    <span class="inline-label">Edificio:</span>
+    <span class="building-tag">
+        {{ edificios.0.name }}
+        <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
+    </span>
+</div>
+{% endif %}
