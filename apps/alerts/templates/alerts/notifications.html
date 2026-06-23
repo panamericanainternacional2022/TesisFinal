@@ -1,52 +1,10 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Alertas{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <style>
-        /* ── Tarjeta de Notificaciones ── */
-        .notif-card {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-            overflow: hidden;
-            margin-top: var(--sp-3);
-        }
-        .notif-card .notif-list { border: none; box-shadow: none; }
-        .notif-card .no-notif   { border: none; box-shadow: none; }
-
-        /* ── Badges de severidad adicionales ── */
-        .sensor-badge.sensor-high { background:#fff7ed; color:#c2410c; border-color:#c2410c; }
-        .sensor-badge.sensor-info { background:var(--state-inactive-bg); color:var(--state-inactive); border-color:var(--state-inactive); }
-
-        /* ── Accent por fila según riesgo ── */
-        .hist-item-crítico { border-left: 4px solid var(--state-critical) !important; }
-        .hist-item-alto    { border-left: 4px solid #c2410c !important; }
-        .hist-item-medio   { border-left: 4px solid var(--state-warn) !important; }
-        .hist-item-bajo    { border-left: 4px solid var(--state-ok) !important; }
-        .hist-item-info    { border-left: 4px solid var(--state-inactive) !important; }
-
-        /* ── Paginación Neo-Brutalista ── */
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            margin-top: var(--sp-4);
-            flex-wrap: wrap;
-        }
-        .page-current-info {
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            color: var(--color-ink);
-            padding: 8px var(--sp-2);
-            border: 2px solid transparent;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{% static 'core/components.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -58,9 +16,9 @@
                 <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
             </div>
         </div>
-        <p style="margin-top: 6px;">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+        <p style="margin-top: 6px;">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
         {% if buildings %}
-        <!-- Filtro de Edificio y Botón Limpiar -->
+        <!-- Filtro de Edificio y BotÃ³n Limpiar -->
         <div style="margin-top: var(--sp-2); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
             {% if buildings|length > 1 %}
             <form method="GET" action="" style="display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin: 0;">
@@ -145,18 +103,18 @@
                 <p>No hay alertas pendientes.</p>
                 {% else %}
                 <i class="fa-solid fa-triangle-exclamation"></i>
-                <p>Las alertas están desactivadas.</p>
+                <p>Las alertas estÃ¡n desactivadas.</p>
                 {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Paginación -->
+    <!-- PaginaciÃ³n -->
     {% if notifications.has_other_pages %}
     <div class="pagination-container">
         {% if notifications.has_previous %}
-            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Primera página">
+            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Primera pÃ¡gina">
                 <i class="fa-solid fa-angles-left"></i>
             </a>
             <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Anterior">
@@ -168,14 +126,14 @@
         {% endif %}
 
         <span class="page-current-info">
-            Página {{ notifications.number }} de {{ notifications.paginator.num_pages }}
+            PÃ¡gina {{ notifications.number }} de {{ notifications.paginator.num_pages }}
         </span>
 
         {% if notifications.has_next %}
             <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Siguiente">
                 <i class="fa-solid fa-angle-right"></i>
             </a>
-            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Última página">
+            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" title="Ãšltima pÃ¡gina">
                 <i class="fa-solid fa-angles-right"></i>
             </a>
         {% else %}

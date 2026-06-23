@@ -1,61 +1,17 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Historial{% endblock %}
 {% block meta_description %}<meta name="description" content="Historial completo de eventos, fallas y alertas del sistema INES.">{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <style>
-        /* Botones utilitarios locales del historial removidos para usar clases de diseño unificadas */
-
-        /* ── Tarjeta de Historial ── */
-        .notif-card {
-            background: var(--color-surface); border: 2px solid var(--color-ink);
-            border-top: 6px solid var(--color-accent);
-            box-shadow: 8px 8px 0px rgba(10,10,10,0.15); border-radius: 0px;
-            overflow: hidden; margin-top: var(--sp-3);
-        }
-        .notif-card .notif-list { border: none; box-shadow: none; }
-        .notif-card .no-notif   { border: none; box-shadow: none; }
-
-        /* ── Badges de severidad adicionales ── */
-        .sensor-badge.sensor-high { background:#fff7ed; color:#c2410c; border-color:#c2410c; }
-        .sensor-badge.sensor-info { background:var(--state-inactive-bg); color:var(--state-inactive); border-color:var(--state-inactive); }
-
-        /* ── Accent por fila según riesgo ── */
-        .hist-item-crítico { border-left: 4px solid var(--state-critical) !important; }
-        .hist-item-alto    { border-left: 4px solid #c2410c !important; }
-        .hist-item-medio   { border-left: 4px solid var(--state-warn) !important; }
-        .hist-item-bajo    { border-left: 4px solid var(--state-ok) !important; }
-        .hist-item-info    { border-left: 4px solid var(--state-inactive) !important; }
-
-        /* ── Paginación ── */
-        .pagination-container { display:flex; justify-content:center; align-items:center; gap:6px; margin-top:var(--sp-4); flex-wrap:wrap; }
-        .page-current-info { font-size:var(--text-sm); font-weight:var(--weight-bold); color:var(--color-ink); padding:8px var(--sp-2); border:2px solid transparent; }
-
-        /* ══ PANEL LATERAL ══ */
-        .filter-overlay { position:fixed; inset:0; background:rgba(10,10,10,0.35); backdrop-filter:blur(3px); z-index:1200; opacity:0; pointer-events:none; transition:opacity 280ms cubic-bezier(0.4,0,0.2,1); }
-        .filter-overlay.open { opacity:1; pointer-events:all; }
-        .filter-panel { position:fixed; top:0; right:0; height:100vh; width:320px; max-width:90vw; background:var(--color-surface); border-left:2px solid var(--color-ink); box-shadow:-8px 0px 32px rgba(10,10,10,0.15); z-index:1201; display:flex; flex-direction:column; transform:translateX(100%); transition:transform 300ms cubic-bezier(0.4,0,0.2,1); }
-        .filter-panel.open { transform:translateX(0); }
-        .filter-panel-header { display:flex; align-items:center; justify-content:space-between; padding:var(--sp-3); border-bottom:2px solid var(--color-ink); font-size:var(--text-base); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); flex-shrink:0; }
-        .filter-panel-body { flex:1; overflow-y:auto; padding:var(--sp-3); display:flex; flex-direction:column; gap:var(--sp-3); }
-        .filter-panel-section { display:flex; flex-direction:column; gap:10px; }
-        .filter-section-label { font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); padding-bottom:6px; border-bottom:1px solid var(--color-ink); display:flex; align-items:center; gap:6px; }
-        .filter-panel-footer { padding:var(--sp-3); border-top:2px solid var(--color-ink); display:flex; gap:8px; flex-shrink:0; }
-
-        /* Responsive */
-        @media (max-width:700px) {
-            .reportes-card { max-width:100% !important; }
-            .filter-panel  { width:100%; max-width:100%; }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'core/components.css' %}">
+    <link rel="stylesheet" href="{% static 'monitoring/historial.css' %}">
 {% endblock %}
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
+    <!-- â”€â”€ Cabecera â”€â”€ -->
     <div class="admin-info">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <h1 style="margin:0;">Historial</h1>
@@ -63,9 +19,9 @@
                 {{ total_count }}
             </span>
         </div>
-        <p style="margin-top:6px;">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
+        <p style="margin-top:6px;">Registro cronolÃ³gico de todos los eventos del sistema. Filtra por severidad, variable o perÃ­odo para analizar el comportamiento de los sensores.</p>
         {% if edificios %}
-        <!-- ── Barra de controles ── -->
+        <!-- â”€â”€ Barra de controles â”€â”€ -->
         <form method="GET" action="" id="historialFilterForm" style="margin-top: var(--sp-2);">
             <!-- Inputs ocultos -->
             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
@@ -74,16 +30,16 @@
             <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
             <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
 
-            <!-- Fila única de controles -->
+            <!-- Fila Ãºnica de controles -->
             <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center;">
-                <!-- Etiqueta + select de período -->
+                <!-- Etiqueta + select de perÃ­odo -->
                 <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); white-space:nowrap;">Ver historial de:</span>
                 <select id="periodoSelect" name="periodo" class="custom-select-init">
-                    <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
-                    <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
-                    <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
-                    <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Últimos 3 días</option>
-                    <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
+                    <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Ãšltimas 24 horas</option>
+                    <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Ãšltima hora</option>
+                    <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Ãšltimas 12 horas</option>
+                    <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Ãšltimos 3 dÃ­as</option>
+                    <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Ãšltimos 7 dÃ­as</option>
                     <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
                 </select>
                 
@@ -117,7 +73,7 @@
     </div>
 
     {% if edificios %}
-    <!-- ── Lista de Eventos ── -->
+    <!-- â”€â”€ Lista de Eventos â”€â”€ -->
     <div class="notif-card">
         <div id="historial-list">
             {% if notificaciones %}
@@ -171,7 +127,7 @@
         </div>
     </div>
 
-    <!-- ── Paginación ── -->
+    <!-- â”€â”€ PaginaciÃ³n â”€â”€ -->
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
@@ -181,7 +137,7 @@
             <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angles-left"></i></button>
             <button type="button" disabled class="btn btn-icon"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
-        <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
+        <span class="page-current-info">PÃ¡gina {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
             <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angle-right"></i></a>
             <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon"><i class="fa-solid fa-angles-right"></i></a>
@@ -194,7 +150,7 @@
     {% endif %}
 </div>
 
-<!-- ══ PANEL LATERAL (Edificio / Severidad / Variable) ══ -->
+<!-- â•â• PANEL LATERAL (Edificio / Severidad / Variable) â•â• -->
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
@@ -242,14 +198,14 @@
     </div>
 </aside>
 
-<!-- ══ MODAL: Rango personalizado de fechas ══ -->
+<!-- â•â• MODAL: Rango personalizado de fechas â•â• -->
 <div id="customDateBackdrop" class="custom-modal-backdrop">
     <div class="custom-modal-container" style="max-width:420px;">
         <div style="display:flex; align-items:center; gap:12px; margin-bottom:var(--sp-2);">
             <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);"></i>
             <span style="font-size:var(--text-lg); font-weight:var(--weight-bold); color:var(--color-ink); letter-spacing:var(--tracking-wide);">Rango personalizado</span>
         </div>
-        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
+        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del perÃ­odo que quieres consultar.</p>
 
         <!-- Inputs de fecha -->
         <div style="display:flex; flex-direction:column; gap:var(--sp-2);">
@@ -263,7 +219,7 @@
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
-            <!-- Error de validación -->
+            <!-- Error de validaciÃ³n -->
             <div id="customDateError" style="display:none; padding:8px 12px; background:var(--state-critical-bg); border:2px solid var(--state-critical); color:var(--state-critical); font-size:var(--text-xs); font-weight:var(--weight-bold);">
                 <i class="fa-solid fa-circle-exclamation"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
@@ -301,15 +257,15 @@
         // Guardar valor inicial como "prev"
         periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '24h' : periodoSelect.value;
 
-        // Botón "Editar" junto al select
+        // BotÃ³n "Editar" junto al select
         const editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
         if (editCustomDatesBtn) {
             editCustomDatesBtn.addEventListener('click', openCustomDateModal);
         }
 
-        /* ═══════════════════════════════════════════════════════
+        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
            MODAL DE RANGO PERSONALIZADO
-         ═══════════════════════════════════════════════════════ */
+         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
         const backdrop      = document.getElementById('customDateBackdrop');
         const inputDesde    = document.getElementById('modal-fecha-desde');
         const inputHasta    = document.getElementById('modal-fecha-hasta');
@@ -338,7 +294,7 @@
             inputDesde.style.boxShadow = (!valid) ? '3px 3px 0px var(--state-critical)' : '3px 3px 0px var(--color-ink)';
             inputDesde.style.borderColor = (!valid) ? 'var(--state-critical)' : 'var(--color-ink)';
 
-            // Habilitar botón Aplicar solo con ambas fechas y válidas
+            // Habilitar botÃ³n Aplicar solo con ambas fechas y vÃ¡lidas
             const enable = bothFilled && valid;
             applyBtn.disabled = !enable;
         }
@@ -368,7 +324,7 @@
             form.submit();
         });
 
-        // Si al cargar ya teníamos custom, marcar el select
+        // Si al cargar ya tenÃ­amos custom, marcar el select
         (function () {
             const stored = "{{ periodo_seleccionado }}";
             if (stored === 'custom') {
@@ -377,9 +333,9 @@
             }
         })();
 
-        /* ═══════════════════════════════════════════════════════
+        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
            PANEL LATERAL
-        ═══════════════════════════════════════════════════════ */
+        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
         const filterPanel   = document.getElementById('filterPanel');
         const filterOverlay = document.getElementById('filterPanelOverlay');
 

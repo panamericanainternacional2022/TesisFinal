@@ -1,115 +1,23 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Umbrales{% endblock %}
-{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <style>
-        /* ── Leyenda de dirección ── */
-        .thresh-legend {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--sp-2);
-            font-size: var(--text-xs);
-            color: var(--color-text-secondary);
-            margin-bottom: var(--sp-3);
-            padding-bottom: var(--sp-2);
-            border-bottom: 1px solid var(--color-border);
-        }
-        .thresh-legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .badge-dir-up    { color: var(--state-critical); font-weight: var(--weight-bold); font-size: var(--text-sm); }
-        .badge-dir-down  { color: #c2410c;               font-weight: var(--weight-bold); font-size: var(--text-sm); }
-        .badge-dir-range { color: var(--state-inactive);  font-weight: var(--weight-bold); font-size: var(--text-sm); }
-
-        /* ── Grid de umbrales ── */
-        .thresh-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: var(--sp-2);
-        }
-
-        /* ── Cada tarjeta de umbral ── */
-        .thresh-grid > div {
-            border: 1px solid var(--color-border) !important;
-            border-radius: 0px;
-            padding: var(--sp-2);
-            background: var(--color-bg);
-        }
-
-        /* ── Labels ── */
-        .thresh-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
-        .thresh-grid .form-label {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-        }
-
-        /* ── Footer de acciones ── */
-        .thresh-footer {
-            margin-top: var(--sp-3);
-            padding-top: var(--sp-2);
-            border-top: 1px solid var(--color-border);
-            display: flex;
-            align-items: center;
-            gap: var(--sp-2);
-        }
-
-        /* Botón guardar unificado con las clases primarias del sistema */
-
-        /* ── Tarjeta estilo notif-card ── */
-        .notif-card {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-            overflow: hidden;
-            margin-top: var(--sp-3);
-        }
-        .notif-card .no-notif {
-            border: none;
-            box-shadow: none;
-        }
-
-        /* ── Títulos de sub-sección (Bomba / Elevador) ── */
-        .panel-subsection-title {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
-            margin-bottom: var(--sp-2);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .thresh-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 640px) {
-            .thresh-grid { grid-template-columns: 1fr; }
-            .thresh-legend { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'core/components.css' %}">
+    <link rel="stylesheet" href="{% static 'monitoring/thresholds.css' %}">
 
 {% endblock %}
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
+    <!-- â”€â”€ Cabecera â”€â”€ -->
     <div class="admin-info">
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <h1 style="margin:0;">Umbrales</h1>
         </div>
-        <p style="margin-top:6px;">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
+        <p style="margin-top:6px;">Configura los lÃ­mites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
 
         {% if edificios and edificios|length > 1 %}
         <!-- Selector de edificio -->
@@ -146,17 +54,17 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexión -->
+    <!-- Estado de conexiÃ³n -->
     <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
         <div id="stateLoading" class="no-notif" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size:2.5rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
             <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Cargando umbrales...</h3>
-            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Obteniendo configuración de umbrales de riesgo.</p>
+            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">Obteniendo configuraciÃ³n de umbrales de riesgo.</p>
         </div>
         <div id="stateOffline" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size:2.5rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin conexión</h3>
-            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">No se pudo obtener la configuración. Verifica que el servidor esté activo.</p>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sin conexiÃ³n</h3>
+            <p style="font-size:var(--text-sm); max-width:400px; margin:0; color:var(--color-text-secondary);">No se pudo obtener la configuraciÃ³n. Verifica que el servidor estÃ© activo.</p>
         </div>
         <div id="stateNoEquipment" class="no-notif" style="display:none; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-circle-info" style="font-size:2.5rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
@@ -167,21 +75,21 @@
 
     <!-- Contenedor principal -->
     <div id="activeMonitoring" style="display:none;">
-        <!-- Leyenda de dirección -->
+        <!-- Leyenda de direcciÃ³n -->
         <div class="notif-card" style="margin-top: var(--sp-3);">
             <div style="padding: var(--sp-3);">
                 <div class="thresh-legend">
                     <span class="thresh-legend-item">
-                        <span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+                        <span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor â€” valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+                        <span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor â€” valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
+                        <span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango vÃ¡lido â€” fuera del rango = riesgo Alto">&#10234;</span> Rango vÃ¡lido
                     </span>
                     <span style="margin-left:auto; font-size:var(--text-xs); color:var(--color-text-secondary);">
-                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
+                        Cada nÃºmero es el <strong>lÃ­mite</strong> donde comienza ese nivel de riesgo
                     </span>
                 </div>
 

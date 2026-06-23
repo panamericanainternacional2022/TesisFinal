@@ -99,6 +99,17 @@
     --content-max: 1280px;
     --header-height: 60px;
 
+    /* ── Sombras (Neo-brutalista) ─────────────────────────── */
+    --shadow-brutal:    8px 8px 0px rgba(10, 10, 10, 0.15);
+    --shadow-brutal-sm: 4px 4px 0px rgba(10, 10, 10, 0.15);
+
+    /* ── Estado: Severo (risk-high — naranja) ────────────────── */
+    --state-high:       #c2410c;
+    --state-high-bg:    #fff7ed;
+
+    /* ── Borde brutal ───────────────────────────────────── */
+    --border-brutal:    2px solid var(--color-ink);
+
     /* ── Forma ───────────────────────────────────────────────── */
     --radius: 0px;
     /* sin redondeo — principio Swiss */
@@ -147,12 +158,12 @@ button {
 /* ── Cabecera informativa unificada ── */
 .admin-info {
     background: var(--color-surface);
-    border: 2px solid var(--color-ink);
+    border: var(--border-brutal);
     border-left: 6px solid var(--color-ink);
-    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    box-shadow: var(--shadow-brutal);
     padding: var(--sp-3);
     margin-bottom: var(--sp-3);
-    border-radius: 0px;
+    border-radius: var(--radius);
 }
 
 .admin-info h1 {

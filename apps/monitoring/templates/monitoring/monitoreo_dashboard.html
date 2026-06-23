@@ -4,320 +4,8 @@
 {% block title %}Panel de control{% endblock %}
 
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/lista_usuarios.css' %}">
-    <style>
-        /* ── Paneles / Tarjetas de Dashboard ── */
-        .panel {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            padding: var(--sp-3);
-            margin-bottom: var(--sp-3);
-            border-radius: 0px;
-        }
-
-        .panel-title {
-            font-size: var(--text-base);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-tight);
-            color: var(--color-ink);
-            margin-bottom: var(--sp-2);
-            padding-bottom: var(--sp-1);
-            border-bottom: 2px solid var(--color-ink);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel-title i { color: var(--color-ink); font-size: 0.9rem; }
-
-        /* ── Grids del Dashboard ── */
-        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
-        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
-        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
-        .grid-auto { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2px; background: var(--color-ink); border: 2px solid var(--color-ink); box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15); border-radius: 0px; }
-        .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
-
-        .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
-        /* ── Fila de controles ── */
-        .controls-row {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: var(--sp-2);
-            margin-bottom: var(--sp-3);
-            padding: var(--sp-2) var(--sp-3);
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-        }
-
-        .controls-row .spacer { flex: 1; }
-
-        /* Botones del Dashboard unificados con el sistema de tokens de diseño */
-
-        /* ── Sensor Cards ── */
-        .sensor-card {
-            padding: var(--sp-3);
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            border-left: 6px solid var(--color-ink);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-        }
-
-        .sensor-card.risk-low   { border-left-color: var(--state-ok); }
-        .sensor-card.risk-med   { border-left-color: var(--state-warn); }
-        .sensor-card.risk-high  { border-left-color: #c2410c; }
-        .sensor-card.risk-crit  { border-left-color: var(--state-critical); }
-
-        .sensor-card-name {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-            margin-bottom: 4px;
-        }
-
-        .sensor-card-value {
-            font-size: var(--text-xl);
-            font-weight: var(--weight-bold);
-            color: var(--color-ink);
-            line-height: var(--leading-tight);
-        }
-
-        .sensor-card-footer {
-            margin-top: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        /* ── Risk Badges ── */
-        .badge {
-            display: inline-flex;
-            align-items: center;
-            padding: 2px 8px;
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: 0.03em;
-            border: 2px solid var(--color-ink);
-            border-radius: 0px;
-        }
-
-        .badge-low    { background: var(--state-ok-bg);       color: var(--state-ok); }
-        .badge-med    { background: var(--state-warn-bg);     color: var(--state-warn); }
-        .badge-high   { background: #fff7ed;                  color: #c2410c; }
-        .badge-crit   { background: var(--state-critical-bg); color: var(--state-critical); }
-        .badge-info   { background: var(--state-inactive-bg); color: var(--state-inactive); }
-
-        /* ── Estado Sistema ── */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: var(--sp-2);
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            margin-bottom: var(--sp-3);
-            border-radius: 0px;
-        }
-
-        .status-cell {
-            background: var(--color-surface);
-            padding: var(--sp-2) var(--sp-3);
-            border: 2px solid var(--color-ink);
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.15);
-        }
-
-        .status-cell-label {
-            font-size: var(--text-xs);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-            font-weight: var(--weight-bold);
-            margin-bottom: 2px;
-        }
-
-        .status-cell-value {
-            font-size: var(--text-lg);
-            font-weight: var(--weight-bold);
-            color: var(--color-ink);
-        }
-
-        /* ── Secciones de Sensores ── */
-        .sensor-section {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            padding: var(--sp-4);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            border-radius: 0px;
-            margin-bottom: var(--sp-3);
-        }
-
-        .sensor-section-title {
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-            margin-bottom: var(--sp-1);
-            padding-bottom: var(--sp-1);
-            border-bottom: 2px solid var(--color-ink);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .sensor-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: var(--sp-3);
-            background: transparent;
-            border: none;
-            box-shadow: none;
-            border-radius: 0px;
-        }
-
-        /* ── Live Log Table ── */
-        .scroll-table {
-            max-height: 320px;
-            overflow-y: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: var(--text-sm);
-        }
-
-        thead th {
-            background: var(--color-bg);
-            color: var(--color-ink);
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            padding: 8px var(--sp-2);
-            text-align: left;
-            border-bottom: 2px solid var(--color-ink);
-            position: sticky;
-            top: 0;
-        }
-
-        tbody td {
-            padding: 10px var(--sp-2);
-            border-top: 1px solid var(--color-ink);
-            color: var(--color-text-primary);
-        }
-
-        tbody tr:hover td { background: var(--color-bg); }
-
-        .row-crit td { background: var(--state-critical-bg); }
-        .row-high td { background: var(--state-warn-bg); }
-
-        /* ── Chart Container ── */
-        .chart-panel {
-            background: var(--color-surface);
-            border: 2px solid var(--color-ink);
-            box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
-            padding: var(--sp-2);
-            border-radius: 0px;
-        }
-
-        .chart-panel-title {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-ink);
-            margin-bottom: var(--sp-1);
-            padding-bottom: 6px;
-            border-bottom: 2px solid var(--color-ink);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        canvas { max-height: 220px; width: 100%; }
-
-        /* ── Alertas de Sistema ── */
-        .sys-alert {
-            padding: var(--sp-1) var(--sp-2);
-            margin-bottom: var(--sp-2);
-            font-size: var(--text-sm);
-            font-weight: var(--weight-bold);
-            display: flex;
-            align-items: center;
-            gap: var(--sp-1);
-            border: 2px solid var(--color-ink);
-            border-radius: 0px;
-            box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
-        }
-
-        .sys-alert-warn {
-            background: var(--state-warn-bg);
-            color: var(--state-warn);
-            border-color: var(--state-warn);
-        }
-
-        .sys-alert-crit {
-            background: var(--state-critical-bg);
-            color: var(--state-critical);
-            border-color: var(--state-critical);
-        }
-
-
-
-        /* ── Threshold direction badges ── */
-        .threshold-legend {
-            font-size: var(--text-xs);
-            color: var(--color-text-secondary);
-            margin-bottom: var(--sp-2);
-            padding-bottom: var(--sp-1);
-            border-bottom: 1px solid var(--color-border);
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--sp-2);
-        }
-        .threshold-legend span { display: inline-flex; align-items: center; gap: 4px; }
-        .badge-dir-up { color: var(--state-critical); font-weight: var(--weight-bold); }
-        .badge-dir-down { color: #c2410c; font-weight: var(--weight-bold); }
-        .badge-dir-range { color: var(--state-inactive); font-weight: var(--weight-bold); }
-
-        /* ── Panel de controles admin (sub-secciones) ── */
-        .admin-controls-panel .panel-subsection {
-            padding-top: var(--sp-2);
-        }
-        .admin-controls-panel .panel-subsection + .panel-subsection {
-            margin-top: var(--sp-2);
-            padding-top: var(--sp-2);
-            border-top: 1px dashed var(--color-ink);
-        }
-        .panel-subsection-title {
-            font-size: var(--text-xs);
-            font-weight: var(--weight-bold);
-            letter-spacing: var(--tracking-wide);
-            color: var(--color-text-secondary);
-            margin-bottom: var(--sp-2);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .admin-controls-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: var(--sp-2);
-            align-items: flex-end;
-        }
-
-        /* Responsive */
-        @media (max-width: 1024px) {
-            .grid-2, .grid-3 { grid-template-columns: 1fr; }
-            .grid-charts { grid-template-columns: 1fr; }
-        }
-
-        @media (max-width: 640px) {
-            .controls-row { flex-direction: column; align-items: flex-start; }
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'core/components.css' %}">
+    <link rel="stylesheet" href="{% static 'monitoring/dashboard.css' %}">
 {% endblock %}
 
 {% block extra_head_js %}
@@ -329,9 +17,9 @@
     <div class="admin-info">
         <h1>Panel de control</h1>
         {% if is_admin %}
-        <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
+        <p>VisiÃ³n general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
         {% else %}
-        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
+        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadÃ­sticas actualizadas al instante.</p>
         {% endif %}
         {% if edificios %}
         <div style="display:flex; gap:var(--sp-2); flex-wrap:wrap; align-items:center; margin-top:var(--sp-2);">
@@ -366,32 +54,32 @@
     </div>
     {% else %}
 
-    <!-- Estados de conexión -->
+    <!-- Estados de conexiÃ³n -->
     <div class="notif-card" id="stateNotifCard" style="margin-top: var(--sp-3);">
         <div class="no-notif" id="stateLoading" style="display:flex; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-spinner fa-spin" style="font-size:3rem; color:var(--color-ink); margin-bottom:var(--sp-2);"></i>
             <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Conectando al simulador...</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Obteniendo lecturas de telemetrÃ­a y estado de sensores en tiempo real.</p>
         </div>
 
         <div class="no-notif" id="stateOffline" style="display:none; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-triangle-exclamation" style="font-size:3rem; color:var(--state-warn); margin-bottom:var(--sp-2);"></i>
-            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de línea</h3>
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
+            <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Sistema fuera de lÃ­nea</h3>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">El servicio de telemetrÃ­a y sensores en tiempo real no estÃ¡ transmitiendo datos en este momento. PÃ³ngase en contacto con el administrador del edificio.</p>
         </div>
 
         <div class="no-notif" id="stateNoEquipment" style="display:none; flex-direction:column; align-items:center; text-align:center;">
             <i class="fa-solid fa-circle-info" style="font-size:3rem; color:var(--color-text-secondary); margin-bottom:var(--sp-2);"></i>
             <h3 style="font-size:var(--text-md); font-weight:var(--weight-bold); color:var(--color-ink); margin-bottom:8px;">Edificio sin equipos de monitoreo</h3>
             {% if is_admin %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene configurado ningÃºn equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administraciÃ³n para comenzar la simulaciÃ³n.</p>
             {% else %}
-            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información.</p>
+            <p style="font-size:var(--text-sm); max-width:500px; margin:0; color:var(--color-text-secondary);">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para mÃ¡s informaciÃ³n.</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Contenedor de telemetría activa -->
+    <!-- Contenedor de telemetrÃ­a activa -->
     <div id="activeMonitoring" style="display:none;">
 
         <!-- Credenciales (admin) -->
@@ -422,14 +110,14 @@
             </div>
             {% if is_admin %}
             <div id="simStatusRow" class="status-cell">
-                <div class="status-cell-label">Simulación</div>
+                <div class="status-cell-label">SimulaciÃ³n</div>
                 <div class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
                 </div>
             </div>
             {% endif %}
             <div class="status-cell">
-                <div class="status-cell-label">Última actualización</div>
+                <div class="status-cell-label">Ãšltima actualizaciÃ³n</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
         </div>
@@ -438,10 +126,10 @@
         <div class="panel admin-controls-panel" style="margin-bottom: var(--sp-3);">
             <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
 
-            <!-- Sub-sección: Simulación -->
+            <!-- Sub-secciÃ³n: SimulaciÃ³n -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
-                    <i class="fa-solid fa-gamepad"></i> Simulación
+                    <i class="fa-solid fa-gamepad"></i> SimulaciÃ³n
                 </div>
                 <div id="simControls" class="admin-controls-row">
                     <div class="form-group">
@@ -484,7 +172,7 @@
                 </div>
             </div>
 
-            <!-- Sub-sección: Override manual de sensor -->
+            <!-- Sub-secciÃ³n: Override manual de sensor -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
                     <i class="fa-solid fa-sliders"></i> Manuales
