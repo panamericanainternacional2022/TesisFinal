@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <!-- ── Cabecera ── -->
     <div class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Historial</h1>
@@ -19,9 +19,9 @@
                 {{ total_count }}
             </span>
         </div>
-        <p class="mt-1">Registro cronolÃ³gico de todos los eventos del sistema. Filtra por severidad, variable o perÃ­odo para analizar el comportamiento de los sensores.</p>
+        <p class="mt-1">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
         {% if edificios %}
-        <!-- â”€â”€ Barra de controles â”€â”€ -->
+        <!-- ── Barra de controles ── -->
         <form method="GET" action="" id="historialFilterForm" class="mt-2">
             <!-- Inputs ocultos -->
             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
@@ -30,16 +30,16 @@
             <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
             <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
 
-            <!-- Fila Ãºnica de controles -->
+            <!-- Fila única de controles -->
             <div class="row-center">
-                <!-- Etiqueta + select de perÃ­odo -->
+                <!-- Etiqueta + select de período -->
                 <span class="inline-label">Ver historial de:</span>
                 <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
-                    <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Ãšltimas 24 horas</option>
-                    <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Ãšltima hora</option>
-                    <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Ãšltimas 12 horas</option>
-                    <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Ãšltimos 3 dÃ­as</option>
-                    <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Ãšltimos 7 dÃ­as</option>
+                    <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
+                    <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
+                    <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
+                    <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Últimos 3 días</option>
+                    <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
                     <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
                 </select>
                 
@@ -73,7 +73,7 @@
     </div>
 
     {% if edificios %}
-    <!-- â”€â”€ Lista de Eventos â”€â”€ -->
+    <!-- ── Lista de Eventos ── -->
     <div class="notif-card">
         <div id="historial-list">
             {% if notificaciones %}
@@ -127,7 +127,7 @@
         </div>
     </div>
 
-    <!-- â”€â”€ PaginaciÃ³n â”€â”€ -->
+    <!-- ── Paginación ── -->
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
@@ -137,7 +137,7 @@
             <button type="button" disabled class="btn btn-icon" aria-label="Primera p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-left"></i></button>
             <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left"></i></button>
         {% endif %}
-        <span class="page-current-info">PÃ¡gina {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
+        <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
             <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente"><i class="fa-solid fa-angle-right"></i></a>
             <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="&#218;ltima p&#225;gina"><i class="fa-solid fa-angles-right"></i></a>
@@ -150,7 +150,7 @@
     {% endif %}
 </div>
 
-<!-- â•â• PANEL LATERAL (Edificio / Severidad / Variable) â•â• -->
+<!-- ══ PANEL LATERAL (Edificio / Severidad / Variable) ══ -->
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
@@ -198,14 +198,14 @@
     </div>
 </aside>
 
-<!-- â•â• MODAL: Rango personalizado de fechas â•â• -->
+<!-- ══ MODAL: Rango personalizado de fechas ══ -->
 <div id="customDateBackdrop" class="custom-modal-backdrop">
     <div class="custom-modal-container" style="max-width:420px;">
         <div class="row-md mb-2">
             <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);"></i>
             <span class="drawer-title">Rango personalizado</span>
         </div>
-        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del perÃ­odo que quieres consultar.</p>
+        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
 
         <!-- Inputs de fecha -->
         <div class="col-stack">
@@ -219,7 +219,7 @@
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
-            <!-- Error de validaciÃ³n -->
+            <!-- Error de validación -->
             <div id="customDateError" class="error-inline">
                 <i class="fa-solid fa-circle-exclamation"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
@@ -257,15 +257,15 @@
         // Guardar valor inicial como "prev"
         periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '24h' : periodoSelect.value;
 
-        // BotÃ³n "Editar" junto al select
+        // Botón "Editar" junto al select
         const editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
         if (editCustomDatesBtn) {
             editCustomDatesBtn.addEventListener('click', openCustomDateModal);
         }
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        /* ═══════════════════════════════════════════════════════
            MODAL DE RANGO PERSONALIZADO
-         â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+         ═══════════════════════════════════════════════════════ */
         const backdrop      = document.getElementById('customDateBackdrop');
         const inputDesde    = document.getElementById('modal-fecha-desde');
         const inputHasta    = document.getElementById('modal-fecha-hasta');
@@ -294,7 +294,7 @@
             inputDesde.style.boxShadow = (!valid) ? '3px 3px 0px var(--state-critical)' : '3px 3px 0px var(--color-ink)';
             inputDesde.style.borderColor = (!valid) ? 'var(--state-critical)' : 'var(--color-ink)';
 
-            // Habilitar botÃ³n Aplicar solo con ambas fechas y vÃ¡lidas
+            // Habilitar botón Aplicar solo con ambas fechas y válidas
             const enable = bothFilled && valid;
             applyBtn.disabled = !enable;
         }
@@ -324,7 +324,7 @@
             form.submit();
         });
 
-        // Si al cargar ya tenÃ­amos custom, marcar el select
+        // Si al cargar ya teníamos custom, marcar el select
         (function () {
             const stored = "{{ periodo_seleccionado }}";
             if (stored === 'custom') {
@@ -333,9 +333,9 @@
             }
         })();
 
-        /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+        /* ═══════════════════════════════════════════════════════
            PANEL LATERAL
-        â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+        ═══════════════════════════════════════════════════════ */
         const filterPanel   = document.getElementById('filterPanel');
         const filterOverlay = document.getElementById('filterPanelOverlay');
 

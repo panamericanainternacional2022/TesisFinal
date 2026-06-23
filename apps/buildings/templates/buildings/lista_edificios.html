@@ -11,7 +11,7 @@
 <div class="reportes-card">
     <div class="admin-info">
         <h1>Edificios</h1>
-        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y mantÃ©nlos siempre actualizados.</p>
+        <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y manténlos siempre actualizados.</p>
         <div class="filter-row">
             <form method="get" action="" class="row-center m-0">
                 <label for="q-edificios" class="sr-only">Buscar edificios</label>
@@ -40,7 +40,7 @@
                         <th>Nombre</th>
                         <th>Equipamiento</th>
                         <th>RIF</th>
-                        <th>DirecciÃ³n</th>
+                        <th>Dirección</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -55,7 +55,7 @@
                                             {% if eq.equipment_type == "bomba" %}Bomba de agua{% if not forloop.last %} y {% endif %}{% endif %}
                                             {% if eq.equipment_type == "elevador" %}{% if equipment_list|length > 1 %}elevador{% else %}Elevador{% endif %}{% if not forloop.last %} y {% endif %}{% endif %}
                                         {% empty %}
-                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">â€”</span>
+                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">—</span>
                                         {% endfor %}
                                     {% endwith %}
                                 </td>
@@ -70,7 +70,7 @@
                                             <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                             </a>
-                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Â¿EstÃ¡s seguro de eliminar {{ building.name }}? Se eliminarÃ¡ todo el historial, las alertas asociadas y se desvincularÃ¡n los usuarios de este edificio.">
+                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                             </a>
                                             <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">

@@ -15,7 +15,7 @@
 <div class="page-container">
     <div class="admin-info">
         <h1>{% if editing %}Modificar edificio{% else %}Registro de nuevo edificio{% endif %}</h1>
-        <p>{% if editing %}Actualiza los datos de infraestructura, RIF y direcciÃ³n fÃ­sica del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la informaciÃ³n bÃ¡sica para registrar una nueva edificaciÃ³n y permitir la asignaciÃ³n posterior de sensores.{% endif %}</p>
+        <p>{% if editing %}Actualiza los datos de infraestructura, RIF y dirección física del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la información básica para registrar una nueva edificación y permitir la asignación posterior de sensores.{% endif %}</p>
     </div>
 
     <form class="perfil-card user-profile-container" method="post" novalidate class="mt-0">
@@ -26,7 +26,7 @@
                 <div class="form-group half-width">
                     <label for="nombreEdificio">Nombre del edificio</label>
                     <div class="input-with-icon">
-                        <input placeholder="Ej. Residencia La CampiÃ±a" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ building.name|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
+                        <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ building.name|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
                     </div>
                     <div class="validation-error">{% if form_errors.nombreEdificio %}{{ form_errors.nombreEdificio }}{% elif form_errors.nombreEdificio_long %}{{ form_errors.nombreEdificio_long }}{% endif %}</div>
                 </div>
@@ -41,7 +41,7 @@
 
             <div class="form-row">
                 <div class="form-group half-width">
-                    <label for="direccion">DirecciÃ³n</label>
+                    <label for="direccion">Dirección</label>
                     <div class="input-with-icon">
                         <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="direccion" name="direccion" value="{{ building.address|default:'' }}" data-validate="direccion" maxlength="100" required class="form-input {% if form_errors.direccion or form_errors.direccion_long %}input-error{% endif %}" />
                     </div>
@@ -95,7 +95,7 @@
             setTimeout(checkFormState, 0);
         }
 
-        // â”€â”€ ValidaciÃ³n de botÃ³n (PatrÃ³n A/B) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Validación de botón (Patrón A/B) ──────────────────────────
         var checkFormState;
         document.addEventListener('DOMContentLoaded', function () {
             var form = document.querySelector('form');
@@ -104,7 +104,7 @@
             if (!submitBtn) return;
             var isEditing = {% if editing %}true{% else %}false{% endif %};
 
-            // Captura valores iniciales (modo ediciÃ³n)
+            // Captura valores iniciales (modo edición)
             var initialValues = {};
             form.querySelectorAll('input[name], select[name]').forEach(function (el) {
                 initialValues[el.name] = el.value;
@@ -118,12 +118,12 @@
                 var hasErrors = form.querySelectorAll('.input-error').length > 0;
                 var shouldEnable;
                 if (isEditing) {
-                    // PatrÃ³n A: solo si hay cambios Y sin errores
+                    // Patrón A: solo si hay cambios Y sin errores
                     var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
                         .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
                     shouldEnable = hasChanges && !hasErrors;
                 } else {
-                    // PatrÃ³n B: solo si todos los required rellenos Y sin errores
+                    // Patrón B: solo si todos los required rellenos Y sin errores
                     var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
                         .every(function (el) { return el.value.trim() !== ''; });
                     shouldEnable = allFilled && !hasErrors;
@@ -131,7 +131,7 @@
                 setBtn(!shouldEnable);
             };
 
-            // Arranca deshabilitado en creaciÃ³n, validado en ediciÃ³n
+            // Arranca deshabilitado en creación, validado en edición
             setTimeout(checkFormState, 0);
 
             form.querySelectorAll('input, select').forEach(function (el) {

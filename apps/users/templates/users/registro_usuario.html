@@ -15,7 +15,7 @@
 <div class="page-container">
     <div class="admin-info">
         <h1>{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}</h1>
-        <p>{% if editing %}Actualiza la informaciÃ³n personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automÃ¡ticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
+        <p>{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
     </div>
 
     <form class="perfil-card user-profile-container" method="post" novalidate class="mt-0">
@@ -61,7 +61,7 @@
 
             <div class="form-row">
                 <div class="form-group half-width">
-                    <label for="email">Correo electrÃ³nico</label>
+                    <label for="email">Correo electrónico</label>
                     <div class="input-with-icon">
                         <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
                         <i class="fa-solid fa-pen edit-icon"></i>
@@ -69,7 +69,7 @@
                     <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
                 </div>
                 <div class="form-group half-width">
-                    <label for="cedula">CÃ©dula (CI)</label>
+                    <label for="cedula">Cédula (CI)</label>
                     <div class="input-with-icon">
                         <input placeholder="V-12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="cedula" data-exclude-id="{% if editing %}{{ persona_id }}{% endif %}" maxlength="16" required class="form-input {% if form_errors.cedula or form_errors.cedula_long or form_errors.cedula_unico %}input-error{% endif %}" />
                         <i class="fa-solid fa-pen edit-icon"></i>
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!submitBtn) return;
     var isEditing = {% if editing %}true{% else %}false{% endif %};
 
-    // Captura valores iniciales para detectar cambios (modo ediciÃ³n)
+    // Captura valores iniciales para detectar cambios (modo edición)
     var initialValues = {};
     form.querySelectorAll('input[name], select[name]').forEach(function (el) {
         initialValues[el.name] = el.value;
@@ -128,12 +128,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var hasErrors = form.querySelectorAll('.input-error').length > 0;
         var shouldEnable;
         if (isEditing) {
-            // PatrÃ³n A: habilitar solo si hay cambios Y sin errores
+            // Patrón A: habilitar solo si hay cambios Y sin errores
             var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
                 .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
             shouldEnable = hasChanges && !hasErrors;
         } else {
-            // PatrÃ³n B: habilitar solo si todos los required estÃ¡n rellenos Y sin errores
+            // Patrón B: habilitar solo si todos los required están rellenos Y sin errores
             var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
                 .every(function (el) { return el.value.trim() !== ''; });
             shouldEnable = allFilled && !hasErrors;
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function () {
         setBtn(!shouldEnable);
     }
 
-    // Arranca deshabilitado en creaciÃ³n, y validado en ediciÃ³n
+    // Arranca deshabilitado en creación, y validado en edición
     setTimeout(checkChanges, 0);
 
     form.querySelectorAll('input, select').forEach(function (el) {
