@@ -43,15 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleSubmit(form) {
         const btn = form.querySelector('button[type="submit"], .btn-primary');
         if (!btn) return;
-        if (tieneErrores(form)) {
-            btn.disabled = true;
-            btn.style.opacity = '0.5';
-            btn.style.cursor = 'not-allowed';
-        } else {
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.style.cursor = 'pointer';
-        }
+        btn.disabled = tieneErrores(form);
     }
 
     // ─── VALIDADORES POR TIPO ───────────────────────────────────
