@@ -25,7 +25,7 @@
         <div class="filter-row">
             <span class="inline-label">Edificio activo:</span>
             {% if edificios|length == 1 %}
-            <span style="font-size: var(--text-sm); font-weight: var(--weight-bold); color: var(--color-ink); padding: 8px 12px; border: 2px solid var(--color-ink); background: var(--color-surface); box-shadow: 3px 3px 0px var(--color-ink); min-width: 200px; display: inline-block;">
+            <span class="building-tag">
                 {{ edificios.0.name }}
                 <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
             </span>
@@ -96,16 +96,16 @@
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
                     <span id="pumpStatusBadge" class="badge" class="d-none"></span>
-                    <span id="pumpStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
-                    <span id="pumpNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
+                    <span id="pumpStatusEmpty" class="status-label-sm">Normal</span>
+                    <span id="pumpNotInstalled" class="status-label-sm d-none">No instalado</span>
                 </div>
             </div>
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
                     <span id="elevatorStatusBadge" class="badge" class="d-none"></span>
-                    <span id="elevatorStatusEmpty" style="color:var(--color-text-secondary);font-size:var(--text-xs);">Normal</span>
-                    <span id="elevatorNotInstalled" style="display:none; color:var(--color-text-secondary); font-size:var(--text-xs);">No instalado</span>
+                    <span id="elevatorStatusEmpty" class="status-label-sm">Normal</span>
+                    <span id="elevatorNotInstalled" class="status-label-sm d-none">No instalado</span>
                 </div>
             </div>
             {% if is_admin %}
@@ -202,7 +202,7 @@
                         </button>
                     </div>
                 </div>
-                <div style="font-size:var(--text-xs); margin-top:8px; min-height:18px;" id="manualRiskPreview"></div>
+                <div class="risk-preview" id="manualRiskPreview"></div>
             </div>
         </div>
         {% endif %}

@@ -100,15 +100,15 @@
                                 {{ notif.parsed_data.variable }}
                             </span>
                         </div>
-                        <p style="margin:0; font-size:var(--text-sm); color:var(--color-text-secondary); line-height:var(--leading-normal);">
+                        <p class="notif-meta-text">
                             {{ notif.parsed_data.action }}
                         </p>
                     {% else %}
-                        <p style="margin:0; font-size:var(--text-base); color:var(--color-text-primary); line-height:var(--leading-normal);">
+                        <p class="notif-body-text">
                             {{ notif.mensaje }}
                         </p>
                     {% endif %}
-                    <div class="notif-meta" style="margin-top:8px;">
+                    <div class="notif-meta" class="mt-1">
                         <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                         {% if notif.monitoring_equipment.building %}
                         <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
@@ -201,26 +201,26 @@
 <!-- â•â• MODAL: Rango personalizado de fechas â•â• -->
 <div id="customDateBackdrop" class="custom-modal-backdrop">
     <div class="custom-modal-container" style="max-width:420px;">
-        <div style="display:flex; align-items:center; gap:12px; margin-bottom:var(--sp-2);">
+        <div class="row-md mb-2">
             <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);"></i>
-            <span style="font-size:var(--text-lg); font-weight:var(--weight-bold); color:var(--color-ink); letter-spacing:var(--tracking-wide);">Rango personalizado</span>
+            <span class="drawer-title">Rango personalizado</span>
         </div>
         <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del perÃ­odo que quieres consultar.</p>
 
         <!-- Inputs de fecha -->
-        <div style="display:flex; flex-direction:column; gap:var(--sp-2);">
+        <div class="col-stack">
             <div>
-                <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Desde</div>
+                <div class="field-label">Desde</div>
                 <input type="date" id="modal-fecha-desde"
                        value="{{ fecha_desde }}" class="form-input">
             </div>
             <div>
-                <div style="font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:var(--color-ink); margin-bottom:6px;">Hasta</div>
+                <div class="field-label">Hasta</div>
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
             <!-- Error de validaciÃ³n -->
-            <div id="customDateError" style="display:none; padding:8px 12px; background:var(--state-critical-bg); border:2px solid var(--state-critical); color:var(--state-critical); font-size:var(--text-xs); font-weight:var(--weight-bold);">
+            <div id="customDateError" class="error-inline">
                 <i class="fa-solid fa-circle-exclamation"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
         </div>

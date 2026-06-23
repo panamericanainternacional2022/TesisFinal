@@ -13,7 +13,7 @@
         <h1>Edificios</h1>
         <p>Gestiona los edificios registrados en la plataforma. Configura sus datos, asigna equipos de monitoreo y mantÃ©nlos siempre actualizados.</p>
         <div class="filter-row">
-            <form class="filters-row" method="get" action="" style="display:flex; gap:var(--sp-2); align-items:center; flex-wrap:wrap; margin:0;">
+            <form class="filters-row" method="get" action="" class="row-center m-0">
                 <div class="input-with-icon" style="max-width: 320px; flex: 1; min-width: 240px;">
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" style="color: #94a3b8; font-size: 0.9rem;"></i>
                     <input type="text" name="q" placeholder="Buscar por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
@@ -82,7 +82,7 @@
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5" style="text-align: center; padding: 24px 0;">
+                            <td colspan="5" class="table-empty-cell">
                                 No hay edificios registrados.
                             </td>
                         </tr>

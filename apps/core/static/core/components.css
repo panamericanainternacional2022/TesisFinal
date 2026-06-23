@@ -758,3 +758,72 @@
     color: var(--color-ink);
     letter-spacing: var(--tracking-wide);
 }
+
+/* ── Flex row gap-md (12px) — más amplio que row-sm (8px) ───────────────── */
+.row-md {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ── Textos de ítem de notificación ─────────────────────────────────────── */
+/* Texto de metadatos (fecha, origen) — secundario */
+.notif-meta-text {
+    margin: 0;
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-normal);
+}
+
+/* Texto de cuerpo de notificación — primario */
+.notif-body-text {
+    margin: 0;
+    font-size: var(--text-base);
+    color: var(--color-text-primary);
+    line-height: var(--leading-normal);
+}
+
+/* ── Etiqueta de estado pequeña (xs, color heredado del padre) ───────────── */
+.status-label-sm {
+    color: var(--color-text-secondary);
+    font-size: var(--text-xs);
+}
+
+/* ── Error inline (panel de validación en formularios de fecha) ─────────── */
+.error-inline {
+    display: none;
+    padding: 8px 12px;
+    background: var(--state-critical-bg);
+    border: 2px solid var(--state-critical);
+    color: var(--state-critical);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+}
+
+/* ── Preview de riesgo (texto de previsualización debajo de inputs) ──────── */
+.risk-preview {
+    font-size: var(--text-xs);
+    margin-top: 8px;
+    min-height: 18px;
+}
+
+/* ── Tag de edificio (span que muestra nombre del edificio activo) ────────── */
+.building-tag {
+    display: inline-block;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-bold);
+    color: var(--color-ink);
+    padding: 8px 12px;
+    border: var(--border-brutal);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-brutal-sm);
+    min-width: 200px;
+}
+
+/* ── Texto vacío de tabla (celda centrada cuando no hay datos) ────────────── */
+.table-empty-cell {
+    text-align: center;
+    padding: 24px 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-sm);
+}

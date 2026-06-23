@@ -18,25 +18,7 @@
         </div>
         <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
 
-        {% if edificios and edificios|length > 1 %}
-        <!-- Selector de edificio -->
-        <div class="filter-row">
-            <span class="inline-label">Edificio:</span>
-            <select id="buildingSelect" class="custom-select-init">
-                {% for ed in edificios %}
-                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        {% elif edificios and edificios|length == 1 %}
-        <div class="row-sm mt-2">
-            <span class="inline-label">Edificio:</span>
-            <span class="btn btn-secondary">
-                {{ edificios.0.name }}
-                <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
-            </span>
-        </div>
-        {% endif %}
+        {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </div>
 
     {% if not edificios %}
@@ -55,21 +37,7 @@
 
     <!-- Estado de conexión -->
     <div class="notif-card mt-3" id="stateNotifCard">
-        <div id="stateLoading" class="no-notif empty-state">
-            <i class="fa-solid fa-spinner fa-spin empty-state-icon" style="color:var(--color-ink);"></i>
-            <h3 class="section-label">Cargando límites...</h3>
-            <p class="help-text">Obteniendo límites de operación del sensor.</p>
-        </div>
-        <div id="stateOffline" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--state-warn);"></i>
-            <h3 class="section-label">Sin conexión</h3>
-            <p class="help-text">No se pudo obtener la configuración. Verifica que el servidor esté activo.</p>
-        </div>
-        <div id="stateNoEquipment" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-circle-info empty-state-icon" style="color:var(--color-text-secondary);"></i>
-            <h3 class="section-label">Sin equipos de monitoreo</h3>
-            <p class="help-text">Este edificio no tiene equipos configurados.</p>
-        </div>
+        {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
     </div>
 
     <!-- Contenedor principal -->

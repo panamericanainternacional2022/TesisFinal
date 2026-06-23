@@ -19,7 +19,7 @@
         <p class="mt-1">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
         {% if buildings %}
         <!-- Filtro de Edificio y BotÃ³n Limpiar -->
-        <div style="margin-top: var(--sp-2); display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); flex-wrap: wrap; width: 100%;">
+        <div class="row-between mt-2">
             {% if buildings|length > 1 %}
             <form method="GET" action="" class="row-center m-0">
                 <div class="row-sm">
@@ -78,15 +78,15 @@
                                 {{ notif.parsed_data.variable }}
                             </span>
                         </div>
-                        <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">
+                        <p class="notif-meta-text">
                             {{ notif.parsed_data.action }}
                         </p>
                     {% else %}
-                        <p style="margin: 0; font-size: var(--text-base); color: var(--color-text-primary); line-height: var(--leading-normal);">
+                        <p class="notif-body-text">
                             {{ notif.mensaje }}
                         </p>
                     {% endif %}
-                    <div class="notif-meta" style="margin-top: 8px;">
+                    <div class="notif-meta" class="mt-1">
                         <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                         {% if notif.monitoring_equipment.building %}
                         <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
