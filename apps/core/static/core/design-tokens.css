@@ -310,6 +310,13 @@ body {
     transform: translate(-2px, -2px);
     box-shadow: 5px 5px 0px var(--color-ink);
 }
+.btn-icon.open {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px var(--color-ink);
+}
+.btn-icon.open i.fa-ellipsis-vertical {
+    transform: rotate(90deg);
+}
 
 /* ── Dropdown system (tablas) ─────────────────────────────────────────── */
 .actions-dropdown {

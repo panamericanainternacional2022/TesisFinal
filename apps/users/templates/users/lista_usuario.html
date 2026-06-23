@@ -137,6 +137,7 @@
                     closeAllDropdowns();
                     if (!isOpen) {
                         menu.classList.add('open');
+                        trigger.classList.add('open');
                     }
                 } else {
                     closeAllDropdowns();
@@ -144,7 +145,11 @@
             });
 
             function closeAllDropdowns() {
-                document.querySelectorAll('.dropdown-menu.open').forEach(m => m.classList.remove('open'));
+                document.querySelectorAll('.dropdown-menu.open').forEach(m => {
+                    m.classList.remove('open');
+                    const t = m.previousElementSibling;
+                    if (t?.classList.contains('btn-icon')) t.classList.remove('open');
+                });
             }
 
             // ── Eliminar confirmación ──
