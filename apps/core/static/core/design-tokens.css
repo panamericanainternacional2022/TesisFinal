@@ -317,6 +317,9 @@ body {
 .btn-icon.open i.fa-ellipsis-vertical {
     transform: rotate(90deg);
 }
+.btn-icon i.fa-ellipsis-vertical {
+    transition: transform var(--transition-fast);
+}
 
 /* ── Dropdown system (tablas) ─────────────────────────────────────────── */
 .actions-dropdown {

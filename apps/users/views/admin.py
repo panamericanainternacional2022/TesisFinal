@@ -155,9 +155,9 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
                         p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
                         person_name = " ".join(p for p in p_parts if p)
                         if email_sent:
-                            messages.success(request, f"Usuario {person_name} registrado. Se envió el correo de activación a {post_data['email']}.")
+                            messages.success(request, f"{person_name} registrado. Se envió el correo de activación a {post_data['email']}.")
                         else:
-                            messages.warning(request, f"Usuario {person_name} registrado. No se pudo enviar el correo; entregue el enlace de activación manualmente: {activation_link}")
+                            messages.warning(request, f"{person_name} registrado. No se pudo enviar el correo; entregue el enlace de activación manualmente: {activation_link}")
 
                         return redirect("user_list")
 
@@ -212,7 +212,7 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
 
                 p_parts = [person.first_name, person.middle_name, person.first_last_name, person.second_last_name]
                 full_name = " ".join(p for p in p_parts if p) or user.username
-                messages.success(request, f"Usuario {full_name} actualizado correctamente.")
+                messages.success(request, f"{full_name} actualizado correctamente.")
                 return redirect("user_list")
     else:
         data = build_edit_initial_data(user, person)
@@ -250,7 +250,7 @@ def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
         user.delete()
         if person_id:
             Persona.objects.filter(id_persona=person_id).delete()
-    messages.success(request, f"Usuario {full_name} eliminado correctamente.")
+    messages.success(request, f"{full_name} eliminado correctamente.")
     return redirect("user_list")
 
 

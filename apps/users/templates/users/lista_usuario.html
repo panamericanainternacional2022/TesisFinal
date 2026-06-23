@@ -231,15 +231,24 @@
             if (userActionsToggle && userActionsMenu) {
                 userActionsToggle.addEventListener('click', function(e) {
                     e.stopImmediatePropagation();
-                    userActionsMenu.classList.toggle('open');
+                    const opened = !userActionsMenu.classList.contains('open');
+                    closeAllDropdowns();
+                    if (opened) {
+                        userActionsMenu.classList.add('open');
+                        userActionsToggle.classList.add('open');
+                    }
                 });
                 document.addEventListener('click', function(e) {
                     if (!userActionsToggle.contains(e.target) && !userActionsMenu.contains(e.target)) {
                         userActionsMenu.classList.remove('open');
+                        userActionsToggle.classList.remove('open');
                     }
                 });
                 userActionsMenu.addEventListener('click', function() {
-                    setTimeout(() => userActionsMenu.classList.remove('open'), 150);
+                    setTimeout(() => {
+                        userActionsMenu.classList.remove('open');
+                        userActionsToggle.classList.remove('open');
+                    }, 150);
                 });
             }
         });
