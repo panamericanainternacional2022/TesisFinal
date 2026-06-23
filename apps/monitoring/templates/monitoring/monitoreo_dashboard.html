@@ -14,7 +14,7 @@
 
 {% block content %}
 <div class="reportes-card">
-    <div class="admin-info">
+    <header class="admin-info">
         <h1>Panel de control</h1>
         {% if is_admin %}
         <p>Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
@@ -39,12 +39,12 @@
 
         </div>
         {% endif %}
-    </div>
+    </header>
 
     {% if not edificios %}
-    <div class="notif-card" class="mt-3">
+    <div class="notif-card mt-3">
         <div class="no-notif">
-            <i class="fa-solid fa-building"></i>
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
             {% if is_admin %}
             <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
             {% else %}
@@ -55,21 +55,21 @@
     {% else %}
 
     <!-- Estados de conexión -->
-    <div class="notif-card" id="stateNotifCard" class="mt-3">
-        <div class="no-notif" id="stateLoading" class="empty-state">
-            <i class="fa-solid fa-spinner fa-spin" class="empty-state-icon" style="color:var(--color-ink);"></i>
+    <div class="notif-card mt-3" id="stateNotifCard">
+        <div class="no-notif empty-state" id="stateLoading">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" style="color:var(--color-ink);" aria-hidden="true"></i>
             <h3 class="section-label">Conectando al simulador...</h3>
             <p class="help-text-lg">Obteniendo lecturas de telemetría y estado de sensores en tiempo real.</p>
         </div>
 
-        <div class="no-notif" id="stateOffline" class="empty-state d-none">
-            <i class="fa-solid fa-triangle-exclamation" class="empty-state-icon" style="color:var(--state-warn);"></i>
+        <div class="no-notif empty-state d-none" id="stateOffline">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--state-warn);" aria-hidden="true"></i>
             <h3 class="section-label">Sistema fuera de línea</h3>
             <p class="help-text-lg">El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio.</p>
         </div>
 
-        <div class="no-notif" id="stateNoEquipment" class="empty-state d-none">
-            <i class="fa-solid fa-circle-info" class="empty-state-icon" style="color:var(--color-text-secondary);"></i>
+        <div class="no-notif empty-state d-none" id="stateNoEquipment">
+            <i class="fa-solid fa-circle-info empty-state-icon" style="color:var(--color-text-secondary);" aria-hidden="true"></i>
             <h3 class="section-label">Edificio sin equipos de monitoreo</h3>
             {% if is_admin %}
             <p class="help-text-lg">Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación.</p>
@@ -84,8 +84,8 @@
 
         <!-- Credenciales (admin) -->
         {% if is_admin %}
-        <div id="credsWarning" class="sys-alert sys-alert-warn" class="d-none">
-            <i class="fas fa-triangle-exclamation"></i>
+        <div id="credsWarning" class="sys-alert sys-alert-warn d-none">
+            <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
             <span id="credsMsg"></span>
         </div>
         {% endif %}
@@ -95,7 +95,7 @@
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
                 <div class="status-cell-value">
-                    <span id="pumpStatusBadge" class="badge" class="d-none"></span>
+                    <span id="pumpStatusBadge" class="badge d-none"></span>
                     <span id="pumpStatusEmpty" class="status-label-sm">Normal</span>
                     <span id="pumpNotInstalled" class="status-label-sm d-none">No instalado</span>
                 </div>
@@ -103,7 +103,7 @@
             <div id="elevatorStatusRow" class="status-cell">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
-                    <span id="elevatorStatusBadge" class="badge" class="d-none"></span>
+                    <span id="elevatorStatusBadge" class="badge d-none"></span>
                     <span id="elevatorStatusEmpty" class="status-label-sm">Normal</span>
                     <span id="elevatorNotInstalled" class="status-label-sm d-none">No instalado</span>
                 </div>
@@ -123,18 +123,18 @@
         </div>
 
         {% if is_admin %}
-        <div class="panel admin-controls-panel" class="mb-3">
-            <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
+        <div class="panel admin-controls-panel mb-3">
+            <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Controles administrativos</h2>
 
             <!-- Sub-sección: Simulación -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
-                    <i class="fa-solid fa-gamepad"></i> Simulación
+                    <i class="fa-solid fa-gamepad" aria-hidden="true"></i> Simulación
                 </div>
                 <div id="simControls" class="admin-controls-row">
                     <div class="form-group">
                         <button type="button" id="simPauseBtn" class="btn btn-secondary">
-                            <i class="fas fa-pause"></i> <span>Pausar</span>
+                            <i class="fas fa-pause" aria-hidden="true"></i> <span>Pausar</span>
                         </button>
                     </div>
                     <div class="form-group">
@@ -166,7 +166,7 @@
                     </div>
                     <div class="self-end">
                         <button type="button" id="simResetBtn" class="btn btn-critical">
-                            <i class="fas fa-rotate-left"></i> Reiniciar
+                            <i class="fas fa-rotate-left" aria-hidden="true"></i> Reiniciar
                         </button>
                     </div>
                 </div>
@@ -175,7 +175,7 @@
             <!-- Sub-sección: Override manual de sensor -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
-                    <i class="fa-solid fa-sliders"></i> Manuales
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> Manuales
                 </div>
                 <div class="admin-controls-row">
                     <div class="form-group flex-1">
@@ -198,7 +198,7 @@
                     </div>
                     <div class="self-end">
                         <button type="button" id="sendManualBtn" class="btn btn-primary">
-                            <i class="fas fa-paper-plane"></i> Enviar
+                            <i class="fas fa-paper-plane" aria-hidden="true"></i> Enviar
                         </button>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
         <!-- Tarjetas de sensores: Bomba -->
         <div id="bombaSection" class="sensor-section">
             <div class="sensor-section-title">
-                <i class="fa-solid fa-oil-can"></i> Sensores de la bomba de agua
+                <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Sensores de la bomba de agua
             </div>
             <div class="sensor-cards-grid" id="bombaCards"></div>
         </div>
@@ -218,17 +218,17 @@
         <!-- Tarjetas de sensores: Elevador -->
         <div id="elevadorSection" class="sensor-section">
             <div class="sensor-section-title">
-                <i class="fa-solid fa-elevator"></i> Sensores del elevador
+                <i class="fa-solid fa-elevator" aria-hidden="true"></i> Sensores del elevador
             </div>
             <div class="sensor-cards-grid" id="elevadorCards"></div>
         </div>
 
         <!-- Panel de Recomendaciones -->
-        <div id="recommendationsPanel" class="panel" class="mb-3">
-            <h2 class="panel-title"><i class="fa-solid fa-lightbulb"></i> Recomendaciones del sistema</h2>
+        <div id="recommendationsPanel" class="panel mb-3">
+            <h2 class="panel-title"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Recomendaciones del sistema</h2>
             <div id="recommendationsContent" class="col-stack">
                 <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
-                    <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
+                    <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);" aria-hidden="true"></i>
                     <span>Cargando recomendaciones...</span>
                 </div>
             </div>
@@ -236,11 +236,11 @@
 
         <div class="grid-charts">
             <div id="chartPumpPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-oil-can"></i> Variables de la bomba de agua</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-oil-can" aria-hidden="true"></i> Variables de la bomba de agua</div>
                 <canvas id="chart1" class="mb-3"></canvas>
             </div>
             <div id="chartElevatorPanel" class="chart-panel">
-                <div class="chart-panel-title"><i class="fa-solid fa-elevator"></i> Variables del elevador</div>
+                <div class="chart-panel-title"><i class="fa-solid fa-elevator" aria-hidden="true"></i> Variables del elevador</div>
                 <canvas id="chart2" class="mb-3"></canvas>
             </div>
         </div>

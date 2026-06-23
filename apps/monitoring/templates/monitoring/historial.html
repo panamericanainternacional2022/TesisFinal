@@ -12,10 +12,10 @@
 {% block content %}
 <div class="reportes-card">
     <!-- ── Cabecera ── -->
-    <div class="admin-info">
+    <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Historial</h1>
-            <span class="notif-count-badge" class="count-badge">
+            <span class="notif-count-badge count-badge">
                 {{ total_count }}
             </span>
         </div>
@@ -45,7 +45,7 @@
                 
                 {% if periodo_seleccionado == 'custom' %}
                 <button type="button" id="editCustomDatesBtn" class="btn btn-secondary">
-                    <i class="fa-solid fa-calendar-days"></i> Editar fechas
+                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Editar fechas
                 </button>
                 {% endif %}
 
@@ -54,7 +54,7 @@
 
                 <!-- Filtrar (panel lateral) -->
                 <button id="openFilterPanel" type="button" class="btn btn-primary">
-                    <i class="fa-solid fa-sliders"></i> Filtrar
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
                     {% if severidad or variable_filter or selected_edificio_id %}
                     <span class="filter-dot"></span>
                     {% endif %}
@@ -65,12 +65,12 @@
                    href="{% url 'history_pdf' %}?{{ filter_query_string }}"
                    class="btn btn-secondary"
                    title="Descargar PDF con los filtros actuales">
-                    <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+                    <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
                 </a>
             </div>
         </form>
         {% endif %}
-    </div>
+    </header>
 
     {% if edificios %}
     <!-- ── Lista de Eventos ── -->
@@ -108,10 +108,10 @@
                             {{ notif.mensaje }}
                         </p>
                     {% endif %}
-                    <div class="notif-meta" class="mt-1">
-                        <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
+                    <div class="notif-meta mt-1">
+                        <span><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                         {% if notif.monitoring_equipment.building %}
-                        <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
+                        <span><i class="fa-solid fa-building" aria-hidden="true"></i> {{ notif.monitoring_equipment.building.name }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -120,7 +120,7 @@
             </ul>
             {% else %}
             <div class="no-notif" id="historial-no-events">
-                <i class="fa-solid fa-folder-open"></i>
+                <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
                 <p>No se encontraron eventos con los filtros aplicados.</p>
             </div>
             {% endif %}
@@ -131,19 +131,19 @@
     {% if notificaciones.has_other_pages %}
     <div class="pagination-container">
         {% if notificaciones.has_previous %}
-            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="Primera p&#225;gina"><i class="fa-solid fa-angles-left"></i></a>
-            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior"><i class="fa-solid fa-angle-left"></i></a>
+            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="Primera p&#225;gina"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></a>
+            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="Primera p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Primera p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></button>
         {% endif %}
         <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
         {% if notificaciones.has_next %}
-            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente"><i class="fa-solid fa-angle-right"></i></a>
-            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="&#218;ltima p&#225;gina"><i class="fa-solid fa-angles-right"></i></a>
+            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></a>
+            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="&#218;ltima p&#225;gina"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="&#218;ltima p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="&#218;ltima p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
         {% endif %}
     </div>
     {% endif %}
@@ -154,13 +154,13 @@
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
-        <div class="row-sm"><i class="fa-solid fa-sliders" style="font-size:1.1rem;"></i><span>Filtros</span></div>
+        <div class="row-sm"><i class="fa-solid fa-sliders" style="font-size:1.1rem;" aria-hidden="true"></i><span>Filtros</span></div>
         <button type="button" class="btn btn-icon" aria-label="Cerrar panel de filtros" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="filter-panel-body">
         {% if edificios|length > 1 %}
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-building"></i> Edificio</div>
+            <div class="filter-section-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</div>
             <select id="panel-edificio" aria-label="Filtrar por edificio" class="custom-select-init">
                 <option value="">Todos los edificios</option>
                 {% for edif in edificios %}
@@ -170,7 +170,7 @@
         </div>
         {% endif %}
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation"></i> Severidad</div>
+            <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Severidad</div>
             <select id="panel-severidad" aria-label="Filtrar por severidad" class="custom-select-init">
                 <option value="">Todas las severidades</option>
                 {% for sev in ALL_SEVERITIES %}
@@ -179,7 +179,7 @@
             </select>
         </div>
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-gauge"></i> Variable</div>
+            <div class="filter-section-label"><i class="fa-solid fa-gauge" aria-hidden="true"></i> Variable</div>
             <select id="panel-variable" aria-label="Filtrar por variable" class="custom-select-init">
                 <option value="">Todas las variables</option>
                 {% for var in all_variables %}
@@ -190,10 +190,10 @@
     </div>
     <div class="filter-panel-footer">
         <button type="button" id="applyPanelFilters" class="btn btn-primary btn-flex">
-            <i class="fa-solid fa-filter"></i> Aplicar
+            <i class="fa-solid fa-filter" aria-hidden="true"></i> Aplicar
         </button>
         <a href="{% url 'history' %}?periodo={{ periodo_seleccionado }}{% if periodo_seleccionado == 'custom' %}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}{% endif %}" class="btn btn-secondary btn-flex">
-            <i class="fa-solid fa-rotate-left"></i> Limpiar
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Limpiar
         </a>
     </div>
 </aside>
@@ -202,7 +202,7 @@
 <div id="customDateBackdrop" class="custom-modal-backdrop">
     <div class="custom-modal-container" style="max-width:420px;">
         <div class="row-md mb-2">
-            <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);"></i>
+            <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);" aria-hidden="true"></i>
             <span class="drawer-title">Rango personalizado</span>
         </div>
         <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
@@ -221,17 +221,17 @@
             </div>
             <!-- Error de validación -->
             <div id="customDateError" class="error-inline">
-                <i class="fa-solid fa-circle-exclamation"></i> La fecha "Desde" no puede ser posterior a "Hasta"
+                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
         </div>
 
         <!-- Botones -->
-        <div class="flex justify-end gap-2" class="mt-3">
+        <div class="flex justify-end gap-2 mt-3">
             <button id="cancelCustomDate" type="button" class="btn btn-secondary">
                 Cancelar
             </button>
             <button id="applyCustomDate" type="button" class="btn btn-primary" disabled>
-                <i class="fa-solid fa-magnifying-glass"></i> Ver historial
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Ver historial
             </button>
         </div>
     </div>

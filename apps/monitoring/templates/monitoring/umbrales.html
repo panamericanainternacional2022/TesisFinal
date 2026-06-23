@@ -1,8 +1,8 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Umbrales{% endblock %}
-{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
@@ -11,21 +11,21 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
-    <div class="admin-info">
+    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Umbrales</h1>
         </div>
-        <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
+        <p class="mt-1">Configura los lÃ­mites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
 
         {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
-    </div>
+    </header>
 
     {% if not edificios %}
     <!-- Sin edificios -->
     <div class="notif-card mt-3">
         <div class="no-notif">
-            <i class="fa-solid fa-building"></i>
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
             {% if rol == 'SA' %}
             <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
             {% else %}
@@ -35,35 +35,35 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexión -->
+    <!-- Estado de conexiÃ³n -->
     <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
+        {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuraciÃ³n de umbrales de riesgo." %}
     </div>
 
     <!-- Contenedor principal -->
     <div id="activeMonitoring" class="d-none">
-        <!-- Leyenda de dirección -->
+        <!-- Leyenda de direcciÃ³n -->
         <div class="notif-card mt-3">
             <div style="padding: var(--sp-3);">
                 <div class="thresh-legend">
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+                        <span class="badge-dir-up" title="Mayor es peor â€” valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+                        <span class="badge-dir-down" title="Menor es peor â€” valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
+                        <span class="badge-dir-range" title="Rango vÃ¡lido â€” fuera del rango = riesgo Alto">&#10234;</span> Rango vÃ¡lido
                     </span>
                     <span style="margin-left:auto; font-size:var(--text-xs); color:var(--color-text-secondary);">
-                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
+                        Cada nÃºmero es el <strong>lÃ­mite</strong> donde comienza ese nivel de riesgo
                     </span>
                 </div>
 
                 <!-- Panel de umbrales: Bomba de agua -->
                 <div class="mb-3">
                     <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-oil-can"></i> Bomba de agua
+                        <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
                     </div>
                     <div id="thresholdsBombaPanel" class="thresh-grid"></div>
                 </div>
@@ -71,7 +71,7 @@
                 <!-- Panel de umbrales: Elevador -->
                 <div>
                     <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-elevator"></i> Elevador
+                        <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
                     </div>
                     <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
                 </div>
@@ -81,7 +81,7 @@
                 <!-- Acciones -->
                 <div class="thresh-footer">
                     <button type="button" id="saveThresholdsBtn" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Guardar umbrales
+                        <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
                     </button>
                 </div>
             </div>

@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Alertas{% endblock %}
@@ -9,16 +9,16 @@
 
 {% block content %}
 <div class="reportes-card">
-    <div class="admin-info">
+    <header class="admin-info">
         <div class="row-between">
             <div class="row-start">
                 <h1 class="m-0">Alertas</h1>
                 <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
             </div>
         </div>
-        <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+        <p class="mt-1">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
         {% if buildings %}
-        <!-- Filtro de Edificio y Botón Limpiar -->
+        <!-- Filtro de Edificio y BotÃ³n Limpiar -->
         <div class="row-between mt-2">
             {% if buildings|length > 1 %}
             <form method="GET" action="" class="row-center m-0">
@@ -47,12 +47,12 @@
                 </button>
                 {% endif %}
                 <button type="button" id="clearDbNotificationsBtn" class="btn btn-critical">
-                    <i class="fa-solid fa-trash-can"></i> Limpiar alertas
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Limpiar alertas
                 </button>
             </div>
         </div>
         {% endif %}
-    </div>
+    </header>
 
     {% if buildings %}
     <div class="notif-card">
@@ -86,10 +86,10 @@
                             {{ notif.mensaje }}
                         </p>
                     {% endif %}
-                    <div class="notif-meta" class="mt-1">
-                        <span><i class="fa-solid fa-clock"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
+                    <div class="notif-meta mt-1">
+                        <span><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ notif.date|date:"d/m/Y H:i" }}</span>
                         {% if notif.monitoring_equipment.building %}
-                        <span><i class="fa-solid fa-building"></i> {{ notif.monitoring_equipment.building.name }}</span>
+                        <span><i class="fa-solid fa-building" aria-hidden="true"></i> {{ notif.monitoring_equipment.building.name }}</span>
                         {% endif %}
                     </div>
                 </div>
@@ -99,46 +99,46 @@
             {% else %}
             <div class="no-notif" id="live-no-notif">
                 {% if not alerts_disabled %}
-                <i class="fa-solid fa-bell-slash"></i>
+                <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
                 <p>No hay alertas pendientes.</p>
                 {% else %}
-                <i class="fa-solid fa-triangle-exclamation"></i>
-                <p>Las alertas están desactivadas.</p>
+                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                <p>Las alertas estÃ¡n desactivadas.</p>
                 {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 
-    <!-- Paginación -->
+    <!-- PaginaciÃ³n -->
     {% if notifications.has_other_pages %}
     <div class="pagination-container">
         {% if notifications.has_previous %}
-            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Primera página" title="Primera página">
+            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Primera pÃ¡gina" title="Primera pÃ¡gina">
                 <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
             </a>
             <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior" title="Anterior">
-                <i class="fa-solid fa-angle-left"></i>
+                <i class="fa-solid fa-angle-left" aria-hidden="true"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="Primera página" aria-disabled="true"><i class="fa-solid fa-angles-left"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="Página anterior" aria-disabled="true"><i class="fa-solid fa-angle-left"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Primera pÃ¡gina" aria-disabled="true"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="PÃ¡gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></button>
         {% endif %}
 
         <span class="page-current-info">
-            Página {{ notifications.number }} de {{ notifications.paginator.num_pages }}
+            PÃ¡gina {{ notifications.number }} de {{ notifications.paginator.num_pages }}
         </span>
 
         {% if notifications.has_next %}
             <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente" title="Siguiente">
-                <i class="fa-solid fa-angle-right"></i>
+                <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
             </a>
-            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Última página" title="Última página">
+            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Ãšltima pÃ¡gina" title="Ãšltima pÃ¡gina">
                 <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
             </a>
         {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="Página siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="Última página" aria-disabled="true"><i class="fa-solid fa-angles-right"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="PÃ¡gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
+            <button type="button" disabled class="btn btn-icon" aria-label="Ãšltima pÃ¡gina" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
         {% endif %}
     </div>
     {% endif %}

@@ -13,17 +13,17 @@
 
 {% block content %}
 <div class="page-container">
-    <div class="admin-info">
+    <header class="admin-info">
         <h1>Configuración</h1>
         <p>Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
-    </div>
+    </header>
 
     <!-- Tarjeta 1: Datos de Perfil -->
-    <form class="perfil-card config-card" method="post" novalidate style="margin-top: 0; margin-bottom: 24px;">
+    <form class="perfil-card config-card mt-0 mb-3" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="profile-header" class="mb-2">
+        <div class="profile-header mb-2">
             <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
                 Datos del perfil
             </h2>
@@ -35,7 +35,7 @@
                     <label for="username">Nombre de usuario</label>
                     <div class="input-with-icon">
                         <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="form-input {% if form_errors.username %}input-error{% endif %}" />
-                        <i class="fa-solid fa-pen edit-icon"></i>
+                        <i class="fa-solid fa-pen edit-icon" aria-hidden="true"></i>
                     </div>
                     <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
                 </div>
@@ -44,7 +44,7 @@
                     <label for="email">Correo electrónico</label>
                     <div class="input-with-icon">
                         <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
-                        <i class="fa-solid fa-pen edit-icon"></i>
+                        <i class="fa-solid fa-pen edit-icon" aria-hidden="true"></i>
                     </div>
                     <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
                 </div>
@@ -57,11 +57,11 @@
     </form>
 
     <!-- Tarjeta 2: Seguridad y Contraseña -->
-    <form class="perfil-card config-card" method="post" novalidate class="mt-0">
+    <form class="perfil-card config-card mt-0" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
-        <div class="profile-header" class="mb-2">
+        <div class="profile-header mb-2">
             <h2 class="profile-title" style="font-size: var(--text-lg); display: flex; align-items: center; gap: 8px;">
                 Seguridad y contraseña
             </h2>
@@ -73,7 +73,7 @@
                     <label for="current_password">Contraseña actual</label>
                     <div class="input-with-icon">
                         <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" required class="form-input {% if form_errors.current_password %}input-error{% endif %}" />
-                        <i class="fa-solid fa-lock edit-icon"></i>
+                        <i class="fa-solid fa-lock edit-icon" aria-hidden="true"></i>
                     </div>
                     <div class="validation-error">{% if form_errors.current_password %}{{ form_errors.current_password }}{% endif %}</div>
                 </div>
@@ -84,7 +84,7 @@
                     <label for="new_password">Nueva contraseña</label>
                     <div class="input-with-icon">
                         <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" required class="form-input {% if form_errors.new_password %}input-error{% endif %}" />
-                        <i class="fa-solid fa-lock edit-icon"></i>
+                        <i class="fa-solid fa-lock edit-icon" aria-hidden="true"></i>
                     </div>
                     <div class="validation-error">{% if form_errors.new_password %}{{ form_errors.new_password }}{% endif %}</div>
                 </div>
@@ -92,7 +92,7 @@
                     <label for="confirm_password">Confirmar contraseña</label>
                     <div class="input-with-icon">
                         <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" required class="form-input {% if form_errors.confirm_password %}input-error{% endif %}" />
-                        <i class="fa-solid fa-lock edit-icon"></i>
+                        <i class="fa-solid fa-lock edit-icon" aria-hidden="true"></i>
                     </div>
                     <div class="validation-error">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
                 </div>

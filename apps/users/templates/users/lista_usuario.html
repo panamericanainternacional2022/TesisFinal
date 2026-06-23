@@ -9,7 +9,7 @@
 
 {% block content %}
 <div class="reportes-card">
-    <div class="admin-info">
+    <header class="admin-info">
         <h1>Usuarios</h1>
         <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.</p>
         <div class="filter-row">
@@ -42,20 +42,20 @@
                 <div class="dropdown-menu" id="userActionsMenu">
                     {% url 'user_create' as registro_url %}
                     <a href="{{ registro_url }}" class="dropdown-item">
-                        <i class="fa-solid fa-plus"></i> Agregar usuario
+                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar usuario
                     </a>
                     {% if usuarios %}
                     <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="dropdown-item">
-                        <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+                        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
                     </a>
                     <button type="button" class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
-                        <i class="fa-solid fa-paper-plane"></i> Enviar a todos
+                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar a todos
                     </button>
                     {% endif %}
                 </div>
             </div>
         </div>
-    </div>
+    </header>
 
     <div class="table-wrapper">
         <div class="table-responsive">
@@ -82,18 +82,18 @@
                                 <td>
                                     <div class="actions-dropdown">
                                         <button type="button" class="btn btn-icon" aria-label="Acciones" aria-haspopup="true" aria-expanded="false" title="Acciones">
-                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
                                         </button>
                                         <div class="dropdown-menu">
                                             <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
-                                                <i class="fa-solid fa-pen-to-square"></i> Editar
+                                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
                                             </a>
                                             <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Ã‚¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
-                                                <i class="fa-solid fa-trash-can"></i> Eliminar
+                                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}
                                             <button type="button" class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
-                                                <i class="fa-solid fa-paper-plane"></i> Enviar correo
+                                                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar correo
                                             </button>
                                             {% endif %}
                                         </div>
@@ -126,7 +126,7 @@
                     const email    = btn.dataset.email;
                     const origHTML = btn.innerHTML;
                     btn.disabled   = true;
-                    btn.innerHTML  = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+                    btn.innerHTML  = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
                     try {
                         const resp = await csrfFetch('/api/send-test-email/', {
                             method:  'POST',
@@ -158,7 +158,7 @@
                     }
                     const origHTML   = sendAllBtn.innerHTML;
                     sendAllBtn.disabled  = true;
-                    sendAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+                    sendAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
                     try {
                         const resp = await csrfFetch('/api/send-all-subscribers/', {
                             method:  'POST',

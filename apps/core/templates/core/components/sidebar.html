@@ -1,22 +1,22 @@
-{% load static %}
+﻿{% load static %}
 <script>
 (function(){
-    // ─── BLOQUEO TOTAL DE NAVEGACIÓN ATRÁS/ADELANTE ───────────
+    // â”€â”€â”€ BLOQUEO TOTAL DE NAVEGACIÃ“N ATRÃS/ADELANTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.history.pushState(null, null, window.location.href);
     window.addEventListener('popstate', function () {
         window.history.pushState(null, null, window.location.href);
     });
-    // ─── DETECTA bfcache (caché de retroceso del navegador) ──
+    // â”€â”€â”€ DETECTA bfcache (cachÃ© de retroceso del navegador) â”€â”€
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) {
             window.location.reload();
         }
     });
-    // ─── REMOVER PRELOAD DE TRANSICIONES AL CARGAR ──────────
+    // â”€â”€â”€ REMOVER PRELOAD DE TRANSICIONES AL CARGAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.addEventListener('load', function () {
         document.body.classList.remove('preload');
     });
-    // ─── DESTACAR LINK ACTIVO EN EL SIDEBAR ────────────────
+    // â”€â”€â”€ DESTACAR LINK ACTIVO EN EL SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     window.addEventListener('DOMContentLoaded', function () {
         var currentPath = window.location.pathname.replace(/\/+$/, '');
         var links = document.querySelectorAll('.sidebar-link');
@@ -33,51 +33,51 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span class="sidebar-logo">INES</span>
-        <span class="sidebar-system-name">Sistema inteligente de automatización</span>
+        <span class="sidebar-system-name">Sistema inteligente de automatizaciÃ³n</span>
     </div>
 
     <nav class="sidebar-nav">
         {% if request.session.usuario_rol == 'SA' %}
         <a href="{% url 'monitor' %}" class="sidebar-link">
-            <i class="fa-solid fa-gauge-high"></i> Panel de control
+            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Panel de control
         </a>
         <a href="{% url 'user_list' %}" class="sidebar-link">
-            <i class="fa-solid fa-users"></i> Usuarios
+            <i class="fa-solid fa-users" aria-hidden="true"></i> Usuarios
         </a>
         <a href="{% url 'building_list' %}" class="sidebar-link">
-            <i class="fa-solid fa-building"></i> Edificios
+            <i class="fa-solid fa-building" aria-hidden="true"></i> Edificios
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
-            <i class="fa-solid fa-bell"></i>
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
             <span>Alertas</span>
             <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
-            <i class="fa-solid fa-clock-rotate-left"></i> Historial
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
         </a>
         <a href="{% url 'thresholds' %}" class="sidebar-link">
-            <i class="fa-solid fa-sliders"></i> Umbrales
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i> Umbrales
         </a>
         <a href="{% url 'sensor_limits' %}" class="sidebar-link">
-            <i class="fa-solid fa-maximize"></i> Límites
+            <i class="fa-solid fa-maximize" aria-hidden="true"></i> LÃ­mites
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
-            <i class="fa-solid fa-gears"></i> Configuración
+            <i class="fa-solid fa-gears" aria-hidden="true"></i> ConfiguraciÃ³n
         </a>
         {% else %}
         <a href="{% url 'monitor' %}" class="sidebar-link">
-            <i class="fa-solid fa-gauge-high"></i> Panel de control
+            <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Panel de control
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
-            <i class="fa-solid fa-bell"></i>
+            <i class="fa-solid fa-bell" aria-hidden="true"></i>
             <span>Alertas</span>
             <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
-            <i class="fa-solid fa-clock-rotate-left"></i> Historial
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
-            <i class="fa-solid fa-gears"></i> Configuración
+            <i class="fa-solid fa-gears" aria-hidden="true"></i> ConfiguraciÃ³n
         </a>
         {% endif %}
     </nav>
@@ -85,7 +85,7 @@
     <div class="sidebar-footer">
         <span class="sidebar-user">{% if request.session.usuario_rol == 'US' %}{{ request.session.usuario_nombre_completo }}{% else %}Administrador{% endif %}</span>
         <a href="{% url 'logout' %}" class="sidebar-link sidebar-logout">
-            <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesiÃ³n
         </a>
     </div>
 </aside>

@@ -1,8 +1,8 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
-{% block title %}Límites{% endblock %}
-{% block meta_description %}<meta name="description" content="Configuración de límites físicos máximos para sensores de bomba y elevador.">{% endblock %}
+{% block title %}LÃ­mites{% endblock %}
+{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de lÃ­mites fÃ­sicos mÃ¡ximos para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
@@ -11,21 +11,21 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
-    <div class="admin-info">
+    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <header class="admin-info">
         <div class="row-start">
-            <h1 class="m-0">Límites</h1>
+            <h1 class="m-0">LÃ­mites</h1>
         </div>
-        <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
+        <p class="mt-1">Configura los lÃ­mites fÃ­sicos mÃ¡ximos de operaciÃ³n para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
 
         {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
-    </div>
+    </header>
 
     {% if not edificios %}
     <!-- Sin edificios -->
     <div class="notif-card mt-3">
         <div class="no-notif">
-            <i class="fa-solid fa-building"></i>
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
             {% if rol == 'SA' %}
             <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
             {% else %}
@@ -35,27 +35,27 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexión -->
+    <!-- Estado de conexiÃ³n -->
     <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
+        {% include 'core/components/empty_state.html' with loading_text="Cargando lÃ­mites..." loading_subtext="Obteniendo lÃ­mites de operaciÃ³n del sensor." %}
     </div>
 
     <!-- Contenedor principal -->
     <div id="activeMonitoring" class="d-none">
         <div class="notif-card mt-3">
             <div style="padding: var(--sp-3);">
-                <!-- Panel de límites: Bomba de agua -->
+                <!-- Panel de lÃ­mites: Bomba de agua -->
                 <div class="mb-3">
                     <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-oil-can"></i> Bomba de agua
+                        <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
                     </div>
                     <div id="limitsBombaPanel" class="thresh-grid"></div>
                 </div>
 
-                <!-- Panel de límites: Elevador -->
+                <!-- Panel de lÃ­mites: Elevador -->
                 <div>
                     <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-elevator"></i> Elevador
+                        <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
                     </div>
                     <div id="limitsElevadorPanel" class="thresh-grid"></div>
                 </div>
@@ -63,7 +63,7 @@
                 <!-- Acciones -->
                 <div class="thresh-footer">
                     <button type="button" id="saveLimitsBtn" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Guardar límites
+                        <i class="fas fa-check" aria-hidden="true"></i> Guardar lÃ­mites
                     </button>
                 </div>
             </div>
@@ -78,7 +78,7 @@
     <script>
         window.IS_ADMIN = true;
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice límites en vez de umbrales
+        window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice lÃ­mites en vez de umbrales
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
     <script>
