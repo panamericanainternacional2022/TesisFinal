@@ -290,8 +290,8 @@ body {
     border-radius: 0px;
     box-sizing: border-box;
     color: var(--color-ink);
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -319,6 +319,12 @@ body {
 }
 .btn-icon i.fa-ellipsis-vertical {
     transition: transform var(--transition-fast);
+}
+
+/* ── Disabled state for custom select trigger ──────────────────────────── */
+.custom-select-trigger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* ── Dropdown system (tablas) ─────────────────────────────────────────── */
@@ -365,7 +371,8 @@ body {
     border-bottom: none;
 }
 .dropdown-item:hover {
-    background: var(--color-bg);
+    background: var(--color-accent-bg);
+    color: var(--color-accent);
 }
 .dropdown-item i {
     width: 16px;
@@ -397,12 +404,12 @@ body {
 }
 .speed-btn:last-child { border-right: none; }
 .speed-btn:hover {
-    background: var(--color-bg);
-    color: var(--color-ink);
-}
-.speed-btn.active {
     background: var(--color-accent-bg);
     color: var(--color-accent);
+}
+.speed-btn.active {
+    background: var(--color-ink);
+    color: var(--color-surface);
     font-weight: var(--weight-bold);
 }
 

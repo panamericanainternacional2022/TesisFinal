@@ -477,6 +477,14 @@ function _csSetDisplay(el, display) {
     if (cs && cs.wrapper) cs.wrapper.style.display = display;
 }
 
+function _csSyncOptions(el) {
+    const cs = _csSelect(el);
+    if (cs) {
+        const opts = Array.from(el.options).map(o => ({ value: o.value, text: o.text }));
+        cs.updateOptions(opts);
+    }
+}
+
 function updateAdminControlsByEquipment(equipTypes) {
     if (!IS_ADMIN) return;
     const et = equipTypes || [];
@@ -1242,9 +1250,11 @@ function updateManualInputType() {
     const sel = document.getElementById('manualValueSelect');
     if (!v || !inp || !sel) return;
 
+    const csWrapper = _csSelect(sel)?.wrapper;
+
     if (v === 'door_status') {
         inp.style.display = 'none';
-        sel.style.display = 'block';
+        if (csWrapper) csWrapper.style.display = 'block';
         sel.innerHTML = '';
         const opts = Object.entries(_VALUE_DISPLAY['door_status'] || {});
         opts.forEach(([val, label]) => {
@@ -1256,14 +1266,16 @@ function updateManualInputType() {
             }
         });
         inp.value = '';
+        _csSyncOptions(sel);
     } else if (v === 'motor_stuck') {
         inp.style.display = 'none';
-        sel.style.display = 'block';
+        if (csWrapper) csWrapper.style.display = 'block';
         sel.innerHTML = '<option value="true">Sí</option><option value="false">No</option>';
         inp.value = '';
+        _csSyncOptions(sel);
     } else {
         inp.style.display = 'block';
-        sel.style.display = 'none';
+        if (csWrapper) csWrapper.style.display = 'none';
         if (_SENSOR_RANGES[v]) {
             inp.min = _SENSOR_RANGES[v][0];
             inp.max = _SENSOR_RANGES[v][1];
@@ -1295,6 +1307,7 @@ function populateManualSensorSelect() {
         opt.textContent = getVariableName(v) + (unit && v !== 'trip_count' ? ` (${unit})` : '');
         sel.appendChild(opt);
     });
+    _csSyncOptions(sel);
     updateManualInputType();
 }
 

@@ -39,13 +39,6 @@
         .grid-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: var(--sp-2); margin-bottom: var(--sp-3); }
 
         .grid-4 > *, .grid-auto > * { background: var(--color-surface); }
-        .custom-select-trigger:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            box-shadow: none;
-            transform: none;
-        }
-
         /* ── Fila de controles ── */
         .controls-row {
             display: flex;
@@ -507,13 +500,13 @@
                     </div>
                     <div class="form-group" style="flex:1; min-width:160px;">
                         <label class="form-label">Sensor</label>
-                        <select id="manualSensorSelect" class="form-select"></select>
+                        <select id="manualSensorSelect" class="custom-select-init"></select>
                     </div>
                     <div class="form-group" style="flex:1; min-width:140px;" id="manualValueContainer">
                         <label class="form-label">Valor</label>
                         <input type="number" step="any" id="manualValueInput" class="form-input"
                                placeholder="Ej: 42.5">
-                        <select id="manualValueSelect" class="form-select is-hidden"></select>
+                        <select id="manualValueSelect" class="custom-select-init"></select>
                     </div>
                     <div style="align-self:flex-end;">
                         <button type="button" id="sendManualBtn" class="btn btn-primary">
