@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Usuarios{% endblock %}
@@ -11,7 +11,7 @@
 <div class="reportes-card">
     <div class="admin-info">
         <h1>Usuarios</h1>
-        <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal tÃ©cnico.</p>
+        <p>Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal tÃƒÂ©cnico.</p>
         <div class="filter-row">
             <form method="get" action="" class="row-center m-0">
                 <label for="q-usuarios" class="sr-only">Buscar usuarios</label>
@@ -62,7 +62,7 @@
             <table class="report-table centered-table">
                 <thead>
                     <tr>
-                        <th>CÃ©dula</th>
+                        <th>CÃƒÂ©dula</th>
                         <th>Nombre</th>
                         <th>Apellido</th>
                         <th>Edificio</th>
@@ -78,17 +78,17 @@
                                 <td>{{ usuario.nombre }}</td>
                                 <td>{{ usuario.last_name }}</td>
                                 <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
-                                <td>{{ usuario.email|default:'â€”' }}</td>
+                                <td>{{ usuario.email|default:'Ã¢â‚¬â€' }}</td>
                                 <td>
                                     <div class="actions-dropdown">
-                                        <button type="button" class="btn btn-icon" title="Acciones">
+                                        <button type="button" class="btn btn-icon" aria-label="Acciones" aria-haspopup="true" aria-expanded="false" title="Acciones">
                                             <i class="fa-solid fa-ellipsis-vertical"></i>
                                         </button>
                                         <div class="dropdown-menu">
                                             <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square"></i> Editar
                                             </a>
-                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Â¿EstÃ¡s seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Ã‚Â¿EstÃƒÂ¡s seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
                                                 <i class="fa-solid fa-trash-can"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}
@@ -119,7 +119,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // â”€â”€ Botones individuales de envÃ­o por correo â”€â”€
+            // Ã¢â€â‚¬Ã¢â€â‚¬ Botones individuales de envÃƒÂ­o por correo Ã¢â€â‚¬Ã¢â€â‚¬
             document.querySelectorAll('.send-email-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
                     e.stopPropagation();
@@ -139,7 +139,7 @@
                             resp.ok ? 'success' : 'error'
                         );
                     } catch {
-                        showToast('Error de conexiÃ³n con el servidor.', 'error');
+                        showToast('Error de conexiÃƒÂ³n con el servidor.', 'error');
                     } finally {
                         btn.disabled  = false;
                         btn.innerHTML = origHTML;
@@ -147,13 +147,13 @@
                 });
             });
 
-            // â”€â”€ BotÃ³n "Enviar a todos" â”€â”€
+            // Ã¢â€â‚¬Ã¢â€â‚¬ BotÃƒÂ³n "Enviar a todos" Ã¢â€â‚¬Ã¢â€â‚¬
             const sendAllBtn = document.getElementById('sendAllEmailBtn');
             if (sendAllBtn) {
                 sendAllBtn.addEventListener('click', async () => {
                     const edificioId = sendAllBtn.dataset.edificioId;
                     if (!edificioId) {
-                        showToast('Seleccione un edificio especÃ­fico antes de usar Â«Enviar a todosÂ».', 'info');
+                        showToast('Seleccione un edificio especÃƒÂ­fico antes de usar Ã‚Â«Enviar a todosÃ‚Â».', 'info');
                         return;
                     }
                     const origHTML   = sendAllBtn.innerHTML;
@@ -171,7 +171,7 @@
                             resp.ok ? 'success' : 'error'
                         );
                     } catch {
-                        showToast('Error de conexiÃ³n con el servidor.', 'error');
+                        showToast('Error de conexiÃƒÂ³n con el servidor.', 'error');
                     } finally {
                         sendAllBtn.disabled  = false;
                         sendAllBtn.innerHTML = origHTML;
@@ -179,7 +179,7 @@
                 });
             }
 
-            // â”€â”€ Dropdown del header de acciones (ID Ãºnico â€” lÃ³gica distinta al .actions-dropdown genÃ©rico) â”€â”€
+            // Ã¢â€â‚¬Ã¢â€â‚¬ Dropdown del header de acciones (ID ÃƒÂºnico Ã¢â‚¬â€ lÃƒÂ³gica distinta al .actions-dropdown genÃƒÂ©rico) Ã¢â€â‚¬Ã¢â€â‚¬
             const userActionsToggle = document.getElementById('userActionsToggle');
             const userActionsMenu   = document.getElementById('userActionsMenu');
             if (userActionsToggle && userActionsMenu) {

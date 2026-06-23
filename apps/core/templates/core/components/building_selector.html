@@ -1,4 +1,4 @@
-{% comment %}
+﻿{% comment %}
     Componente: building_selector.html
     Muestra un selector de edificio en los paneles de monitoreo.
 
@@ -13,7 +13,7 @@
 {% if edificios and edificios|length > 1 %}
 <div class="filter-row">
     <span class="inline-label">Edificio:</span>
-    <select id="buildingSelect" class="custom-select-init">
+    <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
         {% for ed in edificios %}
         <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
         {% endfor %}

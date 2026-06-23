@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Panel de control{% endblock %}
@@ -17,9 +17,9 @@
     <div class="admin-info">
         <h1>Panel de control</h1>
         {% if is_admin %}
-        <p>VisiÃƒÂ³n general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
+        <p>VisiÃƒÆ’Ã‚Â³n general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
         {% else %}
-        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadÃƒÂ­sticas actualizadas al instante.</p>
+        <p>Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadÃƒÆ’Ã‚Â­sticas actualizadas al instante.</p>
         {% endif %}
         {% if edificios %}
         <div class="filter-row">
@@ -54,32 +54,32 @@
     </div>
     {% else %}
 
-    <!-- Estados de conexiÃƒÂ³n -->
+    <!-- Estados de conexiÃƒÆ’Ã‚Â³n -->
     <div class="notif-card" id="stateNotifCard" class="mt-3">
         <div class="no-notif" id="stateLoading" class="empty-state">
             <i class="fa-solid fa-spinner fa-spin" class="empty-state-icon" style="color:var(--color-ink);"></i>
             <h3 class="section-label">Conectando al simulador...</h3>
-            <p class="help-text-lg">Obteniendo lecturas de telemetrÃƒÂ­a y estado de sensores en tiempo real.</p>
+            <p class="help-text-lg">Obteniendo lecturas de telemetrÃƒÆ’Ã‚Â­a y estado de sensores en tiempo real.</p>
         </div>
 
         <div class="no-notif" id="stateOffline" class="empty-state d-none">
             <i class="fa-solid fa-triangle-exclamation" class="empty-state-icon" style="color:var(--state-warn);"></i>
-            <h3 class="section-label">Sistema fuera de lÃƒÂ­nea</h3>
-            <p class="help-text-lg">El servicio de telemetrÃƒÂ­a y sensores en tiempo real no estÃƒÂ¡ transmitiendo datos en este momento. PÃƒÂ³ngase en contacto con el administrador del edificio.</p>
+            <h3 class="section-label">Sistema fuera de lÃƒÆ’Ã‚Â­nea</h3>
+            <p class="help-text-lg">El servicio de telemetrÃƒÆ’Ã‚Â­a y sensores en tiempo real no estÃƒÆ’Ã‚Â¡ transmitiendo datos en este momento. PÃƒÆ’Ã‚Â³ngase en contacto con el administrador del edificio.</p>
         </div>
 
         <div class="no-notif" id="stateNoEquipment" class="empty-state d-none">
             <i class="fa-solid fa-circle-info" class="empty-state-icon" style="color:var(--color-text-secondary);"></i>
             <h3 class="section-label">Edificio sin equipos de monitoreo</h3>
             {% if is_admin %}
-            <p class="help-text-lg">Este edificio no tiene configurado ningÃƒÂºn equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administraciÃƒÂ³n para comenzar la simulaciÃƒÂ³n.</p>
+            <p class="help-text-lg">Este edificio no tiene configurado ningÃƒÆ’Ã‚Âºn equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administraciÃƒÆ’Ã‚Â³n para comenzar la simulaciÃƒÆ’Ã‚Â³n.</p>
             {% else %}
-            <p class="help-text-lg">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para mÃƒÂ¡s informaciÃƒÂ³n.</p>
+            <p class="help-text-lg">Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para mÃƒÆ’Ã‚Â¡s informaciÃƒÆ’Ã‚Â³n.</p>
             {% endif %}
         </div>
     </div>
 
-    <!-- Contenedor de telemetrÃƒÂ­a activa -->
+    <!-- Contenedor de telemetrÃƒÆ’Ã‚Â­a activa -->
     <div id="activeMonitoring" class="d-none">
 
         <!-- Credenciales (admin) -->
@@ -110,14 +110,14 @@
             </div>
             {% if is_admin %}
             <div id="simStatusRow" class="status-cell">
-                <div class="status-cell-label">SimulaciÃƒÂ³n</div>
+                <div class="status-cell-label">SimulaciÃƒÆ’Ã‚Â³n</div>
                 <div class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
                 </div>
             </div>
             {% endif %}
             <div class="status-cell">
-                <div class="status-cell-label">ÃƒÅ¡ltima actualizaciÃƒÂ³n</div>
+                <div class="status-cell-label">ÃƒÆ’Ã…Â¡ltima actualizaciÃƒÆ’Ã‚Â³n</div>
                 <div class="status-cell-value" id="lastUpdate">--:--:--</div>
             </div>
         </div>
@@ -126,10 +126,10 @@
         <div class="panel admin-controls-panel" class="mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench"></i> Controles administrativos</h2>
 
-            <!-- Sub-secciÃƒÂ³n: SimulaciÃƒÂ³n -->
+            <!-- Sub-secciÃƒÆ’Ã‚Â³n: SimulaciÃƒÆ’Ã‚Â³n -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
-                    <i class="fa-solid fa-gamepad"></i> SimulaciÃƒÂ³n
+                    <i class="fa-solid fa-gamepad"></i> SimulaciÃƒÆ’Ã‚Â³n
                 </div>
                 <div id="simControls" class="admin-controls-row">
                     <div class="form-group">
@@ -172,7 +172,7 @@
                 </div>
             </div>
 
-            <!-- Sub-secciÃƒÂ³n: Override manual de sensor -->
+            <!-- Sub-secciÃƒÆ’Ã‚Â³n: Override manual de sensor -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
                     <i class="fa-solid fa-sliders"></i> Manuales
@@ -194,7 +194,7 @@
                         <label class="form-label">Valor</label>
                         <input type="number" step="any" id="manualValueInput" class="form-input"
                                placeholder="Ej: 42.5">
-                        <select id="manualValueSelect" class="custom-select-init"></select>
+                        <select id="manualValueSelect" aria-label="Valor manual del sensor" class="custom-select-init"></select>
                     </div>
                     <div class="self-end">
                         <button type="button" id="sendManualBtn" class="btn btn-primary">
