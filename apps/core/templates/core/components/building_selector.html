@@ -13,11 +13,13 @@
 {% if edificios and edificios|length > 1 %}
 <div class="filter-row">
     <span class="inline-label">Edificio:</span>
-    <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
-        {% for ed in edificios %}
-        <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-        {% endfor %}
-    </select>
+    <div class="select-container">
+        <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
+            {% for ed in edificios %}
+            <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
 </div>
 {% elif edificios and edificios|length == 1 %}
 <div class="row-sm mt-2">

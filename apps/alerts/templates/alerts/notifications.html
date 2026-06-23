@@ -22,7 +22,7 @@
         <div class="row-between mt-2">
             {% if buildings|length > 1 %}
             <form method="GET" action="" class="row-center m-0">
-                <div class="row-sm">
+                <div class="select-container">
                     <select name="edificio" id="edificio-filter" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for building in buildings %}

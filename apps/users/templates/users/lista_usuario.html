@@ -19,7 +19,7 @@
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
                     <input type="text" id="q-usuarios" name="q" placeholder="Buscar por nombre o c&#233;dula" aria-label="Buscar usuarios por nombre o c&#233;dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
-                <div class="select-container" style="min-width: 220px;">
+                <div class="select-container">
                     <select name="edificio" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
                         {% for edf in edificios %}
@@ -27,7 +27,7 @@
                         {% endfor %}
                     </select>
                 </div>
-                <div class="select-container" style="min-width: 200px;">
+                <div class="select-container">
                     <select name="estado" aria-label="Filtrar por estado" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
                         <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>

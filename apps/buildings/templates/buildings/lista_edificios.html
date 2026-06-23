@@ -19,7 +19,7 @@
                     <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true" style="color: #94a3b8; font-size: 0.9rem;"></i>
                     <input type="text" id="q-edificios" name="q" placeholder="Buscar por nombre o RIF" aria-label="Buscar edificios por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
-                <div class="select-container" style="min-width: 220px;">
+                <div class="select-container">
                     <select name="equipamiento" aria-label="Filtrar por equipamiento" onchange="this.form.submit()" class="custom-select-init">
                         <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
                         <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>

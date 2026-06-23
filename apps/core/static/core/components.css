@@ -613,6 +613,11 @@
     margin-top: var(--sp-2);
 }
 
+/* Contenedor para selects custom en headers — ancho mínimo consistente */
+.select-container {
+    min-width: 220px;
+}
+
 .col-stack {
     display: flex;
     flex-direction: column;
