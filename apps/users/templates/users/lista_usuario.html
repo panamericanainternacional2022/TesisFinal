@@ -34,11 +34,11 @@
                     </select>
                 </div>
             </form>
-            <div class="header-actions-wrap">
+            <div class="actions-dropdown">
                 <button type="button" id="userActionsToggle" class="btn-icon">
                     <i class="fa-solid fa-ellipsis-vertical"></i>
                 </button>
-                <div class="header-actions-menu" id="userActionsMenu">
+                <div class="dropdown-menu" id="userActionsMenu">
                     {% url 'user_create' as registro_url %}
                     <a href="{{ registro_url }}" class="dropdown-item">
                         <i class="fa-solid fa-plus"></i> Agregar usuario
@@ -225,7 +225,7 @@
             const userActionsMenu   = document.getElementById('userActionsMenu');
             if (userActionsToggle && userActionsMenu) {
                 userActionsToggle.addEventListener('click', function(e) {
-                    e.stopPropagation();
+                    e.stopImmediatePropagation();
                     userActionsMenu.classList.toggle('open');
                 });
                 document.addEventListener('click', function(e) {

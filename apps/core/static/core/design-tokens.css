@@ -324,7 +324,7 @@ body {
     min-width: 180px;
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
-    box-shadow: 4px 4px 0px rgba(10,10,10,0.15);
+    box-shadow: 3px 3px 0px var(--color-ink);
     z-index: 100;
     display: none;
     flex-direction: column;
@@ -338,17 +338,21 @@ body {
     align-items: center;
     gap: 8px;
     padding: 8px 14px;
-    font-size: 13px;
+    font-size: var(--text-sm);
     font-family: var(--font);
     text-decoration: none;
     color: var(--color-text-primary);
     background: none;
     border: none;
+    border-bottom: 1px solid var(--color-border);
     width: 100%;
     text-align: left;
     cursor: pointer;
     transition: background var(--transition-fast);
     box-sizing: border-box;
+}
+.dropdown-item:last-child {
+    border-bottom: none;
 }
 .dropdown-item:hover {
     background: var(--color-bg);
