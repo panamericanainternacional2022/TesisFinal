@@ -19,19 +19,19 @@
 {% endcomment %}
 
 <div id="stateLoading" class="no-notif empty-state">
-    <i class="fa-solid fa-spinner fa-spin empty-state-icon" style="color:var(--color-ink);" aria-hidden="true"></i>
+    <i class="fa-solid fa-spinner fa-spin empty-state-icon text-ink" aria-hidden="true"></i>
     <h3 class="section-label">{{ loading_text|default:"Cargando..." }}</h3>
     <p class="help-text">{{ loading_subtext|default:"Obteniendo datos del sensor." }}</p>
 </div>
 
 <div id="stateOffline" class="no-notif empty-state d-none">
-    <i class="fa-solid fa-triangle-exclamation empty-state-icon" style="color:var(--state-warn);" aria-hidden="true"></i>
+    <i class="fa-solid fa-triangle-exclamation empty-state-icon text-warn" aria-hidden="true"></i>
     <h3 class="section-label">Sin conexiÃ³n</h3>
     <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuraciÃ³n. Verifica que el servidor estÃ© activo." }}</p>
 </div>
 
 <div id="stateNoEquipment" class="no-notif empty-state d-none">
-    <i class="fa-solid fa-circle-info empty-state-icon" style="color:var(--color-text-secondary);" aria-hidden="true"></i>
+    <i class="fa-solid fa-circle-info empty-state-icon text-secondary" aria-hidden="true"></i>
     <h3 class="section-label">{{ no_equipment_title|default:"Sin equipos de monitoreo" }}</h3>
     <p class="help-text">{{ no_equipment_text|default:"Este edificio no tiene equipos configurados." }}</p>
 </div>

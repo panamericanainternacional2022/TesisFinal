@@ -141,49 +141,6 @@
     border-color: var(--state-ok);
 }
 
-/* ── Sección de Contraseña (configuracion.html) ───────────────────────────── */
-.password-section {
-    margin-top: var(--sp-3);
-    padding-top: var(--sp-3);
-    border-top: 2px solid var(--color-ink);
-}
-
-.password-section h3 {
-    color: var(--color-ink);
-    font-size: var(--text-md);
-    font-weight: var(--weight-bold);
-    letter-spacing: var(--tracking-tight);
-    margin-bottom: var(--sp-1);
-}
-
-/* ── Caja de Edificio Actual ──────────────────────────────────────────────── */
-.edificio-info-box {
-    background: var(--color-bg);
-    border: 2px solid var(--color-ink);
-    padding: var(--sp-2) var(--sp-2);
-    font-size: var(--text-sm);
-    line-height: var(--leading-loose);
-}
-
-/* ── Caja de Credenciales Generadas ──────────────────────────────────────── */
-.credentials-box {
-    background: var(--color-bg);
-    border: 2px solid var(--color-ink);
-    border-left: 6px solid var(--color-ink);
-    box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
-    padding: var(--sp-2) var(--sp-3);
-    margin-bottom: var(--sp-3);
-    font-size: var(--text-base);
-}
-
-.credentials-box h3 {
-    margin: 0 0 var(--sp-1);
-    font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
-    letter-spacing: var(--tracking-wide);
-    color: var(--color-ink);
-}
-
 /* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .form-row {
@@ -203,7 +160,6 @@
    ========================================================================== */
 
 /* ── Tarjeta ancha: formularios de administración (configuración, edificios) */
-.perfil-card--wide,
 .config-card {
     max-width: 1400px;
 }

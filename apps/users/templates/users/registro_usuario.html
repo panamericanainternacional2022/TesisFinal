@@ -95,9 +95,9 @@
                 {% url 'user_list' as back_url %}
                 {% include 'core/components/boton.html' with url=back_url class='btn btn-secondary' text='Volver' %}
                 {% if editing %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Guardar cambios' %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Guardar cambios' id='submitBtn' %}
                 {% else %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Registrar usuario' %}
+                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Registrar usuario' id='submitBtn' disabled=True %}
                 {% endif %}
             </div>
         </div>

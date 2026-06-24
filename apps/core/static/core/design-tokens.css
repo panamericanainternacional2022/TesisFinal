@@ -141,8 +141,7 @@
 .custom-select-item:focus-visible,
 .dropdown-item:focus-visible,
 .speed-btn:focus-visible,
-.sidebar-link:focus-visible,
-.ines-header-link:focus-visible {
+.sidebar-link:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
 }

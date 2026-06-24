@@ -1,6 +1,18 @@
-{% comment %}Componente de botón reutilizable{% endcomment %}
+{% comment %}Componente de botón reutilizable.
+Parámetros: url, type, class, text, id, disabled, target, aria_label, icon, extra_attrs
+{% endcomment %}
 {% if url %}
-    <a href="{{ url }}" class="{{ class|default:'' }}"{% if target %} target="{{ target }}"{% endif %}>{{ text }}</a>
+    <a href="{{ url }}" class="{{ class|default:'' }}"
+       {% if id %}id="{{ id }}"{% endif %}
+       {% if target %}target="{{ target }}"{% endif %}
+       {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}{% for k, v in extra_attrs.items %} {{ k }}="{{ v }}"{% endfor %}>
+       {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ text }}
+    </a>
 {% else %}
-    <button type="{{ type|default:'button' }}" class="{{ class|default:'' }}">{{ text }}</button>
+    <button type="{{ type|default:'button' }}" class="{{ class|default:'' }}"
+            {% if id %}id="{{ id }}"{% endif %}
+            {% if disabled %}disabled{% endif %}
+            {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}{% for k, v in extra_attrs.items %} {{ k }}="{{ v }}"{% endfor %}>
+            {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ text }}
+    </button>
 {% endif %}

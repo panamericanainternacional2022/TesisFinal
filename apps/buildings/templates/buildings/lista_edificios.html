@@ -55,7 +55,7 @@
                                             {% if eq.equipment_type == "bomba" %}Bomba de agua{% if not forloop.last %} y {% endif %}{% endif %}
                                             {% if eq.equipment_type == "elevador" %}{% if equipment_list|length > 1 %}elevador{% else %}Elevador{% endif %}{% if not forloop.last %} y {% endif %}{% endif %}
                                         {% empty %}
-                                            <span style="color: var(--color-text-secondary, #888); font-size: 13px;">â€”</span>
+                                            <span class="text-secondary">&mdash;</span>
                                         {% endfor %}
                                     {% endwith %}
                                 </td>
@@ -95,5 +95,5 @@
 </div>
 {% endblock %}
 
-
+{% block extra_js %}{% endblock %}
 

@@ -20,12 +20,6 @@
 }
 
 /* ── Encabezado de sección ────────────────────────────────────────────────── */
-.report-header {
-    margin-bottom: var(--sp-4);
-    padding-bottom: var(--sp-3);
-    border-bottom: 1px solid var(--color-border);
-}
-
 .profile-title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
@@ -35,20 +29,7 @@
     line-height: var(--leading-tight);
 }
 
-.profile-subtitle {
-    color: var(--color-text-secondary);
-    margin-top: 6px;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-normal);
-    letter-spacing: 0.01em;
-}
-
 /* ── Buscador ──────────────────────────────────────────────────────────────── */
-.search-container {
-    margin-bottom: var(--sp-3);
-    max-width: 360px;
-}
-
 .input-with-icon {
     position: relative;
     display: flex;
@@ -79,16 +60,6 @@
     overflow: visible; /* visible: permite que los dropdowns de acción no sean recortados */
     background: var(--color-surface);
     box-shadow: var(--shadow-brutal);
-}
-
-.table-title-bar {
-    background: var(--color-bg);
-    color: var(--color-ink);
-    padding: 10px var(--sp-3);
-    font-weight: var(--weight-bold);
-    font-size: var(--text-xs);
-    letter-spacing: var(--tracking-wide);
-    border-bottom: 2px solid var(--color-ink);
 }
 
 /* ── Tabla ─────────────────────────────────────────────────────────────────── */
@@ -135,26 +106,6 @@
     border-bottom-color: var(--color-ink);
 }
 
-
-
-/* ── Fila de acciones (bajo la tabla) ────────────────────────────────────── */
-.table-actions-row {
-    margin-top: var(--sp-3);
-    display: flex;
-    align-items: center;
-    gap: var(--sp-4);
-    flex-wrap: wrap;
-}
-
-.action-buttons-row {
-    margin-top: var(--sp-4);
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--sp-4);
-}
-
-/* ── Botones de Acción — estilo cuadrado Neo-brutalista ──────────────────────────── */
 
 
 /* ── Modal de selección ────────────────────────────────────────────────────── */
@@ -274,6 +225,17 @@
     vertical-align: middle;
 }
 
+.notif-icon {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: var(--text-lg);
+    color: var(--color-accent);
+}
+
 .notif-item {
     display: flex;
     align-items: flex-start;
@@ -289,19 +251,6 @@
 
 .notif-item:hover {
     background: var(--color-bg);
-}
-
-.notif-icon {
-    width: 36px;
-    height: 36px;
-    border: 2px solid var(--color-ink);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    color: var(--color-text-secondary);
-    font-size: 0.85rem;
-    flex-shrink: 0;
 }
 
 .notif-body {
@@ -323,8 +272,7 @@
     gap: var(--sp-2);
 }
 
-.no-notif,
-.no-data {
+.no-notif {
     text-align: center;
     padding: var(--sp-8) var(--sp-3);
     color: var(--color-text-secondary);
@@ -334,8 +282,7 @@
     border-radius: 0px;
 }
 
-.no-notif i,
-.no-data i {
+.no-notif i {
     font-size: 2rem;
     margin-bottom: var(--sp-2);
     display: block;
@@ -368,13 +315,11 @@
     color: var(--state-critical);
 }
 
-.sensor-inactive {
-    background: var(--state-inactive-bg);
-    color: var(--state-inactive);
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+.table-responsive {
+    overflow-x: auto;
 }
 
-
-/* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .reportes-card {
         padding: 0;
@@ -382,10 +327,6 @@
 
     .profile-title {
         font-size: var(--text-xl);
-    }
-
-    .table-responsive {
-        overflow-x: auto;
     }
 
     .report-table {
@@ -398,11 +339,7 @@
         padding: var(--sp-3) var(--sp-2);
     }
 
-    .table-actions-row,
-    .action-buttons-row {
-        justify-content: flex-start;
-        gap: var(--sp-3);
-    }
+
 }
 
 /* ==========================================================================
@@ -732,14 +669,14 @@
 .mt-3 { margin-top: var(--sp-3); }
 .mt-4 { margin-top: var(--sp-4); }
 
+/* ── Margin general ──────────────────────────────────────────────────────── */
+.m-0 { margin: 0; }
+
 /* ── Espaciados — margin bottom ──────────────────────────────────────────── */
 .mb-0 { margin-bottom: 0; }
 .mb-1 { margin-bottom: 6px; }
 .mb-2 { margin-bottom: var(--sp-2); }
 .mb-3 { margin-bottom: var(--sp-3); }
-
-/* ── Margin general ──────────────────────────────────────────────────────── */
-.m-0 { margin: 0; }
 
 /* ── Display ─────────────────────────────────────────────────────────────── */
 .d-none   { display: none; }
@@ -933,3 +870,23 @@
     color: var(--color-text-secondary);
     font-size: var(--text-sm);
 }
+
+/* ── Utility colors (reemplaza estilos inline de iconos y textos) ────────── */
+.text-ink       { color: var(--color-ink); }
+.text-warn      { color: var(--state-warn); }
+.text-secondary { color: var(--color-text-secondary); }
+
+/* ── Font size utilities ── */
+.text-xs { font-size: var(--text-xs); }
+.text-sm { font-size: var(--text-sm); }
+.text-xl { font-size: var(--text-xl); }
+
+/* ── Margin utilities ── */
+.ml-auto { margin-left: auto; }
+
+/* ── Max widths ── */
+.max-w-420 { max-width: 420px; }
+
+/* ── Padding ── */
+.p-3  { padding: var(--sp-3); }
+.pb-0 { padding-bottom: 0 !important; }

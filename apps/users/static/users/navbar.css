@@ -40,39 +40,3 @@
     letter-spacing: 0.01em;
 }
 
-/* ── Grupo Derecho ────────────────────────────────────────────────────────── */
-.ines-header-right-nav {
-    display: flex;
-    flex-direction: row;
-    gap: var(--sp-4);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.ines-header-right-nav li {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-}
-
-.ines-header-link {
-    text-decoration: none;
-    color: var(--color-text-secondary);
-    font-weight: var(--weight-bold);
-    font-size: var(--text-sm);
-    letter-spacing: 0.01em;
-    transition: all var(--transition-fast);
-    padding-bottom: 2px;
-    border-bottom: 2px solid transparent;
-}
-
-.ines-header-link:hover {
-    color: var(--color-ink);
-    border-bottom-color: var(--color-ink);
-}
-
-.ines-header-link.active {
-    color: var(--color-ink);
-    border-bottom-color: var(--color-ink);
-}

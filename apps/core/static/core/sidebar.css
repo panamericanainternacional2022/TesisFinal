@@ -137,26 +137,6 @@
     background: var(--color-bg);
 }
 
-/* ── Badge de Notificaciones (sidebar) ────────────────────────────────────── */
-/* El badge se coloca DESPUÉS del texto "Notificaciones" en el flujo flex
-   de .sidebar-link — no usa position:absolute para no depender del DOM */
-.sidebar-notif-badge {
-    display: none;              /* el JS lo activa con style.display='inline-flex' */
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    background: var(--state-critical);
-    color: var(--color-surface);
-    font-size: 0.7rem;
-    font-weight: var(--weight-bold);
-    line-height: 1;
-    border-radius: 0;           /* cuadrado — coherente con el diseño Swiss */
-    flex-shrink: 0;
-    margin-left: auto;          /* lo empuja al extremo derecho dentro del link */
-}
-
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     .sidebar {

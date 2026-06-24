@@ -110,37 +110,10 @@
         </div>
     </div>
 
-    <!-- PaginaciÃ³n -->
-    {% if notifications.has_other_pages %}
-    <div class="pagination-container">
-        {% if notifications.has_previous %}
-            <a href="?page=1{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Primera pÃ¡gina" title="Primera pÃ¡gina">
-                <i class="fa-solid fa-angles-left" aria-hidden="true"></i>
-            </a>
-            <a href="?page={{ notifications.previous_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior" title="Anterior">
-                <i class="fa-solid fa-angle-left" aria-hidden="true"></i>
-            </a>
-        {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="Primera pÃ¡gina" aria-disabled="true"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="PÃ¡gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></button>
-        {% endif %}
-
-        <span class="page-current-info">
-            PÃ¡gina {{ notifications.number }} de {{ notifications.paginator.num_pages }}
-        </span>
-
-        {% if notifications.has_next %}
-            <a href="?page={{ notifications.next_page_number }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente" title="Siguiente">
-                <i class="fa-solid fa-angle-right" aria-hidden="true"></i>
-            </a>
-            <a href="?page={{ notifications.paginator.num_pages }}{% if selected_building_id %}&edificio={{ selected_building_id }}{% endif %}" class="btn btn-icon" aria-label="Ãšltima pÃ¡gina" title="Ãšltima pÃ¡gina">
-                <i class="fa-solid fa-angles-right" aria-hidden="true"></i>
-            </a>
-        {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="PÃ¡gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="Ãšltima pÃ¡gina" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
-        {% endif %}
-    </div>
+    {% if selected_building_id %}
+        {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_building_id %}
+    {% else %}
+        {% include 'core/components/pagination.html' with page_obj=notifications %}
     {% endif %}
     {% endif %}
 </div>

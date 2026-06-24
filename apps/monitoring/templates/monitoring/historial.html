@@ -129,26 +129,7 @@
         </div>
     </div>
 
-    <!-- ── Paginación ── -->
-    {% if notificaciones.has_other_pages %}
-    <div class="pagination-container">
-        {% if notificaciones.has_previous %}
-            <a href="?page=1{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="Primera p&#225;gina"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></a>
-            <a href="?page={{ notificaciones.previous_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina anterior"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></a>
-        {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="Primera p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina anterior" aria-disabled="true"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></button>
-        {% endif %}
-        <span class="page-current-info">Página {{ notificaciones.number }} de {{ notificaciones.paginator.num_pages }}</span>
-        {% if notificaciones.has_next %}
-            <a href="?page={{ notificaciones.next_page_number }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="P&#225;gina siguiente"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></a>
-            <a href="?page={{ notificaciones.paginator.num_pages }}{% if filter_query_string %}&{{ filter_query_string }}{% endif %}" class="btn btn-icon" aria-label="&#218;ltima p&#225;gina"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></a>
-        {% else %}
-            <button type="button" disabled class="btn btn-icon" aria-label="P&#225;gina siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
-            <button type="button" disabled class="btn btn-icon" aria-label="&#218;ltima p&#225;gina" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
-        {% endif %}
-    </div>
-    {% endif %}
+    {% include 'core/components/pagination.html' with page_obj=notificaciones extra_query=filter_query_string %}
     {% endif %}
 </div>
 
@@ -156,7 +137,7 @@
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
-        <div class="row-sm"><i class="fa-solid fa-sliders" style="font-size:1.1rem;" aria-hidden="true"></i><span>Filtros</span></div>
+        <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span></div>
         <button type="button" class="btn btn-icon" aria-label="Cerrar panel de filtros" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="filter-panel-body">
@@ -202,12 +183,12 @@
 
 <!-- ══ MODAL: Rango personalizado de fechas ══ -->
 <div id="customDateBackdrop" class="custom-modal-backdrop">
-    <div class="custom-modal-container" style="max-width:420px;">
+    <div class="custom-modal-container max-w-420">
         <div class="row-md mb-2">
-            <i class="fa-solid fa-calendar-days" style="font-size:var(--text-xl); color:var(--color-ink);" aria-hidden="true"></i>
+            <i class="fa-solid fa-calendar-days text-xl text-ink" aria-hidden="true"></i>
             <span class="drawer-title">Rango personalizado</span>
         </div>
-        <p style="font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 var(--sp-3) 0;">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
+        <p class="text-sm text-secondary m-0 mb-3">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
 
         <!-- Inputs de fecha -->
         <div class="col-stack">
