@@ -312,14 +312,9 @@ body {
 }
 
 .flex { display: flex; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.items-center { align-items: center; }
 .justify-end { justify-content: flex-end; }
-.justify-between { justify-content: space-between; }
 .self-end { align-self: flex-end; }
 .gap-2 { gap: var(--sp-2); }
-.gap-3 { gap: var(--sp-3); }
 
 .btn-icon {
     width: 36px;
@@ -606,22 +601,10 @@ body {
     box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
 }
 
-.alert.alert-success {
-    background: var(--state-ok-bg);
-    color: var(--state-ok);
-    border-color: var(--state-ok);
-}
-
 .alert.alert-error {
     background: var(--state-critical-bg);
     color: var(--state-critical);
     border-color: var(--state-critical);
-}
-
-.alert.alert-warning {
-    background: var(--state-warn-bg);
-    color: var(--state-warn);
-    border-color: var(--state-warn);
 }
 
 .validation-error {
