@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
-    <link rel="stylesheet" href="{% static 'buildings/perfil.css' %}">
+    <link rel="stylesheet" href="{% static 'core/form.css' %}">
 {% endblock %}
 
 {% block extra_head_js %}
@@ -21,9 +21,9 @@
         <p class="mt-1">{% if editing %}Actualiza la información personal, datos de contacto, rol asignado o edificio correspondiente del usuario seleccionado.{% else %}Registra un nuevo usuario en la base de datos para enviarle automáticamente sus credenciales de acceso y habilitarlo en el sistema.{% endif %}</p>
     </header>
 
-    <form class="perfil-card user-profile-container mt-0" method="post" novalidate>
+    <form class="form-card user-profile-container mt-0" method="post" novalidate>
         {% csrf_token %}
-        <div class="profile-form">
+        <div class="form-card-body">
             <div class="form-row">
                 <div class="form-group half-width">
                     <label for="primerNombre">Primer nombre</label>

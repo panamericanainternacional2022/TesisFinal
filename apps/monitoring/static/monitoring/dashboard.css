@@ -1,23 +1,11 @@
 
 
-.grid-4 {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 2px;
-    background: var(--color-ink);
-    border: var(--border-brutal);
-    box-shadow: var(--shadow-brutal);
-    border-radius: var(--radius);
-}
-
 .grid-charts {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--sp-2);
     margin-bottom: var(--sp-3);
 }
-
-.grid-4 > * { background: var(--color-surface); }
 
 .sensor-card {
     padding: var(--sp-3);

@@ -5,7 +5,7 @@
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
-    <link rel="stylesheet" href="{% static 'buildings/perfil.css' %}">
+    <link rel="stylesheet" href="{% static 'core/form.css' %}">
 {% endblock %}
 
 {% block extra_head_js %}
@@ -21,17 +21,17 @@
         <p class="mt-1">Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
     </header>
 
-    <form class="perfil-card user-profile-container mt-0 mb-3" method="post" novalidate>
+    <form class="form-card user-profile-container mt-0 mb-3" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="profile-header mb-2">
-            <h2 class="profile-title profile-title--section">
+        <div class="form-section-header mb-2">
+            <h2 class="profile-title form-section-title">
                 Datos del perfil
             </h2>
         </div>
 
-        <div class="profile-form">
+        <div class="form-card-body">
             <div class="form-row">
                 <div class="form-group half-width">
                     <label for="username">Nombre de usuario</label>
@@ -58,17 +58,17 @@
         </div>
     </form>
 
-    <form class="perfil-card user-profile-container mt-0" method="post" novalidate>
+    <form class="form-card user-profile-container mt-0" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
-        <div class="profile-header mb-2">
-            <h2 class="profile-title profile-title--section">
+        <div class="form-section-header mb-2">
+            <h2 class="profile-title form-section-title">
                 Seguridad y contraseña
             </h2>
         </div>
 
-        <div class="profile-form">
+        <div class="form-card-body">
             <div class="form-row">
                 <div class="form-group half-width">
                     <label for="current_password">Contraseña actual</label>
