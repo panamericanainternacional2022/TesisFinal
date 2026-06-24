@@ -851,19 +851,6 @@
     min-height: 18px;
 }
 
-/* ── Tag de edificio (span que muestra nombre del edificio activo) ────────── */
-.building-tag {
-    display: inline-block;
-    font-size: var(--text-sm);
-    font-weight: var(--weight-bold);
-    color: var(--color-ink);
-    padding: 8px 12px;
-    border: var(--border-brutal);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-brutal-sm);
-    min-width: 200px;
-}
-
 /* ── Texto vacío de tabla (celda centrada cuando no hay datos) ────────────── */
 .table-empty-cell {
     text-align: center;

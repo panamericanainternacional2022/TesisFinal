@@ -21,10 +21,5 @@
     </div>
 </div>
 {% elif edificios and edificios|length == 1 %}
-<div class="row-sm mt-2">
-    <span class="building-tag">
-        {{ edificios.0.name }}
-        <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
-    </span>
-</div>
+<input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
 {% endif %}
