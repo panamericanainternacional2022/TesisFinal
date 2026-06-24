@@ -84,6 +84,6 @@
 }
 
 @media (max-width: 700px) {
-    .reportes-card { max-width: 100% !important; }
+    .reports-card { max-width: 100% !important; }
     .filter-panel  { width: 100%; max-width: 100%; }
 }

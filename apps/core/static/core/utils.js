@@ -37,7 +37,7 @@ window.initDropdowns = function initDropdowns() {
 };
 
 window.initConfirmDelete = function initConfirmDelete() {
-    document.querySelectorAll('.btn-confirm-delete').forEach(link => {
+    document.querySelectorAll('.js-btn-confirm-delete').forEach(link => {
         link.addEventListener('click', function (e) {
             e.preventDefault();
             const url     = this.getAttribute('href');

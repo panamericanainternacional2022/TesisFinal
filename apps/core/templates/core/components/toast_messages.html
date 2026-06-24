@@ -1,7 +1,7 @@
 {% if messages %}
     <div class="toast-container">
         {% for message in messages %}
-            <div class="toast-item {% if message.tags == 'success' %}toast-success alert-fadeable{% elif message.tags == 'warning' %}toast-warning{% elif message.tags == 'error' %}toast-error{% else %}toast-info{% endif %}">
+            <div class="toast-item {% if message.tags == 'success' %}toast-success js-alert-fadeable{% elif message.tags == 'warning' %}toast-warning{% elif message.tags == 'error' %}toast-error{% else %}toast-info{% endif %}">
                 {% if message.tags != 'success' %}
                 <button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 {% endif %}
@@ -32,9 +32,9 @@
                 }, 350);
             }
 
-            // Auto-fade/slide out alert-fadeable messages after 5 seconds
+            // Auto-fade/slide out js-alert-fadeable messages after 5 seconds
             toastItems.forEach(toast => {
-                if (toast.classList.contains('alert-fadeable')) {
+                if (toast.classList.contains('js-alert-fadeable')) {
                     setTimeout(() => {
                         closeToast(toast);
                     }, 5000);

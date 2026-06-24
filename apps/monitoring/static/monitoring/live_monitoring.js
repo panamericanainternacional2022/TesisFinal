@@ -1508,7 +1508,7 @@ function renderNotificationList(alerts) {
     unreadNotificationCount = filtered.length;
     setNotificationBadge(unreadNotificationCount);
     container.innerHTML = filtered.map(alert => `
-        <div class="notif-item live-notif-item">
+        <div class="notif-item js-live-notif-item">
             <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
             <div class="notif-body">
                 <p>${safeText(alert.message)}</p>
@@ -1537,7 +1537,7 @@ function addLiveNotificationEvent(data) {
 
     const riskLower = String(data.risk || 'info').toLowerCase();
     const li = document.createElement('li');
-    li.className = `notif-item ${CSS_CLASSES.histItem[riskLower] || 'hist-item-info'} live-notif-item`;
+    li.className = `notif-item ${CSS_CLASSES.histItem[riskLower] || 'hist-item-info'} js-live-notif-item`;
 
     let badgeClass = 'sensor-info';
     if (data.risk === 'CRÍTICO') badgeClass = 'sensor-critical';

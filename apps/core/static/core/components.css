@@ -13,14 +13,14 @@
     list-style: none;
 }
 
-.reportes-card {
+.reports-card {
     background: transparent;
     width: 100%;
     max-width: 1400px;
     padding: 0;
 }
 
-.reportes-card:has(.form-card) {
+.reports-card:has(.form-card) {
     max-width: 720px;
 }
 
@@ -230,7 +230,7 @@
 }
 
 @media (max-width: 768px) {
-    .reportes-card {
+    .reports-card {
         padding: 0;
     }
 

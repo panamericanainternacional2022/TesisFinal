@@ -13,8 +13,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="reportes-card">
-    <header class="admin-info">
+<div class="reports-card">
+    <header class="page-header">
         <div class="row-start">
             <h1 class="m-0">{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}</h1>
         </div>
@@ -25,7 +25,7 @@
         {% csrf_token %}
         <div class="form-card-body">
             <div class="form-row">
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="primerNombre">Primer nombre</label>
                     <div class="input-with-icon">
                         <input placeholder="Tu primer nombre" type="text" id="primerNombre" name="primerNombre" value="{{ user.primerNombre|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.primerNombre or form_errors.primerNombre_long %}input-error{% endif %}" />
@@ -33,7 +33,7 @@
                     </div>
                     <div class="validation-error">{% if form_errors.primerNombre %}{{ form_errors.primerNombre }}{% elif form_errors.primerNombre_long %}{{ form_errors.primerNombre_long }}{% endif %}</div>
                 </div>
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="segundoNombre">Segundo nombre</label>
                     <div class="input-with-icon">
                         <input placeholder="Opcional" type="text" id="segundoNombre" name="segundoNombre" value="{{ user.segundoNombre|default:'' }}" data-validate="solo-letras" maxlength="40" class="form-input {% if form_errors.segundoNombre or form_errors.segundoNombre_long %}input-error{% endif %}" />
@@ -44,7 +44,7 @@
             </div>
 
             <div class="form-row">
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="primerApellido">Primer apellido</label>
                     <div class="input-with-icon">
                         <input placeholder="Tu primer apellido" type="text" id="primerApellido" name="primerApellido" value="{{ user.primerApellido|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.primerApellido or form_errors.primerApellido_long %}input-error{% endif %}" />
@@ -52,7 +52,7 @@
                     </div>
                     <div class="validation-error">{% if form_errors.primerApellido %}{{ form_errors.primerApellido }}{% elif form_errors.primerApellido_long %}{{ form_errors.primerApellido_long }}{% endif %}</div>
                 </div>
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="segundoApellido">Segundo apellido</label>
                     <div class="input-with-icon">
                         <input placeholder="Opcional" type="text" id="segundoApellido" name="segundoApellido" value="{{ user.segundoApellido|default:'' }}" data-validate="solo-letras" maxlength="40" class="form-input {% if form_errors.segundoApellido or form_errors.segundoApellido_long %}input-error{% endif %}" />
@@ -63,7 +63,7 @@
             </div>
 
             <div class="form-row">
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="email">Correo electrónico</label>
                     <div class="input-with-icon">
                         <input placeholder="correo@ejemplo.com" type="email" id="email" name="email" value="{{ user.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error{% endif %}" />
@@ -71,7 +71,7 @@
                     </div>
                     <div class="validation-error">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
                 </div>
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="cedula">Cédula (CI)</label>
                     <div class="input-with-icon">
                         <input placeholder="V-12345678" type="text" id="cedula" name="cedula" value="{{ user.cedula|default:'' }}" data-validate="cedula" data-exclude-id="{% if editing %}{{ persona_id }}{% endif %}" maxlength="16" required class="form-input {% if form_errors.cedula or form_errors.cedula_long or form_errors.cedula_unico %}input-error{% endif %}" />
@@ -82,7 +82,7 @@
             </div>
 
             <div class="form-row">
-                <div class="form-group half-width">
+                <div class="form-group">
                     <label for="id_edificio">Elegir edificio</label>
                     <select id="id_edificio" name="id_edificio" required class="custom-select-init {% if form_errors.id_edificio %}input-error{% endif %}">
                         {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}

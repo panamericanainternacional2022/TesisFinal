@@ -77,10 +77,10 @@
 
     window.showToast = function(message, type) {
         type = type || 'info';
-        let container = document.querySelector('.messages-container');
+        let container = document.querySelector('.js-messages-container');
         if (!container) {
             container = document.createElement('div');
-            container.className = 'messages-container';
+            container.className = 'js-messages-container';
             container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:380px;width:calc(100% - 48px);';
             document.body.appendChild(container);
         }

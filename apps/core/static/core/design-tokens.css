@@ -134,7 +134,7 @@ button {
     font-family: var(--font);
 }
 
-.admin-info {
+.page-header {
     background: var(--color-surface);
     border: var(--border-brutal);
     border-left: 6px solid var(--color-ink);
@@ -143,7 +143,7 @@ button {
     border-radius: var(--radius);
 }
 
-.admin-info h1 {
+.page-header h1 {
     font-size: var(--text-xl);
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-tight);
@@ -152,14 +152,14 @@ button {
     line-height: var(--leading-tight);
 }
 
-.admin-info p {
+.page-header p {
     font-size: var(--text-sm);
     color: var(--color-text-secondary);
     margin-top: 4px;
     line-height: var(--leading-normal);
 }
 
-.admin-info+.form-card {
+.page-header+.form-card {
     margin-top: var(--sp-3);
 }
 
@@ -586,7 +586,7 @@ body {
 }
 
 .login-card,
-.admin-info {
+.page-header {
     border-top: 6px solid var(--color-accent) !important;
 }
 

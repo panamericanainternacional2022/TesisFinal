@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="reportes-card">
-    <header class="admin-info">
+<div class="reports-card">
+    <header class="page-header">
         <div class="row-start">
             <h1 class="m-0">Edificios</h1>
         </div>
@@ -72,7 +72,7 @@
                                             <a href="{% url 'edit_building' building.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
                                             </a>
-                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
+                                            <a href="{% url 'delete_building' building.id %}" class="dropdown-item js-btn-confirm-delete" data-confirm="¿Estás seguro de eliminar {{ building.name }}? Se eliminará todo el historial, las alertas asociadas y se desvincularán los usuarios de este edificio.">
                                                 <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
                                             </a>
                                             <a href="{% url 'building_report_pdf' building.id %}" class="dropdown-item">

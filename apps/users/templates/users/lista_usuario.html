@@ -8,8 +8,8 @@
 {% endblock %}
 
 {% block content %}
-<div class="reportes-card">
-    <header class="admin-info">
+<div class="reports-card">
+    <header class="page-header">
         <div class="row-start">
             <h1 class="m-0">Usuarios</h1>
         </div>
@@ -90,7 +90,7 @@
                                             <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
                                             </a>
-                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item js-btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
                                                 <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}

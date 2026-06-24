@@ -18,7 +18,6 @@
         </div>
     {% else %}
         <h1>Configurar credenciales</h1>
-        <p class="info-text">Hola <strong>{{ usuario.id_persona.first_name }} {{ usuario.id_persona.first_last_name }}</strong>, por favor define tu nombre de usuario y contraseña para tu cuenta (<strong>{{ usuario.id_persona.email }}</strong>) para poder acceder al sistema.</p>
  
         {% if form_error %}
             <div class="alert alert-error">
@@ -48,9 +47,7 @@
                 <div class="validation-error">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
             </div>
  
-            <div class="submit-btn-container">
-                {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}
-            </div>
+            {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}
         </form>
     {% endif %}
 </section>
