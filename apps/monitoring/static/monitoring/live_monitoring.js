@@ -20,6 +20,26 @@ const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
 let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
+const CSS_CLASSES = {
+    riskCard: {
+        low: 'risk-low',
+        med: 'risk-med',
+        high: 'risk-high',
+        crit: 'risk-crit'
+    },
+    histItem: {
+        critico: 'hist-item-critico',
+        alto: 'hist-item-alto',
+        medio: 'hist-item-medio',
+        bajo: 'hist-item-bajo',
+        info: 'hist-item-info'
+    },
+    statusBadge: {
+        falla: 'badge badge-crit',
+        mantenimiento: 'badge badge-med'
+    }
+};
+
 let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_EDIFICIO_ID || 0;
 let SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 
@@ -106,15 +126,15 @@ function getRiskBadge(risk) {
 function getRiskClass(varName, value) {
     if (_BOOLEAN_VARS.includes(varName)) {
         let crit = !!value;
-        return { card: 'risk-' + (crit ? 'crit' : 'low'), badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
+        return { card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low, badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
     }
     if (_ENUM_VARS.includes(varName)) {
         let risky = _ENUM_RISK_VALUES[varName] || [];
         let crit = risky.includes(String(value).toLowerCase());
-        return { card: 'risk-' + (crit ? 'crit' : 'low'), badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
+        return { card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low, badge: 'badge-' + (crit ? 'crit' : 'low'), label: crit ? _RISK.critico : _RISK.bajo };
     }
     if (_NO_RISK_VARS.includes(varName)) {
-        return { card: 'risk-low', badge: 'badge-low', label: _RISK.bajo };
+        return { card: CSS_CLASSES.riskCard.low, badge: 'badge-low', label: _RISK.bajo };
     }
     let cfg = currentThresholds[varName];
     if (!cfg) return { card: '', badge: 'badge-info', label: _RISK.unknown };
@@ -133,7 +153,7 @@ function getRiskClass(varName, value) {
             else if (value < low) { risk = _RISK.medio; cls = 'med'; }
         }
     }
-    return { card: 'risk-' + cls, badge: 'badge-' + cls, label: risk };
+    return { card: CSS_CLASSES.riskCard[cls] || '', badge: 'badge-' + cls, label: risk };
 }
 
 function isBombaVariable(variable) {
@@ -361,8 +381,8 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
         badgeEl.style.display = 'inline-block';
         badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
         emptyEl.style.display = 'none';
-        if (statusVal === 'falla') badgeEl.className = 'badge badge-crit';
-        else if (statusVal === 'mantenimiento') badgeEl.className = 'badge badge-med';
+        if (statusVal === 'falla') badgeEl.className = CSS_CLASSES.statusBadge.falla;
+        else if (statusVal === 'mantenimiento') badgeEl.className = CSS_CLASSES.statusBadge.mantenimiento;
         else badgeEl.className = 'badge badge-low';
     } else {
         badgeEl.style.display = 'none';
@@ -1517,7 +1537,7 @@ function addLiveNotificationEvent(data) {
 
     const riskLower = String(data.risk || 'info').toLowerCase();
     const li = document.createElement('li');
-    li.className = `notif-item hist-item-${riskLower} live-notif-item`;
+    li.className = `notif-item ${CSS_CLASSES.histItem[riskLower] || 'hist-item-info'} live-notif-item`;
 
     let badgeClass = 'sensor-info';
     if (data.risk === 'CRÍTICO') badgeClass = 'sensor-critical';

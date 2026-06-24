@@ -21,7 +21,7 @@
         <p class="mt-1">{% if editing %}Actualiza los datos de infraestructura, RIF y dirección física del edificio seleccionado en la base de datos del sistema.{% else %}Ingresa la información básica para registrar una nueva edificación y permitir la asignación posterior de sensores.{% endif %}</p>
     </header>
 
-    <form class="form-card user-profile-container mt-0" method="post" novalidate>
+    <form class="form-card mt-0" method="post" novalidate>
         {% csrf_token %}
 
         <div class="form-card-body">

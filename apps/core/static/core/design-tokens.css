@@ -1,24 +1,23 @@
-
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&display=swap');
 
 :root {
-    
+
     --font: 'DM Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
 
     --text-xs: 0.72rem;
-    
+
     --text-sm: 0.82rem;
-    
+
     --text-base: 0.93rem;
-    
+
     --text-md: 1.05rem;
-    
+
     --text-lg: 1.2rem;
-    
+
     --text-xl: 1.5rem;
-    
+
     --text-2xl: 1.9rem;
-    
+
     --text-3xl: 2.4rem;
 
     --weight-light: 300;
@@ -36,23 +35,23 @@
     --tracking-wider: 0.12em;
 
     --color-ink: #0a0a0a;
-    
+
     --color-ink-soft: #2e2e2e;
-    
+
     --color-surface: #ffffff;
-    
+
     --color-bg: #f5f5f5;
-    
+
     --color-border: #e0e0e0;
-    
+
     --color-border-strong: #0a0a0a;
 
     --color-accent: #2563eb;
-    
+
     --color-accent-hover: #1d4ed8;
-    
+
     --color-accent-bg: #eff6ff;
-    
+
     --color-accent-shadow: rgba(37, 99, 235, 0.15);
 
     --color-text-primary: #0a0a0a;
@@ -88,16 +87,16 @@
     --content-max: 1280px;
     --header-height: 60px;
 
-    --shadow-brutal:    8px 8px 0px rgba(10, 10, 10, 0.15);
+    --shadow-brutal: 8px 8px 0px rgba(10, 10, 10, 0.15);
     --shadow-brutal-sm: 4px 4px 0px rgba(10, 10, 10, 0.15);
 
-    --state-high:       #c2410c;
-    --state-high-bg:    #fff7ed;
+    --state-high: #c2410c;
+    --state-high-bg: #fff7ed;
 
-    --border-brutal:    2px solid var(--color-ink);
+    --border-brutal: 2px solid var(--color-ink);
 
     --radius: 0px;
-    
+
     --radius-badge: 2px;
 
     -webkit-font-smoothing: antialiased;
@@ -160,7 +159,7 @@ button {
     line-height: var(--leading-normal);
 }
 
-.admin-info + .form-card {
+.admin-info+.form-card {
     margin-top: var(--sp-3);
 }
 
@@ -305,16 +304,21 @@ body {
     flex: 1;
 }
 
-.toast-close {
-    position: absolute;
-    right: 12px;
-    top: 12px;
+.flex {
+    display: flex;
 }
 
-.flex { display: flex; }
-.justify-end { justify-content: flex-end; }
-.self-end { align-self: flex-end; }
-.gap-2 { gap: var(--sp-2); }
+.justify-end {
+    justify-content: flex-end;
+}
+
+.self-end {
+    align-self: flex-end;
+}
+
+.gap-2 {
+    gap: var(--sp-2);
+}
 
 .btn-icon {
     width: 36px;
@@ -581,8 +585,6 @@ body {
     box-shadow: 5px 5px 0px var(--color-ink);
 }
 
-.form-card,
-.table-wrapper,
 .login-card,
 .admin-info {
     border-top: 6px solid var(--color-accent) !important;

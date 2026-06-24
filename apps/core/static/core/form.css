@@ -1,15 +1,4 @@
 
-.form-page {
-    padding-top: var(--sp-5) !important;
-    min-height: 100vh;
-    background-color: var(--color-bg);
-}
-
-.form-page ul,
-.form-page li {
-    list-style: none;
-}
-
 .form-card {
     background: var(--color-surface);
     border: 2px solid var(--color-ink);

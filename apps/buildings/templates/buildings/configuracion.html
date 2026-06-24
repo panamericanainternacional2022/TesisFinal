@@ -21,12 +21,12 @@
         <p class="mt-1">Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
     </header>
 
-    <form class="form-card user-profile-container mt-0 mb-3" method="post" novalidate>
+    <form class="form-card mt-0 mb-3" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
         <div class="form-section-header mb-2">
-            <h2 class="profile-title form-section-title">
+            <h2 class="form-page-title form-section-title">
                 Datos del perfil
             </h2>
         </div>
@@ -58,12 +58,12 @@
         </div>
     </form>
 
-    <form class="form-card user-profile-container mt-0" method="post" novalidate>
+    <form class="form-card mt-0" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
         <div class="form-section-header mb-2">
-            <h2 class="profile-title form-section-title">
+            <h2 class="form-page-title form-section-title">
                 Seguridad y contraseña
             </h2>
         </div>
