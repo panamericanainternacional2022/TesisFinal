@@ -28,14 +28,14 @@ body {
     position: relative;
 }
 
-.login-card__header {
+.login-card-header {
     text-align: center;
     margin-bottom: var(--sp-4);
     border-bottom: 2px solid var(--color-ink);
     padding-bottom: var(--sp-2);
 }
 
-.login-card__brand {
+.login-card-brand {
     display: inline-block;
     font-weight: var(--weight-bold);
     font-size: var(--text-lg);
@@ -54,7 +54,7 @@ body {
     text-align: center;
 }
 
-.login-card__subtitle {
+.login-card-subtitle {
     margin: 0;
     color: var(--color-text-secondary);
     font-size: var(--text-sm);
