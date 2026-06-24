@@ -161,7 +161,6 @@ button {
     border-left: 6px solid var(--color-ink);
     box-shadow: var(--shadow-brutal);
     padding: var(--sp-3);
-    margin-bottom: var(--sp-3);
     border-radius: var(--radius);
 }
 
@@ -179,6 +178,11 @@ button {
     color: var(--color-text-secondary);
     margin-top: 4px;
     line-height: var(--leading-normal);
+}
+
+/* Espaciado cuando admin-info va seguido de perfil-card (sin toolbar) */
+.admin-info + .perfil-card {
+    margin-top: var(--sp-3);
 }
 
 /* ==========================================================================

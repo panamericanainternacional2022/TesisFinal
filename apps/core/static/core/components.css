@@ -651,6 +651,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--sp-2);
+    margin-top: var(--sp-3);
     margin-bottom: var(--sp-3);
     padding: var(--sp-2) var(--sp-3);
     background: var(--color-surface);
