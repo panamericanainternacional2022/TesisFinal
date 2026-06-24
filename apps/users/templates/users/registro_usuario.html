@@ -111,47 +111,47 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    var form = document.querySelector('form');
-    if (!form) return;
-    var submitBtn = form.querySelector('.btn-primary');
-    if (!submitBtn) return;
-    var isEditing = {% if editing %}true{% else %}false{% endif %};
+    function setupForm(form, isEditing) {
+        if (!form) return;
+        var submitBtn = form.querySelector('.btn-primary');
+        if (!submitBtn) return;
 
-    // Captura valores iniciales para detectar cambios (modo edición)
-    var initialValues = {};
-    form.querySelectorAll('input[name], select[name]').forEach(function (el) {
-        initialValues[el.name] = el.value;
-    });
+        var initialValues = {};
+        form.querySelectorAll('input[name], select[name]').forEach(function (el) {
+            initialValues[el.name] = el.value;
+        });
 
-    function setBtn(disabled) {
-        submitBtn.disabled = disabled;
-    }
-
-    function checkChanges() {
-        var hasErrors = form.querySelectorAll('.input-error').length > 0;
-        var shouldEnable;
-        if (isEditing) {
-            // Patrón A: habilitar solo si hay cambios Y sin errores
-            var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
-                .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
-            shouldEnable = hasChanges && !hasErrors;
-        } else {
-            // Patrón B: habilitar solo si todos los required están rellenos Y sin errores
-            var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
-                .every(function (el) { return el.value.trim() !== ''; });
-            shouldEnable = allFilled && !hasErrors;
+        function setBtn(disabled) {
+            submitBtn.disabled = disabled;
         }
-        setBtn(!shouldEnable);
+
+        function checkState() {
+            var hasErrors = form.querySelectorAll('.input-error').length > 0;
+            var shouldEnable;
+            if (isEditing) {
+                var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
+                    .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
+                shouldEnable = hasChanges && !hasErrors;
+            } else {
+                var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
+                    .every(function (el) { return el.value.trim() !== ''; });
+                shouldEnable = allFilled && !hasErrors;
+            }
+            setBtn(!shouldEnable);
+        }
+
+        setTimeout(checkState, 0);
+
+        form.querySelectorAll('input, select').forEach(function (el) {
+            el.addEventListener('input', function () { setTimeout(checkState, 0); });
+            el.addEventListener('change', function () { setTimeout(checkState, 0); });
+            el.addEventListener('blur', function () { setTimeout(checkState, 0); });
+        });
+
+        return checkState;
     }
 
-    // Arranca deshabilitado en creación, y validado en edición
-    setTimeout(checkChanges, 0);
-
-    form.querySelectorAll('input, select').forEach(function (el) {
-        el.addEventListener('input', function () { setTimeout(checkChanges, 0); });
-        el.addEventListener('change', function () { setTimeout(checkChanges, 0); });
-        el.addEventListener('blur', function () { setTimeout(checkChanges, 0); });
-    });
+    setupForm(document.querySelector('form'), {% if editing %}true{% else %}false{% endif %});
 });
 </script>
 {% endblock %}

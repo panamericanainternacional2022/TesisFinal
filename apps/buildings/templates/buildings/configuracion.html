@@ -21,7 +21,7 @@
         <p class="mt-1">Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
     </header>
 
-    <form class="perfil-card config-card mt-0 mb-3" method="post" novalidate>
+    <form class="perfil-card user-profile-container mt-0 mb-3" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
@@ -109,72 +109,49 @@
 
 {% block extra_js %}
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const profileForm = document.querySelector('input[name="action"][value="update_profile"]').form;
-            if (profileForm) {
-                const usernameInput = profileForm.querySelector('#username');
-                const emailInput = profileForm.querySelector('#email');
-                const submitBtn = profileForm.querySelector('button[type="submit"]');
+        document.addEventListener('DOMContentLoaded', function () {
+            function setupForm(form, isEditing) {
+                if (!form) return;
+                var submitBtn = form.querySelector('.btn-primary');
+                if (!submitBtn) return;
 
-                const initialUsername = usernameInput.value.trim();
-                const initialEmail = emailInput.value.trim();
+                var initialValues = {};
+                form.querySelectorAll('input[name], select[name]').forEach(function (el) {
+                    initialValues[el.name] = el.value;
+                });
 
-                function checkChanges() {
-                    const currentUsername = usernameInput.value.trim();
-                    const currentEmail = emailInput.value.trim();
-
-                    const hasChanges = (currentUsername !== initialUsername || currentEmail !== initialEmail);
-                    const hasErrors = profileForm.querySelectorAll('.input-error').length > 0;
-
-                    submitBtn.disabled = !hasChanges || hasErrors;
+                function setBtn(disabled) {
+                    submitBtn.disabled = disabled;
                 }
 
-                // Run check initially
-                setTimeout(checkChanges, 0);
-
-                // Setup listener that executes after validation.js finishes updating the UI
-                const onInput = () => {
-                    setTimeout(checkChanges, 0);
-                };
-
-                usernameInput.addEventListener('input', onInput);
-                emailInput.addEventListener('input', onInput);
-                usernameInput.addEventListener('blur', onInput);
-                emailInput.addEventListener('blur', onInput);
-            }
-
-            const passwordForm = document.querySelector('input[name="action"][value="change_password"]').form;
-            if (passwordForm) {
-                const currentPassInput = passwordForm.querySelector('#current_password');
-                const newPassInput = passwordForm.querySelector('#new_password');
-                const confirmPassInput = passwordForm.querySelector('#confirm_password');
-                const passSubmitBtn = passwordForm.querySelector('button[type="submit"]');
-
-                function checkPassChanges() {
-                    const currentVal = currentPassInput.value.trim();
-                    const newVal = newPassInput.value.trim();
-                    const confirmVal = confirmPassInput.value.trim();
-
-                    const hasAllFields = (currentVal !== "" && newVal !== "" && confirmVal !== "");
-                    const hasErrors = passwordForm.querySelectorAll('.input-error').length > 0;
-
-                    passSubmitBtn.disabled = !hasAllFields || hasErrors;
+                function checkState() {
+                    var hasErrors = form.querySelectorAll('.input-error').length > 0;
+                    var shouldEnable;
+                    if (isEditing) {
+                        var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
+                            .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
+                        shouldEnable = hasChanges && !hasErrors;
+                    } else {
+                        var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
+                            .every(function (el) { return el.value.trim() !== ''; });
+                        shouldEnable = allFilled && !hasErrors;
+                    }
+                    setBtn(!shouldEnable);
                 }
 
-                // Run check initially
-                setTimeout(checkPassChanges, 0);
+                setTimeout(checkState, 0);
 
-                const onPassInput = () => {
-                    setTimeout(checkPassChanges, 0);
-                };
+                form.querySelectorAll('input, select').forEach(function (el) {
+                    el.addEventListener('input', function () { setTimeout(checkState, 0); });
+                    el.addEventListener('change', function () { setTimeout(checkState, 0); });
+                    el.addEventListener('blur', function () { setTimeout(checkState, 0); });
+                });
 
-                currentPassInput.addEventListener('input', onPassInput);
-                newPassInput.addEventListener('input', onPassInput);
-                confirmPassInput.addEventListener('input', onPassInput);
-                currentPassInput.addEventListener('blur', onPassInput);
-                newPassInput.addEventListener('blur', onPassInput);
-                confirmPassInput.addEventListener('blur', onPassInput);
+                return checkState;
             }
+
+            setupForm(document.querySelector('input[name="action"][value="update_profile"]').form, true);
+            setupForm(document.querySelector('input[name="action"][value="change_password"]').form, false);
         });
     </script>
 {% endblock %}
