@@ -698,7 +698,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                 let cardHtml = '';
                 if (isOk) {
                     cardHtml = `
-                        <div style="background: var(--state-ok-bg); color: var(--state-ok); border: 2px solid var(--color-ink); border-left: 6px solid var(--state-ok); padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
+                        <div class="status-banner">
                             <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
                             <span>${rec}</span>
                         </div>
@@ -715,7 +715,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                     }
                     
                     cardHtml = `
-                        <div style="background: ${bgColor}; color: ${borderColor}; border: 2px solid var(--color-ink); border-left: 6px solid ${borderColor}; padding: var(--sp-2) var(--sp-3); box-shadow: 4px 4px 0px var(--color-ink); font-weight: var(--weight-bold); display: flex; align-items: center; gap: 10px;">
+                        <div class="status-banner" style="background: ${bgColor}; color: ${borderColor}; border-left-color: ${borderColor};">
                             <i class="${icon}" style="font-size: var(--text-md);"></i>
                             <span>${rec}${doorNote}</span>
                         </div>
@@ -742,7 +742,7 @@ function renderThresholdsPanel(th) {
 
     function buildCard(k, cfg) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
+        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);box-shadow:var(--shadow-brutal-xs);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -1027,7 +1027,7 @@ function renderLimitsPanel(ranges) {
 
     function buildLimitCard(k, r) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:1px solid var(--color-border);padding:var(--sp-1);';
+        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);box-shadow:var(--shadow-brutal-xs);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -1549,7 +1549,7 @@ function addLiveNotificationEvent(data) {
     const unit = getUnit(data.variable);
     const showValueBox = valueStr !== 'true' && valueStr !== 'True' && valueStr !== 'false' && valueStr !== 'False' && valueStr !== 'undefined' && valueStr !== 'null' && valueStr.trim() !== '';
     const valueHtml = showValueBox 
-        ? `<span style="font-family: monospace; font-size: var(--text-xs); border: 2px solid var(--color-ink); background: var(--color-bg); padding: 2px 6px; font-weight: var(--weight-bold); color: var(--color-ink);">${formatNumeric(data.value, data.variable)}${unit ? ' ' + unit : ''}</span>`
+        ? `<span class="code-badge">${formatNumeric(data.value, data.variable)}${unit ? ' ' + unit : ''}</span>`
         : '';
 
     let dateStr = '';
