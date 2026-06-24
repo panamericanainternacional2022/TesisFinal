@@ -8,6 +8,7 @@
     height: var(--header-height);
     background-color: var(--color-surface);
     border-bottom: 2px solid var(--color-ink);
+    box-shadow: 0px 4px 0px var(--color-ink-shadow);
     display: flex;
     align-items: center;
     justify-content: space-between;

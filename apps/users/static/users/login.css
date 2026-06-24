@@ -23,7 +23,7 @@ body {
     background: var(--color-surface);
     border: 2px solid var(--color-ink);
     border-top: 6px solid var(--color-accent);
-    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    box-shadow: var(--shadow-brutal);
     padding: var(--sp-7) var(--sp-6);
     position: relative;
 }

@@ -28,7 +28,7 @@
     padding: var(--sp-3, 24px);
     width: 90%;
     max-width: 440px;
-    box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
+    box-shadow: var(--shadow-brutal);
     transform: scale(0.92);
     transition: transform 150ms ease;
     box-sizing: border-box;
