@@ -1,22 +1,22 @@
 ﻿{% load static %}
 <script>
 (function(){
-    // â”€â”€â”€ BLOQUEO TOTAL DE NAVEGACIÃ“N ATRÃS/ADELANTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── BLOQUEO TOTAL DE NAVEGACIÓN ATRÁS/ADELANTE ───────────
     window.history.pushState(null, null, window.location.href);
     window.addEventListener('popstate', function () {
         window.history.pushState(null, null, window.location.href);
     });
-    // â”€â”€â”€ DETECTA bfcache (cachÃ© de retroceso del navegador) â”€â”€
+    // ─── DETECTA bfcache (caché de retroceso del navegador) ──
     window.addEventListener('pageshow', function (e) {
         if (e.persisted) {
             window.location.reload();
         }
     });
-    // â”€â”€â”€ REMOVER PRELOAD DE TRANSICIONES AL CARGAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── REMOVER PRELOAD DE TRANSICIONES AL CARGAR ──────────
     window.addEventListener('load', function () {
         document.body.classList.remove('preload');
     });
-    // â”€â”€â”€ DESTACAR LINK ACTIVO EN EL SIDEBAR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── DESTACAR LINK ACTIVO EN EL SIDEBAR ────────────────
     window.addEventListener('DOMContentLoaded', function () {
         var currentPath = window.location.pathname.replace(/\/+$/, '');
         var links = document.querySelectorAll('.sidebar-link');
@@ -33,7 +33,7 @@
 <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <span class="sidebar-logo">INES</span>
-        <span class="sidebar-system-name">Sistema inteligente de automatizaciÃ³n</span>
+        <span class="sidebar-system-name">Sistema inteligente de automatización</span>
     </div>
 
     <nav class="sidebar-nav">
@@ -59,10 +59,10 @@
             <i class="fa-solid fa-sliders" aria-hidden="true"></i> Umbrales
         </a>
         <a href="{% url 'sensor_limits' %}" class="sidebar-link">
-            <i class="fa-solid fa-maximize" aria-hidden="true"></i> LÃ­mites
+            <i class="fa-solid fa-maximize" aria-hidden="true"></i> Límites
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
-            <i class="fa-solid fa-gears" aria-hidden="true"></i> ConfiguraciÃ³n
+            <i class="fa-solid fa-gears" aria-hidden="true"></i> Configuración
         </a>
         {% else %}
         <a href="{% url 'monitor' %}" class="sidebar-link">
@@ -77,7 +77,7 @@
             <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
-            <i class="fa-solid fa-gears" aria-hidden="true"></i> ConfiguraciÃ³n
+            <i class="fa-solid fa-gears" aria-hidden="true"></i> Configuración
         </a>
         {% endif %}
     </nav>
@@ -85,7 +85,7 @@
     <div class="sidebar-footer">
         <span class="sidebar-user">{% if request.session.usuario_rol == 'US' %}{{ request.session.usuario_nombre_completo }}{% else %}Administrador{% endif %}</span>
         <a href="{% url 'logout' %}" class="sidebar-link sidebar-logout">
-            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesiÃ³n
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesión
         </a>
     </div>
 </aside>

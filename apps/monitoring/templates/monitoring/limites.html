@@ -1,8 +1,8 @@
 ﻿{% extends 'core/base_sidebar.html' %}
 {% load static %}
 
-{% block title %}LÃ­mites{% endblock %}
-{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de lÃ­mites fÃ­sicos mÃ¡ximos para sensores de bomba y elevador.">{% endblock %}
+{% block title %}Límites{% endblock %}
+{% block meta_description %}<meta name="description" content="Configuración de límites físicos máximos para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
@@ -11,12 +11,12 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <!-- ── Cabecera ── -->
     <header class="admin-info">
         <div class="row-start">
-            <h1 class="m-0">LÃ­mites</h1>
+            <h1 class="m-0">Límites</h1>
         </div>
-        <p class="mt-1">Configura los lÃ­mites fÃ­sicos mÃ¡ximos de operaciÃ³n para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
+        <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
 
         {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </header>
@@ -35,16 +35,32 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexiÃ³n -->
+    <!-- Estado de conexión -->
     <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando lÃ­mites..." loading_subtext="Obteniendo lÃ­mites de operaciÃ³n del sensor." %}
+        {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
     </div>
 
     <!-- Contenedor principal -->
     <div id="activeMonitoring" class="d-none">
         <div class="notif-card mt-3">
             <div class="p-3">
-                <!-- Panel de lÃ­mites: Bomba de agua -->
+                <!-- Leyenda de dirección -->
+                <div class="thresh-legend mb-3">
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+                    </span>
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+                    </span>
+                    <span class="thresh-legend-item">
+                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
+                    </span>
+                    <span class="ml-auto text-xs text-secondary">
+                        Cada número es el <strong>límite</strong> físico máximo permitido
+                    </span>
+                </div>
+
+                <!-- Panel de límites: Bomba de agua -->
                 <div class="mb-3">
                     <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
@@ -52,7 +68,7 @@
                     <div id="limitsBombaPanel" class="thresh-grid"></div>
                 </div>
 
-                <!-- Panel de lÃ­mites: Elevador -->
+                <!-- Panel de límites: Elevador -->
                 <div>
                     <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
@@ -63,7 +79,7 @@
                 <!-- Acciones -->
                 <div class="thresh-footer">
                     <button type="button" id="saveLimitsBtn" class="btn btn-primary">
-                        <i class="fas fa-check" aria-hidden="true"></i> Guardar lÃ­mites
+                        <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
                     </button>
                 </div>
             </div>
@@ -78,7 +94,7 @@
     <script>
         window.IS_ADMIN = true;
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice lÃ­mites en vez de umbrales
+        window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice límites en vez de umbrales
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
     <script>

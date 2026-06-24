@@ -1,18 +1,18 @@
 ﻿{% comment %}
     Componente: empty_state.html
-    Muestra los tres estados de conexiÃ³n/carga en paneles de monitoreo en tiempo real.
+    Muestra los tres estados de conexión/carga en paneles de monitoreo en tiempo real.
 
-    Variables requeridas (ninguna â€” usa IDs estÃ¡ndar controlados por live_monitoring.js):
+    Variables requeridas (ninguna â€” usa IDs estándar controlados por live_monitoring.js):
       - #stateLoading     : visible mientras carga (spinner)
       - #stateOffline     : visible si el servidor no responde
       - #stateNoEquipment : visible si el edificio no tiene equipos configurados
 
     Variables opcionales:
-      - loading_text       : texto del tÃ­tulo de carga          (default: "Cargando...")
+      - loading_text       : texto del título de carga          (default: "Cargando...")
       - loading_subtext    : subtexto de carga                  (default: "Obteniendo datos del sensor.")
-      - offline_subtext    : subtexto de sin conexiÃ³n           (default: genÃ©rico)
-      - no_equipment_title : tÃ­tulo de sin equipos              (default: "Sin equipos de monitoreo")
-      - no_equipment_text  : subtexto de sin equipos            (default: genÃ©rico)
+      - offline_subtext    : subtexto de sin conexión           (default: genérico)
+      - no_equipment_title : título de sin equipos              (default: "Sin equipos de monitoreo")
+      - no_equipment_text  : subtexto de sin equipos            (default: genérico)
 
     Uso:
       {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." %}
@@ -26,8 +26,8 @@
 
 <div id="stateOffline" class="no-notif empty-state d-none">
     <i class="fa-solid fa-triangle-exclamation empty-state-icon text-warn" aria-hidden="true"></i>
-    <h3 class="section-label">Sin conexiÃ³n</h3>
-    <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuraciÃ³n. Verifica que el servidor estÃ© activo." }}</p>
+    <h3 class="section-label">Sin conexión</h3>
+    <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuración. Verifica que el servidor esté activo." }}</p>
 </div>
 
 <div id="stateNoEquipment" class="no-notif empty-state d-none">

@@ -23,7 +23,7 @@ def notifications_view(request: HttpRequest):
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:
         return render(request, "alerts/notifications.html", {
-            "notifications": None, "buildings": [], "rol": "US",
+            "notifications": None, "edificios": [], "rol": "US",
             "alerts_disabled": False, "alerts_disabled_until_ms": None,
             "email_alerts_disabled": False,
         })
@@ -73,8 +73,8 @@ def notifications_view(request: HttpRequest):
         "alerts/notifications.html",
         {
             "notifications": page_obj,
-            "buildings": buildings,
-            "selected_building_id": int(building_id_raw) if building_id_raw.isdigit() else None,
+            "edificios": buildings,
+            "selected_edificio_id": int(building_id_raw) if building_id_raw.isdigit() else None,
             "rol": rol,
             "alerts_disabled": alerts_disabled,
             "alerts_disabled_until_ms": alerts_disabled_until_ms,

@@ -49,7 +49,7 @@
             </div>
  
             <div class="submit-btn-container">
-                <button type="submit" class="btn btn-primary">Activar cuenta y acceder</button>
+                {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}
             </div>
         </form>
     {% endif %}

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title %}Umbrales{% endblock %}
-{% block meta_description %}<meta name="description" content="ConfiguraciÃ³n de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
@@ -11,12 +11,12 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- â”€â”€ Cabecera â”€â”€ -->
+    <!-- ── Cabecera ── -->
     <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Umbrales</h1>
         </div>
-        <p class="mt-1">Configura los lÃ­mites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
+        <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
 
         {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </header>
@@ -35,28 +35,28 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexiÃ³n -->
+    <!-- Estado de conexión -->
     <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuraciÃ³n de umbrales de riesgo." %}
+        {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
     </div>
 
     <!-- Contenedor principal -->
     <div id="activeMonitoring" class="d-none">
-        <!-- Leyenda de direcciÃ³n -->
+        <!-- Leyenda de dirección -->
         <div class="notif-card mt-3">
             <div class="p-3">
                 <div class="thresh-legend">
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-up" title="Mayor es peor â€” valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-down" title="Menor es peor â€” valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
                     </span>
                     <span class="thresh-legend-item">
-                        <span class="badge-dir-range" title="Rango vÃ¡lido â€” fuera del rango = riesgo Alto">&#10234;</span> Rango vÃ¡lido
+                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
                     </span>
                     <span class="ml-auto text-xs text-secondary">
-                        Cada nÃºmero es el <strong>lÃ­mite</strong> donde comienza ese nivel de riesgo
+                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
                     </span>
                 </div>
 

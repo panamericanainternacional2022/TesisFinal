@@ -88,7 +88,7 @@
                                             <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
                                                 <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
                                             </a>
-                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="Ã‚¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
                                                 <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
                                             </a>
                                             {% if usuario.email %}
@@ -153,7 +153,7 @@
                 sendAllBtn.addEventListener('click', async () => {
                     const edificioId = sendAllBtn.dataset.edificioId;
                     if (!edificioId) {
-                        showToast('Seleccione un edificio específico antes de usar Ã‚«Enviar a todosÃ‚».', 'info');
+                        showToast('Seleccione un edificio específico antes de usar «Enviar a todos».', 'info');
                         return;
                     }
                     const origHTML   = sendAllBtn.innerHTML;

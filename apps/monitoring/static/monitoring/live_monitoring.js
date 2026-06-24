@@ -28,7 +28,7 @@ const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
 const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
 let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
-let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_BUILDING_ID || 0;
+let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_EDIFICIO_ID || 0;
 let SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 
 let sseSource = null;

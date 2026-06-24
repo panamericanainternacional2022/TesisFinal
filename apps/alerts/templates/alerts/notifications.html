@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block title %}Alertas{% endblock %}
+{% block meta_description %}<meta name="description" content="Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores en tiempo real.">{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'core/components.css' %}">
@@ -16,17 +17,17 @@
                 <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
             </div>
         </div>
-        <p class="mt-1">Historial completo de alertas, anomalÃ­as, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
-        {% if buildings %}
-        <!-- Filtro de Edificio y BotÃ³n Limpiar -->
+        <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
+        {% if edificios %}
+        <!-- Filtro de Edificio y Botón Limpiar -->
         <div class="row-between mt-2">
-            {% if buildings|length > 1 %}
+            {% if edificios|length > 1 %}
             <form method="GET" action="" class="row-center m-0">
                 <div class="select-container">
                     <select name="edificio" id="edificio-filter" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
                         <option value="">Todos los edificios</option>
-                        {% for building in buildings %}
-                        <option value="{{ building.id }}" {% if selected_building_id == building.id %}selected{% endif %}>
+                        {% for building in edificios %}
+                        <option value="{{ building.id }}" {% if selected_edificio_id == building.id %}selected{% endif %}>
                             {{ building.name }}
                         </option>
                         {% endfor %}
@@ -54,7 +55,7 @@
         {% endif %}
     </header>
 
-    {% if buildings %}
+    {% if edificios %}
     <div class="notif-card">
         <div id="live-notifications-list">
             {% if notifications %}
@@ -66,10 +67,13 @@
                         <div class="row-center mb-1">
                             <span class="sensor-badge
                                 {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
-                                {% else %}sensor-high{% endif %}">
+                                {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
+                                {% elif notif.parsed_data.risk == RISK_MEDIO %}sensor-warning
+                                {% elif notif.parsed_data.risk == RISK_BAJO %}sensor-active
+                                {% else %}sensor-info{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
-                            {% if notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
+                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
                             <span class="code-badge">
                                 {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                             </span>
@@ -103,15 +107,15 @@
                 <p>No hay alertas pendientes.</p>
                 {% else %}
                 <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                <p>Las alertas estÃ¡n desactivadas.</p>
+                <p>Las alertas están desactivadas.</p>
                 {% endif %}
             </div>
             {% endif %}
         </div>
     </div>
 
-    {% if selected_building_id %}
-        {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_building_id %}
+    {% if selected_edificio_id %}
+        {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_edificio_id %}
     {% else %}
         {% include 'core/components/pagination.html' with page_obj=notifications %}
     {% endif %}
@@ -122,7 +126,7 @@
 {% block extra_js %}
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.SELECTED_BUILDING_ID = {% if selected_building_id %}{{ selected_building_id }}{% elif buildings|length == 1 %}{{ buildings.0.id }}{% else %}0{% endif %};
+        window.SELECTED_EDIFICIO_ID = {% if selected_edificio_id %}{{ selected_edificio_id }}{% elif edificios|length == 1 %}{{ edificios.0.id }}{% else %}0{% endif %};
     </script>
     <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
 {% endblock %}
