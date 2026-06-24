@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
+    
     <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Límites</h1>
@@ -21,7 +21,7 @@
     {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
 
     {% if not edificios %}
-    <!-- Sin edificios -->
+    
     <div class="notif-card mt-3">
         <div class="no-notif">
             <i class="fa-solid fa-building" aria-hidden="true"></i>
@@ -34,16 +34,14 @@
     </div>
     {% else %}
 
-    <!-- Estado de conexión -->
     <div class="notif-card mt-3" id="stateNotifCard">
         {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
     </div>
 
-    <!-- Contenedor principal -->
     <div id="activeMonitoring" class="d-none">
         <div class="notif-card mt-3">
             <div class="p-3">
-                <!-- Leyenda de dirección -->
+                
                 <div class="thresh-legend mb-3">
                     <span class="thresh-legend-item">
                         <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
@@ -59,7 +57,6 @@
                     </span>
                 </div>
 
-                <!-- Panel de límites: Bomba de agua -->
                 <div class="mb-3">
                     <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
@@ -67,7 +64,6 @@
                     <div id="limitsBombaPanel" class="thresh-grid"></div>
                 </div>
 
-                <!-- Panel de límites: Elevador -->
                 <div>
                     <div class="panel-subsection-title mb-2">
                         <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
@@ -75,7 +71,6 @@
                     <div id="limitsElevadorPanel" class="thresh-grid"></div>
                 </div>
 
-                <!-- Acciones -->
                 <div class="thresh-footer">
                     <button type="button" id="saveLimitsBtn" class="btn btn-primary">
                         <i class="fas fa-check" aria-hidden="true"></i> Guardar límites

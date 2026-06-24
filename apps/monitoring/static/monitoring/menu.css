@@ -1,16 +1,11 @@
-/* ==========================================================================
-   menu.css — Swiss Typographic Grid
-   Menú de selección / Dashboard principal
-   ========================================================================== */
 
-/* ── Contenedor ────────────────────────────────────────────────────────────── */
+
 .menu-container {
     padding: var(--sp-5) var(--sp-5) var(--sp-5);
     max-width: 1200px;
     margin: 0 auto;
 }
 
-/* ── Títulos ──────────────────────────────────────────────────────────────── */
 .menu-title {
     font-size: var(--text-2xl);
     font-weight: var(--weight-bold);
@@ -28,17 +23,15 @@
     letter-spacing: 0.01em;
 }
 
-/* ── Cuadrícula ────────────────────────────────────────────────────────────── */
 .menu-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 2px;                           /* gap de 2px = efecto cuadrícula de líneas gruesas */
-    background: var(--color-ink);    /* el background "rellena" los gaps de 2px con color negro */
+    gap: 2px;                           
+    background: var(--color-ink);    
     border: 2px solid var(--color-ink);
     box-shadow: 8px 8px 0px rgba(10, 10, 10, 0.15);
 }
 
-/* ── Tarjeta ───────────────────────────────────────────────────────────────── */
 .menu-card {
     background: var(--color-surface);
     padding: var(--sp-5) var(--sp-3);
@@ -65,7 +58,6 @@
     color: var(--color-surface);
 }
 
-/* ── Icono ─────────────────────────────────────────────────────────────────── */
 .icon-card {
     font-size: 1.6rem;
     color: var(--color-text-secondary);
@@ -73,14 +65,12 @@
     line-height: 1;
 }
 
-/* ── Etiqueta ──────────────────────────────────────────────────────────────── */
 .menu-card span {
     font-weight: var(--weight-medium);
     font-size: var(--text-sm);
     letter-spacing: 0.02em;
 }
 
-/* ── Responsive ────────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
     .menu-grid {
         grid-template-columns: repeat(3, 1fr);

@@ -16,12 +16,10 @@ def get_simulator(building_id: int) -> BuildingSimulator | None:
     from apps.sensors.simulation.globals import simulators
     from apps.sensors.simulation.models import BuildingSimulator
 
-    # 1. Intentar obtener de la caché en memoria
     sim = simulators.get(building_id)
     if sim:
         return sim
 
-    # 2. Intentar inicializar dinámicamente desde la base de datos
     from apps.buildings.models import Building, MonitoringEquipment
     try:
         building = Building.objects.get(pk=building_id)
@@ -41,8 +39,6 @@ def get_simulator(building_id: int) -> BuildingSimulator | None:
     except Exception as e:
         logger.warning("Error al inicializar simulador dinámico para ID %s: %s", building_id, e)
 
-    # 3. Sin simulador disponible — NO hacer fallback al primer edificio,
-    #    ya que eso confundiría silenciosamente los datos de dos edificios distintos.
     logger.warning("No hay simulador disponible para el ID %s", building_id)
     return None
 

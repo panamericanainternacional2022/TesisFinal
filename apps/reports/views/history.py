@@ -54,7 +54,6 @@ def history_pdf_view(request: Any) -> HttpResponse:
         pdf = _create_report_pdf("Historial de eventos")
         now = dt.datetime.now()
 
-        # ── Patrón unificado: header → leyenda → secciones ───────────────────
         render_pdf_header(
             pdf,
             title="Historial de eventos",
@@ -74,13 +73,11 @@ def history_pdf_view(request: Any) -> HttpResponse:
             ],
         )
 
-        # Patrón unificado: Resumen → Leyenda (igual que building_report)
         if parsed_list:
             render_stats_summary(pdf, parsed_list)
 
         render_severity_legend(pdf)
 
-        # Agrupar por edificio
         from collections import OrderedDict
         groups: OrderedDict[str, list[Any]] = OrderedDict()
         for n in parsed_list:
@@ -91,7 +88,6 @@ def history_pdf_view(request: Any) -> HttpResponse:
             )
             groups.setdefault(bld, []).append(n)
 
-        # Resumen de eventos por edificio (sólo si hay más de un edificio)
         if len(groups) > 1:
             _render_building_summary(pdf, groups)
 
@@ -128,13 +124,9 @@ def history_pdf_view(request: Any) -> HttpResponse:
         )
 
 
-# ─── Sección: resumen por edificio ───────────────────────────────────────────
-
 def _render_building_summary(pdf: Any, groups: dict) -> None:
-    """
-    Tabla de resumen de eventos agrupados por edificio.
-    Se muestra sólo cuando hay más de un edificio en el resultado.
-    """
+
+
     render_section_divider(pdf, "Distribución de eventos por edificio")
 
     col_widths = [120, 30, 40]

@@ -19,8 +19,6 @@ from apps.sensors.simulation.simulation_engine import update_sensor_data
 
 logger = logging.getLogger(__name__)
 
-# Máximo de ticks a omitir en backoff exponencial (≈ 30 × SIM_TICK_INTERVAL s).
-# El simulador NUNCA se elimina; solo pausa ticks y reintenta automáticamente.
 _MAX_BACKOFF_TICKS: int = 30
 
 
@@ -49,13 +47,8 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
     from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
     from apps.alerts.services.threshold_service import get_thresholds
 
-    # Cargar umbrales del edificio una sola vez por tick
     thresholds = get_thresholds(sim.edificio_id)
 
-    # Determinar qué dispositivos están en modo protección activa.
-    # Cuando un dispositivo está en protección, sus sensores bajan a 0.0
-    # (via _set_pump_idle / _set_elevator_idle). No se debe generar una
-    # nueva alerta por esos ceros — el dispositivo ya está aislado.
     pump_protected = "pump" in sim.protection_ends or not sim.pump_on
     elev_protected = "elevator" in sim.protection_ends or not sim.elevator_on
 
@@ -63,7 +56,6 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var not in alert_vars:
             continue
 
-        # Suprimir alertas de sensores cuyo dispositivo ya está en protección
         if pump_protected and var in PUMP_VARS:
             sim.active_alerts.pop(var, None)
             continue
@@ -86,12 +78,10 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         else:
             sim.active_alerts.pop(var, None)
     from apps.alerts.alerts.engine import check_rationing
-    # Solo verificar racionamiento si la bomba no está en protección
     if not pump_protected:
         check_rationing(sim.sensor_data["flow_rate"], sim=sim)
     else:
         sim.active_alerts.pop("rationing", None)
-
 
 
 def _handle_motor_stuck_alert(
@@ -134,7 +124,6 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
     from apps.core.services.risk_service import classify_risk
     from apps.alerts.services.threshold_service import get_thresholds
 
-    # Reutilizar los umbrales del edificio para clasificar historial
     thresholds = get_thresholds(sim.edificio_id)
 
     timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
@@ -162,28 +151,22 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
 
 
 def generate_data_and_emit() -> None:
-    """Loop principal del engine. Procesa todos los simuladores activos cada tick.
 
-    En lugar de eliminar un simulador tras fallos consecutivos, aplica backoff
-    exponencial (saltar 2^N ticks, máx. _MAX_BACKOFF_TICKS) y reintenta
-    automáticamente. El dict ``simulators`` nunca pierde entradas por errores.
-    """
+
     _consecutive_failures: dict[int, int] = {}
-    _backoff_remaining: dict[int, int] = {}   # ticks restantes de pausa por edificio
+    _backoff_remaining: dict[int, int] = {}
 
     while True:
         eventlet.sleep(SIM_TICK_INTERVAL)
         for sim in list(simulators.values()):
             eid = sim.edificio_id
 
-            # ── Backoff: contar regresivo y saltar este tick ────────────
             if _backoff_remaining.get(eid, 0) > 0:
                 _backoff_remaining[eid] -= 1
                 continue
 
             try:
                 _run_sim_tick(sim)
-                # Tick exitoso: limpiar estado de fallos
                 _consecutive_failures.pop(eid, None)
                 _backoff_remaining.pop(eid, None)
             except Exception:
@@ -193,8 +176,6 @@ def generate_data_and_emit() -> None:
                     "Error en tick de sim %s (%s) — fallo consecutivo #%s",
                     eid, sim.nombre, fails,
                 )
-                # Backoff exponencial: 2^N ticks (cap = _MAX_BACKOFF_TICKS)
-                # El simulador NO se elimina; reintentará automáticamente.
                 backoff = min(2 ** fails, _MAX_BACKOFF_TICKS)
                 _backoff_remaining[eid] = backoff
                 logger.warning(

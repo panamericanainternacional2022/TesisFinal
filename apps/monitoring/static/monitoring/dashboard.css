@@ -1,11 +1,5 @@
-/* ==========================================================================
-   dashboard.css — Panel de control (monitoreo en tiempo real)
-   Estilos específicos del dashboard de monitoreo.
-   Los componentes globales (.panel, .badge, .sys-alert, etc.) viven en
-   components.css y design-tokens.css
-   ========================================================================== */
 
-/* ── Grids del Dashboard ─────────────────────────────────────────────────── */
+
 .grid-4 {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -25,7 +19,6 @@
 
 .grid-4 > * { background: var(--color-surface); }
 
-/* ── Tarjetas de sensor ──────────────────────────────────────────────────── */
 .sensor-card {
     padding: var(--sp-3);
     background: var(--color-surface);
@@ -62,7 +55,6 @@
     align-items: center;
 }
 
-/* ── Estado del sistema ──────────────────────────────────────────────────── */
 .status-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -95,7 +87,6 @@
     color: var(--color-ink);
 }
 
-/* ── Sección de sensores ─────────────────────────────────────────────────── */
 .sensor-section {
     background: var(--color-surface);
     border: var(--border-brutal);
@@ -128,7 +119,6 @@
     border-radius: var(--radius);
 }
 
-/* ── Panel de gráficas ───────────────────────────────────────────────────── */
 .chart-panel {
     background: var(--color-surface);
     border: var(--border-brutal);
@@ -152,7 +142,6 @@
 
 .chart-panel canvas { max-height: 220px; width: 100%; }
 
-/* ── Panel de controles admin ────────────────────────────────────────────── */
 .admin-controls-panel .panel-subsection {
     padding-top: var(--sp-2);
 }
@@ -169,7 +158,6 @@
     align-items: flex-end;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
     .grid-charts { grid-template-columns: 1fr; }
 }

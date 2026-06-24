@@ -20,8 +20,6 @@ from apps.users.validators import (
     REGEX_USERNAME,
 )
 
-# ─── VALIDATOR TESTS (pure logic, no DB) ────────────────────────────────
-
 
 class ValidateFieldTests(TestCase):
     def test_valid_value_returns_empty(self):
@@ -86,9 +84,6 @@ class ValidateEmailTests(TestCase):
         self.assertNotEqual(_validate_email("a@b.c"), "")
 
 
-# ─── VALIDATOR TESTS (DB required) ────────────────────────────────────
-
-
 class ValidateUniqueEmailDBTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(
@@ -151,9 +146,6 @@ class ValidateFormTests(TestCase):
         self.assertIn("primerApellido", errors)
         self.assertIn("email", errors)
         self.assertIn("cedula", errors)
-
-
-# ─── SERVICE TESTS ─────────────────────────────────────────────────────
 
 
 class BuildUserDataTests(TestCase):
@@ -224,9 +216,6 @@ class GenerateRandomPasswordTests(TestCase):
     def test_contains_valid_chars(self):
         pwd = generate_random_password()
         self.assertTrue(pwd.isascii())
-
-
-# ─── VIEW TESTS ────────────────────────────────────────────────────────
 
 
 class LoginViewTests(TestCase):

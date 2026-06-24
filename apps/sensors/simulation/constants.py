@@ -1,4 +1,4 @@
-from apps.sensors.sensor_config import RATIONING_THRESHOLD  # noqa: F401
+from apps.sensors.sensor_config import RATIONING_THRESHOLD
 MAX_HISTORY_SIZE: int = 500
 MAX_LOG_ENTRIES: int = 100
 PROTECTION_HOLD_SECONDS: int = 30
@@ -42,18 +42,14 @@ DEFAULT_SENSOR_DATA: dict = {
     "motor_stuck": False,
 }
 
-# ─── Límites de velocidad de simulación ────────────────────────────────
 MIN_SIM_SPEED: float = 0.1
 MAX_SIM_SPEED: float = 10.0
 
-# ─── Parámetros de simulación de bombas ────────────────────────────────
-REFILL_TIMER_TICKS: int = 15          # Intervalo entre recargas de tanque
+REFILL_TIMER_TICKS: int = 15
 
-# ─── Umbrales de detección de fallas en elevador ───────────────────────
 ELEVATOR_LOAD_ALERT: float = 700.0
 ELEVATOR_TEMP_ALERT: float = 90.0
 
-# ─── Valores de recuperación post-falla para clear_fault ───────────────
 CLEAR_FAULT_MIN_FLOW: float = 15.0
 CLEAR_FAULT_MIN_PRESSURE: float = 3.0
 CLEAR_FAULT_MAX_VIBRATION: float = 5.0
@@ -61,9 +57,6 @@ CLEAR_FAULT_VOLTAGE_LOW: float = 210.0
 CLEAR_FAULT_VOLTAGE_HIGH: float = 230.0
 CLEAR_FAULT_MAX_LOAD: float = 500.0
 
-# Valores seguros post-falla (usados en reset_critical_values).
-# Son deliberadamente distintos de DEFAULT_SENSOR_DATA para restaurar un
-# estado operativo conservador después de limpiar una falla.
 SAFE_RESET_VALUES: dict = {
     "flow_rate": 25.0,
     "pressure": 4.0,

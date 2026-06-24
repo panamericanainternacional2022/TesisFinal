@@ -1,17 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-# ruff: noqa: E402
-"""
-Punto de entrada único del sistema PCLogo.
-Reemplaza entry.py + routes.py (Flask) y manage.py runserver.
-Ejecutar: python server.py
-
-Arquitectura unificada: Django + eventlet WSGI en un solo proceso.
-- Servidor HTTP: eventlet.wsgi.server con Django WSGIHandler
-- Simulación: green thread en background
-- SSE: StreamingHttpResponse desde Django (time.sleep → eventlet)
-"""
-
 import eventlet
 eventlet.monkey_patch()
 import eventlet.wsgi
@@ -31,7 +18,6 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# ─── Cargar .env ANTES de django.setup() ──────────────────────────
 env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 if os.path.exists(env_path):
     with open(env_path, "r", encoding="utf-8") as f:
@@ -41,14 +27,12 @@ if os.path.exists(env_path):
                 os.environ[key.strip()] = val.strip().strip("'\"")
     logger.info(".env cargado antes de Django setup")
 
-# ─── Django setup ─────────────────────────────────────────────────
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
 import django
 django.setup()
 
-# ─── Crear simuladores desde la BD ────────────────────────────────
 from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.globals import simulators
 from apps.sensors.engine import generate_data_and_emit
@@ -71,7 +55,6 @@ for eq in equipos:
 
 logger.info("Simuladores activos: %s", list(simulators.keys()))
 
-# ─── Sincronizar variables globales legacy con el primer simulador ─
 import apps.sensors.simulation.globals as _sim_globals
 _first = next(iter(simulators.values()), None)
 if _first:
@@ -87,7 +70,6 @@ if _first:
     _sim_globals.sim_speed = _first.sim_speed
     logger.info("Variables globales legacy sincronizadas con simulador #%s", _first.edificio_id)
 
-# ─── Verificar SMTP ───────────────────────────────────────────────
 _smtp_user = os.environ.get("SMTP_USER", "")
 _smtp_password = os.environ.get("SMTP_PASSWORD", "")
 _smtp_server = os.environ.get("SMTP_SERVER", "smtp.gmail.com")
@@ -105,11 +87,9 @@ if _smtp_user and _smtp_password:
 else:
     logger.warning("SMTP no configurado. Los correos no se enviarán.")
 
-# ─── Iniciar loop de simulación ───────────────────────────────────
 eventlet.spawn(generate_data_and_emit)
 logger.info("Loop de simulación iniciado")
 
-# ─── Servir Django con eventlet WSGI ──────────────────────────────
 from django.core.handlers.wsgi import WSGIHandler
 from django.contrib.staticfiles.handlers import StaticFilesHandler
 

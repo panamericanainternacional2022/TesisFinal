@@ -1,12 +1,10 @@
 #!/usr/bin/env python
-"""Django's command-line utility for administrative tasks."""
-
 import os
 import sys
 
 
 def main():
-    """Run administrative tasks."""
+
     _env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
     if os.path.exists(_env_path):
         with open(_env_path, "r", encoding="utf-8") as _f:
@@ -24,13 +22,11 @@ def main():
     except ImportError:
         pass
 
-    # ──── Inicializar simulación (solo proceso servidor, no reloader) ────
     if len(sys.argv) > 1 and sys.argv[1] == "runserver":
         if "--noreload" in sys.argv or os.environ.get("RUN_MAIN") == "true":
             import django
             django.setup()
 
-            # Load simulators
             from apps.sensors.simulation.models import BuildingSimulator
             from apps.sensors.simulation.globals import simulators
             from apps.sensors.engine import generate_data_and_emit
@@ -60,7 +56,6 @@ def main():
                     "Simulador creado: edificio=%s tipo=%s", eid, eq.equipment_type
                 )
 
-            # Sincronizar variables globales legacy
             import apps.sensors.simulation.globals as _sim_globals
 
             _first = next(iter(simulators.values()), None)
@@ -76,15 +71,14 @@ def main():
                 _sim_globals.sim_paused = _first.sim_paused
                 _sim_globals.sim_speed = _first.sim_speed
 
-            # ── Watchdog: relanza el engine si muere ──────────────────────────
             def _engine_watchdog():
-                """Greenlet supervisor: si generate_data_and_emit termina
-                (por crash o excepción no capturada), lo relanza tras 5 s."""
+
+
                 while True:
                     logger.info("Loop de simulación iniciado via manage.py runserver")
                     gt = eventlet.spawn(generate_data_and_emit)
                     try:
-                        gt.wait()   # bloquea hasta que el greenlet termine
+                        gt.wait()
                         logger.warning(
                             "Loop de simulación terminó normalmente (inesperado) — reintentando"
                         )

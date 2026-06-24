@@ -207,7 +207,6 @@ def _apply_manual_override_transitions(sim: BuildingSimulator) -> None:
 
         sim.sensor_data[var] = new_val
 
-        # Sincronizar posición del elevador en metros para el FSM
         if var == "position":
             sim._elev_position_meters = float(new_val * 3.5)
 

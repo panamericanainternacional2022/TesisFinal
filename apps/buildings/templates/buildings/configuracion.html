@@ -21,7 +21,6 @@
         <p class="mt-1">Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
     </header>
 
-    <!-- Tarjeta 1: Datos de Perfil -->
     <form class="perfil-card config-card mt-0 mb-3" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
@@ -59,7 +58,6 @@
         </div>
     </form>
 
-    <!-- Tarjeta 2: Seguridad y Contraseña -->
     <form class="perfil-card config-card mt-0" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">

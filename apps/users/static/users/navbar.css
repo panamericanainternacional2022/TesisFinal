@@ -1,7 +1,4 @@
-/* ==========================================================================
-   navbar.css — Swiss Typographic Grid
-   Barra superior: tipografía pura, sin sombra, separación por línea
-   ========================================================================== */
+
 
 .ines-header {
     position: fixed;
@@ -19,7 +16,6 @@
     box-sizing: border-box;
 }
 
-/* ── Grupo Izquierdo ──────────────────────────────────────────────────────── */
 .ines-header-left {
     display: flex;
     align-items: center;

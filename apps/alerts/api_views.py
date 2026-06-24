@@ -22,11 +22,8 @@ logger = logging.getLogger(__name__)
 
 @require_http_methods(["GET"])
 def view_notification_count(request: HttpRequest) -> JsonResponse:
-    """Endpoint ultraligero usado por el polling del sidebar.
 
-    Devuelve solo el conteo de alertas no leídas para el usuario en sesión.
-    Misma lógica que el context_processor ``unread_notifications``.
-    """
+
     import datetime as dt_mod
     from apps.alerts.views.shared import _build_notification_query, exclude_severity_levels
     from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
@@ -125,7 +122,6 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
                 errors[variable] = "Thresholds must be descending: low > medium > high"
                 continue
 
-        # Validar contra los límites físicos del sensor del edificio
         from apps.alerts.services.sensor_limit_service import get_sensor_limits
         sensor_limits = get_sensor_limits(building_id)
         limits = sensor_limits.get(variable)
@@ -212,13 +208,11 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
             errors[variable] = "Value must be numeric"
             continue
 
-        # Validar que el valor max sea mayor que el min por defecto
         default_min = SENSOR_RANGES.get(variable, (0.0, 100.0))[0]
         if max_val <= default_min:
             errors[variable] = f"El límite máximo ({max_val}) debe ser mayor que el mínimo por defecto ({default_min})"
             continue
 
-        # Validar que el límite máximo no sea inferior al umbral crítico existente
         if variable in thresholds:
             t_config = thresholds[variable]
             if "high" in t_config:
@@ -241,16 +235,12 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     })
 
 
-
-
 @require_http_methods(["POST"])
 @login_required
 def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     now = timezone.now()
     request.session["alerts_cleared_at"] = now.timestamp()
 
-    # Limpiar el bloqueo anti-duplicados de cada simulador para que las alertas
-    # vuelvan a generarse tras borrar las notificaciones de la BD.
     try:
         from apps.sensors.simulation.globals import simulators
         for sim in simulators.values():
@@ -263,7 +253,6 @@ def view_clear_alerts(request: HttpRequest) -> JsonResponse:
     except Exception as exc:
         logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
 
-    # Persistir a DB para que el clear sea permanente para este usuario
     usuario_id = request.session.get("usuario_id")
     try:
         usuario_obj = Usuario.objects.get(pk=usuario_id)

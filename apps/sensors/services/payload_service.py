@@ -130,8 +130,6 @@ def _fetch_equipment_status(
     pump_status = None
     elevator_status = None
     
-    # 1. Determinar el estado dinámico basado en fallas activas y alertas
-    # Para la bomba
     has_pump_fault = False
     if sim_faults and "pump" in sim_faults:
         has_pump_fault = True
@@ -147,7 +145,6 @@ def _fetch_equipment_status(
     else:
         dynamic_pump = "operativo"
 
-    # Para el elevador
     has_elev_fault = False
     if sim_faults and "elevator" in sim_faults:
         has_elev_fault = True
@@ -163,7 +160,6 @@ def _fetch_equipment_status(
     else:
         dynamic_elev = "operativo"
 
-    # 2. Obtener y actualizar en la base de datos de Django para sincronización
     if django_connected and active_edificio_id:
         try:
             from apps.buildings.models import MonitoringEquipment

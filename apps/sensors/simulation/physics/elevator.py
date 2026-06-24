@@ -8,7 +8,6 @@ from apps.sensors.simulation.constants import (
 )
 from apps.sensors.simulation.models import BuildingSimulator
 
-# Desempaquetar rangos de elevador
 _LOAD_LOW, _LOAD_HIGH = SENSOR_RANGES["load"]
 _ENERGY_LOW, _ENERGY_HIGH = SENSOR_RANGES["energy"]
 _TEMP_LOW, _TEMP_HIGH = SENSOR_RANGES["temperature"]
@@ -77,7 +76,7 @@ def _apply_motor_stuck(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     sd["speed"] = 0.0
     sd["motor_stuck"] = True
     sd["door_status"] = "closed"
-    sd["energy"] = _clamp(sd["energy"] + 1.2 * dt, _ENERGY_LOW, _ENERGY_HIGH)  # Sobrecorriente
+    sd["energy"] = _clamp(sd["energy"] + 1.2 * dt, _ENERGY_LOW, _ENERGY_HIGH)
     sd["temperature"] = _clamp(sd.get("temperature", 50.0) + 1.5 * dt, _TEMP_LOW, _TEMP_HIGH)
 
 
@@ -189,7 +188,6 @@ def _handle_elev_door_closing(
     spd = 0.0
     door = "closing"
     
-    # Si hay sobrecarga, impedimos que la puerta se cierre (se vuelve a abrir)
     if load > 900:
         sim._elev_state = "DOOR_OPENING"
         sim._elev_timer = 0
@@ -283,7 +281,6 @@ def _run_elevator_post_fsm(
     energy = _compute_elevator_energy(load, spd, current_state, sim)
     stuck = _check_motor_stuck(current_state, spd, load, sd.get("temperature", 50.0))
     
-    # Aplicar cambios respetando los bloqueos
     if not _is_locked(sim, "position"):
         sd["position"] = round(sim._elev_position_meters / FLOOR_HEIGHT, 1)
     if not _is_locked(sim, "speed"):

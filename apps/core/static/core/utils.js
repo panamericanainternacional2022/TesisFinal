@@ -1,14 +1,5 @@
-/* ==========================================================================
-   utils.js — INES · Swiss Typographic Grid
-   Utilidades JavaScript globales compartidas entre todos los templates.
 
-   Cargado por base_sidebar.html (disponible en todas las páginas con sidebar).
-   ========================================================================== */
 
-/* ── CSRF Fetch ─────────────────────────────────────────────────────────────
-   Wrapper sobre fetch() que inyecta automáticamente el token CSRF de Django.
-   Uso: csrfFetch('/api/endpoint/', { method: 'POST', body: JSON.stringify(data) })
-   ── */
 window.csrfFetch = function csrfFetch(url, opts = {}) {
     const csrfCookie = document.cookie.split('; ').find(r => r.startsWith('csrftoken='));
     const token = csrfCookie ? csrfCookie.split('=')[1] : '';
@@ -17,10 +8,6 @@ window.csrfFetch = function csrfFetch(url, opts = {}) {
     return fetch(url, opts);
 };
 
-/* ── Dropdown Actions — toggle y cierre global ──────────────────────────────
-   Gestiona los menús .actions-dropdown presentes en listas de datos.
-   Inicializar con: initDropdowns() una vez que el DOM esté listo.
-   ── */
 window.closeAllDropdowns = function closeAllDropdowns() {
     document.querySelectorAll('.dropdown-menu.open').forEach(menu => {
         menu.classList.remove('open');
@@ -49,10 +36,6 @@ window.initDropdowns = function initDropdowns() {
     });
 };
 
-/* ── Confirm-delete con modal ───────────────────────────────────────────────
-   Adjunta el comportamiento de confirmación a todos los .btn-confirm-delete.
-   Depende de showCustomModal() de modal.js (cargado globalmente).
-   ── */
 window.initConfirmDelete = function initConfirmDelete() {
     document.querySelectorAll('.btn-confirm-delete').forEach(link => {
         link.addEventListener('click', function (e) {
@@ -71,11 +54,6 @@ window.initConfirmDelete = function initConfirmDelete() {
     });
 };
 
-/* ── Auto-init al cargar DOM ────────────────────────────────────────────────
-   Inicializa dropdowns y confirm-delete en todas las páginas automáticamente.
-   Los templates individuales pueden llamar a estas funciones de nuevo si
-   agregan elementos dinámicamente al DOM.
-   ── */
 document.addEventListener('DOMContentLoaded', () => {
     initDropdowns();
     initConfirmDelete();

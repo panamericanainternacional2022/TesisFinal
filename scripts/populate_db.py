@@ -1,12 +1,9 @@
-# ruff: noqa: E402
 import sys
 import os
 import django
 
-# Add the project root directory to python path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load .env before Django setup
 _env_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), ".env")
 if os.path.exists(_env_path):
     with open(_env_path, "r", encoding="utf-8") as _f:
@@ -15,17 +12,15 @@ if os.path.exists(_env_path):
                 _key, _val = _line.strip().split("=", 1)
                 os.environ.setdefault(_key.strip(), _val.strip().strip("'\""))
 
-# Set the Django settings module
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 
-# Setup Django
 django.setup()
 
 import random
 
 from django.contrib.auth.hashers import make_password
 
-from apps.users.models import (  # noqa: E402
+from apps.users.models import (
     Persona,
     Usuario,
 )
@@ -36,7 +31,6 @@ from apps.buildings.models import (
 )
 from apps.alerts.models import Notification, ThresholdConfig, SensorLimitConfig
 from apps.sensors.sensor_config import DEFAULT_THRESHOLDS, SENSOR_RANGES
-
 
 
 def populate():
@@ -176,7 +170,6 @@ def populate():
     print("Sembrando límites de sensores por edificio...")
     for edificio in [e1, e2]:
         for variable, val_range in SENSOR_RANGES.items():
-            # El rango es una tupla: (min, max). Tomamos el max (segundo elemento)
             SensorLimitConfig.objects.get_or_create(
                 building=edificio,
                 variable=variable,
@@ -186,7 +179,6 @@ def populate():
             )
 
     print("¡Población de base de datos completada exitosamente!")
-
 
 
 if __name__ == "__main__":

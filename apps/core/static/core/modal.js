@@ -1,6 +1,4 @@
-/**
- * Reusable Custom Neobrutalist Modals
- */
+
 (function(window) {
     function showCustomModal({ title, message, type = 'info', showCancel = false }) {
         return new Promise((resolve) => {
@@ -53,7 +51,6 @@
         });
     }
 
-    // Expose helpers globally
     window.showCustomModal = showCustomModal;
 
     window.showAlert = function(message, type = 'info') {
@@ -68,7 +65,6 @@
         return showCustomModal({ title: 'Confirmar', message, type: 'confirm', showCancel: true });
     };
 
-    // Register toast close listener globally immediately on load
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('.toast-item .btn-icon');
         if (btn) {
@@ -79,7 +75,6 @@
         }
     });
 
-    // ── Toast deslizante (no bloqueante) ──────────────────────────────────────
     window.showToast = function(message, type) {
         type = type || 'info';
         let container = document.querySelector('.messages-container');

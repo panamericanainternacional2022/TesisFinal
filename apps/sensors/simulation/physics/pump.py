@@ -7,7 +7,6 @@ from apps.sensors.simulation.constants import (
 )
 from apps.sensors.simulation.models import BuildingSimulator
 
-# Desempaquetar rangos de bomba
 _FLOW_LOW, _FLOW_HIGH = SENSOR_RANGES["flow_rate"]
 _PRES_LOW, _PRES_HIGH = SENSOR_RANGES["pressure"]
 _TEMP_LOW, _TEMP_HIGH = SENSOR_RANGES["temperature"]
@@ -75,8 +74,6 @@ def _set_pump_idle(sim: BuildingSimulator, sd: dict, dt: float) -> None:
 def _apply_pump_fault(sim: BuildingSimulator, sd: dict, dt: float) -> None:
     fault_type = sim.sim_faults.get("pump")
     
-    # Copia local de los datos para ejecutar el controlador de fallas
-    # y luego aplicar cambios sólo en las variables no bloqueadas manualmente.
     temp_sd = sd.copy()
     
     _PUMP_FAULT_HANDLERS = {
@@ -105,12 +102,12 @@ def _apply_dry_run(sd: dict, dt: float) -> None:
     sd["pressure"] = _clamp(sd["pressure"] - 0.3 * dt, 0, 2)
     sd["temperature"] = _clamp(sd["temperature"] + 1.5 * dt, 0, 130)
     sd["vibration"] = _clamp(sd["vibration"] + 0.5 * dt, 0, 15)
-    sd["tank_level"] = _clamp(sd["tank_level"] - 15.0 * dt, 0, 10)  # Cae rápido
+    sd["tank_level"] = _clamp(sd["tank_level"] - 15.0 * dt, 0, 10)
 
 
 def _apply_blocked_discharge(sd: dict, dt: float) -> None:
     sd["flow_rate"] = _clamp(sd["flow_rate"] - 2.0 * dt, 0, 3)
-    sd["pressure"] = _clamp(sd["pressure"] + 1.5 * dt, 0, 12)  # Sube rápido
+    sd["pressure"] = _clamp(sd["pressure"] + 1.5 * dt, 0, 12)
     sd["vibration"] = _clamp(sd["vibration"] + 0.8 * dt, 0, 15)
     sd["temperature"] = _clamp(sd["temperature"] + 0.8 * dt, 0, 130)
     sd["tank_level"] = _clamp(sd["tank_level"] + 0.1 * dt, 0, 100)
@@ -120,7 +117,7 @@ def _apply_pipe_burst(sd: dict, dt: float) -> None:
     sd["flow_rate"] = _clamp(sd["flow_rate"] + 3.0 * dt, 0, 60)
     sd["pressure"] = _clamp(sd["pressure"] - 0.8 * dt, 0, 2)
     sd["vibration"] = _clamp(sd["vibration"] + 0.6 * dt, 0, 15)
-    sd["tank_level"] = _clamp(sd["tank_level"] - 5.0 * dt, 0, 100)  # Vacía rápido
+    sd["tank_level"] = _clamp(sd["tank_level"] - 5.0 * dt, 0, 100)
 
 
 def _apply_cavitation(sd: dict, dt: float) -> None:
@@ -158,14 +155,12 @@ def _clamp_pump_values(sd: dict) -> None:
 
 
 def _run_pump_normal(sim: BuildingSimulator, sd: dict, dt: float) -> None:
-    # 1. Voltaje nominal y caída por apagón
     if not _is_locked(sim, "voltage"):
         volt = sd["voltage"] + (220.0 - sd["voltage"]) * 0.05 * dt + random.uniform(-0.5, 0.5) * dt
         sd["voltage"] = round(_clamp(volt, _VOLT_LOW, _VOLT_HIGH), 1)
     
     volt = sd["voltage"]
     
-    # Si el voltaje es crítico bajo (apagón / corte eléctrico), la bomba no funciona
     if volt < 50.0:
         if not _is_locked(sim, "flow_rate"):
             sd["flow_rate"] = round(_clamp(sd["flow_rate"] - 5.0 * dt, 0.0, _FLOW_HIGH), 1)
@@ -179,7 +174,6 @@ def _run_pump_normal(sim: BuildingSimulator, sd: dict, dt: float) -> None:
             sd["temperature"] = round(_clamp(sd["temperature"] + (T_AMBIENT - sd["temperature"]) * 0.02 * dt, _TEMP_LOW, _TEMP_HIGH), 1)
         return
 
-    # 2. Física de Tanque de agua
     if not _is_locked(sim, "tank_level"):
         tank = sd["tank_level"] - sd["flow_rate"] * 0.08 * dt
         if random.random() < 0.02 * dt:
@@ -188,21 +182,19 @@ def _run_pump_normal(sim: BuildingSimulator, sd: dict, dt: float) -> None:
 
     tank = sd["tank_level"]
 
-    # Si el tanque está vacío / muy bajo (Sequía / Marcha en seco):
     if tank < 10.0:
         if not _is_locked(sim, "flow_rate"):
             sd["flow_rate"] = round(_clamp(sd["flow_rate"] - 3.0 * dt, 0.0, 2.0), 1)
         if not _is_locked(sim, "pressure"):
             sd["pressure"] = round(_clamp(sd["pressure"] - 0.8 * dt, 0.0, 1.0), 1)
         if not _is_locked(sim, "vibration"):
-            sd["vibration"] = round(_clamp(sd["vibration"] + 1.2 * dt, 0.5, 15.0), 1)  # Vibración alta
+            sd["vibration"] = round(_clamp(sd["vibration"] + 1.2 * dt, 0.5, 15.0), 1)
         if not _is_locked(sim, "temperature"):
-            sd["temperature"] = round(_clamp(sd["temperature"] + 2.0 * dt, _TEMP_LOW, 120.0), 1)  # Sobrecalentamiento
+            sd["temperature"] = round(_clamp(sd["temperature"] + 2.0 * dt, _TEMP_LOW, 120.0), 1)
         if not _is_locked(sim, "current"):
-            sd["current"] = round(_clamp(sd["current"] - 2.0 * dt, 0.0, 8.0), 1)  # Corriente baja
+            sd["current"] = round(_clamp(sd["current"] - 2.0 * dt, 0.0, 8.0), 1)
         return
 
-    # 3. Flujo y demanda normal
     if _is_locked(sim, "flow_rate"):
         flow = sd["flow_rate"]
         sim._pump_demand = _clamp(flow, 8.0, 35.0)
@@ -212,19 +204,14 @@ def _run_pump_normal(sim: BuildingSimulator, sd: dict, dt: float) -> None:
             sim._pump_demand = _clamp(sim._pump_demand + random.uniform(8.0, 15.0), 8.0, 35.0)
         flow = sim._pump_demand
 
-    # Presión centrífuga dependiente del caudal
     pressure = max(0.5, PUMP_P0 - PUMP_K * flow ** 2) + random.uniform(-0.1, 0.1) * dt
     
-    # Temperatura basada en carga (caudal y presión)
     temp = sd["temperature"] + (flow * pressure * 0.01 - 0.3) * dt + random.uniform(-0.3, 0.3) * dt
     
-    # Vibración basada en caudal y temperatura
     vib = 0.5 + flow / 25.0 + max(0.0, temp - 65.0) / 40.0 + random.uniform(-0.2, 0.3) * dt
     
-    # Corriente basada en potencia hidráulica y voltaje
     curr = flow * pressure / (volt * 0.75) + random.uniform(-0.5, 0.5) * dt
 
-    # Escribir salidas
     if not _is_locked(sim, "flow_rate"):
         sd["flow_rate"] = round(_clamp(flow, _FLOW_LOW, _FLOW_HIGH), 1)
     if not _is_locked(sim, "pressure"):

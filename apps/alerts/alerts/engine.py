@@ -84,7 +84,6 @@ def _send_alert_email(
     send_email = risk_level in (RISK_ALTO, RISK_CRITICO)
     now = time.time()
     
-    # Control de cooldown individual por variable
     times_dict = get_attribute(sim, "last_email_sent_time_per_var")
     if not isinstance(times_dict, dict):
         times_dict = {}
@@ -101,9 +100,6 @@ def _send_alert_email(
         body = _build_alert_email_body(
             variable, value, risk_level, recommended_action, edificio_nombre, device_target
         )
-        # Resolver los destinatarios correctos para ESTE edificio antes de lanzar
-        # el hilo. Sin esto, send_email_alert llama a get_building_emails() sin
-        # edificio_id y siempre obtiene los usuarios del primer edificio registrado.
         recipients = get_building_emails(edificio_id)
         if not recipients:
             logger.info(

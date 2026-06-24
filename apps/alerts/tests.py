@@ -9,8 +9,6 @@ from apps.buildings.models import Building, MonitoringEquipment
 from apps.sensors.sensor_config import RISK_ALTO
 
 
-# ─── MODEL TESTS ─────────────────────────────────────────────────────
-
 class NotificationModelTests(TestCase):
     def setUp(self):
         self.persona = Persona.objects.create(ci="12345678", first_name="Test", first_last_name="User", email="t@t.com")
@@ -33,8 +31,6 @@ class NotificationModelTests(TestCase):
         self.assertEqual(ThresholdConfig.objects.count(), 1)
         self.assertEqual(umbral.variable, "temperature")
 
-
-# ─── VIEW TESTS (notificaciones) ────────────────────────────────────
 
 class NotificationsViewTests(TestCase):
     def setUp(self):
@@ -63,8 +59,6 @@ class NotificationsViewTests(TestCase):
         data = json.loads(response.content)
         self.assertEqual(data["status"], "ok")
 
-
-# ─── API VIEW TESTS ─────────────────────────────────────────────────
 
 class AlertApiViewTests(TestCase):
     def setUp(self):

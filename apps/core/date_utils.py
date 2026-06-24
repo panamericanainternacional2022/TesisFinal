@@ -1,8 +1,3 @@
-"""
-date_utils.py — Constantes de períodos de tiempo compartidas entre apps.
-Única fuente de verdad para mapas de período → timedelta y período → etiqueta.
-"""
-
 from datetime import timedelta
 
 

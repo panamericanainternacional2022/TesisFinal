@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 
 _CRITICAL_LEVELS = {RISK_ALTO, RISK_CRITICO}
 
-# ─── Mapas de estado de equipo ────────────────────────────────────────────────
 _EQUIP_STATUS_STYLE: dict[str, tuple[tuple, tuple]] = {
     "activo":    ((240, 253, 244), (22, 101, 52)),
     "inactivo":  ((249, 250, 251), (55, 65, 81)),
@@ -78,7 +77,6 @@ def generate_building_report_bytes(edificio_id: int) -> tuple[bytes, str]:
     if "elevador" in equip_types:
         relevant_vars.update(ELEVATOR_VARS)
 
-    # ── Patrón unificado: header → leyenda → secciones ───────────────────────
     address = building.address[:80] + ("..." if len(building.address) > 80 else "")
 
     render_pdf_header(
@@ -145,8 +143,6 @@ def building_report_pdf_view(request: Any, edificio_id: int) -> HttpResponse:
         )
 
 
-# ─── Helpers internos ─────────────────────────────────────────────────────────
-
 def _compute_stats(history: list, STATS_VARS: list) -> dict:
     stats = {}
     for var in STATS_VARS:
@@ -192,8 +188,6 @@ def _format_value(var: str, value, units: dict, value_display_map: dict = None) 
     return display
 
 
-# ─── Secciones del PDF ────────────────────────────────────────────────────────
-
 def _render_executive_summary(
     pdf: Any, sensor_data: dict, thresholds: dict,
     relevant_vars: set, pump_status, elevator_status,
@@ -210,7 +204,6 @@ def _render_executive_summary(
             if risk in counts:
                 counts[risk] += 1
 
-    # Tiles de severidad via render_summary_box — patrón unificado
     items = [
         {
             "label": risk,
@@ -222,7 +215,6 @@ def _render_executive_summary(
     ]
     render_summary_box(pdf, items)
 
-    # Estado de equipos en texto
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(26, 26, 26)
     if "bomba" in equip_types:
@@ -240,7 +232,7 @@ def _render_equipment_summary(
     pump_status,
     elevator_status,
 ) -> None:
-    """Tabla compacta de equipos registrados con estado coloreado."""
+
     if not equipment:
         return
 
@@ -381,8 +373,6 @@ def _render_rationing_section(pdf: Any, sensor_data: dict) -> None:
         pdf.ln(4)
         return
 
-    # Barra de progreso textual — patrón compartido
-    # max_value proviene de SENSOR_RANGES (fuente de la verdad) en lugar de hardcodeado
     _flow_max = SENSOR_RANGES.get("flow_rate", (0, 60))[1]
     render_text_progress_bar(
         pdf,
@@ -477,8 +467,6 @@ def _render_recommendations_section(pdf: Any, sensor_data: dict) -> None:
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(26, 26, 26)
     for i, rec in enumerate(recs, 1):
-        # multi_cell(0) usa todo el ancho disponible y gestiona saltos de página
-        # correctamente sin el conflicto de posición X que causa cell()+multi_cell(174)
         pdf.multi_cell(0, 6, safe_text(f"{i}.  {rec}"), new_x="LEFT", new_y="NEXT")
         pdf.ln(2)
 

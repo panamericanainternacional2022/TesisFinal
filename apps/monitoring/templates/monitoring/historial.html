@@ -11,7 +11,7 @@
 
 {% block content %}
 <div class="reportes-card">
-    <!-- ── Cabecera ── -->
+    
     <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Historial</h1>
@@ -24,16 +24,15 @@
     {% if edificios %}
     <div class="toolbar">
         <form method="GET" action="" id="historialFilterForm" class="row-center m-0">
-            <!-- Inputs ocultos -->
+            
             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
             <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
             <input type="hidden" name="variable"    id="hidden-variable"    value="{{ variable_filter }}">
             <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
             <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
 
-            <!-- Fila única de controles -->
             <div class="row-center">
-                <!-- Etiqueta + select de período -->
+                
                 <div class="select-container">
                     <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
                         <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
@@ -51,10 +50,8 @@
                 </button>
                 {% endif %}
 
-                <!-- Separador -->
                 <div class="divider-v"></div>
 
-                <!-- Filtrar (panel lateral) -->
                 <button id="openFilterPanel" type="button" class="btn btn-primary">
                     <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
                     {% if severidad or variable_filter or selected_edificio_id %}
@@ -62,7 +59,6 @@
                     {% endif %}
                 </button>
 
-                <!-- Descargar PDF -->
                 <a id="pdfDownloadBtn"
                    href="{% url 'history_pdf' %}?{{ filter_query_string }}"
                    class="btn btn-secondary"
@@ -75,7 +71,7 @@
     {% endif %}
 
     {% if edificios %}
-    <!-- ── Lista de Eventos ── -->
+    
     <div class="notif-card">
         <div id="historial-list">
             {% if notificaciones %}
@@ -133,7 +129,6 @@
     {% endif %}
 </div>
 
-<!-- ══ PANEL LATERAL (Edificio / Severidad / Variable) ══ -->
 <div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
@@ -181,7 +176,6 @@
     </div>
 </aside>
 
-<!-- ══ MODAL: Rango personalizado de fechas ══ -->
 <div id="customDateBackdrop" class="custom-modal-backdrop">
     <div class="custom-modal-container max-w-420">
         <div class="row-md mb-2">
@@ -190,7 +184,6 @@
         </div>
         <p class="text-sm text-secondary m-0 mb-3">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
 
-        <!-- Inputs de fecha -->
         <div class="col-stack">
             <div>
                 <div class="field-label">Desde</div>
@@ -202,13 +195,12 @@
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
-            <!-- Error de validación -->
+            
             <div id="customDateError" class="error-inline">
                 <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
         </div>
 
-        <!-- Botones -->
         <div class="flex justify-end gap-2 mt-3">
             <button id="cancelCustomDate" type="button" class="btn btn-secondary">
                 Cancelar

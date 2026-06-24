@@ -10,15 +10,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_sensor_limits(building_id: int) -> Dict[str, Tuple[float, float]]:
-    """Return physical sensor limits (min, max) for a specific building.
 
-    Falls back to SENSOR_RANGES values for any variable/sensor not yet customised
-    in the database for the given building.
-    """
+
     result: Dict[str, Tuple[float, float]] = {k: tuple(v) for k, v in SENSOR_RANGES.items()}
     try:
         for row in SensorLimitConfig.objects.filter(building_id=building_id):
-            # Maintain the static min_value from defaults, overlay the custom max_value
             default_min = SENSOR_RANGES.get(row.variable, (0.0, 100.0))[0]
             result[row.variable] = (default_min, row.max_value)
     except Exception as e:

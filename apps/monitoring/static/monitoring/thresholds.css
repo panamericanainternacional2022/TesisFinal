@@ -1,11 +1,5 @@
-/* ==========================================================================
-   thresholds.css — Umbrales y Límites de sensores
-   Estilos compartidos por umbrales.html y limites.html.
-   Los componentes globales (.notif-card, .panel-subsection-title,
-   .badge-dir-*) viven en components.css
-   ========================================================================== */
 
-/* ── Leyenda de dirección (solo umbrales) ────────────────────────────────── */
+
 .thresh-legend {
     display: flex;
     flex-wrap: wrap;
@@ -24,7 +18,6 @@
     gap: 4px;
 }
 
-/* ── Grid de tarjetas (umbrales y límites) ───────────────────────────────── */
 .thresh-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -38,7 +31,6 @@
     background: var(--color-bg);
 }
 
-/* ── Formulario dentro de cada tarjeta ──────────────────────────────────── */
 .thresh-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
 
 .thresh-grid .form-label {
@@ -48,7 +40,6 @@
     color: var(--color-ink);
 }
 
-/* ── Pie de acciones ─────────────────────────────────────────────────────── */
 .thresh-footer {
     margin-top: var(--sp-3);
     padding-top: var(--sp-2);
@@ -58,7 +49,6 @@
     gap: var(--sp-2);
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
     .thresh-grid { grid-template-columns: repeat(2, 1fr); }
 }

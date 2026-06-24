@@ -54,7 +54,6 @@ def manual_update(request) -> JsonResponse:
         except (ValueError, TypeError):
             return json_error_response("Valor numérico inválido")
 
-    # Registrar target manual y bloqueo por 90 segundos
     import time
     if not hasattr(sim, "manual_overrides") or not isinstance(sim.manual_overrides, dict):
         sim.manual_overrides = {}

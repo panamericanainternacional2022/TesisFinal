@@ -1,12 +1,6 @@
-// ─── VALIDACIÓN DE FORMULARIOS ───────────────────────────────────
-// Texto: solo letras, espacios, ñ, acentos
-// Números: solo dígitos (con excepciones para teléfono/RIF)
-// Feedback visual en rojo debajo del input
-// Botón submit deshabilitado mientras hayan errores
+
 
 document.addEventListener('DOMContentLoaded', function () {
-
-    // ─── UTILIDADES ─────────────────────────────────────────────
 
     function mostrarError(input, mensaje) {
         const grupo = input.closest('.form-group') || input.parentElement;
@@ -29,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function tieneErrores(form) {
         if (form.querySelectorAll('.input-error').length > 0) return true;
-        // Validar si hay campos obligatorios vacíos
+        
         const requiredFields = form.querySelectorAll('input[required], select[required]');
         for (let i = 0; i < requiredFields.length; i++) {
             const el = requiredFields[i];
@@ -46,9 +40,6 @@ document.addEventListener('DOMContentLoaded', function () {
         btn.disabled = tieneErrores(form);
     }
 
-    // ─── VALIDADORES POR TIPO ───────────────────────────────────
-
-    // Solo letras (incluye ñ y acentos) y espacios
     function validarSoloLetras(input) {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
@@ -75,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Solo dígitos numéricos
     function validarSoloNumeros(input) {
         const valor = input.value;
         const maximo = input.maxLength && input.maxLength > 0 ? input.maxLength : 999;
@@ -100,7 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // RIF: letra J + 7-9 dígitos + dígito de control, guiones opcionales
     function validarRIF(input) {
         let valor = input.value.toUpperCase();
         const soloValido = /^[J\d\-]*$/;
@@ -135,7 +124,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Cédula: V o E + 6-9 dígitos, guiones/puntos opcionales
     function validarCedula(input) {
         let valor = input.value.toUpperCase();
         const soloValido = /^[VE\d\.\-]*$/;
@@ -170,7 +158,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Username: letras, números, sin espacios
     function validarUsername(input) {
         const valor = input.value;
         const valido = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]+$/;
@@ -185,7 +172,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Email: solo a-z, 0-9, punto (.) y @
     function validarEmail(input) {
         const valor = input.value;
         const emailRegex = /^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$/;
@@ -207,7 +193,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Contraseña: mínimo 6 caracteres
     function validarPassword(input) {
         const valor = input.value;
         if (valor && valor.length > 0 && valor.length < 6) {
@@ -220,7 +205,6 @@ document.addEventListener('DOMContentLoaded', function () {
         toggleSubmit(input.form);
     }
 
-    // Confirmar contraseña
     function validarConfirmPassword(input) {
         const form = input.form;
         const passField = form.querySelector('#password') || form.querySelector('#new_password') || form.querySelector('#current_password');
@@ -232,8 +216,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         toggleSubmit(input.form);
     }
-
-    // ─── CONFIGURAR VALIDACIÓN POR DATA-ATRIBUTE ────────────────
 
     document.querySelectorAll('input[data-validate]').forEach(function (input) {
         const tipo = input.getAttribute('data-validate');
@@ -248,7 +230,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 case 'email': validarEmail(input); break;
                 case 'password': 
                     validarPassword(input); 
-                    // Re-validar confirmación de contraseña si ya tiene valor
+                    
                     const confirmField = input.form.querySelector('[data-validate="confirm-password"]');
                     if (confirmField && confirmField.value) {
                         validarConfirmPassword(confirmField);
@@ -259,7 +241,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Bloquear teclas no permitidas según el tipo
         input.addEventListener('keypress', function (e) {
             switch (tipo) {
                 case 'solo-letras':
@@ -295,13 +276,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        // Validar al perder el foco también
         input.addEventListener('blur', function () {
             input.dispatchEvent(new Event('input'));
         });
     });
 
-    // Validar select elements en cambios e inputs para limpiar errores
     document.querySelectorAll('select').forEach(function (select) {
         const handler = function () {
             if (select.value) {
@@ -314,8 +293,6 @@ document.addEventListener('DOMContentLoaded', function () {
         select.addEventListener('change', handler);
         select.addEventListener('input', handler);
     });
-
-    // ─── VALIDACIÓN INICIAL ─────────────────────────────────────
 
     document.querySelectorAll('form').forEach(function (form) {
         form.querySelectorAll('input[data-validate], select').forEach(function (input) {
@@ -332,7 +309,6 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         toggleSubmit(form);
 
-        // Prevenir envío si hay errores o campos obligatorios vacíos
         form.addEventListener('submit', function (e) {
             let hasErrors = false;
             form.querySelectorAll('input[required], select[required]').forEach(function (input) {
@@ -344,8 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (hasErrors || tieneErrores(form)) {
                 e.preventDefault();
                 toggleSubmit(form);
-                
-                // Hacer scroll al primer error
+
                 const firstError = form.querySelector('.input-error');
                 if (firstError) {
                     firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });

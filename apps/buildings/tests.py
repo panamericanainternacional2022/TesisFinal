@@ -5,8 +5,6 @@ from apps.buildings.models import Building, MonitoringEquipment
 from apps.users.models import Persona, Usuario
 
 
-# ─── VALIDATOR TESTS ──────────────────────────────────────────────────
-
 class ValidateBuildingFormTests(TestCase):
     def test_valid_data_returns_empty(self) -> None:
         data = {
@@ -77,8 +75,6 @@ class ValidateUniqueRifTests(TestCase):
         building = Building.objects.create(name="Test", rif="J-77777777-0", address="Dir", floors=10)
         self.assertIsNone(validate_unique_rif("J-77777777-0", exclude_building_id=building.id))
 
-
-# ─── VIEW TESTS ──────────────────────────────────────────────────────
 
 class BuildingViewTestBase(TestCase):
     def setUp(self) -> None:

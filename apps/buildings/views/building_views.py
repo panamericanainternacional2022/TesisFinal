@@ -50,9 +50,6 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
     )
 
 
-# ─── CREATE ─────────────────────────────────────────────────────────
-
-
 @login_required
 @admin_required
 def register_building_view(request: HttpRequest) -> HttpResponse:
@@ -100,9 +97,6 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
             "has_elevator": config.has_elevator,
         },
     )
-
-
-# ─── UPDATE ─────────────────────────────────────────────────────────
 
 
 @login_required
@@ -166,9 +160,6 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
             "has_elevator": has_elevator,
         },
     )
-
-
-# ─── DELETE ─────────────────────────────────────────────────────────
 
 
 @login_required

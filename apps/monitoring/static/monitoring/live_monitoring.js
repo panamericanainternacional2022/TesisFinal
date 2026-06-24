@@ -1,14 +1,6 @@
-/* ── live_monitoring.js — Unified monitoring (user + admin) ── */
 
-// ═══════════════════════════════════════════════════════════════════
-// 1.  Global flags
-// ═══════════════════════════════════════════════════════════════════
 
 const IS_ADMIN = window.IS_ADMIN === true;
-
-// ═══════════════════════════════════════════════════════════════════
-// 2.  Config from  dashConfig
-// ═══════════════════════════════════════════════════════════════════
 
 function _loadConfig() {
     const el = document.getElementById('dashConfig');
@@ -40,10 +32,6 @@ let chart1, chart2;
 let unreadNotificationCount = 0;
 let alertCountdownInterval = null;
 
-// ═══════════════════════════════════════════════════════════════════
-// 3.  Utility functions
-// ═══════════════════════════════════════════════════════════════════
-
 function safeText(value) {
     return value === null || value === undefined ? '-' : String(value);
 }
@@ -67,14 +55,14 @@ function getUnit(variable) {
 }
 
 function translateSensorValue(variable, value) {
-    // Usa VALUE_DISPLAY_ES de sensor_config como fuente única de verdad
+    
     if (_VALUE_DISPLAY[variable]) {
         const tr = _VALUE_DISPLAY[variable][String(value)];
         if (tr !== undefined) return tr;
     }
-    // Fallback para booleanos no mapeados
+    
     if (typeof value === 'boolean') return value ? 'Sí' : 'No';
-    return null; // null = el caller formatea numéricamente
+    return null; 
 }
 
 function getCookie(name) {
@@ -106,10 +94,6 @@ function csrfFetch(url, opts = {}) {
     opts.credentials = 'same-origin';
     return fetch(url, opts);
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 4.  Risk helpers
-// ═══════════════════════════════════════════════════════════════════
 
 function getRiskBadge(risk) {
     if (risk === _RISK.critico) return 'badge-crit';
@@ -155,10 +139,6 @@ function getRiskClass(varName, value) {
 function isBombaVariable(variable) {
     return _BOMBA_VARS.includes(variable);
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 5.  Card rendering
-// ═══════════════════════════════════════════════════════════════════
 
 function renderCard(variable, value, risk, badgeClass, cardClass) {
     const name = getVariableName(variable);
@@ -228,10 +208,6 @@ function updateCards(data) {
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 6.  Charts
-// ═══════════════════════════════════════════════════════════════════
 
 function getCSSVar(name) {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '';
@@ -342,10 +318,6 @@ function updateCharts(history) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 7.  Connection state management
-// ═══════════════════════════════════════════════════════════════════
-
 function showState(stateId) {
     const states = ['stateLoading', 'stateOffline', 'stateNoEquipment', 'stateNoBuildings'];
     states.forEach(id => {
@@ -381,10 +353,6 @@ function renderConnectionStatus(isConnected, message) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 8.  Badge helpers
-// ═══════════════════════════════════════════════════════════════════
-
 function updateStatusBadge(badgeId, emptyId, statusVal) {
     const badgeEl = document.getElementById(badgeId);
     const emptyEl = document.getElementById(emptyId);
@@ -401,10 +369,6 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
         emptyEl.style.display = 'inline';
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 9.  Equipment visibility
-// ═══════════════════════════════════════════════════════════════════
 
 function updateEquipmentVisibility(equipTypes) {
     const et = equipTypes || [];
@@ -523,10 +487,7 @@ function updateAdminControlsByEquipment(equipTypes) {
 }
 
 function setNotificationBadge(count) {
-    // Solo actualiza el badge de la página de notificaciones (notificationBadgeCount).
-    // El badge del sidebar (notificationBadgeSidebar) lo gestiona el context processor
-    // del servidor para reflejar la suma de TODOS los edificios del usuario, no solo
-    // el edificio activo seleccionado en el dashboard.
+
     const pageBadge = document.getElementById('notificationBadgeCount');
     if (pageBadge) {
         if (count > 0) {
@@ -540,10 +501,6 @@ function setNotificationBadge(count) {
         }
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 10.  SSE ― main data pipeline
-// ═══════════════════════════════════════════════════════════════════
 
 function connectSSE() {
     if (sseSource) sseSource.close();
@@ -577,13 +534,13 @@ function connectSSE() {
     sseSource.onmessage = (event) => {
         try {
             applyPayload(JSON.parse(event.data));
-        } catch (e) { /* ignore parse errors */ }
+        } catch (e) {  }
     };
 
     sseSource.addEventListener("notification", (event) => {
         try {
             addLiveNotificationEvent(JSON.parse(event.data));
-        } catch (e) { /* ignore parse errors */ }
+        } catch (e) {  }
     });
 
     if (isMonitoring) {
@@ -649,9 +606,6 @@ function applyPayload(data) {
         }
     }
 
-    // Filtra alert_log igual que el context processor y notifications_view:
-    // 1) Solo alertas posteriores a alerts_cleared_at (timestamp de "limpiar alertas")
-    // 2) Excluye severidades bajas: info, bajo, medio
     const _EXCLUDED_RISKS = [_RISK.info, _RISK.bajo, _RISK.medio];
     const _clearedAtMs = window.ALERTS_CLEARED_AT ? window.ALERTS_CLEARED_AT * 1000 : null;
     const totalAlerts = (data.alert_log || []).filter(a => {
@@ -674,10 +628,6 @@ function updateSummaryValues(data) {
     setVal('summaryPumpStatus', data.pump_on ? 'Encendida' : 'Apagada');
     setVal('summaryElevatorStatus', data.elevator_on ? 'Encendido' : 'Apagado');
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 11.  Admin: Stats & recommendations
-// ═══════════════════════════════════════════════════════════════════
 
 function renderStatsTable(entries, containerId, firstColLabel) {
     const div = document.getElementById(containerId);
@@ -759,15 +709,11 @@ function updateStatsAndRecs(stats, recs, attempts) {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 12.  Admin: Thresholds
-// ═══════════════════════════════════════════════════════════════════
-
 function renderThresholdsPanel(th) {
-    // Split variables into pump and elevator groups
+    
     const bombaVars = _BOMBA_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
     const elevadorVars = _ELEVADOR_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
-    // Also include any variable not in either list (fallback)
+    
     const otherVars = Object.keys(th).filter(k =>
         !_NO_RISK_VARS.includes(k) &&
         !_BOMBA_VARS.includes(k) &&
@@ -782,7 +728,6 @@ function renderThresholdsPanel(th) {
         const unit = getUnit(k);
         const curVal = currentReadings[k];
 
-        // Cargar límites físicos dinámicos
         const bounds = _SENSOR_RANGES[k];
         let boundsStr = '';
         if (bounds) {
@@ -850,16 +795,15 @@ function renderThresholdsPanel(th) {
 
     buildSection('thresholdsBombaPanel', bombaVars);
     buildSection('thresholdsElevadorPanel', elevadorVars);
-    // fallback: any extra vars go to bomba panel
+    
     if (otherVars.length) {
         const panel = document.getElementById('thresholdsBombaPanel');
         if (panel) otherVars.forEach(k => panel.appendChild(buildCard(k, th[k])));
     }
 
-    // Guardar snapshot de valores originales para detectar cambios
     _originalThresholds = JSON.parse(JSON.stringify(th));
     validateThresholdInputs();
-    // Update manual override hint with the new thresholds
+    
     updateManualInputType();
 }
 
@@ -869,7 +813,6 @@ function validateThresholdInputs() {
     let btn = document.getElementById('saveThresholdsBtn');
     let processed = {};
 
-    // Helper: find an input across all panels
     function findInp(v, level) {
         for (const pid of PANEL_IDS) {
             const p = document.getElementById(pid);
@@ -880,7 +823,6 @@ function validateThresholdInputs() {
         return null;
     }
 
-    // Helper: find a threshold card container
     function findCard(v) {
         for (const pid of PANEL_IDS) {
             const p = document.getElementById(pid);
@@ -946,7 +888,6 @@ function validateThresholdInputs() {
                     }
                 }
 
-                // Validación cruzada contra los límites máximos del sensor
                 const bounds = _SENSOR_RANGES[v];
                 if (bounds && valid) {
                     const minBound = bounds[0];
@@ -1012,7 +953,6 @@ function validateThresholdInputs() {
         });
     });
 
-    // Detectar cambios respecto al snapshot original
     let hasChanges = false;
     PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
@@ -1033,10 +973,9 @@ function validateThresholdInputs() {
     }
 }
 
-
 async function saveThresholds() {
     let newTh = { edificio_id: EDIFICIO_ID };
-    // Collect from both panels
+    
     ['thresholdsBombaPanel', 'thresholdsElevadorPanel', 'thresholdsPanel'].forEach(panelId => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
@@ -1053,16 +992,12 @@ async function saveThresholds() {
         window.showToast('Umbrales guardados correctamente.', 'success');
         currentThresholds = res.thresholds;
         renderThresholdsPanel(res.thresholds);
-        // Update the manual override hint immediately
+        
         updateManualInputType();
     } else {
         window.showToast(`Error al guardar: ${res.message || 'Inténtelo de nuevo.'}`, 'error');
     }
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 12.5. Admin: Sensor limits configuration
-// ═══════════════════════════════════════════════════════════════════
 
 let _originalLimits = {};
 
@@ -1079,7 +1014,6 @@ function renderLimitsPanel(ranges) {
         const minVal = r[0];
         const maxVal = r[1];
 
-        // Obtener el umbral crítico actual
         const thresh = currentThresholds[k];
         let threshStr = '';
         if (thresh && thresh.high !== undefined) {
@@ -1160,7 +1094,6 @@ function validateLimitInputs() {
                 }
             }
 
-            // Validar contra el umbral crítico
             const thresh = (window.currentThresholds || currentThresholds || {})[v];
             if (thresh && thresh.high !== undefined) {
                 if (val < thresh.high) {
@@ -1216,16 +1149,6 @@ async function saveLimits() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 13.  Admin: Manual sensor control
-// ═══════════════════════════════════════════════════════════════════
-
-/**
- * Returns a human-readable hint string showing the current threshold
- * levels for the given variable, e.g.
- *   "Medio > 30 | Alto > 50 | Crítico > 80 L/s"
- * Returns '' if the variable has no threshold config.
- */
 function buildThresholdHint(varName) {
     const cfg = currentThresholds[varName];
     if (!cfg) return '';
@@ -1238,7 +1161,7 @@ function buildThresholdHint(varName) {
     if (cfg.direction === 'higher') {
         return `Medio \u003e ${low}${u} \u00b7 Alto \u003e ${med}${u} \u00b7 Cr\u00edtico \u003e ${high}${u}`;
     }
-    // lower
+    
     return `Medio \u003c ${low}${u} \u00b7 Alto \u003c ${med}${u} \u00b7 Cr\u00edtico \u003c ${high}${u}`;
 }
 
@@ -1322,17 +1245,16 @@ function updateManualRiskPreview() {
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
-    // Run validation first
     const status = validateManualInput();
 
     if (status.hasError) {
-        // Show validation error in risk preview line
+        
         span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:0.65rem;"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
         return;
     }
 
     if (status.empty) {
-        // Show threshold hint instead of blank
+        
         const hint = buildThresholdHint(v);
         if (hint) {
             span.innerHTML = `<span style="color:var(--color-text-secondary);font-size:0.6rem;">${hint}</span>`;
@@ -1350,7 +1272,7 @@ function updateManualRiskPreview() {
     }
 
     let val = raw;
-    if (v === 'door_status') { /* string */ }
+    if (v === 'door_status') {  }
     else if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
     else {
         let n = parseFloat(raw);
@@ -1456,10 +1378,6 @@ async function sendManualValue() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 14.  Admin: Simulation control
-// ═══════════════════════════════════════════════════════════════════
-
 async function fetchSimStatus() {
     if (!EDIFICIO_ID) return null;
     try {
@@ -1544,16 +1462,12 @@ async function setSpeed(speed) {
     try {
         let resp = await csrfFetch(`/api/sim/${EDIFICIO_ID}/set-speed/`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ speed: speed }) });
         let data = await resp.json();
-    } catch (e) { /* silent */ }
+    } catch (e) {  }
 }
 
 function setSimMessage(msg, type) {
     window.showToast(msg, type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 15.  Notifications (from user template)
-// ═══════════════════════════════════════════════════════════════════
 
 function renderNotificationList(alerts) {
     const container = document.getElementById('live-notifications-list');
@@ -1649,8 +1563,6 @@ function addLiveNotificationEvent(data) {
     unreadNotificationCount++;
     setNotificationBadge(unreadNotificationCount);
 }
-
-// ── Duration picker modal ──────────────────────────────────────────
 
 function showDurationPicker() {
     return new Promise((resolve) => {
@@ -1809,10 +1721,6 @@ function initLiveNotifications() {
     }
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// 16.  Initial fetch
-// ═══════════════════════════════════════════════════════════════════
-
 function fetchInitialData() {
     if (window.IS_LIMITS_PAGE) {
         const url = `/api/sensor-limits/?edificio_id=${EDIFICIO_ID}`;
@@ -1831,7 +1739,7 @@ function fetchInitialData() {
 
     const isThresholdsPage = document.getElementById('saveThresholdsBtn') !== null;
     if (isThresholdsPage) {
-        // Fetch thresholds directly so the page works even without a running simulator
+        
         const url = `/api/thresholds/?edificio_id=${EDIFICIO_ID}`;
         fetch(url)
             .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
@@ -1840,7 +1748,6 @@ function fetchInitialData() {
                 currentThresholds = data || {};
                 renderThresholdsPanel(currentThresholds);
 
-                // Then try to fetch status to populate current values, but ignore failure
                 fetch(`/api/status/?edificio_id=${EDIFICIO_ID}`)
                     .then(r => r.ok ? r.json() : Promise.reject(r.statusText))
                     .then(statusData => {
@@ -1872,10 +1779,6 @@ function fetchInitialData() {
             }
         });
 }
-
-// ═══════════════════════════════════════════════════════════════════
-// 17.  Bootstrap
-// ═══════════════════════════════════════════════════════════════════
 
 function setupAdminEvents() {
     const pauseBtn = document.getElementById('simPauseBtn');
@@ -1931,7 +1834,6 @@ function setupAdminEvents() {
     }
     if (sendManualBtn) sendManualBtn.addEventListener('click', sendManualValue);
 
-    // Deshabilitar botón "Enviar" cuando el campo está vacío
     validateManualInput();
     if (manualValInput) {
         manualValInput.addEventListener('input', () => {

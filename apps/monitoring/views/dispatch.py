@@ -29,7 +29,7 @@ def history_view(request: HttpRequest) -> HttpResponse:
 
 
 def thresholds_view(request: HttpRequest) -> HttpResponse:
-    """Thresholds page is admin-only."""
+
     from apps.core.auth_decorators import is_admin_role
     rol = request.session.get("usuario_rol", "US")
     if not is_admin_role(rol):
@@ -39,7 +39,7 @@ def thresholds_view(request: HttpRequest) -> HttpResponse:
 
 
 def limits_view(request: HttpRequest) -> HttpResponse:
-    """Sensor limits page is admin-only."""
+
     from apps.core.auth_decorators import is_admin_role
     rol = request.session.get("usuario_rol", "US")
     if not is_admin_role(rol):

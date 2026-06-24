@@ -183,7 +183,6 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
         post_data = extract_post_data(request)
         data = post_data
 
-        # Ensure id_edificio is int if it is digit-only for template comparison
         if data.get("id_edificio") and data["id_edificio"].isdigit():
             data["id_edificio"] = int(data["id_edificio"])
 
@@ -252,9 +251,6 @@ def user_delete_view(request: HttpRequest, user_id: int) -> HttpResponse:
             Persona.objects.filter(id_persona=person_id).delete()
     messages.success(request, f"{full_name} eliminado correctamente.")
     return redirect("user_list")
-
-
-
 
 
 def check_cedula_uniqueness_view(request: HttpRequest) -> JsonResponse:

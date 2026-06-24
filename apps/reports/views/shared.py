@@ -165,7 +165,6 @@ def safe_text(txt: Any) -> str:
         return ""
     t_str = str(txt)
     if not _resolve_font():
-        # Map accented and special characters to standard equivalents when falling back to Helvetica
         accents = {
             'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
             'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
@@ -182,7 +181,6 @@ def safe_text(txt: Any) -> str:
     return t_str
 
 
-# Color de zebra striping para filas alternas sin fill explícito
 _ZEBRA_FILL: tuple[int, int, int] = (248, 249, 250)
 
 
@@ -195,12 +193,8 @@ def draw_row(
     colors: list | None = None,
     row_index: int | None = None,
 ) -> None:
-    """
-    Dibuja una fila de tabla.
-    row_index: si se provee, aplica zebra (fondo suave en filas pares)
-               a las celdas que no tengan fill explícito.
-    """
-    # Zebra: fila par con row_index → fondo muy suave
+
+
     zebra = _ZEBRA_FILL if (row_index is not None and row_index % 2 == 0) else None
 
     lines_per_col: list[list[str]] = []
@@ -219,7 +213,6 @@ def draw_row(
     start_x: float = pdf.get_x()
     start_y: float = pdf.get_y()
 
-    # Primer pasada: fondos de celdas
     for i in range(max_lines):
         pdf.set_xy(start_x, start_y + (i * line_height))
         for j, lines in enumerate(lines_per_col):
@@ -232,7 +225,6 @@ def draw_row(
             else:
                 pdf.cell(w, line_height, "", border=0, fill=False)
 
-    # Segunda pasada: texto de celdas
     for i in range(max_lines):
         pdf.set_xy(start_x, start_y + (i * line_height))
         for j, lines in enumerate(lines_per_col):
@@ -245,7 +237,6 @@ def draw_row(
             pdf.set_text_color(*text_c)
             pdf.cell(w, line_height, txt, border=0, align=align, fill=False)
 
-    # Tercera pasada: bordes de celdas
     curr_x = start_x
     pdf.set_draw_color(10, 10, 10)
     for w in widths:

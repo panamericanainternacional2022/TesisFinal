@@ -55,7 +55,7 @@ def render_admin_monitoring(request) -> HttpResponse:
 
 @login_required
 def render_admin_thresholds(request) -> HttpResponse:
-    """Standalone thresholds configuration page (admin only)."""
+
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
 
@@ -86,7 +86,7 @@ def render_admin_thresholds(request) -> HttpResponse:
 
 @login_required
 def render_admin_limits(request) -> HttpResponse:
-    """Standalone sensor limits configuration page (admin only)."""
+
     rol = request.session.get("usuario_rol", "US")
     buildings = list(Building.objects.all())
 
@@ -113,8 +113,6 @@ def render_admin_limits(request) -> HttpResponse:
             "is_admin": True,
         },
     )
-
-
 
 
 @login_required
@@ -155,8 +153,6 @@ def render_admin_history(request) -> HttpResponse:
     if building_id:
         notifications = notifications.filter(monitoring_equipment__building_id=building_id)
 
-    # Solo filtro de fecha a nivel DB; severidad se filtra en Python
-    # después de extraer las opciones disponibles.
     notifications = filter_date_range(notifications, period, date_from, date_to)
 
     notifications = (
@@ -168,11 +164,9 @@ def render_admin_history(request) -> HttpResponse:
 
     parsed_list = parse_notifications(notifications)
 
-    # Extraer opciones ANTES de filtrar por severidad/variable
     all_variables = extract_variables(parsed_list)
     available_severities = extract_severities(parsed_list)
 
-    # Filtrar en Python (severidad + variable)
     parsed_list = filter_severity_python(parsed_list, severity)
     parsed_list = filter_by_variable(parsed_list, variable_filter)
 

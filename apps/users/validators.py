@@ -82,7 +82,6 @@ def _validate_max_length(value: str, maximum: int, label: str) -> str:
 def normalize_ci(value: str) -> str:
     if not value:
         return ""
-    # Clean the input to get letters and numbers only
     cleaned = re.sub(r"[\.\-\s]", "", value).upper()
     if not cleaned:
         return ""

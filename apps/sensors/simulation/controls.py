@@ -79,7 +79,6 @@ def clear_fault(edificio_id: int, device: Optional[str] = None) -> str:
 
     _notify_faults_resolved(edificio_id, old_faults)
 
-    # Limpiar bloqueos manuales y cooldowns
     if hasattr(sim, "manual_overrides") and isinstance(sim.manual_overrides, dict):
         if device == "pump":
             for v in PUMP_VARS:

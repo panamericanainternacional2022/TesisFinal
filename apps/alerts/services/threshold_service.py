@@ -12,11 +12,8 @@ DEFAULT_THRESHOLDS: Dict[str, Dict[str, Any]] = _DEFAULT
 
 
 def get_thresholds(building_id: int) -> Dict[str, Dict[str, Any]]:
-    """Return thresholds for a specific building.
 
-    Falls back to DEFAULT_THRESHOLDS for any variable not yet customised
-    in the DB, then overlays the building-specific overrides on top.
-    """
+
     result: Dict[str, Dict[str, Any]] = {k: dict(v) for k, v in DEFAULT_THRESHOLDS.items()}
     try:
         for row in ThresholdConfig.objects.filter(building_id=building_id):

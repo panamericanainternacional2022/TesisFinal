@@ -12,11 +12,10 @@ from apps.core.auth_decorators import ADMIN_ROLES
 logger = logging.getLogger(__name__)
 
 
-# ─── Constantes de texto — fuente única, no hardcodeadas en el HTML ──────────
 _BRAND_NAME      = "INES"
 _BRAND_SUBTITLE  = "Sistema inteligente de automatización"
 _ALERT_H1        = "Anomalía detectada en la infraestructura"
-_ALERT_TAG_LABEL = "Severidad"             # alineado con la columna homónima de los PDFs
+_ALERT_TAG_LABEL = "Severidad"
 _ACTION_LABEL    = "Medida correctiva recomendada"
 _DETAILS_LABEL   = "Detalles del evento"
 _FOOTER_TEXT     = (
@@ -29,11 +28,8 @@ _CONTEXT_DEFAULT = (
     "los parámetros del evento y la medida correctiva recomendada."
 )
 
-# Acento navy — idéntico al usado en los PDFs (ACCENT_COLOR)
 _NAVY = "#1e3a5f"
 
-
-# ─── Helpers de datos ─────────────────────────────────────────────────────────
 
 def get_unit(variable: str) -> str:
     from apps.sensors.sensor_config import UNITS
@@ -47,9 +43,6 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
         return []
     try:
         if edificio_id is None:
-            # Fallback: ningún edificio especificado — usar el primero disponible.
-            # ADVERTENCIA: este fallback solo debería usarse en contextos sin simulador
-            # activo. Las alertas del engine siempre deben pasar un edificio_id explícito.
             equipo = MonitoringEquipment.objects.first()
             if equipo and equipo.building:
                 edificio_id = equipo.building.id
@@ -84,8 +77,6 @@ def get_building_emails(edificio_id: Optional[int] = None) -> List[str]:
         return []
 
 
-# ─── Clases de configuración ──────────────────────────────────────────────────
-
 class EmailAttachment:
     def __init__(self, pdf_data: Any, filename: str = "report.pdf") -> None:
         if isinstance(pdf_data, bytes):
@@ -118,8 +109,6 @@ class EmailConfig:
         self.smtp_user = smtp_user
         self.smtp_password = smtp_password
 
-
-# ─── SMTP helpers ─────────────────────────────────────────────────────────────
 
 def _smtp_send(
     msg: Any,
@@ -163,14 +152,9 @@ def _get_email_colors(risk_level: str) -> Dict[str, str]:
     return EMAIL_COLOR_PALETTE.get(risk_level, EMAIL_FALLBACK_COLORS)
 
 
-# ─── Shell exterior — idéntico para todos los correos ─────────────────────────
-
 def _build_email_shell(inner_html: str) -> str:
-    """
-    Cáscara HTML compartida por los 2 tipos de correo.
-    Header con barra de acento navy (coherente con los PDFs) +
-    wordmark INES + subtítulo + footer automático.
-    """
+
+
     return f"""<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -219,13 +203,9 @@ def _build_email_shell(inner_html: str) -> str:
 </html>"""
 
 
-# ─── Tabla de detalles — componente compartido ────────────────────────────────
-
 def _build_details_table(details: Dict[str, str]) -> str:
-    """
-    Tabla de pares clave/valor, patrón compartido entre correo de alerta
-    y cualquier futuro correo que necesite mostrar información estructurada.
-    """
+
+
     rows = "".join(f"""
           <tr>
             <td style="padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 12px; font-weight: 700; width: 38%; color: #374151; vertical-align: top;">{k}</td>
@@ -238,13 +218,9 @@ def _build_details_table(details: Dict[str, str]) -> str:
         </table>"""
 
 
-# ─── Caja de acción — componente compartido ───────────────────────────────────
-
 def _build_action_box(action_text: str, colors: Dict[str, str]) -> str:
-    """
-    Caja de medida correctiva con borde izquierdo del color del riesgo.
-    Patrón compartido disponible para todos los correos.
-    """
+
+
     return f"""
         <div style="margin: 20px 0 0 0; padding: 16px 20px; background-color: {colors['bg']}; border: 1px solid {colors['border']}; border-left: 4px solid {colors['text']}; border-radius: 2px;">
           <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.1em; color: {colors['text']}; display: block; margin-bottom: 6px; text-transform: uppercase;">{_ACTION_LABEL}</span>
@@ -252,27 +228,16 @@ def _build_action_box(action_text: str, colors: Dict[str, str]) -> str:
         </div>"""
 
 
-# ─── Constructor único para correos de alerta ─────────────────────────────────
-
 def _build_alert_html(
     risk_level: str,
     context: str = _CONTEXT_DEFAULT,
     details: Optional[Dict[str, str]] = None,
     action_text: str = "",
 ) -> str:
-    """
-    Constructor único para correos de alerta de sensor.
-    Reemplaza _build_html_from_sections y _build_html_content.
 
-    Estructura del correo:
-      1. Banner (color del riesgo + tag de nivel + H1)
-      2. Párrafo de contexto
-      3. Tabla de detalles (si se provee)
-      4. Caja de acción correctiva (si se provee)
-    """
+
     colors = _get_email_colors(risk_level)
 
-    # 1 — Banner de cabecera del correo (pegado al header sin gap)
     banner = f"""
           <tr>
             <td style="padding: 20px 28px; border-top: 1px solid #e5e7eb; border-bottom: 1px solid #e5e7eb; background-color: {colors['bg']}; border-left: 4px solid {colors['text']};">
@@ -281,14 +246,11 @@ def _build_alert_html(
             </td>
           </tr>"""
 
-    # 2 — Cuerpo del correo
     inner = f'<p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #374151;">{context}</p>'
 
-    # 3 — Tabla de detalles
     if details:
         inner += _build_details_table(details)
 
-    # 4 — Caja de acción correctiva
     if action_text:
         inner += _build_action_box(action_text, colors)
 
@@ -302,13 +264,9 @@ def _build_alert_html(
     return _build_email_shell(banner + body_row)
 
 
-# ─── Constructor para correo de activación de cuenta ─────────────────────────
-
 def build_activation_email_html(link: str) -> str:
-    """
-    Correo de activación de cuenta de usuario.
-    Sigue el mismo shell y patrones visuales que el correo de alerta.
-    """
+
+
     inner_html = f"""
           <!-- Banner de cabecera (pegado al header sin gap) -->
           <tr>
@@ -349,15 +307,9 @@ def build_activation_email_html(link: str) -> str:
     return _build_email_shell(inner_html)
 
 
-# ─── Constructor para correo de reporte de estado ────────────────────────────────
-
 def build_report_email_html(edificio: str = "", contexto: str = "") -> str:
-    """
-    Correo de reporte de estado del sistema (enviado desde el dashboard).
-    Tiene su propio banner diferenciado del correo de alerta:
-      - Etiqueta: REPORTE DE MONITOREO
-      - H1: Estado actual del sistema de infraestructura
-    """
+
+
     ctx = contexto or (
         f"Se adjunta el informe en formato PDF con el estado actual de los "
         f"sensores de infraestructura{' de ' + edificio if edificio else ''}. "
@@ -383,18 +335,14 @@ def build_report_email_html(edificio: str = "", contexto: str = "") -> str:
     return _build_email_shell(inner_html)
 
 
-# ─── Función auxiliar para plain-text (solo texto, sin estructura HTML) ───────
-
 def build_standard_email_body(
     titulo: str,
     detalles: Optional[Dict[str, str]] = None,
     accion: str = "",
     contexto: str = "",
 ) -> str:
-    """
-    Genera el cuerpo en texto plano del correo de alerta.
-    No contiene estructura para conversión a HTML: eso lo hace _build_alert_html.
-    """
+
+
     lines = [titulo, ""]
     if contexto:
         lines.append(contexto)
@@ -412,8 +360,6 @@ def build_standard_email_body(
         lines.append("")
     return "\n".join(lines)
 
-
-# ─── Envío de correo raw (p.ej. activación) ───────────────────────────────────
 
 def send_email_raw(
     to_addrs: List[str],
@@ -455,8 +401,6 @@ def send_email_raw(
     _smtp_send(msg, to_addrs, smtp_server, smtp_port, smtp_user, smtp_password, SMTP_TIMEOUT)
 
 
-# ─── Envío SMTP con adjunto (correo de alerta principal) ──────────────────────
-
 def _send_email_smtp(config: EmailConfig) -> None:
     smtp_server, smtp_port, smtp_user, smtp_password = _get_smtp_creds(
         config.smtp_server, config.smtp_port, config.smtp_user, config.smtp_password
@@ -469,9 +413,6 @@ def _send_email_smtp(config: EmailConfig) -> None:
         )
         return
 
-    # ── Construir HTML desde el cuerpo plain-text parseado ───────────────────
-    # El body plain-text tiene secciones delimitadas por cabeceras en mayúsculas.
-    # Parseamos para extraer detalles y acción, y los pasamos a _build_alert_html.
     details: Dict[str, str] = {}
     action_text = ""
     context_lines: List[str] = []
@@ -501,10 +442,8 @@ def _send_email_smtp(config: EmailConfig) -> None:
             else:
                 action_text = (action_text + " " + line_strip).strip()
         else:
-            # Omitimos la primera línea (título) ya que el H1 del HTML la representa
             context_lines.append(line_strip)
 
-    # La primera línea context es el título, la segunda (si existe) es el contexto
     context = " ".join(context_lines[1:]) if len(context_lines) > 1 else _CONTEXT_DEFAULT
 
     html_content = _build_alert_html(
@@ -533,8 +472,6 @@ def _send_email_smtp(config: EmailConfig) -> None:
     _smtp_send(msg, config.recipients or [], smtp_server, smtp_port, smtp_user, smtp_password, SMTP_TIMEOUT)
     logger.info("Real email sent to %s (risk %s)", config.recipients, config.risk_level)
 
-
-# ─── Punto de entrada público para alertas ────────────────────────────────────
 
 def send_email_alert(
     risk_level: str,

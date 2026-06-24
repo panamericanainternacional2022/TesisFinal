@@ -47,10 +47,8 @@
         {% endif %}
     </div>
 
-    <!-- Contenedor de telemetría activa -->
     <div id="activeMonitoring" class="d-none">
 
-        <!-- Credenciales (admin) -->
         {% if is_admin %}
         <div id="credsWarning" class="sys-alert sys-alert-warn d-none">
             <i class="fas fa-triangle-exclamation" aria-hidden="true"></i>
@@ -58,7 +56,6 @@
         </div>
         {% endif %}
 
-        <!-- Estado del sistema -->
         <div class="status-grid" id="statusGrid">
             <div id="pumpStatusRow" class="status-cell">
                 <div class="status-cell-label">Bomba</div>
@@ -94,7 +91,6 @@
         <div class="panel admin-controls-panel mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-screwdriver-wrench" aria-hidden="true"></i> Controles administrativos</h2>
 
-            <!-- Sub-sección: Simulación -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
                     <i class="fa-solid fa-gamepad" aria-hidden="true"></i> Simulación
@@ -140,7 +136,6 @@
                 </div>
             </div>
 
-            <!-- Sub-sección: Override manual de sensor -->
             <div class="panel-subsection">
                 <div class="panel-subsection-title">
                     <i class="fa-solid fa-sliders" aria-hidden="true"></i> Manuales
@@ -175,7 +170,6 @@
         </div>
         {% endif %}
 
-        <!-- Tarjetas de sensores: Bomba -->
         <div id="bombaSection" class="sensor-section">
             <div class="sensor-section-title">
                 <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Sensores de la bomba de agua
@@ -183,7 +177,6 @@
             <div class="sensor-cards-grid" id="bombaCards"></div>
         </div>
 
-        <!-- Tarjetas de sensores: Elevador -->
         <div id="elevadorSection" class="sensor-section">
             <div class="sensor-section-title">
                 <i class="fa-solid fa-elevator" aria-hidden="true"></i> Sensores del elevador
@@ -191,7 +184,6 @@
             <div class="sensor-cards-grid" id="elevadorCards"></div>
         </div>
 
-        <!-- Panel de Recomendaciones -->
         <div id="recommendationsPanel" class="panel mb-3">
             <h2 class="panel-title"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Recomendaciones del sistema</h2>
             <div id="recommendationsContent" class="col-stack">
@@ -217,7 +209,7 @@
             <div id="statsBombaPanel"></div>
             <div id="statsElevadorPanel"></div>
         </div>
-    </div><!-- /activeMonitoring -->
+    </div>
 
     {% endif %}
 </div>

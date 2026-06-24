@@ -69,8 +69,6 @@ def render_user_history(request) -> HttpResponse:
     from apps.alerts.views.shared import _build_notification_query
     notifications, _ = _build_notification_query(user_id, rol, building_id)
 
-    # Solo filtro de fecha a nivel DB; severidad se filtra en Python
-    # después de extraer las opciones disponibles.
     notifications = filter_date_range(notifications, period, date_from, date_to)
 
     notifications = (
@@ -82,11 +80,9 @@ def render_user_history(request) -> HttpResponse:
 
     parsed_list = parse_notifications(notifications)
 
-    # Extraer opciones ANTES de filtrar por severidad/variable
     all_variables = extract_variables(parsed_list)
     available_severities = extract_severities(parsed_list)
 
-    # Filtrar en Python (severidad + variable)
     parsed_list = filter_severity_python(parsed_list, severity)
     parsed_list = filter_by_variable(parsed_list, variable_filter)
 

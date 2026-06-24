@@ -77,9 +77,6 @@ def _make_parsed(
 ) -> Dict[str, Any]:
     var_display = VAR_NAMES.get(variable, variable.replace("_", " ").title())
 
-    # Normalizar el valor a cadena de forma segura.
-    # IMPORTANTE: no usar `value or ""` porque el 0 numérico (p.ej. flow_rate=0.0)
-    # es falsy en Python pero es un valor real y válido que debe mostrarse.
     if value is None:
         raw_str = ""
     else:
@@ -88,10 +85,8 @@ def _make_parsed(
     value_str = raw_str.lower()
 
     if variable in VALUE_DISPLAY_ES:
-        # Variables discretas (door_status, motor_stuck, …)
         value_display = VALUE_DISPLAY_ES[variable].get(value_str, raw_str.capitalize())
     elif raw_str:
-        # Variables numéricas: mostrar el valor tal cual (ya viene formateado como string)
         value_display = raw_str
     else:
         value_display = ""
@@ -111,8 +106,6 @@ def parse_notification_for_display(notif: Notification) -> Notification:
     parsed_data: Optional[Dict[str, Any]] = None
 
     if isinstance(raw_msg, dict):
-        # El campo message es un JSONField — puede devolver floats (ej. 0.0) directamente.
-        # No usar `raw_msg.get("value") or ""` porque `0.0 or ""` evalúa a `""`.
         raw_value = raw_msg.get("value")
         parsed_data = _make_parsed(
             risk=raw_msg.get("risk", ""),

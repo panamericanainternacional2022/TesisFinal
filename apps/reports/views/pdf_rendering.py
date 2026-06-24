@@ -12,43 +12,33 @@ from .shared import (
     safe_text,
 )
 
-# ─── Paleta de acento ────────────────────────────────────────────────────────
-ACCENT_COLOR = (30, 58, 95)        # Navy blue — identidad de marca INES
-ACCENT_LIGHT = (235, 241, 249)     # Azul muy suave — zebra alternado
+ACCENT_COLOR = (30, 58, 95)
+ACCENT_LIGHT = (235, 241, 249)
 
-# ─── Colores neutros ─────────────────────────────────────────────────────────
-DIVIDER_COLOR = (200, 205, 212)    # Gris suave para líneas divisoras
-HEADER_BG     = (10, 10, 10)       # Negro para encabezados de tabla
-HEADER_TEXT   = (255, 255, 255)    # Blanco para texto de encabezados
+DIVIDER_COLOR = (200, 205, 212)
+HEADER_BG     = (10, 10, 10)
+HEADER_TEXT   = (255, 255, 255)
 
-
-# ─── Logo ────────────────────────────────────────────────────────────────────
 
 def render_logo(pdf: Any) -> None:
-    """
-    Logo de INES con barra de acento navy a la izquierda.
-    Patrón idéntico usado por los 3 PDFs vía render_pdf_header.
-    """
+
+
     y0 = pdf.get_y()
 
-    # Barra de acento vertical izquierda
     pdf.set_fill_color(*ACCENT_COLOR)
     pdf.rect(10, y0, 4, 22, "F")
 
-    # Wordmark "INES"
     pdf.set_x(17)
     _pdf_font(pdf, "B", 28)
     pdf.set_text_color(*ACCENT_COLOR)
     pdf.cell(0, 14, "INES", ln=1, align="L")
 
-    # Bajada de marca
     pdf.set_x(17)
     _pdf_font(pdf, "", 10)
     pdf.set_text_color(95, 95, 95)
     pdf.cell(0, 8, safe_text("Sistema inteligente de automatización"), ln=1, align="L")
     pdf.ln(2)
 
-    # Línea separadora suave
     pdf.set_draw_color(*DIVIDER_COLOR)
     pdf.set_line_width(0.5)
     y = pdf.get_y()
@@ -57,19 +47,14 @@ def render_logo(pdf: Any) -> None:
     pdf.ln(6)
 
 
-# ─── Encabezado unificado ─────────────────────────────────────────────────────
-
 def render_pdf_header(
     pdf: Any,
     title: str,
     now: dt.datetime,
     meta_lines: list,
 ) -> None:
-    """
-    Encabezado unificado para los 3 PDFs.
-    Llama a render_logo, luego muestra el título y las líneas de metadatos.
-    meta_lines: lista de strings o None (los None se omiten).
-    """
+
+
     render_logo(pdf)
     _pdf_font(pdf, "B", 18)
     pdf.set_text_color(10, 10, 10)
@@ -82,14 +67,9 @@ def render_pdf_header(
     pdf.ln(6)
 
 
-# ─── Divisor de sección ───────────────────────────────────────────────────────
-
 def render_section_divider(pdf: Any, title: str) -> None:
-    """
-    Divisor de sección: título con acento navy + línea gris suave.
-    Patrón único que reemplaza el bloque _pdf_font(B,13) + set_text_color + cell
-    en todas las secciones de los 3 PDFs.
-    """
+
+
     if pdf.get_y() > 250:
         pdf.add_page()
     pdf.ln(2)
@@ -104,14 +84,9 @@ def render_section_divider(pdf: Any, title: str) -> None:
     pdf.ln(3)
 
 
-# ─── Caja de resumen ejecutivo ────────────────────────────────────────────────
-
 def render_summary_box(pdf: Any, items: list) -> None:
-    """
-    Fila de celdas coloreadas para resúmenes ejecutivos.
-    Patrón idéntico usado por los 3 PDFs.
-    Cada item: {"label": str, "value": str|int, "fill": (r,g,b), "text": (r,g,b)}
-    """
+
+
     if not items:
         return
 
@@ -127,14 +102,12 @@ def render_summary_box(pdf: Any, items: list) -> None:
 
     pdf.set_draw_color(*HEADER_BG)
 
-    # Fondos
     for i, item in enumerate(items):
         fill = item.get("fill", (240, 244, 248))
         pdf.set_fill_color(*fill)
         x = start_x + i * cell_w
         pdf.rect(x, start_y, cell_w, box_h, "DF")
 
-    # Etiquetas (fila superior)
     _pdf_font(pdf, "", 8)
     for i, item in enumerate(items):
         text_c = item.get("text", (10, 10, 10))
@@ -143,7 +116,6 @@ def render_summary_box(pdf: Any, items: list) -> None:
         pdf.set_text_color(*text_c)
         pdf.cell(cell_w - 3, 5, safe_text(label), ln=0)
 
-    # Valores (fila inferior, más grandes)
     _pdf_font(pdf, "B", 12)
     for i, item in enumerate(items):
         text_c = item.get("text", (10, 10, 10))
@@ -155,8 +127,6 @@ def render_summary_box(pdf: Any, items: list) -> None:
     pdf.set_xy(start_x, start_y + box_h + 4)
 
 
-# ─── Barra de progreso textual ────────────────────────────────────────────────
-
 def render_text_progress_bar(
     pdf: Any,
     label: str,
@@ -165,18 +135,14 @@ def render_text_progress_bar(
     threshold: float | None = None,
     unit: str = "",
 ) -> None:
-    """
-    Barra de progreso vectorial premium (usando pdf.rect) para mostrar
-    una lectura respecto a su rango máximo y umbral crítico.
-    Patrón compartido disponible para los 3 PDFs.
-    """
+
+
     if max_value <= 0:
         return
 
     ratio = min(1.0, max(0.0, value / max_value))
     pct = ratio * 100
 
-    # Determinar color de la barra
     if threshold is not None and value < threshold:
         bar_fill = (254, 242, 242)
         bar_text = (153, 27, 27)
@@ -193,32 +159,26 @@ def render_text_progress_bar(
     pdf.set_text_color(55, 65, 81)
     pdf.cell(0, 5, safe_text(label), ln=1)
 
-    # Posicionamiento para dibujo vectorial
     start_x = pdf.get_x()
     start_y = pdf.get_y()
 
-    # Dibujar celda contenedora
     pdf.set_fill_color(*bar_fill)
     pdf.set_draw_color(*HEADER_BG)
     pdf.set_line_width(0.4)
     pdf.cell(0, 8, "", 1, 1, "L", True)
 
-    # Dibujar barra de progreso
     bar_x = start_x + 4
     bar_y = start_y + 2
     bar_w = 80
     bar_h = 4
 
-    # Fondo de la barra
-    pdf.set_fill_color(229, 231, 235)  # gray-200
+    pdf.set_fill_color(229, 231, 235)
     pdf.rect(bar_x, bar_y, bar_w, bar_h, "F")
 
-    # Llenado de la barra
     fill_color = (22, 101, 52) if (threshold is None or value >= threshold) else (153, 27, 27)
     pdf.set_fill_color(*fill_color)
     pdf.rect(bar_x, bar_y, bar_w * ratio, bar_h, "F")
 
-    # Texto a la derecha de la barra
     text_x = bar_x + bar_w + 4
     pdf.set_xy(text_x, start_y + 1)
     _pdf_font(pdf, "B", 9)
@@ -228,7 +188,6 @@ def render_text_progress_bar(
     info_text = f"{pct:.0f}%   ({value:.1f} / {max_value:.1f} {safe_unit})"
     pdf.cell(0, 6, info_text, 0, 0, "L")
 
-    # Restaurar cursor al final de la celda contenedora
     pdf.set_xy(start_x, start_y + 8)
 
     _pdf_font(pdf, "", 8)
@@ -237,10 +196,8 @@ def render_text_progress_bar(
     pdf.ln(2)
 
 
-# ─── Leyenda de severidades ───────────────────────────────────────────────────
-
 def render_severity_legend(pdf: Any) -> None:
-    """Leyenda de severidades — patrón compartido para building_report e history."""
+
     render_section_divider(pdf, "Leyenda de severidades")
     _pdf_font(pdf, "", 10)
     for lbl, fill, text_c, desc in SEVERITY_DISPLAY_LEVELS:
@@ -253,10 +210,8 @@ def render_severity_legend(pdf: Any) -> None:
     pdf.ln(6)
 
 
-# ─── Resumen por severidad ────────────────────────────────────────────────────
-
 def render_stats_summary(pdf: Any, parsed_list: list) -> None:
-    """Resumen de conteos por severidad — usado en history."""
+
     from apps.sensors.sensor_config import SEVERITY_LEVELS
     stats: dict[str, int] = {k: 0 for k in SEVERITY_LEVELS}
     for n in parsed_list:
@@ -278,8 +233,6 @@ def render_stats_summary(pdf: Any, parsed_list: list) -> None:
     render_summary_box(pdf, items)
 
 
-# ─── Configuración de columnas de historial ───────────────────────────────────
-
 def get_column_config() -> tuple[list, list, list]:
     return (
         [28, 22, 18, 30, 18, 74],
@@ -288,15 +241,13 @@ def get_column_config() -> tuple[list, list, list]:
     )
 
 
-# ─── Encabezado de tabla ──────────────────────────────────────────────────────
-
 def render_table_header(
     pdf: Any,
     column_widths: list,
     column_aligns: list,
     column_headers: list,
 ) -> None:
-    """Encabezado de tabla (fondo negro, texto blanco) — patrón compartido."""
+
     _pdf_font(pdf, "B", 10)
     draw_row(
         pdf,
@@ -308,14 +259,9 @@ def render_table_header(
     )
 
 
-# ─── PDF base ─────────────────────────────────────────────────────────────────
-
 def _create_report_pdf(title: str) -> Any:
-    """
-    Clase PDF base con header/footer unificados.
-    Página 1: franja navy en la parte superior.
-    Páginas 2+: header con nombre del reporte y número de página.
-    """
+
+
     from fpdf import FPDF
 
     class _ReportPDF(FPDF):
@@ -323,7 +269,6 @@ def _create_report_pdf(title: str) -> Any:
 
         def header(self) -> None:
             if self.page_no() == 1:
-                # Franja de acento navy en la parte superior
                 self.set_fill_color(*ACCENT_COLOR)
                 self.rect(10, 10, 190, 2, "F")
                 self.ln(5)
@@ -356,8 +301,6 @@ def _create_report_pdf(title: str) -> Any:
     return pdf
 
 
-# ─── Respuesta HTTP ───────────────────────────────────────────────────────────
-
 def make_pdf_response(pdf: Any, filename: str) -> HttpResponse:
     pdf_raw = pdf.output()
     pdf_bytes = (
@@ -372,8 +315,6 @@ def make_pdf_response(pdf: Any, filename: str) -> HttpResponse:
     return response
 
 
-# ─── Helpers de historial ─────────────────────────────────────────────────────
-
 def _get_equipment_name(notif: Any) -> str:
     if notif.monitoring_equipment:
         return notif.monitoring_equipment.name
@@ -386,7 +327,7 @@ def render_event_rows(
     column_widths: list,
     column_aligns: list,
 ) -> None:
-    """Filas de eventos con zebra striping — patrón compartido."""
+
     _pdf_font(pdf, "", 9)
     pdf.set_draw_color(10, 10, 10)
 

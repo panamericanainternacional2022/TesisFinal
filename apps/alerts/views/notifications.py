@@ -116,7 +116,6 @@ def _update_alert_disabled_state(request: HttpRequest, usuario_id: int) -> None:
     if alerts_disabled_until_ts:
         request.session["alerts_disabled_until_ts"] = alerts_disabled_until_ts
 
-    # Sync alerts_cleared_at desde DB a sesión
     if user_obj and user_obj.alerts_cleared_at:
         request.session["alerts_cleared_at"] = user_obj.alerts_cleared_at.timestamp()
     elif user_obj:

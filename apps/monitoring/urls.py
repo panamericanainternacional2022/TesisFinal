@@ -56,7 +56,6 @@ urlpatterns = [
         simulator_restart_view,
         name="simulator_restart",
     ),
-    # ─── SIMULACIÓN API (reemplaza routes.py Flask) ─────
     path("sse/<int:building_id>/", sse_stream, name="sse_stream"),
     path("api/status/", api_status, name="api_status"),
     path("api/edificios/", api_buildings, name="api_buildings"),

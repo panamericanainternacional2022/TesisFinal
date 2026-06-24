@@ -103,9 +103,6 @@ def clear_notifications_view(request: HttpRequest) -> JsonResponse:
     now = timezone.now()
     request.session["alerts_cleared_at"] = now.timestamp()
 
-    # Limpiar el bloqueo anti-duplicados de cada simulador para que las alertas
-    # vuelvan a generarse desde cero tras borrar las notificaciones de la BD.
-    # Sin esto, el engine omite indefinidamente las alertas que ya "había enviado".
     try:
         from apps.sensors.simulation.globals import simulators
         for sim in simulators.values():
@@ -122,7 +119,6 @@ def clear_notifications_view(request: HttpRequest) -> JsonResponse:
     except Exception as exc:
         _logger.warning("No se pudo limpiar active_alerts de los simuladores: %s", exc)
 
-    # Persistir a DB para que el clear sea permanente para este usuario
     usuario_id = request.session.get("usuario_id")
     try:
         usuario_obj = Usuario.objects.get(pk=usuario_id)

@@ -19,7 +19,6 @@ from .pdf_rendering import (
 logger = logging.getLogger(__name__)
 
 
-
 @login_required
 def user_pdf_view(request: Any) -> HttpResponse:
     try:
@@ -58,10 +57,8 @@ def user_pdf_view(request: Any) -> HttpResponse:
 
         from apps.users.services import build_user_data
 
-        # Incluir el rol junto a los datos del usuario
         users = [{"rol": u.rol, **build_user_data(u)} for u in usuarios]
 
-        # Agrupar por edificio
         from collections import OrderedDict
         groups: OrderedDict[str, list[Any]] = OrderedDict()
         for b in users:
@@ -71,7 +68,6 @@ def user_pdf_view(request: Any) -> HttpResponse:
         now = dt.datetime.now()
         pdf = _create_report_pdf("Reporte de usuarios")
 
-        # Construir líneas de filtros aplicados
         filtros: list[str] = []
         if query:
             filtros.append(f"Búsqueda: «{query}»")
@@ -85,7 +81,6 @@ def user_pdf_view(request: Any) -> HttpResponse:
         total_registrados = sum(1 for u in users if u["registered"])
         total_pendientes  = len(users) - total_registrados
 
-        # ── Patrón unificado: header → resumen → secciones ───────────────────
         render_pdf_header(
             pdf,
             title="Reporte de usuarios",
@@ -94,11 +89,10 @@ def user_pdf_view(request: Any) -> HttpResponse:
                 f"Generado: {now.strftime('%d/%m/%Y %H:%M:%S')}",
                 f"Total de usuarios: {len(users)}",
                 f"Edificios: {len(groups)}",
-                *filtros,           # filtros aplicados (puede ser vacío)
+                *filtros,
             ],
         )
 
-        # Resumen ejecutivo via render_summary_box — mismo patrón
         render_section_divider(pdf, "Resumen de usuarios")
         render_summary_box(
             pdf,
@@ -130,7 +124,6 @@ def user_pdf_view(request: Any) -> HttpResponse:
             ],
         )
 
-        # Tabla de usuarios por edificio — sin columna Rol (todos son usuarios)
         col_widths  = [20, 32, 32, 64, 24, 18]
         col_headers = ["Cédula", "Nombre", "Apellido", "Correo electrónico", "Usuario", "Estado"]
         col_aligns  = ["C", "L", "L", "L", "L", "C"]
@@ -147,10 +140,8 @@ def user_pdf_view(request: Any) -> HttpResponse:
             for idx, b in enumerate(members):
                 estado_str = "Registrado" if b["registered"] else "Pendiente"
 
-                # El username auto-generado no tiene significado antes del registro
                 username_display = b.get("username", "")[:14] if b["registered"] else "-"
 
-                # Colorear el estado
                 if b["registered"]:
                     est_fill = (240, 253, 244)
                     est_text = (22, 101, 52)

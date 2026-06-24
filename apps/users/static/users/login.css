@@ -1,7 +1,4 @@
-/* ==========================================================================
-   login.css — Swiss Typographic Grid
-   Pantalla de acceso: blanco plano, tipografía centrada, sin glassmorphism
-   ========================================================================== */
+
 
 body {
     font-family: var(--font);
@@ -12,7 +9,6 @@ body {
     flex-direction: column;
 }
 
-/* ── Layout ──────────────────────────────────────────────────────────────── */
 .login-page {
     flex: 1;
     display: flex;
@@ -21,7 +17,6 @@ body {
     padding: var(--sp-8) var(--sp-3);
 }
 
-/* ── Tarjeta de Acceso ────────────────────────────────────────────────────── */
 .login-card {
     width: 100%;
     max-width: 400px;
@@ -33,7 +28,6 @@ body {
     position: relative;
 }
 
-/* ── Encabezado ───────────────────────────────────────────────────────────── */
 .login-card__header {
     text-align: center;
     margin-bottom: var(--sp-4);
@@ -68,7 +62,6 @@ body {
     letter-spacing: 0.01em;
 }
 
-/* ── Formulario ────────────────────────────────────────────────────────────── */
 .login-form {
     display: flex;
     flex-direction: column;
@@ -76,9 +69,6 @@ body {
     margin-top: var(--sp-1);
 }
 
-
-
-/* ── Error de login ─────────────────────────────────────────────────────────── */
 .login-error {
     padding: var(--sp-1) var(--sp-2);
     background: var(--state-critical-bg);
@@ -90,7 +80,6 @@ body {
     box-shadow: 4px 4px 0px rgba(10, 10, 10, 0.1);
 }
 
-/* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 480px) {
     .login-page {
         padding: var(--sp-5) var(--sp-2);

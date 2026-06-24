@@ -1,11 +1,5 @@
-/* ==========================================================================
-   historial.css — Historial de eventos del sistema
-   Estilos específicos del historial: panel lateral de filtros deslizante.
-   Los componentes globales (.notif-card, .hist-item-*, .pagination-container,
-   .sensor-badge.sensor-high/info) viven en components.css
-   ========================================================================== */
 
-/* ── Panel lateral de filtros (slide-in desde la derecha) ───────────────── */
+
 .filter-overlay {
     position: fixed;
     inset: 0;
@@ -89,7 +83,6 @@
     flex-shrink: 0;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
     .reportes-card { max-width: 100% !important; }
     .filter-panel  { width: 100%; max-width: 100%; }
