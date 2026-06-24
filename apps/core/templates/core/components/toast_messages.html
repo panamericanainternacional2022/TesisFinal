@@ -1,4 +1,4 @@
-﻿{% if messages %}
+{% if messages %}
     <div class="toast-container">
         {% for message in messages %}
             <div class="toast-item {% if message.tags == 'success' %}toast-success alert-fadeable{% elif message.tags == 'warning' %}toast-warning{% elif message.tags == 'error' %}toast-error{% else %}toast-info{% endif %}">
