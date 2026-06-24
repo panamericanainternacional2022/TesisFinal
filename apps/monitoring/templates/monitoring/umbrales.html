@@ -17,9 +17,8 @@
             <h1 class="m-0">Umbrales</h1>
         </div>
         <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
-
-        {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </header>
+    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
 
     {% if not edificios %}
     <!-- Sin edificios -->

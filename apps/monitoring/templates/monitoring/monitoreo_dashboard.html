@@ -23,8 +23,8 @@
         {% else %}
         <p class="mt-1">Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
         {% endif %}
-        {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </header>
+    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
 
     {% if not edificios %}
     <div class="notif-card mt-3">

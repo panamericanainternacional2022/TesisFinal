@@ -17,9 +17,8 @@
             <h1 class="m-0">Límites</h1>
         </div>
         <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
-
-        {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id %}
     </header>
+    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
 
     {% if not edificios %}
     <!-- Sin edificios -->

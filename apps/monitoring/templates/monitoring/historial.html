@@ -20,9 +20,10 @@
             </span>
         </div>
         <p class="mt-1">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
-        {% if edificios %}
-        <!-- ── Barra de controles ── -->
-        <form method="GET" action="" id="historialFilterForm" class="mt-2">
+    </header>
+    {% if edificios %}
+    <div class="toolbar">
+        <form method="GET" action="" id="historialFilterForm" class="row-center m-0">
             <!-- Inputs ocultos -->
             <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
             <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
@@ -70,8 +71,8 @@
                 </a>
             </div>
         </form>
-        {% endif %}
-    </header>
+    </div>
+    {% endif %}
 
     {% if edificios %}
     <!-- ── Lista de Eventos ── -->

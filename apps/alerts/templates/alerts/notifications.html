@@ -16,9 +16,10 @@
             <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
         </div>
         <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
-        {% if edificios %}
-        <!-- Filtro de Edificio y Botones -->
-        <form method="GET" action="" id="alertsFilterForm" class="mt-2">
+    </header>
+    {% if edificios %}
+    <div class="toolbar">
+        <form method="GET" action="" id="alertsFilterForm" class="row-center m-0">
             <div class="row-center">
                 {% if edificios|length > 1 %}
                 <div class="select-container">
@@ -47,8 +48,8 @@
                 </button>
             </div>
         </form>
-        {% endif %}
-    </header>
+    </div>
+    {% endif %}
 
     {% if edificios %}
     <div class="notif-card">

@@ -645,6 +645,19 @@
     margin-top: var(--sp-2);
 }
 
+/* ── Barra de herramientas (debajo del header) ──────────────────────────── */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--sp-2);
+    margin-bottom: var(--sp-3);
+    padding: var(--sp-2) var(--sp-3);
+    background: var(--color-surface);
+    border: var(--border-brutal);
+    box-shadow: var(--shadow-brutal);
+}
+
 /* Contenedor para selects custom en headers — ancho mínimo consistente */
 .select-container {
     min-width: 220px;

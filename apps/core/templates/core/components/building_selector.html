@@ -11,7 +11,7 @@
 {% endcomment %}
 
 {% if edificios and edificios|length > 1 %}
-<div class="filter-row">
+<div class="{{ wrapper_class|default:'filter-row' }}">
     <div class="select-container">
         <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
             {% for ed in edificios %}
