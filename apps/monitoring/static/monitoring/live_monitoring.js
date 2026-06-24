@@ -679,28 +679,28 @@ function updateSummaryValues(data) {
 // 11.  Admin: Stats & recommendations
 // ═══════════════════════════════════════════════════════════════════
 
-function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
+function renderStatsTable(entries, containerId, firstColLabel) {
     const div = document.getElementById(containerId);
     if (!div) return;
     if (entries.length) {
         const rows = entries.map(([k, v]) =>
             `<tr>` +
-            `<td style="padding:8px var(--sp-3); font-weight:var(--weight-bold); font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-ink);">${getVariableName(k)}</td>` +
-            `<td style="padding:8px var(--sp-3); font-weight:var(--weight-bold); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-ink);">${formatNumeric(v.avg, k)}</td>` +
-            `<td style="padding:8px var(--sp-3); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-text-secondary);">${formatNumeric(v.min, k)}</td>` +
-            `<td style="padding:8px var(--sp-3); text-align:right; font-size:var(--text-xs); border-top:1px solid var(--color-ink); color:var(--color-text-secondary);">${formatNumeric(v.max, k)}</td>` +
+            `<td>${getVariableName(k)}</td>` +
+            `<td>${formatNumeric(v.avg, k)}</td>` +
+            `<td>${formatNumeric(v.min, k)}</td>` +
+            `<td>${formatNumeric(v.max, k)}</td>` +
             `</tr>`
         ).join('');
         div.innerHTML = `
-        <div class="table-wrapper" style="border-top: 6px solid ${accentColor} !important; margin-bottom: var(--sp-3);">
-            <div class="table-responsive" style="overflow-x:auto;">
-                <table class="report-table">
+        <div class="table-wrapper">
+            <div class="table-responsive">
+                <table class="report-table stats-table">
                     <thead>
                         <tr>
-                            <th style="padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;"><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</th>
-                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Prom.</th>
-                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Mín.</th>
-                            <th style="text-align:right; padding:10px var(--sp-3); border-bottom:2px solid var(--color-ink); background:var(--color-ink) !important; font-size:var(--text-xs); font-weight:var(--weight-bold); letter-spacing:var(--tracking-wide); color:#ffffff !important;">Máx.</th>
+                            <th><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</th>
+                            <th>Prom.</th>
+                            <th>Mín.</th>
+                            <th>Máx.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -716,8 +716,8 @@ function renderStatsTable(entries, containerId, firstColLabel, accentColor) {
 
 function updateStatsAndRecs(stats, recs, attempts) {
     const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
-    renderStatsTable(entries.filter(([k]) => _BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba', '#2563eb');
-    renderStatsTable(entries.filter(([k]) => _ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador', '#7c3aed');
+    renderStatsTable(entries.filter(([k]) => _BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba');
+    renderStatsTable(entries.filter(([k]) => _ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador');
     
     const recsContent = document.getElementById('recommendationsContent');
     if (recsContent) {

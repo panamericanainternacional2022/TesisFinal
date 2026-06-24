@@ -15,7 +15,7 @@
     <header class="admin-info">
         <div class="row-start">
             <h1 class="m-0">Historial</h1>
-            <span class="notif-count-badge count-badge">
+            <span class="notif-count-badge">
                 {{ total_count }}
             </span>
         </div>
@@ -33,7 +33,6 @@
             <!-- Fila única de controles -->
             <div class="row-center">
                 <!-- Etiqueta + select de período -->
-                <span class="inline-label">Ver historial de:</span>
                 <div class="select-container">
                     <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
                         <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
@@ -93,7 +92,7 @@
                                 {% else %}sensor-info{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
-                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" %}
+                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
                             <span class="code-badge">
                                 {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                             </span>

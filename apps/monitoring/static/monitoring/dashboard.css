@@ -128,36 +128,6 @@
     border-radius: var(--radius);
 }
 
-/* Selectores de tabla — page-scoped (dashboard.css solo carga en el dashboard) */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: var(--text-sm);
-}
-
-thead th {
-    background: var(--color-bg);
-    color: var(--color-ink);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-bold);
-    letter-spacing: var(--tracking-wide);
-    padding: 8px var(--sp-2);
-    text-align: left;
-    border-bottom: var(--border-brutal);
-    position: sticky;
-    top: 0;
-}
-
-tbody td {
-    padding: 10px var(--sp-2);
-    border-top: 1px solid var(--color-ink);
-    color: var(--color-text-primary);
-}
-
-tbody tr:hover td { background: var(--color-bg); }
-.row-crit td { background: var(--state-critical-bg); }
-.row-high td { background: var(--state-warn-bg); }
-
 /* ── Panel de gráficas ───────────────────────────────────────────────────── */
 .chart-panel {
     background: var(--color-surface);

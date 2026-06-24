@@ -106,7 +106,14 @@
     border-bottom-color: var(--color-ink);
 }
 
-
+/* ── Tabla de estadísticas (dashboard) — hereda de .report-table ─────────── */
+.stats-table th:not(:first-child),
+.stats-table td:not(:first-child) {
+    text-align: right;
+}
+.stats-table td:first-child {
+    font-weight: var(--weight-bold);
+}
 
 /* ── Modal de selección ────────────────────────────────────────────────────── */
 .modal-overlay {
@@ -505,12 +512,6 @@
    CAPA DE UTILIDADES — Fase 4 (reemplaza atributos style="" inline)
    Nomenclatura corta y semántica: basada en los patrones reales del proyecto
    ========================================================================== */
-
-/* ── Contenedor de página ancha (formularios admin) ─────────────────────── */
-.page-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
 
 /* ── Toast Notifications ─────────────────────────────────────────────────── */
 .toast-container {

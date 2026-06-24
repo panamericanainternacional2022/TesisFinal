@@ -12,7 +12,6 @@
 
 {% if edificios and edificios|length > 1 %}
 <div class="filter-row">
-    <span class="inline-label">Edificio:</span>
     <div class="select-container">
         <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
             {% for ed in edificios %}
@@ -23,7 +22,6 @@
 </div>
 {% elif edificios and edificios|length == 1 %}
 <div class="row-sm mt-2">
-    <span class="inline-label">Edificio:</span>
     <span class="building-tag">
         {{ edificios.0.name }}
         <input type="hidden" name="buildingSelect" value="{{ edificios.0.id }}">
