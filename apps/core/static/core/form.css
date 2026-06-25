@@ -1,8 +1,8 @@
 
 .form-card {
     background: var(--color-surface);
-    border: 2px solid var(--color-ink);
-    border-top: 6px solid var(--color-accent);
+    border: 3px solid var(--color-ink);
+    border-top: 6px solid var(--color-ink);
     box-shadow: var(--shadow-brutal);
     border-radius: 0px;
     padding: var(--sp-4);
@@ -15,7 +15,7 @@
     text-align: left;
     margin-bottom: var(--sp-3);
     padding-bottom: var(--sp-2);
-    border-bottom: 2px solid var(--color-ink);
+    border-bottom: 3px solid var(--color-ink);
 }
 
 .form-section-title {
@@ -50,7 +50,7 @@
     right: var(--sp-2);
     top: 50%;
     transform: translateY(-50%);
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-placeholder);
     pointer-events: none;
 }
@@ -100,17 +100,17 @@
 }
 
 .equip-card:hover {
-    border-color: var(--color-accent);
+    border-color: var(--color-ink);
     background: var(--color-accent-bg);
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px var(--color-ink-shadow);
+    box-shadow: 11px 11px 0px var(--color-ink);
 }
 
 .equip-card.equip-active {
-    border-color: var(--color-accent);
+    border-color: var(--color-ink);
     background: var(--color-accent-bg);
     transform: translate(-2px, -2px);
-    box-shadow: 5px 5px 0px var(--color-ink-shadow);
+    box-shadow: 11px 11px 0px var(--color-ink);
 }
 
 .equip-label {

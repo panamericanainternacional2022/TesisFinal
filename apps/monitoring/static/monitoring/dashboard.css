@@ -16,10 +16,10 @@
     border-radius: var(--radius);
 }
 
-.sensor-card.risk-low  { border-left-color: var(--state-ok);       }
-.sensor-card.risk-med  { border-left-color: var(--state-warn);     }
-.sensor-card.risk-high { border-left-color: var(--state-high);     }
-.sensor-card.risk-crit { border-left-color: var(--state-critical); }
+.sensor-card.risk-low  { border-left-color: var(--color-ink);       }
+.sensor-card.risk-med  { border-left-color: var(--color-ink);     }
+.sensor-card.risk-high { border-left-color: var(--color-ink);     }
+.sensor-card.risk-crit { border-left-color: var(--color-ink); }
 
 .sensor-card-name {
     font-size: var(--text-xs);

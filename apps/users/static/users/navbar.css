@@ -7,8 +7,7 @@
     width: 100%;
     height: var(--header-height);
     background-color: var(--color-surface);
-    border-bottom: 2px solid var(--color-ink);
-    box-shadow: 0px 4px 0px var(--color-ink-shadow);
+    border-bottom: 3px solid var(--color-ink);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -25,7 +24,7 @@
 
 .ines-header-logo {
     font-weight: var(--weight-bold);
-    font-size: var(--text-md);
+    font-size: var(--text-base);
     letter-spacing: var(--tracking-wider);
     color: var(--color-ink);
 }

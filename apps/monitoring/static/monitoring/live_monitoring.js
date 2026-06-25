@@ -699,7 +699,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                 if (isOk) {
                     cardHtml = `
                         <div class="status-banner">
-                            <i class="fa-solid fa-circle-check" style="font-size: var(--text-md);"></i>
+                            <i class="fa-solid fa-circle-check" style="font-size: var(--text-base);"></i>
                             <span>${rec}</span>
                         </div>
                     `;
@@ -716,7 +716,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                     
                     cardHtml = `
                         <div class="status-banner" style="background: ${bgColor}; color: ${borderColor}; border-left-color: ${borderColor};">
-                            <i class="${icon}" style="font-size: var(--text-md);"></i>
+                            <i class="${icon}" style="font-size: var(--text-base);"></i>
                             <span>${rec}${doorNote}</span>
                         </div>
                     `;
@@ -742,7 +742,7 @@ function renderThresholdsPanel(th) {
 
     function buildCard(k, cfg) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);box-shadow:var(--shadow-brutal-xs);';
+        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -766,18 +766,18 @@ function renderThresholdsPanel(th) {
 
         let dirBadge;
         if (cfg.direction === 'higher') {
-            dirBadge = '<span style="color:var(--state-critical);font-size:0.75rem;" title="Mayor es peor">\u2191</span>';
+            dirBadge = '<span style="color:var(--state-critical);font-size:var(--text-xs);" title="Mayor es peor">\u2191</span>';
         } else if (cfg.direction === 'lower') {
-            dirBadge = '<span style="color:#c2410c;font-size:0.75rem;" title="Menor es peor">\u2193</span>';
+            dirBadge = '<span style="color:#c2410c;font-size:var(--text-xs);" title="Menor es peor">\u2193</span>';
         } else {
-            dirBadge = '<span style="color:var(--state-inactive);font-size:0.75rem;" title="Rango válido">\u27FA</span>';
+            dirBadge = '<span style="color:var(--state-inactive);font-size:var(--text-xs);" title="Rango válido">\u27FA</span>';
         }
 
         let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
             <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
                 ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''} ${dirBadge}
             </span>
-            ${rightText ? '<span style="font-size:0.6rem;color:var(--color-text-secondary);">' + rightText + '</span>' : ''}
+            ${rightText ? '<span style="font-size:var(--text-2xs);color:var(--color-text-secondary);">' + rightText + '</span>' : ''}
         </div>`;
 
         if (cfg.direction === 'range') {
@@ -786,8 +786,8 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label" style="color:#166534;">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
                     <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div style="margin-top:2px;font-size:0.6rem;color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
-                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
+                <div style="margin-top:2px;font-size:var(--text-2xs);color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
+                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
         } else {
             div.innerHTML = headerHtml + `
@@ -796,7 +796,7 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
                     <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:4px;display:none;"></div>
+                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
         }
         return div;
@@ -1027,7 +1027,7 @@ function renderLimitsPanel(ranges) {
 
     function buildLimitCard(k, r) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);box-shadow:var(--shadow-brutal-xs);';
+        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -1046,12 +1046,12 @@ function renderLimitsPanel(ranges) {
                 <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
                     ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''}
                 </span>
-                ${threshStr ? `<span style="font-size:0.6rem;color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
+                ${threshStr ? `<span style="font-size:var(--text-2xs);color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">
                 <label class="form-label" style="color:var(--color-ink);">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
-                <div class="limit-error-msg" style="color:var(--state-critical);font-size:0.65rem;margin-top:2px;display:none;"></div>
+                <div class="limit-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:2px;display:none;"></div>
             </div>
         `;
         return div;
@@ -1269,7 +1269,7 @@ function updateManualRiskPreview() {
 
     if (status.hasError) {
         
-        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:0.65rem;"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
+        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-2xs);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
         return;
     }
 
@@ -1277,7 +1277,7 @@ function updateManualRiskPreview() {
         
         const hint = buildThresholdHint(v);
         if (hint) {
-            span.innerHTML = `<span style="color:var(--color-text-secondary);font-size:0.6rem;">${hint}</span>`;
+            span.innerHTML = `<span style="color:var(--color-text-secondary);font-size:var(--text-2xs);">${hint}</span>`;
         } else {
             span.innerHTML = '';
         }
@@ -1647,7 +1647,7 @@ function startAlertCountdown(disabledUntilMs) {
             reEnableAlerts();
             return;
         }
-        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:0.8em;opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:var(--text-xs);opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
     }
     tick();
     alertCountdownInterval = setInterval(tick, 1000);
