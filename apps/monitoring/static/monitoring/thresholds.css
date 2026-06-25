@@ -5,7 +5,7 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--sp-2);
-    font-size: var(--text-xs);
+    font-size: var(--text-s);
     color: var(--color-text-secondary);
     margin-bottom: var(--sp-3);
     padding-bottom: var(--sp-2);
@@ -33,7 +33,7 @@
 .thresh-grid .form-group { display: flex; flex-direction: column; gap: 4px; }
 
 .thresh-grid .form-label {
-    font-size: var(--text-xs);
+    font-size: var(--text-s);
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-wide);
     color: var(--color-ink);
@@ -47,6 +47,57 @@
     align-items: center;
     gap: var(--sp-2);
 }
+
+.thresh-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.thresh-label {
+    font-size: var(--text-s);
+    font-weight: var(--weight-medium);
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-secondary);
+}
+
+.thresh-hint {
+    font-size: var(--text-s);
+    color: var(--color-text-secondary);
+}
+
+.thresh-error-msg {
+    color: var(--state-critical);
+    font-size: var(--text-s);
+    margin-top: 4px;
+    display: none;
+}
+
+.limit-error-msg {
+    color: var(--state-critical);
+    font-size: var(--text-s);
+    margin-top: 2px;
+    display: none;
+}
+
+.thresh-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--sp-1);
+}
+
+.thresh-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--sp-1);
+}
+
+.thresh-label-ok { color: var(--state-ok); }
+.thresh-label-warn { color: var(--state-warn); }
+.thresh-label-crit { color: var(--state-critical); }
+
+.thresh-dir-badge { font-size: var(--text-s); }
 
 @media (max-width: 1024px) {
     .thresh-grid { grid-template-columns: repeat(2, 1fr); }

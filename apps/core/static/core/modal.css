@@ -32,9 +32,60 @@
     transform: scale(0.92);
     transition: transform 150ms ease;
     box-sizing: border-box;
-    border-radius: 0px !important;
+    border-radius: var(--radius);
 }
 
 .custom-modal-backdrop.active .custom-modal-container {
     transform: scale(1);
+}
+
+.custom-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: var(--sp-2);
+}
+
+.custom-modal-title {
+    font-size: var(--text-lg);
+    font-weight: var(--weight-bold);
+    color: var(--color-ink);
+    letter-spacing: var(--tracking-wide);
+}
+
+.custom-modal-body {
+    font-size: var(--text-sm);
+    color: var(--color-text-secondary);
+    line-height: var(--leading-normal);
+    margin-bottom: var(--sp-3);
+    word-break: break-word;
+}
+
+.custom-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--sp-2);
+}
+
+.custom-modal-icon {
+    font-size: var(--text-xl);
+}
+
+.custom-modal-icon-warn {
+    color: var(--state-warn);
+}
+
+.custom-modal-icon-success {
+    color: var(--state-ok);
+}
+
+.custom-modal-icon-error {
+    color: var(--state-critical);
+}
+
+.duration-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    margin-bottom: var(--sp-3);
 }

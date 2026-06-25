@@ -1,9 +1,6 @@
 
 .form-card {
-    background: var(--color-surface);
-    border: var(--border-brutal);
-    box-shadow: var(--shadow-brutal);
-    border-radius: 0px;
+    border-radius: var(--radius);
     padding: var(--sp-4);
     max-width: 720px;
     margin-left: auto;
@@ -38,7 +35,7 @@
 .form-group label {
     font-weight: var(--weight-bold);
     color: var(--color-ink);
-    font-size: var(--text-xs);
+    font-size: var(--text-s);
     letter-spacing: var(--tracking-wide);
     margin-bottom: 6px;
     display: block;
@@ -99,14 +96,12 @@
 }
 
 .equip-card:hover {
-    border-color: var(--color-ink);
     background: var(--color-accent-bg);
     transform: translate(-3px, -3px);
     box-shadow: 6px 6px 0px var(--color-ink);
 }
 
 .equip-card.equip-active {
-    border-color: var(--color-ink);
     background: var(--color-accent-bg);
     transform: translate(-3px, -3px);
     box-shadow: 6px 6px 0px var(--color-ink);

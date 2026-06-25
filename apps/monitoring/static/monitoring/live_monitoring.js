@@ -342,7 +342,7 @@ function showState(stateId) {
     const states = ['stateLoading', 'stateOffline', 'stateNoEquipment', 'stateNoBuildings'];
     states.forEach(id => {
         const el = document.getElementById(id);
-        if (el) el.style.display = id === stateId ? 'flex' : 'none';
+        if (el) el.style.display = id === stateId ? '' : 'none';
     });
     const card = document.getElementById('stateNotifCard');
     if (card) card.style.display = 'block';
@@ -486,22 +486,22 @@ function updateAdminControlsByEquipment(equipTypes) {
 
     if (hasPump && hasElev) {
         _csSetDisplay(eqSel, '');
-        eqStatic.style.display = 'none';
+        eqStatic.classList.add('d-none');
     } else if (hasPump) {
         _csSetDisplay(eqSel, 'none');
-        eqStatic.style.display = 'block';
+        eqStatic.classList.remove('d-none');
         eqStatic.textContent = 'Bomba de agua';
         _csSetValue(eqSel, 'pump');
         populateManualSensorSelect();
     } else if (hasElev) {
         _csSetDisplay(eqSel, 'none');
-        eqStatic.style.display = 'block';
+        eqStatic.classList.remove('d-none');
         eqStatic.textContent = 'Elevador';
         _csSetValue(eqSel, 'elevator');
         populateManualSensorSelect();
     } else {
         _csSetDisplay(eqSel, 'none');
-        eqStatic.style.display = 'block';
+        eqStatic.classList.remove('d-none');
         eqStatic.textContent = '—';
     }
 }
@@ -699,7 +699,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                 if (isOk) {
                     cardHtml = `
                         <div class="status-banner">
-                            <i class="fa-solid fa-circle-check" style="font-size: var(--text-base);"></i>
+                            <i class="fa-solid fa-circle-check"></i>
                             <span>${rec}</span>
                         </div>
                     `;
@@ -716,7 +716,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                     
                     cardHtml = `
                         <div class="status-banner" style="background: ${bgColor}; color: ${borderColor};">
-                            <i class="${icon}" style="font-size: var(--text-base);"></i>
+                            <i class="${icon}"></i>
                             <span>${rec}${doorNote}</span>
                         </div>
                     `;
@@ -765,37 +765,37 @@ function renderThresholdsPanel(th) {
 
         let dirBadge;
         if (cfg.direction === 'higher') {
-            dirBadge = '<span style="color:var(--state-critical);font-size:var(--text-xs);" title="Mayor es peor">\u2191</span>';
+            dirBadge = '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191</span>';
         } else if (cfg.direction === 'lower') {
-            dirBadge = '<span style="color:var(--state-high);font-size:var(--text-xs);" title="Menor es peor">\u2193</span>';
+            dirBadge = '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193</span>';
         } else {
-            dirBadge = '<span style="color:var(--state-inactive);font-size:var(--text-xs);" title="Rango válido">\u27FA</span>';
+            dirBadge = '<span class="thresh-dir-badge" style="color:var(--state-inactive);" title="Rango válido">\u27FA</span>';
         }
 
-        let headerHtml = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
+        let headerHtml = `<div class="thresh-card-header">
+            <span class="thresh-label">
                 ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''} ${dirBadge}
             </span>
-            ${rightText ? '<span style="font-size:var(--text-2xs);color:var(--color-text-secondary);">' + rightText + '</span>' : ''}
+            ${rightText ? '<span class="thresh-hint">' + rightText + '</span>' : ''}
         </div>`;
 
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:var(--state-ok);">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:var(--state-critical);">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                <div class="thresh-grid-2">
+                    <div class="form-group"><label class="form-label thresh-label-ok">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label thresh-label-crit">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div style="margin-top:2px;font-size:var(--text-2xs);color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
-                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
+                <div class="thresh-hint" style="margin-top:2px;">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
+                <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
         } else {
             div.innerHTML = headerHtml + `
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:var(--state-ok);">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:var(--state-warn);">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:var(--state-critical);">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                <div class="thresh-grid-3">
+                    <div class="form-group"><label class="form-label thresh-label-ok">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label thresh-label-warn">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label thresh-label-crit">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
+                <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
         }
         return div;
@@ -1040,16 +1040,16 @@ function renderLimitsPanel(ranges) {
         }
 
         div.innerHTML = `
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <span style="font-size:var(--text-xs);font-weight:var(--weight-medium);letter-spacing:var(--tracking-wide);color:var(--color-text-secondary);">
+            <div class="thresh-card-header">
+                <span class="thresh-label">
                     ${name}${unit && k !== 'trip_count' ? ' (' + unit + ')' : ''}
                 </span>
-                ${threshStr ? `<span style="font-size:var(--text-2xs);color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
+                ${threshStr ? `<span class="thresh-hint crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">
                 <label class="form-label">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
-                <div class="limit-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:2px;display:none;"></div>
+                <div class="limit-error-msg"></div>
             </div>
         `;
         return div;
@@ -1239,6 +1239,26 @@ function populateManualSensorSelect() {
     sel.innerHTML = '';
     const eq = eqSel.value || 'pump';
     const vars = eq === 'pump' ? _BOMBA_VARS : _ELEVADOR_VARS;
+
+    const container = sel.closest('.form-group');
+
+    if (vars.length <= 1) {
+        if (container) container.style.display = 'none';
+        if (vars.length === 1) {
+            sel.innerHTML = '';
+            let opt = document.createElement('option');
+            opt.value = vars[0];
+            let unit = getUnit(vars[0]);
+            opt.textContent = getVariableName(vars[0]) + (unit && vars[0] !== 'trip_count' ? ` (${unit})` : '');
+            sel.appendChild(opt);
+            _csSyncOptions(sel);
+            _csSetValue(sel, vars[0]);
+        }
+        return;
+    }
+
+    if (container) container.style.display = '';
+
     vars.forEach(v => {
         let opt = document.createElement('option');
         opt.value = v;
@@ -1267,7 +1287,7 @@ function updateManualRiskPreview() {
 
     if (status.hasError) {
         
-        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-2xs);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
+        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-s);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
         return;
     }
 
@@ -1275,7 +1295,7 @@ function updateManualRiskPreview() {
         
         const hint = buildThresholdHint(v);
         if (hint) {
-            span.innerHTML = `<span style="color:var(--color-text-secondary);font-size:var(--text-2xs);">${hint}</span>`;
+            span.innerHTML = `<span class="thresh-hint">${hint}</span>`;
         } else {
             span.innerHTML = '';
         }
@@ -1566,12 +1586,12 @@ function addLiveNotificationEvent(data) {
 
     li.innerHTML = `
         <div class="notif-body">
-            <div style="display: flex; align-items: center; gap: var(--sp-1); flex-wrap: wrap; margin-bottom: 6px;">
+            <div class="flex-wrap mb-1">
                 <span class="sensor-badge ${badgeClass}">${safeText(data.risk)}</span>
                 ${valueHtml}
-                <span style="font-weight: var(--weight-bold); color: var(--color-ink); font-size: var(--text-base);">${safeText(getVariableName(data.variable))}</span>
+                <span class="value-bold">${safeText(getVariableName(data.variable))}</span>
             </div>
-            <p style="margin: 0; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: var(--leading-normal);">${safeText(data.message)}</p>
+            <p class="notif-meta-text">${safeText(data.message)}</p>
             <div class="notif-meta" style="margin-top: 8px;">
                 <span><i class="fa-solid fa-clock"></i> ${dateStr}</span>
             </div>
@@ -1597,15 +1617,15 @@ function showDurationPicker() {
         const container = document.createElement('div');
         container.className = 'custom-modal-container';
         container.innerHTML = `
-            <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-2);">
-                <i class="fa-solid fa-clock" style="color:var(--state-warn);font-size:var(--text-xl);"></i>
-                <span style="font-size:var(--text-lg);font-weight:var(--weight-bold);color:var(--color-ink);letter-spacing:var(--tracking-wide);">Desactivar alertas</span>
+            <div class="custom-modal-header">
+                <i class="fa-solid fa-clock custom-modal-icon custom-modal-icon-warn"></i>
+                <span class="custom-modal-title">Desactivar alertas</span>
             </div>
-            <p style="font-size:var(--text-sm);color:var(--color-text-secondary);margin-bottom:var(--sp-3);">¿Por cuánto tiempo deseas desactivar las alertas?</p>
-            <div id="durationGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:var(--sp-3);">
+            <div class="custom-modal-body">¿Por cuánto tiempo deseas desactivar las alertas?</div>
+            <div id="durationGrid" class="duration-grid">
                 ${durations.map(d => `<button class="btn btn-secondary" data-minutes="${d.value === null ? 'null' : d.value}">${d.label}</button>`).join('')}
             </div>
-            <div style="display:flex;justify-content:flex-end;">
+            <div class="custom-modal-actions">
                 <button id="durationCancelBtn" class="btn btn-secondary">Cancelar</button>
             </div>`;
         backdrop.appendChild(container);
@@ -1645,7 +1665,7 @@ function startAlertCountdown(disabledUntilMs) {
             reEnableAlerts();
             return;
         }
-        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:var(--text-xs);opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:var(--text-s);opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
     }
     tick();
     alertCountdownInterval = setInterval(tick, 1000);
@@ -1792,7 +1812,7 @@ function fetchInitialData() {
             if (IS_ADMIN) {
                 ['statsBombaPanel', 'statsElevadorPanel'].forEach(id => {
                     const el = document.getElementById(id);
-                    if (el) el.innerHTML = '<span style="color:var(--color-text-secondary);font-size:var(--text-sm);">Sin datos de telemetría para este edificio.</span>';
+                    if (el) el.innerHTML = '<span class="text-secondary text-sm">Sin datos de telemetría para este edificio.</span>';
                 });
             }
         });

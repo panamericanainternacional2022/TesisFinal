@@ -8,22 +8,20 @@
             const container = document.createElement('div');
             container.className = 'custom-modal-container';
 
-            let iconHtml = '<i class="fa-solid fa-triangle-exclamation" style="color: var(--state-warn); font-size: var(--text-xl);"></i>';
+            let iconHtml = '<i class="fa-solid fa-triangle-exclamation custom-modal-icon custom-modal-icon-warn"></i>';
             if (type === 'success') {
-                iconHtml = '<i class="fa-solid fa-circle-check" style="color: var(--state-ok); font-size: var(--text-xl);"></i>';
+                iconHtml = '<i class="fa-solid fa-circle-check custom-modal-icon custom-modal-icon-success"></i>';
             } else if (type === 'error') {
-                iconHtml = '<i class="fa-solid fa-circle-xmark" style="color: var(--state-critical); font-size: var(--text-xl);"></i>';
+                iconHtml = '<i class="fa-solid fa-circle-xmark custom-modal-icon custom-modal-icon-error"></i>';
             }
 
             container.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: var(--sp-2, 16px);">
+                <div class="custom-modal-header">
                     ${iconHtml}
-                    <span style="font-size: var(--text-lg, 1.125rem); font-weight: var(--weight-bold, 700); color: var(--color-ink, #0a0a0a); letter-spacing: var(--tracking-wide, 0.06em);">${title}</span>
+                    <span class="custom-modal-title">${title}</span>
                 </div>
-                <div style="font-size: var(--text-sm, 0.875rem); color: var(--color-text-secondary, #5f5f5f); line-height: var(--leading-normal, 1.5); margin-bottom: var(--sp-3, 24px); word-break: break-word;">
-                    ${message}
-                </div>
-                <div style="display: flex; justify-content: flex-end; gap: var(--sp-2, 16px);">
+                <div class="custom-modal-body">${message}</div>
+                <div class="custom-modal-actions">
                     ${showCancel ? `<button id="customModalCancelBtn" class="btn btn-secondary">Cancelar</button>` : ''}
                     <button id="customModalConfirmBtn" class="btn btn-primary">Aceptar</button>
                 </div>
