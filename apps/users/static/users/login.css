@@ -21,8 +21,7 @@ body {
     width: 100%;
     max-width: 400px;
     background: var(--color-surface);
-    border: 3px solid var(--color-ink);
-    border-top: 6px solid var(--color-ink);
+    border: var(--border-brutal);
     box-shadow: var(--shadow-brutal);
     padding: var(--sp-7) var(--sp-6);
     position: relative;

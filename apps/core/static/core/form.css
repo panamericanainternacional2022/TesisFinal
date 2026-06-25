@@ -1,8 +1,7 @@
 
 .form-card {
     background: var(--color-surface);
-    border: 3px solid var(--color-ink);
-    border-top: 6px solid var(--color-ink);
+    border: var(--border-brutal);
     box-shadow: var(--shadow-brutal);
     border-radius: 0px;
     padding: var(--sp-4);
@@ -22,7 +21,7 @@
     font-size: var(--text-lg);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--sp-1);
 }
 
 .form-card-body {
@@ -80,7 +79,7 @@
 .equipment-grid {
     display: flex;
     gap: 12px;
-    margin-top: 8px;
+    margin-top: var(--sp-1);
 }
 
 .equip-card {
@@ -93,7 +92,7 @@
     border-radius: var(--radius);
     background: var(--color-surface);
     cursor: pointer;
-    box-shadow: var(--shadow-brutal-xs);
+    box-shadow: var(--shadow-brutal);
     transition: all var(--transition-fast);
     user-select: none;
     box-sizing: border-box;
@@ -102,15 +101,15 @@
 .equip-card:hover {
     border-color: var(--color-ink);
     background: var(--color-accent-bg);
-    transform: translate(-2px, -2px);
-    box-shadow: 11px 11px 0px var(--color-ink);
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0px var(--color-ink);
 }
 
 .equip-card.equip-active {
     border-color: var(--color-ink);
     background: var(--color-accent-bg);
-    transform: translate(-2px, -2px);
-    box-shadow: 11px 11px 0px var(--color-ink);
+    transform: translate(-3px, -3px);
+    box-shadow: 6px 6px 0px var(--color-ink);
 }
 
 .equip-label {

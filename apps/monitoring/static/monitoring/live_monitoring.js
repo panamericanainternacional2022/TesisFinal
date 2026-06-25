@@ -317,7 +317,7 @@ function updateCharts(history) {
         const r = getLatestReading(v);
         if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
         if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
-        if (r.risk === _RISK.alto) return '#c2410c';
+        if (r.risk === _RISK.alto) return getCSSVar('--state-high') || '#c2410c';
         if (r.risk === _RISK.medio) return getCSSVar('--state-warn') || '#b45309';
         return getCSSVar('--state-ok') || '#16a34a';
     };
@@ -715,7 +715,7 @@ function updateStatsAndRecs(stats, recs, attempts) {
                     }
                     
                     cardHtml = `
-                        <div class="status-banner" style="background: ${bgColor}; color: ${borderColor}; border-left-color: ${borderColor};">
+                        <div class="status-banner" style="background: ${bgColor}; color: ${borderColor};">
                             <i class="${icon}" style="font-size: var(--text-base);"></i>
                             <span>${rec}${doorNote}</span>
                         </div>
@@ -742,7 +742,6 @@ function renderThresholdsPanel(th) {
 
     function buildCard(k, cfg) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -768,7 +767,7 @@ function renderThresholdsPanel(th) {
         if (cfg.direction === 'higher') {
             dirBadge = '<span style="color:var(--state-critical);font-size:var(--text-xs);" title="Mayor es peor">\u2191</span>';
         } else if (cfg.direction === 'lower') {
-            dirBadge = '<span style="color:#c2410c;font-size:var(--text-xs);" title="Menor es peor">\u2193</span>';
+            dirBadge = '<span style="color:var(--state-high);font-size:var(--text-xs);" title="Menor es peor">\u2193</span>';
         } else {
             dirBadge = '<span style="color:var(--state-inactive);font-size:var(--text-xs);" title="Rango válido">\u27FA</span>';
         }
@@ -783,18 +782,18 @@ function renderThresholdsPanel(th) {
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:#166534;">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:#991b1b;">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:var(--state-ok);">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:var(--state-critical);">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div style="margin-top:2px;font-size:var(--text-2xs);color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:#c2410c;">Alto</strong></div>
+                <div style="margin-top:2px;font-size:var(--text-2xs);color:var(--color-text-secondary);">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
                 <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
         } else {
             div.innerHTML = headerHtml + `
                 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:var(--sp-1);">
-                    <div class="form-group"><label class="form-label" style="color:#166534;">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:#b45309;">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label" style="color:#991b1b;">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:var(--state-ok);">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:var(--state-warn);">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label" style="color:var(--state-critical);">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:4px;display:none;"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
@@ -1027,7 +1026,6 @@ function renderLimitsPanel(ranges) {
 
     function buildLimitCard(k, r) {
         let div = document.createElement('div');
-        div.style.cssText = 'border:2px solid var(--color-ink);padding:var(--sp-1);';
 
         const name = getVariableName(k);
         const unit = getUnit(k);
@@ -1049,7 +1047,7 @@ function renderLimitsPanel(ranges) {
                 ${threshStr ? `<span style="font-size:var(--text-2xs);color:var(--color-text-secondary);" class="crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">
-                <label class="form-label" style="color:var(--color-ink);">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
+                <label class="form-label">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
                 <div class="limit-error-msg" style="color:var(--state-critical);font-size:var(--text-2xs);margin-top:2px;display:none;"></div>
             </div>

@@ -77,23 +77,14 @@
 
     window.showToast = function(message, type) {
         type = type || 'info';
-        let container = document.querySelector('.js-messages-container');
+        let container = document.querySelector('.toast-container');
         if (!container) {
             container = document.createElement('div');
-            container.className = 'js-messages-container';
-            container.style.cssText = 'position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-direction:column;gap:12px;pointer-events:none;max-width:380px;width:calc(100% - 48px);';
+            container.className = 'toast-container';
             document.body.appendChild(container);
         }
-        const styles = {
-            success: 'background-color:var(--state-ok-bg);color:var(--state-ok);border-left:6px solid var(--state-ok);',
-            error:   'background-color:var(--state-critical-bg);color:var(--state-critical);border-left:6px solid var(--state-critical);',
-            warning: 'background-color:var(--state-warn-bg);color:var(--state-warn);border-left:6px solid var(--state-warn);',
-            info:    'background-color:var(--state-inactive-bg);color:var(--state-inactive);border-left:6px solid var(--state-inactive);'
-        };
-        const itemStyle = styles[type] || styles.info;
         const toast = document.createElement('div');
-        toast.className = 'toast-item';
-        toast.style.cssText = 'pointer-events:auto;padding:15px;position:relative;border-radius:0;box-sizing:border-box;border:2px solid var(--color-ink);box-shadow:var(--shadow-brutal-sm);transform:translateX(120%);opacity:0;transition:transform 350ms cubic-bezier(0.4,0,0.2,1),opacity 350ms ease;' + itemStyle;
+        toast.className = 'toast-item toast-' + type;
         const hasClose = type !== 'success';
         toast.innerHTML = (hasClose ? '<button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark"></i></button>' : '')
             + '<div class="toast-body-content" style="' + (hasClose ? 'padding-right:15px;' : 'padding-right:0;') + '">' + message + '</div>';

@@ -58,7 +58,7 @@
     font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     letter-spacing: 0.01em;
-    border-left: 4px solid transparent;
+    border-left: 3px solid transparent;
     transition: all var(--transition-fast);
     white-space: nowrap;
 }
@@ -145,7 +145,7 @@
         justify-content: center;
         padding: 14px;
         border-left: none;
-        border-bottom: 2px solid transparent;
+        border-bottom: 3px solid transparent;
     }
 
     .sidebar-link:hover {

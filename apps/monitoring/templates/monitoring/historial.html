@@ -77,7 +77,7 @@
             {% if notificaciones %}
             <ul class="notif-list">
             {% for notif in notificaciones %}
-            <li class="notif-item hist-item-{{ notif.parsed_data.risk|lower|default:'info' }}">
+            <li class="notif-item">
                 <div class="notif-body">
                     {% if notif.parsed_data.parsed %}
                         <div class="row-center mb-1">

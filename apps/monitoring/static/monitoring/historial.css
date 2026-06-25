@@ -78,7 +78,7 @@
     padding: var(--sp-3);
     border-top: var(--border-brutal);
     display: flex;
-    gap: 8px;
+    gap: var(--sp-1);
     flex-shrink: 0;
 }
 
