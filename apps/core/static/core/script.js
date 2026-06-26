@@ -90,6 +90,7 @@ class CustomSelect {
             if (!item || item.disabled) return;
             e.stopPropagation();
             this._selectItem(item);
+            this.select.dispatchEvent(new Event('change', { bubbles: true }));
             this.close();
         });
 
@@ -116,6 +117,7 @@ class CustomSelect {
                     e.preventDefault();
                     if (currentIndex >= 0 && !this._items[currentIndex].disabled) {
                         this._selectItem(this._items[currentIndex]);
+                        this.select.dispatchEvent(new Event('change', { bubbles: true }));
                         this.close();
                     }
                     return;
@@ -144,7 +146,6 @@ class CustomSelect {
         this.valueEl.textContent = item.textContent;
         this._hiddenInput.value = item.dataset.value;
         this.select.value = item.dataset.value;
-        this.select.dispatchEvent(new Event('change', { bubbles: true }));
         if (this.options.onChange) this.options.onChange(item.dataset.value, item.textContent);
     }
 
@@ -803,16 +804,23 @@ function updateAdminControlsByEquipment(equipTypes) {
     const eqStatic = document.getElementById('manualEquipmentStatic');
     if (!eqSel || !eqStatic) return;
 
+    const eqGroup = eqSel.closest('.form-group');
+
     if (hasPump && hasElev) {
-        _csSetDisplay(eqSel, ''); eqStatic.classList.add('d-none');
+        const cs = _csSelect(eqSel);
+        if (cs?.wrapper) cs.wrapper.style.display = '';
+        eqStatic.classList.add('d-none');
+        if (eqGroup) eqGroup.style.display = '';
     } else if (hasPump) {
-        _csSetDisplay(eqSel, 'none'); eqStatic.classList.remove('d-none');
-        eqStatic.textContent = 'Bomba de agua'; _csSetValue(eqSel, 'pump'); populateManualSensorSelect();
+        if (eqGroup) eqGroup.style.display = 'none';
+        _csSetValue(eqSel, 'pump');
+        populateManualSensorSelect();
     } else if (hasElev) {
-        _csSetDisplay(eqSel, 'none'); eqStatic.classList.remove('d-none');
-        eqStatic.textContent = 'Elevador'; _csSetValue(eqSel, 'elevator'); populateManualSensorSelect();
+        if (eqGroup) eqGroup.style.display = 'none';
+        _csSetValue(eqSel, 'elevator');
+        populateManualSensorSelect();
     } else {
-        _csSetDisplay(eqSel, 'none'); eqStatic.classList.remove('d-none'); eqStatic.textContent = '—';
+        if (eqGroup) eqGroup.style.display = 'none';
     }
 }
 
