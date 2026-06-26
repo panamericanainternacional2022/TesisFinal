@@ -1103,13 +1103,15 @@ function renderThresholdsPanel(th) {
     }
 
     _originalThresholds = JSON.parse(JSON.stringify(th));
-    validateThresholdInputs();
+    validateThresholdInputs('bomba');
+    validateThresholdInputs('elevador');
     updateManualInputType();
 }
 
-function validateThresholdInputs() {
-    const PANEL_IDS = ['thresholdsBombaPanel', 'thresholdsElevadorPanel', 'thresholdsPanel'];
-    const btn = document.getElementById('saveThresholdsBtn');
+function validateThresholdInputs(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['thresholdsBombaPanel'] : ['thresholdsElevadorPanel'];
+    const btn = document.getElementById(bomba ? 'saveThresholdsBombaBtn' : 'saveThresholdsElevadorBtn');
     let hasError = false, hasChanges = false;
     const processed = {};
 
@@ -1185,8 +1187,9 @@ function validateThresholdInputs() {
     if (btn) btn.disabled = hasError || !hasChanges;
 }
 
-async function saveThresholds() {
-    const PANEL_IDS = ['thresholdsBombaPanel', 'thresholdsElevadorPanel', 'thresholdsPanel'];
+async function saveThresholds(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['thresholdsBombaPanel'] : ['thresholdsElevadorPanel'];
     const newTh = { edificio_id: EDIFICIO_ID };
     PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
@@ -1202,7 +1205,7 @@ async function saveThresholds() {
         const resp = await csrfFetch(API.thresholdsUpdate, { method: 'POST', body: JSON.stringify(newTh) });
         const res  = await resp.json();
         if (res.status === 'ok') {
-            window.showToast('Umbrales guardados correctamente.', 'success');
+            window.showToast(bomba ? 'Umbrales de bomba guardados correctamente.' : 'Umbrales de elevador guardados correctamente.', 'success');
             currentThresholds = res.thresholds;
             renderThresholdsPanel(res.thresholds);
             updateManualInputType();
@@ -1254,14 +1257,17 @@ function renderLimitsPanel(ranges) {
     buildLimitSection('limitsBombaPanel',    bombaVars);
     buildLimitSection('limitsElevadorPanel', elevadorVars);
     _originalLimits = JSON.parse(JSON.stringify(ranges));
-    validateLimitInputs();
+    validateLimitInputs('bomba');
+    validateLimitInputs('elevador');
 }
 
-function validateLimitInputs() {
-    const btn = document.getElementById('saveLimitsBtn');
+function validateLimitInputs(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['limitsBombaPanel'] : ['limitsElevadorPanel'];
+    const btn = document.getElementById(bomba ? 'saveLimitsBombaBtn' : 'saveLimitsElevadorBtn');
     let hasError = false, hasChanges = false;
 
-    ['limitsBombaPanel', 'limitsElevadorPanel'].forEach(panelId => {
+    PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
@@ -1293,9 +1299,11 @@ function validateLimitInputs() {
     if (btn) btn.disabled = hasError || !hasChanges;
 }
 
-async function saveLimits() {
+async function saveLimits(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['limitsBombaPanel'] : ['limitsElevadorPanel'];
     const newLimits = { edificio_id: EDIFICIO_ID };
-    ['limitsBombaPanel', 'limitsElevadorPanel'].forEach(panelId => {
+    PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
         if (!panel) return;
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
@@ -1306,7 +1314,7 @@ async function saveLimits() {
         const resp = await csrfFetch(API.limitsUpdate, { method: 'POST', body: JSON.stringify(newLimits) });
         const res  = await resp.json();
         if (res.status === 'ok') {
-            window.showToast('Límites de sensores guardados correctamente.', 'success');
+            window.showToast(bomba ? 'Límites de bomba guardados correctamente.' : 'Límites de elevador guardados correctamente.', 'success');
             _CONFIG.sensor_ranges = res.sensor_ranges;
             _SENSOR_RANGES        = res.sensor_ranges;
             currentThresholds     = res.thresholds || currentThresholds;
@@ -1808,7 +1816,7 @@ async function fetchInitialData() {
     }
 
     // --- Página de umbrales ---
-    if (document.getElementById('saveThresholdsBtn')) {
+    if (document.getElementById('saveThresholdsBombaBtn') || document.getElementById('saveThresholdsElevadorBtn')) {
         try {
             const resp = await fetch(API.thresholds(EDIFICIO_ID));
             if (!resp.ok) throw new Error(resp.statusText);
@@ -1869,22 +1877,24 @@ function setupAdminEvents() {
     });
 
     // --- Panel de umbrales ---
-    const saveThreshBtn       = document.getElementById('saveThresholdsBtn');
-    const threshPanel         = document.getElementById('thresholdsPanel');
-    const threshBombaPanel    = document.getElementById('thresholdsBombaPanel');
-    const threshElevadorPanel = document.getElementById('thresholdsElevadorPanel');
-    if (saveThreshBtn)        saveThreshBtn.addEventListener('click', saveThresholds);
-    if (threshPanel)          threshPanel.addEventListener('input', validateThresholdInputs);
-    if (threshBombaPanel)     threshBombaPanel.addEventListener('input', validateThresholdInputs);
-    if (threshElevadorPanel)  threshElevadorPanel.addEventListener('input', validateThresholdInputs);
+    const saveThreshBombaBtn     = document.getElementById('saveThresholdsBombaBtn');
+    const threshBombaPanel       = document.getElementById('thresholdsBombaPanel');
+    const saveThreshElevadorBtn  = document.getElementById('saveThresholdsElevadorBtn');
+    const threshElevadorPanel    = document.getElementById('thresholdsElevadorPanel');
+    if (saveThreshBombaBtn)      saveThreshBombaBtn.addEventListener('click', () => saveThresholds('bomba'));
+    if (threshBombaPanel)        threshBombaPanel.addEventListener('input', () => validateThresholdInputs('bomba'));
+    if (saveThreshElevadorBtn)   saveThreshElevadorBtn.addEventListener('click', () => saveThresholds('elevador'));
+    if (threshElevadorPanel)     threshElevadorPanel.addEventListener('input', () => validateThresholdInputs('elevador'));
 
     // --- Panel de límites ---
-    const saveLimitsBtn       = document.getElementById('saveLimitsBtn');
-    const limitsBombaPanel    = document.getElementById('limitsBombaPanel');
-    const limitsElevadorPanel = document.getElementById('limitsElevadorPanel');
-    if (saveLimitsBtn)        saveLimitsBtn.addEventListener('click', saveLimits);
-    if (limitsBombaPanel)     limitsBombaPanel.addEventListener('input', validateLimitInputs);
-    if (limitsElevadorPanel)  limitsElevadorPanel.addEventListener('input', validateLimitInputs);
+    const saveLimitsBombaBtn     = document.getElementById('saveLimitsBombaBtn');
+    const limitsBombaPanel       = document.getElementById('limitsBombaPanel');
+    const saveLimitsElevadorBtn  = document.getElementById('saveLimitsElevadorBtn');
+    const limitsElevadorPanel    = document.getElementById('limitsElevadorPanel');
+    if (saveLimitsBombaBtn)      saveLimitsBombaBtn.addEventListener('click', () => saveLimits('bomba'));
+    if (limitsBombaPanel)        limitsBombaPanel.addEventListener('input', () => validateLimitInputs('bomba'));
+    if (saveLimitsElevadorBtn)   saveLimitsElevadorBtn.addEventListener('click', () => saveLimits('elevador'));
+    if (limitsElevadorPanel)     limitsElevadorPanel.addEventListener('input', () => validateLimitInputs('elevador'));
 
     // --- Controles de valor manual (BUG FIX: un solo listener por elemento) ---
     const manualValInput  = document.getElementById('manualValueInput');

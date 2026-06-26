@@ -36,10 +36,9 @@
     </div>
 
     <div id="activeMonitoring" class="d-none">
-        
         <div class="notif-card mt-3">
             <div class="p-3">
-                <div class="thresh-legend mb-3">
+                <div class="thresh-legend mb-0">
                     <span class="thresh-legend-item">
                         <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
@@ -53,26 +52,34 @@
                         Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
                     </span>
                 </div>
+            </div>
+        </div>
 
-                <div class="mb-3">
-                    <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
-                    </div>
-                    <div id="thresholdsBombaPanel" class="thresh-grid"></div>
-                </div>
+        <div class="panel mb-3">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title">
+                    Bomba de agua
+                </h2>
+            </div>
+            <div id="thresholdsBombaPanel" class="thresh-grid"></div>
+            <div class="actions-row mt-3">
+                <button type="button" id="saveThresholdsBombaBtn" class="btn btn-primary">
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales de bomba
+                </button>
+            </div>
+        </div>
 
-                <div>
-                    <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
-                    </div>
-                    <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
-                </div>
-
-                <div class="thresh-footer">
-                    <button type="button" id="saveThresholdsBtn" class="btn btn-primary">
-                        <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
-                    </button>
-                </div>
+        <div class="panel mb-3">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title">
+                    Elevador
+                </h2>
+            </div>
+            <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
+            <div class="actions-row mt-3">
+                <button type="button" id="saveThresholdsElevadorBtn" class="btn btn-primary">
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales de elevador
+                </button>
             </div>
         </div>
     </div>

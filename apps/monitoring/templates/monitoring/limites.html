@@ -38,8 +38,7 @@
     <div id="activeMonitoring" class="d-none">
         <div class="notif-card mt-3">
             <div class="p-3">
-                
-                <div class="thresh-legend mb-3">
+                <div class="thresh-legend mb-0">
                     <span class="thresh-legend-item">
                         <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
                     </span>
@@ -53,26 +52,34 @@
                         Cada número es el <strong>límite</strong> físico máximo permitido
                     </span>
                 </div>
+            </div>
+        </div>
 
-                <div class="mb-3">
-                    <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-oil-can" aria-hidden="true"></i> Bomba de agua
-                    </div>
-                    <div id="limitsBombaPanel" class="thresh-grid"></div>
-                </div>
+        <div class="panel mb-3">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title">
+                    Bomba de agua
+                </h2>
+            </div>
+            <div id="limitsBombaPanel" class="thresh-grid"></div>
+            <div class="actions-row mt-3">
+                <button type="button" id="saveLimitsBombaBtn" class="btn btn-primary">
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites de bomba
+                </button>
+            </div>
+        </div>
 
-                <div>
-                    <div class="panel-subsection-title mb-2">
-                        <i class="fa-solid fa-elevator" aria-hidden="true"></i> Elevador
-                    </div>
-                    <div id="limitsElevadorPanel" class="thresh-grid"></div>
-                </div>
-
-                <div class="thresh-footer">
-                    <button type="button" id="saveLimitsBtn" class="btn btn-primary">
-                        <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
-                    </button>
-                </div>
+        <div class="panel mb-3">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title">
+                    Elevador
+                </h2>
+            </div>
+            <div id="limitsElevadorPanel" class="thresh-grid"></div>
+            <div class="actions-row mt-3">
+                <button type="button" id="saveLimitsElevadorBtn" class="btn btn-primary">
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites de elevador
+                </button>
             </div>
         </div>
     </div>
