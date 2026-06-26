@@ -1243,17 +1243,6 @@ function validateThresholdInputs(scope) {
     updateDirtyState(scope);
 }
 
-function setLoadingState(scope, loading) {
-    if (scope === 'bomba' || scope === 'all') {
-        const btn = document.getElementById('saveThresholdsBombaBtn');
-        if (btn) { btn.classList.toggle('is-loading', loading); btn.disabled = loading; }
-    }
-    if (scope === 'elevador' || scope === 'all') {
-        const btn = document.getElementById('saveThresholdsElevadorBtn');
-        if (btn) { btn.classList.toggle('is-loading', loading); btn.disabled = loading; }
-    }
-}
-
 async function saveThresholds(scope) {
     const bomba = scope === 'bomba';
     const PANEL_IDS = bomba ? ['thresholdsBombaPanel'] : ['thresholdsElevadorPanel'];
@@ -1268,7 +1257,6 @@ async function saveThresholds(scope) {
             newTh[v][l] = parseFloat(inp.value);
         });
     });
-    setLoadingState(scope, true);
     try {
         const resp = await csrfFetch(API.thresholdsUpdate, { method: 'POST', body: JSON.stringify(newTh) });
         const res  = await resp.json();
@@ -1282,8 +1270,6 @@ async function saveThresholds(scope) {
         }
     } catch (_) {
         window.showToast('Error de conexión. Inténtelo de nuevo.', 'error');
-    } finally {
-        setLoadingState(scope, false);
     }
 }
 
