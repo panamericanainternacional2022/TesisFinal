@@ -251,7 +251,7 @@ window.initFormState = function initFormState(form, isEditing) {
         return new Promise((resolve) => {
             const ICON_MAP = {
                 success: '<i class="fa-solid fa-circle-check custom-modal-icon custom-modal-icon-success"></i>',
-                error:   '<i class="fa-solid fa-circle-xmark custom-modal-icon custom-modal-icon-error"></i>',
+                error: '<i class="fa-solid fa-circle-xmark custom-modal-icon custom-modal-icon-error"></i>',
             };
             const iconHtml = ICON_MAP[type] || '<i class="fa-solid fa-triangle-exclamation custom-modal-icon custom-modal-icon-warn"></i>';
 
@@ -409,21 +409,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- Endpoints de API centralizados (elimina URLs hardcodeadas en funciones) ---
 const API = {
-    thresholdsUpdate:   '/api/thresholds/update/',
-    limitsUpdate:       '/api/sensor-limits/update/',
-    manualUpdate:       '/api/manual-update/',
-    toggleAlerts:       '/notifications/toggle-alerts/',
-    toggleEmailAlerts:  '/notifications/toggle-email-alerts/',
+    thresholdsUpdate: '/api/thresholds/update/',
+    limitsUpdate: '/api/sensor-limits/update/',
+    manualUpdate: '/api/manual-update/',
+    toggleAlerts: '/notifications/toggle-alerts/',
+    toggleEmailAlerts: '/notifications/toggle-email-alerts/',
     clearNotifications: '/notifications/clear/',
-    simStatus:     (id) => `/api/sim/${id}/status/`,
-    simPause:      (id) => `/api/sim/${id}/pause/`,
-    simReset:      (id) => `/api/sim/${id}/reset/`,
-    simInjectFault:(id) => `/api/sim/${id}/inject-fault/`,
+    simStatus: (id) => `/api/sim/${id}/status/`,
+    simPause: (id) => `/api/sim/${id}/pause/`,
+    simReset: (id) => `/api/sim/${id}/reset/`,
+    simInjectFault: (id) => `/api/sim/${id}/inject-fault/`,
     simClearFault: (id) => `/api/sim/${id}/clear-fault/`,
-    simSetSpeed:   (id) => `/api/sim/${id}/set-speed/`,
-    status:        (id) => id ? `/api/status/?edificio_id=${id}` : '/api/status/',
-    thresholds:    (id) => `/api/thresholds/?edificio_id=${id}`,
-    sensorLimits:  (id) => `/api/sensor-limits/?edificio_id=${id}`,
+    simSetSpeed: (id) => `/api/sim/${id}/set-speed/`,
+    status: (id) => id ? `/api/status/?edificio_id=${id}` : '/api/status/',
+    thresholds: (id) => `/api/thresholds/?edificio_id=${id}`,
+    sensorLimits: (id) => `/api/sensor-limits/?edificio_id=${id}`,
 };
 
 // --- Carga de configuración desde el DOM ---
@@ -432,18 +432,18 @@ const _CONFIG = (() => {
     return el ? JSON.parse(el.textContent) : {};
 })();
 
-const IS_ADMIN          = window.IS_ADMIN === true;
-const _VAR_NAMES        = _CONFIG.var_names         || {};
-const _UNITS            = _CONFIG.units             || {};
-const _BOMBA_VARS       = _CONFIG.pump_vars         || [];
-const _ELEVADOR_VARS    = _CONFIG.elevator_vars     || [];
-const _RISK             = _CONFIG.risk_labels       || {};
-const _NO_RISK_VARS     = _CONFIG.no_risk_vars      || [];
-const _BOOLEAN_VARS     = _CONFIG.boolean_vars      || [];
-const _ENUM_VARS        = _CONFIG.enum_vars         || [];
-const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values  || {};
-const _VALUE_DISPLAY    = _CONFIG.value_display_es  || {};
-let   _SENSOR_RANGES    = _CONFIG.sensor_ranges     || {};
+const IS_ADMIN = window.IS_ADMIN === true;
+const _VAR_NAMES = _CONFIG.var_names || {};
+const _UNITS = _CONFIG.units || {};
+const _BOMBA_VARS = _CONFIG.pump_vars || [];
+const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
+const _RISK = _CONFIG.risk_labels || {};
+const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
+const _BOOLEAN_VARS = _CONFIG.boolean_vars || [];
+const _ENUM_VARS = _CONFIG.enum_vars || [];
+const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
+const _VALUE_DISPLAY = _CONFIG.value_display_es || {};
+let _SENSOR_RANGES = _CONFIG.sensor_ranges || {};
 
 // Pre-calculadas una sola vez — evita recalcular en cada actualización de gráfico
 const CHART_PUMP_VARS = _BOMBA_VARS.filter(v => v !== 'tank_level');
@@ -452,23 +452,23 @@ const CHART_ELEV_VARS = _ELEVADOR_VARS.filter(
 );
 
 const CSS_CLASSES = {
-    riskCard:    { low: 'risk-low', med: 'risk-med', high: 'risk-high', crit: 'risk-crit' },
+    riskCard: { low: 'risk-low', med: 'risk-med', high: 'risk-high', crit: 'risk-crit' },
     statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-med' },
 };
 
 let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_EDIFICIO_ID || 0;
-let SSE_URL     = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
+let SSE_URL = EDIFICIO_ID ? `/sse/${EDIFICIO_ID}/` : null;
 
 // --- Estado mutable del módulo ---
-let sseSource                = null;
+let sseSource = null;
 let monitorConnectionTimeout = null;
-let currentThresholds        = {};
-let _originalThresholds      = {};
-let _dirtyThresholds         = { bomba: false, elevador: false };
-let currentReadings          = {};
+let currentThresholds = {};
+let _originalThresholds = {};
+let _dirtyThresholds = { bomba: false, elevador: false };
+let currentReadings = {};
 let chart1, chart2;
-let unreadNotificationCount  = 0;
-let alertCountdownInterval   = null;
+let unreadNotificationCount = 0;
+let alertCountdownInterval = null;
 
 
 // =============================================================================
@@ -499,9 +499,9 @@ function translateSensorValue(variable, value) {
 
 function getRiskBadge(risk) {
     if (risk === _RISK.critico) return 'badge-crit';
-    if (risk === _RISK.alto)    return 'badge-high';
-    if (risk === _RISK.medio)   return 'badge-med';
-    if (risk === _RISK.bajo)    return 'badge-low';
+    if (risk === _RISK.alto) return 'badge-high';
+    if (risk === _RISK.medio) return 'badge-med';
+    if (risk === _RISK.bajo) return 'badge-low';
     return 'badge-info';
 }
 
@@ -509,16 +509,16 @@ function getRiskClass(varName, value) {
     if (_BOOLEAN_VARS.includes(varName)) {
         const crit = !!value;
         return {
-            card:  crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
+            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
             badge: `badge-${crit ? 'crit' : 'low'}`,
             label: crit ? _RISK.critico : _RISK.bajo,
         };
     }
     if (_ENUM_VARS.includes(varName)) {
         const risky = _ENUM_RISK_VALUES[varName] || [];
-        const crit  = risky.includes(String(value).toLowerCase());
+        const crit = risky.includes(String(value).toLowerCase());
         return {
-            card:  crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
+            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
             badge: `badge-${crit ? 'crit' : 'low'}`,
             label: crit ? _RISK.critico : _RISK.bajo,
         };
@@ -536,13 +536,13 @@ function getRiskClass(varName, value) {
     } else {
         const { direction: d, low, medium: med, high } = cfg;
         if (d === 'higher') {
-            if (value > high)     { risk = _RISK.critico; cls = 'crit'; }
-            else if (value > med) { risk = _RISK.alto;    cls = 'high'; }
-            else if (value > low) { risk = _RISK.medio;   cls = 'med';  }
+            if (value > high) { risk = _RISK.critico; cls = 'crit'; }
+            else if (value > med) { risk = _RISK.alto; cls = 'high'; }
+            else if (value > low) { risk = _RISK.medio; cls = 'med'; }
         } else {
-            if (value < high)     { risk = _RISK.critico; cls = 'crit'; }
-            else if (value < med) { risk = _RISK.alto;    cls = 'high'; }
-            else if (value < low) { risk = _RISK.medio;   cls = 'med';  }
+            if (value < high) { risk = _RISK.critico; cls = 'crit'; }
+            else if (value < med) { risk = _RISK.alto; cls = 'high'; }
+            else if (value < low) { risk = _RISK.medio; cls = 'med'; }
         }
     }
     return { card: CSS_CLASSES.riskCard[cls] || '', badge: `badge-${cls}`, label: risk };
@@ -557,12 +557,12 @@ const getCSSVar = (name) =>
 // =============================================================================
 
 function renderCard(variable, value, risk, badgeClass, cardClass) {
-    const name         = getVariableName(variable);
+    const name = getVariableName(variable);
     const displayValue = translateSensorValue(variable, value)
         ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
-    const isNoRisk      = _NO_RISK_VARS.includes(variable);
+    const isNoRisk = _NO_RISK_VARS.includes(variable);
     const finalCardClass = isNoRisk ? '' : cardClass;
-    const badgeHtml     = isNoRisk ? '' : `<span class="badge ${badgeClass}">${risk}</span>`;
+    const badgeHtml = isNoRisk ? '' : `<span class="badge ${badgeClass}">${risk}</span>`;
     return `
         <div class="sensor-card ${finalCardClass}">
             <div class="sensor-card-name">${name}</div>
@@ -573,15 +573,15 @@ function renderCard(variable, value, risk, badgeClass, cardClass) {
 }
 
 function updateCards(data) {
-    const bombaContainer    = document.getElementById('bombaCards');
+    const bombaContainer = document.getElementById('bombaCards');
     const elevadorContainer = document.getElementById('elevadorCards');
     if (!bombaContainer || !elevadorContainer) return;
 
     for (const [k, v] of Object.entries(data)) {
-        const ri           = getRiskClass(k, v);
+        const ri = getRiskClass(k, v);
         const displayValue = translateSensorValue(k, v) ?? `${formatNumeric(v, k)} ${getUnit(k)}`;
-        const isNoRisk     = _NO_RISK_VARS.includes(k);
-        const finalClass   = isNoRisk ? '' : ri.card;
+        const isNoRisk = _NO_RISK_VARS.includes(k);
+        const finalClass = isNoRisk ? '' : ri.card;
 
         let card = document.getElementById(`sensor-card-${k}`);
         if (!card) {
@@ -594,7 +594,7 @@ function updateCards(data) {
                 <div class="sensor-card-value">${displayValue}</div>
                 <div class="sensor-card-footer">${badgeHtml}</div>
             `;
-            if (_BOMBA_VARS.includes(k))         bombaContainer.appendChild(card);
+            if (_BOMBA_VARS.includes(k)) bombaContainer.appendChild(card);
             else if (_ELEVADOR_VARS.includes(k)) elevadorContainer.appendChild(card);
         } else {
             card.className = `sensor-card ${finalClass}`;
@@ -633,7 +633,7 @@ function initCharts() {
             tooltip: {
                 callbacks: {
                     label: (ctx) => {
-                        const dataset  = ctx.chart.data.datasets[ctx.datasetIndex];
+                        const dataset = ctx.chart.data.datasets[ctx.datasetIndex];
                         const variable = dataset.variables ? dataset.variables[ctx.dataIndex] : null;
                         const formatted = variable
                             ? formatNumeric(ctx.raw, variable)
@@ -689,17 +689,17 @@ function updateCharts(history) {
     const getLatest = (v) => { const r = getLatestReading(v); return r ? r.value : 0; };
     const getSensorColor = (v) => {
         const r = getLatestReading(v);
-        if (!r)                       return getCSSVar('--color-ink')      || '#0a0a0a';
+        if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
         if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
-        if (r.risk === _RISK.alto)    return getCSSVar('--state-high')     || '#c2410c';
-        if (r.risk === _RISK.medio)   return getCSSVar('--state-warn')     || '#b45309';
+        if (r.risk === _RISK.alto) return getCSSVar('--state-high') || '#c2410c';
+        if (r.risk === _RISK.medio) return getCSSVar('--state-warn') || '#b45309';
         return getCSSVar('--state-ok') || '#16a34a';
     };
 
     const applyToChart = (chartInst, vars) => {
-        chartInst.data.datasets[0].data            = vars.map(getLatest);
+        chartInst.data.datasets[0].data = vars.map(getLatest);
         chartInst.data.datasets[0].backgroundColor = vars.map(getSensorColor);
-        chartInst.data.datasets[0].borderColor     = chartInst.data.datasets[0].backgroundColor;
+        chartInst.data.datasets[0].borderColor = chartInst.data.datasets[0].backgroundColor;
         chartInst.update();
     };
 
@@ -745,7 +745,7 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
     if (!badgeEl || !emptyEl) return;
     if (statusVal) {
         badgeEl.style.display = 'inline-block';
-        badgeEl.textContent   = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
+        badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
         emptyEl.style.display = 'none';
         badgeEl.className = CSS_CLASSES.statusBadge[statusVal] || 'badge badge-low';
     } else {
@@ -755,7 +755,7 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
 }
 
 function updateEquipmentVisibility(equipTypes) {
-    const et      = equipTypes || [];
+    const et = equipTypes || [];
     const hasPump = et.includes('bomba');
     const hasElev = et.includes('elevador');
 
@@ -767,7 +767,7 @@ function updateEquipmentVisibility(equipTypes) {
     toggle(['bombaSection', 'chartPumpPanel', 'statsBombaPanel'], hasPump);
     toggle(['elevadorSection', 'chartElevatorPanel', 'statsElevadorPanel'], hasElev);
 
-    const pumpNI    = document.getElementById('pumpNotInstalled');
+    const pumpNI = document.getElementById('pumpNotInstalled');
     const pumpBadge = document.getElementById('pumpStatusBadge');
     const pumpEmpty = document.getElementById('pumpStatusEmpty');
     if (pumpNI && pumpBadge && pumpEmpty) {
@@ -775,7 +775,7 @@ function updateEquipmentVisibility(equipTypes) {
         else pumpNI.style.display = 'none';
     }
 
-    const elevNI    = document.getElementById('elevatorNotInstalled');
+    const elevNI = document.getElementById('elevatorNotInstalled');
     const elevBadge = document.getElementById('elevatorStatusBadge');
     const elevEmpty = document.getElementById('elevatorStatusEmpty');
     if (elevNI && elevBadge && elevEmpty) {
@@ -786,22 +786,22 @@ function updateEquipmentVisibility(equipTypes) {
 }
 
 // --- Helpers para CustomSelect en controles admin ---
-const _csSelect      = (el) => el?._customSelect ?? null;
-const _csSetValue    = (el, val) => { const cs = _csSelect(el); if (cs) cs.value = String(val); else if (el) el.value = val; };
+const _csSelect = (el) => el?._customSelect ?? null;
+const _csSetValue = (el, val) => { const cs = _csSelect(el); if (cs) cs.value = String(val); else if (el) el.value = val; };
 const _csSetDisabled = (el, disabled) => { const cs = _csSelect(el); if (cs?.trigger) cs.trigger.disabled = disabled; if (el) el.disabled = disabled; };
-const _csSetDisplay  = (el, display) => { const cs = _csSelect(el); if (el) el.style.display = display; if (cs?.wrapper) cs.wrapper.style.display = display; };
+const _csSetDisplay = (el, display) => { const cs = _csSelect(el); if (el) el.style.display = display; if (cs?.wrapper) cs.wrapper.style.display = display; };
 const _csSyncOptions = (el) => { const cs = _csSelect(el); if (cs) cs.updateOptions(Array.from(el.options).map(o => ({ value: o.value, text: o.text }))); };
 
 function updateAdminControlsByEquipment(equipTypes) {
     if (!IS_ADMIN) return;
-    const et      = equipTypes || [];
+    const et = equipTypes || [];
     const hasPump = et.includes('bomba');
     const hasElev = et.includes('elevador');
 
-    _csSetDisabled(document.getElementById('simFaultPump'),     !hasPump);
+    _csSetDisabled(document.getElementById('simFaultPump'), !hasPump);
     _csSetDisabled(document.getElementById('simFaultElevator'), !hasElev);
 
-    const eqSel    = document.getElementById('manualEquipmentSelect');
+    const eqSel = document.getElementById('manualEquipmentSelect');
     const eqStatic = document.getElementById('manualEquipmentStatic');
     if (!eqSel || !eqStatic) return;
 
@@ -829,7 +829,7 @@ function setNotificationBadge(count) {
     const pageBadge = document.getElementById('notificationBadgeCount');
     if (!pageBadge) return;
     if (count > 0) { pageBadge.textContent = count; pageBadge.style.display = 'inline-flex'; pageBadge.hidden = false; }
-    else           { pageBadge.textContent = '';    pageBadge.style.display = 'none';        pageBadge.hidden = true;  }
+    else { pageBadge.textContent = ''; pageBadge.style.display = 'none'; pageBadge.hidden = true; }
 }
 
 
@@ -872,7 +872,7 @@ function connectSSE() {
 
 // Extraída de applyPayload para responsabilidad única
 function _countUnreadAlerts(alertLog) {
-    const EXCLUDED    = [_RISK.info, _RISK.bajo, _RISK.medio];
+    const EXCLUDED = [_RISK.info, _RISK.bajo, _RISK.medio];
     const clearedAtMs = window.ALERTS_CLEARED_AT ? window.ALERTS_CLEARED_AT * 1000 : null;
     return (alertLog || []).filter(a => {
         if (EXCLUDED.includes(a.risk)) return false;
@@ -891,7 +891,7 @@ function applyPayload(data) {
     if (data.current) { currentReadings = data.current; updateCards(data.current); }
     if (data.history) updateCharts(data.history);
 
-    updateStatusBadge('pumpStatusBadge',     'pumpStatusEmpty',     data.pump_status);
+    updateStatusBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
     updateStatusBadge('elevatorStatusBadge', 'elevatorStatusEmpty', data.elevator_status);
 
     const lastUpd = document.getElementById('lastUpdate');
@@ -910,7 +910,7 @@ function applyPayload(data) {
         if (data.sim_speed !== undefined) {
             document.querySelectorAll('[data-speed]').forEach(btn => {
                 const isActive = parseFloat(btn.dataset.speed) === data.sim_speed;
-                btn.classList.toggle('btn-primary',   isActive);
+                btn.classList.toggle('btn-primary', isActive);
                 btn.classList.toggle('btn-secondary', !isActive);
             });
         }
@@ -924,7 +924,7 @@ function applyPayload(data) {
                 ? data.sim_speed
                 : parseFloat(document.querySelector('[data-speed].btn-primary')?.dataset.speed || 1.0);
             simSpd.textContent = isPaused ? 'Pausada' : `${speed.toFixed(1)}x`;
-            simSpd.className   = isPaused ? 'badge badge-med' : 'badge badge-info';
+            simSpd.className = isPaused ? 'badge badge-med' : 'badge badge-info';
         }
     }
 
@@ -935,7 +935,7 @@ function applyPayload(data) {
 
 function updateSummaryValues(data) {
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
-    setVal('summaryPumpStatus',     data.pump_on     ? 'Encendida' : 'Apagada');
+    setVal('summaryPumpStatus', data.pump_on ? 'Encendida' : 'Apagada');
     setVal('summaryElevatorStatus', data.elevator_on ? 'Encendido' : 'Apagado');
 }
 
@@ -965,7 +965,7 @@ function renderStatsTable(entries, containerId, firstColLabel) {
 
 function updateStatsAndRecs(stats, recs, attempts) {
     const entries = stats && Object.keys(stats).length ? Object.entries(stats) : [];
-    renderStatsTable(entries.filter(([k]) => _BOMBA_VARS.includes(k)),    'statsBombaPanel',    'Estadísticas de la bomba');
+    renderStatsTable(entries.filter(([k]) => _BOMBA_VARS.includes(k)), 'statsBombaPanel', 'Estadísticas de la bomba');
     renderStatsTable(entries.filter(([k]) => _ELEVADOR_VARS.includes(k)), 'statsElevadorPanel', 'Estadísticas del elevador');
 
     const recsContent = document.getElementById('recommendationsContent');
@@ -980,10 +980,10 @@ function updateStatsAndRecs(stats, recs, attempts) {
             cardHtml = `<div class="status-banner"><i class="fa-solid fa-circle-check"></i><span>${rec}</span></div>`;
         } else {
             const isCrit = rec.toLowerCase().includes('crític') || rec.toLowerCase().includes('urgente') || rec.toLowerCase().includes('atascado');
-            const bgColor     = isCrit ? 'var(--state-critical-bg)' : 'var(--state-warn-bg)';
-            const borderColor = isCrit ? 'var(--state-critical)'    : 'var(--state-warn)';
-            const icon        = isCrit ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-triangle-exclamation';
-            const doorNote    = (rec.includes('puertas') && typeof attempts === 'number' && attempts > 0)
+            const bgColor = isCrit ? 'var(--state-critical-bg)' : 'var(--state-warn-bg)';
+            const borderColor = isCrit ? 'var(--state-critical)' : 'var(--state-warn)';
+            const icon = isCrit ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-triangle-exclamation';
+            const doorNote = (rec.includes('puertas') && typeof attempts === 'number' && attempts > 0)
                 ? ` (Intentos fallidos: ${attempts})` : '';
             cardHtml = `<div class="status-banner" style="background:${bgColor};color:${borderColor};"><i class="${icon}"></i><span>${rec}${doorNote}</span></div>`;
         }
@@ -1024,35 +1024,35 @@ function _validateThresholdBounds(dir, low, high, bounds, unit) {
     if (outOfRange) return { valid: false, errorText: `Los umbrales deben estar dentro de los límites del sensor (${minBound} - ${maxBound}${unitStr}).`, errorInputs: ['low', 'high'] };
 
     if (dir === 'lower') {
-        if (low > maxBound)  return { valid: false, errorText: `El umbral medio no puede ser mayor al límite físico (${maxBound}${unitStr}).`,  errorInputs: ['low'] };
+        if (low > maxBound) return { valid: false, errorText: `El umbral medio no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['low'] };
         if (high < minBound) return { valid: false, errorText: `El umbral crítico no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['high'] };
     } else if (dir === 'higher') {
-        if (low < minBound)  return { valid: false, errorText: `El umbral medio no puede ser menor al límite físico (${minBound}${unitStr}).`,  errorInputs: ['low'] };
+        if (low < minBound) return { valid: false, errorText: `El umbral medio no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['low'] };
         if (high > maxBound) return { valid: false, errorText: `El umbral crítico no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['high'] };
     } else { // range
-        if (low < minBound)  return { valid: false, errorText: `El mínimo aceptable no puede ser menor al límite físico (${minBound}${unitStr}).`,  errorInputs: ['low'] };
+        if (low < minBound) return { valid: false, errorText: `El mínimo aceptable no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['low'] };
         if (high > maxBound) return { valid: false, errorText: `El máximo aceptable no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['high'] };
     }
     return { valid: true, errorText: '', errorInputs: [] };
 }
 
 function renderThresholdsPanel(th) {
-    const bombaVars    = _BOMBA_VARS.filter(k   => th[k] && !_NO_RISK_VARS.includes(k));
+    const bombaVars = _BOMBA_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
     const elevadorVars = _ELEVADOR_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
-    const otherVars    = Object.keys(th).filter(k =>
+    const otherVars = Object.keys(th).filter(k =>
         !_NO_RISK_VARS.includes(k) && !_BOMBA_VARS.includes(k) && !_ELEVADOR_VARS.includes(k)
     );
 
     function buildCard(k, cfg) {
-        const div     = document.createElement('div');
+        const div = document.createElement('div');
         div.className = 'thresh-card';
-        const name    = getVariableName(k);
-        const unit    = getUnit(k);
-        const bounds  = _SENSOR_RANGES[k];
-        const boundsText = bounds ? `Límite físico: ${bounds[0]} – ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
+        const name = getVariableName(k);
+        const unit = getUnit(k);
+        const bounds = _SENSOR_RANGES[k];
+        const boundsText = bounds ? `Límite: ${bounds[0]} – ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
         const DIR_BADGE = {
             higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191 Mayor es peor</span>',
-            lower:  '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193 Menor es peor</span>',
+            lower: '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193 Menor es peor</span>',
         };
         const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-inactive);" title="Rango válido">\u27FA Rango válido</span>';
         const headerHtml = `<div class="thresh-card-header">
@@ -1114,7 +1114,7 @@ function updateDirtyState(scope) {
     let dirty = false;
     panel.querySelectorAll('input[type="number"]').forEach(inp => {
         const varKey = inp.dataset.var;
-        const lvl    = inp.dataset.level;
+        const lvl = inp.dataset.level;
         if (!varKey || !lvl || lvl === 'direction') return;
         const orig = _originalThresholds[varKey]?.[lvl];
         if (orig !== undefined && parseFloat(inp.value) !== orig) {
@@ -1177,9 +1177,9 @@ function validateThresholdInputs(scope) {
             if (!v || processed[v]) return;
             processed[v] = true;
 
-            const dirInp  = findInp(v, 'direction');
-            const lowInp  = findInp(v, 'low');
-            const medInp  = findInp(v, 'medium');
+            const dirInp = findInp(v, 'direction');
+            const lowInp = findInp(v, 'low');
+            const medInp = findInp(v, 'medium');
             const highInp = findInp(v, 'high');
             const inputMap = { low: lowInp, med: medInp, high: highInp };
 
@@ -1188,9 +1188,9 @@ function validateThresholdInputs(scope) {
             const errorMsgEl = findErrorMsgEl(v);
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
 
-            const dir  = dirInp?.value;
-            const low  = parseFloat(lowInp?.value);
-            const med  = parseFloat(medInp?.value);
+            const dir = dirInp?.value;
+            const low = parseFloat(lowInp?.value);
+            const med = parseFloat(medInp?.value);
             const high = parseFloat(highInp?.value);
 
             let result = _validateThresholdRange(dir, low, med, high);
@@ -1211,7 +1211,7 @@ function validateThresholdInputs(scope) {
         if (!panel) return;
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
             const varKey = inp.dataset.var;
-            const lvl    = inp.dataset.level;
+            const lvl = inp.dataset.level;
             if (!varKey || !lvl || lvl === 'direction') return;
             if (_originalThresholds[varKey]?.[lvl] !== undefined) {
                 if (parseFloat(inp.value) !== _originalThresholds[varKey][lvl]) hasChanges = true;
@@ -1239,7 +1239,7 @@ async function saveThresholds(scope) {
     });
     try {
         const resp = await csrfFetch(API.thresholdsUpdate, { method: 'POST', body: JSON.stringify(newTh) });
-        const res  = await resp.json();
+        const res = await resp.json();
         if (res.status === 'ok') {
             window.showToast(bomba ? 'Umbrales de bomba guardados correctamente.' : 'Umbrales de elevador guardados correctamente.', 'success');
             currentThresholds = res.thresholds;
@@ -1273,7 +1273,7 @@ function resetPanelThresholds(scope) {
         if (!panel) return;
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
             const varKey = inp.dataset.var;
-            const lvl    = inp.dataset.level;
+            const lvl = inp.dataset.level;
             if (!varKey || !lvl || lvl === 'direction') return;
             const orig = _originalThresholds[varKey]?.[lvl];
             if (orig !== undefined) inp.value = orig;
@@ -1292,13 +1292,13 @@ async function resetAllThresholds() {
 let _originalLimits = {};
 
 function renderLimitsPanel(ranges) {
-    const bombaVars    = _BOMBA_VARS.filter(k   => ranges[k] && !_NO_RISK_VARS.includes(k));
+    const bombaVars = _BOMBA_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
     const elevadorVars = _ELEVADOR_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
 
     function buildLimitCard(k, r) {
-        const div    = document.createElement('div');
-        const name   = getVariableName(k);
-        const unit   = getUnit(k);
+        const div = document.createElement('div');
+        const name = getVariableName(k);
+        const unit = getUnit(k);
         const [minVal, maxVal] = r;
         const thresh = currentThresholds[k];
         let threshStr = '';
@@ -1326,7 +1326,7 @@ function renderLimitsPanel(ranges) {
         vars.forEach(k => panel.appendChild(buildLimitCard(k, ranges[k])));
     }
 
-    buildLimitSection('limitsBombaPanel',    bombaVars);
+    buildLimitSection('limitsBombaPanel', bombaVars);
     buildLimitSection('limitsElevadorPanel', elevadorVars);
     _originalLimits = JSON.parse(JSON.stringify(ranges));
     validateLimitInputs('bomba');
@@ -1343,7 +1343,7 @@ function validateLimitInputs(scope) {
         const panel = document.getElementById(panelId);
         if (!panel) return;
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
-            const v   = inp.dataset.var;
+            const v = inp.dataset.var;
             const val = parseFloat(inp.value);
             inp.style.borderColor = '';
             const errorMsgEl = inp.closest('.form-group')?.querySelector('.limit-error-msg');
@@ -1360,7 +1360,7 @@ function validateLimitInputs(scope) {
             if (val <= defaultMin) return showError(`Debe ser mayor que el mínimo (${defaultMin}).`);
             const thresh = currentThresholds[v];
             if (thresh?.high !== undefined && val < thresh.high) {
-                const label   = thresh.direction === 'range' ? 'máximo aceptable' : 'crítico';
+                const label = thresh.direction === 'range' ? 'máximo aceptable' : 'crítico';
                 const unitStr = getUnit(v) ? ` ${getUnit(v)}` : '';
                 return showError(`No puede ser menor al umbral ${label} (${thresh.high}${unitStr}).`);
             }
@@ -1384,12 +1384,12 @@ async function saveLimits(scope) {
     });
     try {
         const resp = await csrfFetch(API.limitsUpdate, { method: 'POST', body: JSON.stringify(newLimits) });
-        const res  = await resp.json();
+        const res = await resp.json();
         if (res.status === 'ok') {
             window.showToast(bomba ? 'Límites de bomba guardados correctamente.' : 'Límites de elevador guardados correctamente.', 'success');
             _CONFIG.sensor_ranges = res.sensor_ranges;
-            _SENSOR_RANGES        = res.sensor_ranges;
-            currentThresholds     = res.thresholds || currentThresholds;
+            _SENSOR_RANGES = res.sensor_ranges;
+            currentThresholds = res.thresholds || currentThresholds;
             renderLimitsPanel(res.sensor_ranges);
             updateManualInputType();
         } else {
@@ -1416,13 +1416,13 @@ function buildThresholdHint(varName) {
 }
 
 function updateManualInputType() {
-    const v      = document.getElementById('manualSensorSelect')?.value;
-    const inp    = document.getElementById('manualValueInput');
-    const sel    = document.getElementById('manualValueSelect');
+    const v = document.getElementById('manualSensorSelect')?.value;
+    const inp = document.getElementById('manualValueInput');
+    const sel = document.getElementById('manualValueSelect');
     if (!v || !inp || !sel) return;
 
     const csWrapper = _csSelect(sel)?.wrapper;
-    const isEnum    = v === 'door_status' || v === 'motor_stuck';
+    const isEnum = v === 'door_status' || v === 'motor_stuck';
 
     inp.style.display = isEnum ? 'none' : 'block';
     if (csWrapper) csWrapper.style.display = isEnum ? 'block' : 'none';
@@ -1457,12 +1457,12 @@ function updateManualInputType() {
 }
 
 function populateManualSensorSelect() {
-    const sel   = document.getElementById('manualSensorSelect');
+    const sel = document.getElementById('manualSensorSelect');
     const eqSel = document.getElementById('manualEquipmentSelect');
     if (!sel || !eqSel) return;
 
     sel.innerHTML = '';
-    const eq   = eqSel.value || 'pump';
+    const eq = eqSel.value || 'pump';
     const vars = eq === 'pump' ? _BOMBA_VARS : _ELEVADOR_VARS;
     const container = sel.closest('.form-group');
 
@@ -1470,8 +1470,8 @@ function populateManualSensorSelect() {
         if (container) container.style.display = 'none';
         if (vars.length === 1) {
             const unit = getUnit(vars[0]);
-            const opt  = document.createElement('option');
-            opt.value       = vars[0];
+            const opt = document.createElement('option');
+            opt.value = vars[0];
             opt.textContent = getVariableName(vars[0]) + (unit && vars[0] !== 'trip_count' ? ` (${unit})` : '');
             sel.appendChild(opt);
             _csSyncOptions(sel);
@@ -1482,8 +1482,8 @@ function populateManualSensorSelect() {
     if (container) container.style.display = '';
     vars.forEach(v => {
         const unit = getUnit(v);
-        const opt  = document.createElement('option');
-        opt.value       = v;
+        const opt = document.createElement('option');
+        opt.value = v;
         opt.textContent = getVariableName(v) + (unit && v !== 'trip_count' ? ` (${unit})` : '');
         sel.appendChild(opt);
     });
@@ -1492,15 +1492,15 @@ function populateManualSensorSelect() {
 }
 
 function updateSensorTypeIndicator() {
-    const v  = document.getElementById('manualSensorSelect')?.value;
+    const v = document.getElementById('manualSensorSelect')?.value;
     const el = document.getElementById('sensorTypeIndicator');
     if (el && v) el.textContent = _BOMBA_VARS.includes(v) ? 'Bomba / Eléctrico' : 'Elevador / Motor';
 }
 
 function updateManualRiskPreview() {
-    const v    = document.getElementById('manualSensorSelect')?.value;
-    const inp  = document.getElementById('manualValueInput');
-    const sel  = document.getElementById('manualValueSelect');
+    const v = document.getElementById('manualSensorSelect')?.value;
+    const inp = document.getElementById('manualValueInput');
+    const sel = document.getElementById('manualValueSelect');
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
@@ -1516,8 +1516,8 @@ function updateManualRiskPreview() {
     }
 
     const isEnum = v === 'door_status' || v === 'motor_stuck';
-    const raw    = isEnum ? sel.value : inp.value;
-    let val      = raw;
+    const raw = isEnum ? sel.value : inp.value;
+    let val = raw;
     if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
     else if (!isEnum) { const n = parseFloat(raw); if (isNaN(n)) return; val = n; }
 
@@ -1527,8 +1527,8 @@ function updateManualRiskPreview() {
 }
 
 function validateManualInput() {
-    const v       = document.getElementById('manualSensorSelect')?.value;
-    const inp     = document.getElementById('manualValueInput');
+    const v = document.getElementById('manualSensorSelect')?.value;
+    const inp = document.getElementById('manualValueInput');
     const sendBtn = document.getElementById('sendManualBtn');
     if (!v) return { hasError: false, empty: true };
 
@@ -1550,19 +1550,19 @@ function validateManualInput() {
             }
         }
     }
-    if (inp)     inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
+    if (inp) inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
     if (sendBtn) sendBtn.disabled = empty || hasError;
     return { hasError, errorText, empty };
 }
 
 async function sendManualValue() {
-    const v   = document.getElementById('manualSensorSelect')?.value;
+    const v = document.getElementById('manualSensorSelect')?.value;
     const inp = document.getElementById('manualValueInput');
     const sel = document.getElementById('manualValueSelect');
     if (!v) return;
 
     const isEnum = v === 'door_status' || v === 'motor_stuck';
-    const raw    = isEnum ? sel.value : inp.value;
+    const raw = isEnum ? sel.value : inp.value;
     if (raw === undefined || raw === '') { window.showToast('Complete todos los campos.', 'error'); return; }
 
     let val = raw;
@@ -1579,7 +1579,7 @@ async function sendManualValue() {
     }
     try {
         const resp = await csrfFetch(API.manualUpdate, { method: 'POST', body: JSON.stringify({ variable: v, value: val, edificio_id: EDIFICIO_ID }) });
-        const res  = await resp.json();
+        const res = await resp.json();
         if (res.status === 'ok') window.showToast('Valor enviado correctamente.', 'success');
         else window.showToast(res.message || 'No se pudo aplicar el valor.', 'error');
     } catch (_) { window.showToast('Error de conexión. Inténtelo de nuevo.', 'error'); }
@@ -1618,7 +1618,7 @@ async function resetSim() {
         if (data.status === 'ok') {
             setSimMessage(data.message, 'success');
             updatePauseBtn(false);
-            _csSetValue(document.getElementById('simFaultPump'),     '');
+            _csSetValue(document.getElementById('simFaultPump'), '');
             _csSetValue(document.getElementById('simFaultElevator'), '');
         } else { setSimMessage(data.message, 'error'); }
     } catch (_) { setSimMessage('Error al reiniciar la simulación.', 'error'); }
@@ -1627,7 +1627,7 @@ async function resetSim() {
 async function injectFault(device) {
     if (!EDIFICIO_ID) return;
     const faultType = document.getElementById(device === 'pump' ? 'simFaultPump' : 'simFaultElevator')?.value;
-    const url  = faultType ? API.simInjectFault(EDIFICIO_ID) : API.simClearFault(EDIFICIO_ID);
+    const url = faultType ? API.simInjectFault(EDIFICIO_ID) : API.simClearFault(EDIFICIO_ID);
     const body = faultType
         ? JSON.stringify({ device, fault_type: faultType })
         : JSON.stringify({ device });
@@ -1642,7 +1642,7 @@ async function setSpeed(speed) {
     if (!EDIFICIO_ID) return;
     document.querySelectorAll('[data-speed]').forEach(btn => {
         const isActive = parseFloat(btn.dataset.speed) === speed;
-        btn.classList.toggle('btn-primary',   isActive);
+        btn.classList.toggle('btn-primary', isActive);
         btn.classList.toggle('btn-secondary', !isActive);
     });
     try { await csrfFetch(API.simSetSpeed(EDIFICIO_ID), { method: 'POST', body: JSON.stringify({ speed }) }); }
@@ -1704,13 +1704,13 @@ function addLiveNotificationEvent(data) {
     const li = document.createElement('li');
     li.className = 'notif-item';
 
-    const BADGE_MAP   = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'MEDIO': 'sensor-warning', 'BAJO': 'sensor-active' };
-    const badgeClass  = BADGE_MAP[data.risk] || 'sensor-info';
-    const valueStr    = String(data.value);
-    const unit        = getUnit(data.variable);
+    const BADGE_MAP = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'MEDIO': 'sensor-warning', 'BAJO': 'sensor-active' };
+    const badgeClass = BADGE_MAP[data.risk] || 'sensor-info';
+    const valueStr = String(data.value);
+    const unit = getUnit(data.variable);
     const SKIP_VALUES = new Set(['true', 'True', 'false', 'False', 'undefined', 'null']);
     const showValueBox = !SKIP_VALUES.has(valueStr) && valueStr.trim() !== '';
-    const valueHtml   = showValueBox
+    const valueHtml = showValueBox
         ? `<span class="code-badge">${formatNumeric(data.value, data.variable)}${unit ? ' ' + unit : ''}</span>`
         : '';
 
@@ -1735,10 +1735,10 @@ function addLiveNotificationEvent(data) {
 function showDurationPicker() {
     return new Promise((resolve) => {
         const durations = [
-            { label: '5 min',   value: 5 },
-            { label: '10 min',  value: 10 },
-            { label: '30 min',  value: 30 },
-            { label: '1 hora',  value: 60 },
+            { label: '5 min', value: 5 },
+            { label: '10 min', value: 10 },
+            { label: '30 min', value: 30 },
+            { label: '1 hora', value: 60 },
             { label: '3 horas', value: 180 },
             { label: 'Siempre', value: null },
         ];
@@ -1930,8 +1930,8 @@ function setupAdminEvents() {
     const faultPump = document.getElementById('simFaultPump');
     const faultElev = document.getElementById('simFaultElevator');
 
-    if (pauseBtn)  pauseBtn.addEventListener('click', togglePause);
-    if (resetBtn)  resetBtn.addEventListener('click', resetSim);
+    if (pauseBtn) pauseBtn.addEventListener('click', togglePause);
+    if (resetBtn) resetBtn.addEventListener('click', resetSim);
     if (faultPump) faultPump.addEventListener('change', () => injectFault('pump'));
     if (faultElev) faultElev.addEventListener('change', () => injectFault('elevator'));
 
@@ -1942,39 +1942,39 @@ function setupAdminEvents() {
     });
 
     // --- Panel de umbrales ---
-    const saveThreshBombaBtn     = document.getElementById('saveThresholdsBombaBtn');
-    const threshBombaPanel       = document.getElementById('thresholdsBombaPanel');
-    const saveThreshElevadorBtn  = document.getElementById('saveThresholdsElevadorBtn');
-    const threshElevadorPanel    = document.getElementById('thresholdsElevadorPanel');
-    const resetAllBtn            = document.getElementById('resetAllThresholdsBtn');
-    const resetBombaBtn          = document.querySelector('.reset-panel-btn[data-panel="bomba"]');
-    const resetElevadorBtn       = document.querySelector('.reset-panel-btn[data-panel="elevador"]');
-    if (saveThreshBombaBtn)      saveThreshBombaBtn.addEventListener('click', () => saveThresholds('bomba'));
-    if (threshBombaPanel)        threshBombaPanel.addEventListener('input', () => validateThresholdInputs('bomba'));
-    if (saveThreshElevadorBtn)   saveThreshElevadorBtn.addEventListener('click', () => saveThresholds('elevador'));
-    if (threshElevadorPanel)     threshElevadorPanel.addEventListener('input', () => validateThresholdInputs('elevador'));
-    if (resetAllBtn)             resetAllBtn.addEventListener('click', resetAllThresholds);
-    if (resetBombaBtn)           resetBombaBtn.addEventListener('click', () => resetPanelThresholds('bomba'));
-    if (resetElevadorBtn)        resetElevadorBtn.addEventListener('click', () => resetPanelThresholds('elevador'));
+    const saveThreshBombaBtn = document.getElementById('saveThresholdsBombaBtn');
+    const threshBombaPanel = document.getElementById('thresholdsBombaPanel');
+    const saveThreshElevadorBtn = document.getElementById('saveThresholdsElevadorBtn');
+    const threshElevadorPanel = document.getElementById('thresholdsElevadorPanel');
+    const resetAllBtn = document.getElementById('resetAllThresholdsBtn');
+    const resetBombaBtn = document.querySelector('.reset-panel-btn[data-panel="bomba"]');
+    const resetElevadorBtn = document.querySelector('.reset-panel-btn[data-panel="elevador"]');
+    if (saveThreshBombaBtn) saveThreshBombaBtn.addEventListener('click', () => saveThresholds('bomba'));
+    if (threshBombaPanel) threshBombaPanel.addEventListener('input', () => validateThresholdInputs('bomba'));
+    if (saveThreshElevadorBtn) saveThreshElevadorBtn.addEventListener('click', () => saveThresholds('elevador'));
+    if (threshElevadorPanel) threshElevadorPanel.addEventListener('input', () => validateThresholdInputs('elevador'));
+    if (resetAllBtn) resetAllBtn.addEventListener('click', resetAllThresholds);
+    if (resetBombaBtn) resetBombaBtn.addEventListener('click', () => resetPanelThresholds('bomba'));
+    if (resetElevadorBtn) resetElevadorBtn.addEventListener('click', () => resetPanelThresholds('elevador'));
 
     // --- Panel de límites ---
-    const saveLimitsBombaBtn     = document.getElementById('saveLimitsBombaBtn');
-    const limitsBombaPanel       = document.getElementById('limitsBombaPanel');
-    const saveLimitsElevadorBtn  = document.getElementById('saveLimitsElevadorBtn');
-    const limitsElevadorPanel    = document.getElementById('limitsElevadorPanel');
-    if (saveLimitsBombaBtn)      saveLimitsBombaBtn.addEventListener('click', () => saveLimits('bomba'));
-    if (limitsBombaPanel)        limitsBombaPanel.addEventListener('input', () => validateLimitInputs('bomba'));
-    if (saveLimitsElevadorBtn)   saveLimitsElevadorBtn.addEventListener('click', () => saveLimits('elevador'));
-    if (limitsElevadorPanel)     limitsElevadorPanel.addEventListener('input', () => validateLimitInputs('elevador'));
+    const saveLimitsBombaBtn = document.getElementById('saveLimitsBombaBtn');
+    const limitsBombaPanel = document.getElementById('limitsBombaPanel');
+    const saveLimitsElevadorBtn = document.getElementById('saveLimitsElevadorBtn');
+    const limitsElevadorPanel = document.getElementById('limitsElevadorPanel');
+    if (saveLimitsBombaBtn) saveLimitsBombaBtn.addEventListener('click', () => saveLimits('bomba'));
+    if (limitsBombaPanel) limitsBombaPanel.addEventListener('input', () => validateLimitInputs('bomba'));
+    if (saveLimitsElevadorBtn) saveLimitsElevadorBtn.addEventListener('click', () => saveLimits('elevador'));
+    if (limitsElevadorPanel) limitsElevadorPanel.addEventListener('input', () => validateLimitInputs('elevador'));
 
     // --- Controles de valor manual (BUG FIX: un solo listener por elemento) ---
-    const manualValInput  = document.getElementById('manualValueInput');
+    const manualValInput = document.getElementById('manualValueInput');
     const manualValSelect = document.getElementById('manualValueSelect');
     const manualSensorSel = document.getElementById('manualSensorSelect');
-    const manualEquipSel  = document.getElementById('manualEquipmentSelect');
-    const sendManualBtn   = document.getElementById('sendManualBtn');
+    const manualEquipSel = document.getElementById('manualEquipmentSelect');
+    const sendManualBtn = document.getElementById('sendManualBtn');
 
-    if (manualValInput)  manualValInput.addEventListener('input', _onManualChange);
+    if (manualValInput) manualValInput.addEventListener('input', _onManualChange);
     if (manualValSelect) manualValSelect.addEventListener('change', _onManualChange);
     if (manualSensorSel) {
         manualSensorSel.addEventListener('change', () => {
@@ -1998,10 +1998,10 @@ function setupAdminEvents() {
         updatePauseBtn(data.paused);
         document.querySelectorAll('[data-speed]').forEach(btn => {
             const isActive = parseFloat(btn.dataset.speed) === data.speed;
-            btn.classList.toggle('btn-primary',   isActive);
+            btn.classList.toggle('btn-primary', isActive);
             btn.classList.toggle('btn-secondary', !isActive);
         });
-        _csSetValue(document.getElementById('simFaultPump'),     data.faults?.pump     || '');
+        _csSetValue(document.getElementById('simFaultPump'), data.faults?.pump || '');
         _csSetValue(document.getElementById('simFaultElevator'), data.faults?.elevator || '');
     });
 
@@ -2067,7 +2067,7 @@ window.addEventListener('DOMContentLoaded', () => {
         if (toggleBtn) {
             toggleBtn.disabled = false;
             toggleBtn.classList.remove('is-hidden');
-            const sessionEnabled  = toggleBtn.dataset.enabled === 'true';
+            const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
                 toggleBtn.className = 'btn btn-primary';
@@ -2118,22 +2118,22 @@ function initFormValidation() {
 
     // Expresiones regulares centralizadas
     const REGEX = {
-        soloLetras:  /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/,
+        soloLetras: /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]*$/,
         soloDigitos: /^\d*$/,
-        rif:         /^J\d{7,9}\d$/,
-        cedula:      /^[VE]\d{6,9}$/,
-        email:       /^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$/,
-        password:    /(?=.*[a-zA-Z])(?=.*\d)/,
+        rif: /^J\d{7,9}\d$/,
+        cedula: /^[VE]\d{6,9}$/,
+        email: /^[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)*@[a-zA-Z0-9]+(\.[a-zA-Z0-9]+)+$/,
+        password: /(?=.*[a-zA-Z])(?=.*\d)/,
     };
 
     // Configuración de teclas permitidas por tipo de validación
     const KEYPRESS_CONFIG = {
-        'solo-letras':  { regex: /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/,    useUpper: false, allowDelete: false },
-        'solo-numeros': { regex: /^\d$/,                              useUpper: false, allowDelete: true  },
-        'username':     { regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]$/,      useUpper: false, allowDelete: false },
-        'email':        { regex: /^[a-zA-Z0-9.@]$/,                  useUpper: false, allowDelete: false },
-        'rif':          { regex: /^[J\d\-]$/,                        useUpper: true,  allowDelete: false },
-        'cedula':       { regex: /^[VE\d.\-]$/,                      useUpper: true,  allowDelete: false },
+        'solo-letras': { regex: /^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]$/, useUpper: false, allowDelete: false },
+        'solo-numeros': { regex: /^\d$/, useUpper: false, allowDelete: true },
+        'username': { regex: /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]$/, useUpper: false, allowDelete: false },
+        'email': { regex: /^[a-zA-Z0-9.@]$/, useUpper: false, allowDelete: false },
+        'rif': { regex: /^[J\d\-]$/, useUpper: true, allowDelete: false },
+        'cedula': { regex: /^[VE\d.\-]$/, useUpper: true, allowDelete: false },
     };
 
     // --- Utilidades de error ---
@@ -2165,7 +2165,7 @@ function initFormValidation() {
 
     // --- Validadores individuales ---
     const validarSoloLetras = (input) => {
-        const valor  = input.value;
+        const valor = input.value;
         const maximo = input.maxLength > 0 ? input.maxLength : 999;
         const minimo = input.id === 'nombreEdificio' ? 3 : 2;
         if (valor && !REGEX.soloLetras.test(valor)) {
@@ -2182,7 +2182,7 @@ function initFormValidation() {
     };
 
     const validarSoloNumeros = (input) => {
-        const valor  = input.value;
+        const valor = input.value;
         const maximo = input.maxLength > 0 ? input.maxLength : 999;
         const minimo = input.id === 'cedula' ? 6 : 1;
         if (valor && !REGEX.soloDigitos.test(valor)) {
@@ -2271,14 +2271,14 @@ function initFormValidation() {
     };
 
     const VALIDATORS = {
-        'solo-letras':      validarSoloLetras,
-        'solo-numeros':     validarSoloNumeros,
-        'rif':              validarRIF,
-        'cedula':           validarCedula,
-        'email':            validarEmail,
-        'password':         validarPassword,
+        'solo-letras': validarSoloLetras,
+        'solo-numeros': validarSoloNumeros,
+        'rif': validarRIF,
+        'cedula': validarCedula,
+        'email': validarEmail,
+        'password': validarPassword,
         'confirm-password': validarConfirmPassword,
-        'username':         validarUsername,
+        'username': validarUsername,
     };
 
     // --- Registro de listeners ---
@@ -2299,7 +2299,7 @@ function initFormValidation() {
         input.addEventListener('keypress', (e) => {
             const cfg = KEYPRESS_CONFIG[tipo];
             if (!cfg) return;
-            const key     = cfg.useUpper ? e.key.toUpperCase() : e.key;
+            const key = cfg.useUpper ? e.key.toUpperCase() : e.key;
             const allowed = cfg.regex.test(key) || e.key === 'Backspace' || e.key === 'Tab' || (cfg.allowDelete && e.key === 'Delete');
             if (!allowed) e.preventDefault();
         });
