@@ -1036,23 +1036,6 @@ function _validateThresholdBounds(dir, low, high, bounds, unit) {
     return { valid: true, errorText: '', errorInputs: [] };
 }
 
-function computeRiskLevel(cfg) {
-    if (!cfg) return 'ok';
-    const { direction, low, medium: med, high } = cfg;
-    if (direction === 'range') return 'ok';
-    if (direction === 'higher') {
-        if (high >= 100 || med >= 85) return 'crit';
-        if (med >= 70 || low >= 60) return 'warn';
-        return 'ok';
-    }
-    if (direction === 'lower') {
-        if (high <= 2 || med <= 5) return 'crit';
-        if (med <= 8 || low <= 10) return 'warn';
-        return 'ok';
-    }
-    return 'ok';
-}
-
 function renderThresholdsPanel(th) {
     const bombaVars    = _BOMBA_VARS.filter(k   => th[k] && !_NO_RISK_VARS.includes(k));
     const elevadorVars = _ELEVADOR_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
@@ -1066,9 +1049,6 @@ function renderThresholdsPanel(th) {
         const name    = getVariableName(k);
         const unit    = getUnit(k);
         const bounds  = _SENSOR_RANGES[k];
-        const risk    = computeRiskLevel(cfg);
-        div.classList.add('risk-' + risk);
-
         const boundsText = bounds ? `Límite físico: ${bounds[0]} – ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
         const DIR_BADGE = {
             higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191 Mayor es peor</span>',
