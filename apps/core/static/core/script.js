@@ -1083,8 +1083,8 @@ function renderThresholdsPanel(th) {
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-2">
-                    <div class="form-group"><label class="form-label thresh-label-ok">M\u00EDn aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label thresh-label-crit">M\u00E1x aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">M\u00EDn aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">M\u00E1x aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-hint" style="margin-top:2px;">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
                 <div class="thresh-error-msg"></div>
@@ -1093,9 +1093,9 @@ function renderThresholdsPanel(th) {
         } else {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-3">
-                    <div class="form-group"><label class="form-label thresh-label-ok">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label thresh-label-warn">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label thresh-label-crit">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">

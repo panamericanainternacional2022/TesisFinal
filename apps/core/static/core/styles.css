@@ -1112,24 +1112,21 @@ button {
 
 .risk-high,
 .sensor-high,
-.badge-high,
-.thresh-label-warn {
+.badge-high {
     background: var(--state-high-bg);
     color: var(--state-high);
 }
 
 .risk-crit,
 .sensor-critical,
-.badge-crit,
-.thresh-label-crit {
+.badge-crit {
     background: var(--state-critical-bg);
     color: var(--state-critical);
 }
 
 .risk-info,
 .sensor-info,
-.badge-info,
-.thresh-label-ok {
+.badge-info {
     background: var(--state-inactive-bg);
     color: var(--state-inactive);
 }
