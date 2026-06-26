@@ -2301,3 +2301,41 @@ button {
 .max-w-420 {
     max-width: 420px;
 }
+
+
+/* ============================================================
+   22. CLASES GENERADAS POR JS
+   ============================================================ */
+
+/* ─── Notificaciones live: variantes de riesgo por nivel ─── */
+/* Aplicadas como modificador sobre .notif-item en la lista live */
+.hist-item-critico {
+    border-left: 4px solid var(--state-critical);
+    background: var(--state-critical-bg);
+}
+
+.hist-item-alto {
+    border-left: 4px solid var(--state-high);
+    background: var(--state-high-bg);
+}
+
+.hist-item-medio {
+    border-left: 4px solid var(--state-warn);
+    background: var(--state-warn-bg);
+}
+
+.hist-item-bajo {
+    border-left: 4px solid var(--state-ok);
+    background: var(--state-ok-bg);
+}
+
+.hist-item-info {
+    border-left: 4px solid var(--state-inactive);
+    background: var(--state-inactive-bg);
+}
+
+/* ─── Umbral crítico: hint resaltado dentro de tarjeta de umbral ─── */
+.thresh-hint.crit-threshold-hint {
+    color: var(--state-critical);
+    font-weight: var(--weight-bold);
+}
