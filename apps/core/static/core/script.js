@@ -464,6 +464,7 @@ let sseSource                = null;
 let monitorConnectionTimeout = null;
 let currentThresholds        = {};
 let _originalThresholds      = {};
+let _dirtyThresholds         = { bomba: false, elevador: false };
 let currentReadings          = {};
 let chart1, chart2;
 let unreadNotificationCount  = 0;
@@ -1035,6 +1036,23 @@ function _validateThresholdBounds(dir, low, high, bounds, unit) {
     return { valid: true, errorText: '', errorInputs: [] };
 }
 
+function computeRiskLevel(cfg) {
+    if (!cfg) return 'ok';
+    const { direction, low, medium: med, high } = cfg;
+    if (direction === 'range') return 'ok';
+    if (direction === 'higher') {
+        if (high >= 100 || med >= 85) return 'crit';
+        if (med >= 70 || low >= 60) return 'warn';
+        return 'ok';
+    }
+    if (direction === 'lower') {
+        if (high <= 2 || med <= 5) return 'crit';
+        if (med <= 8 || low <= 10) return 'warn';
+        return 'ok';
+    }
+    return 'ok';
+}
+
 function renderThresholdsPanel(th) {
     const bombaVars    = _BOMBA_VARS.filter(k   => th[k] && !_NO_RISK_VARS.includes(k));
     const elevadorVars = _ELEVADOR_VARS.filter(k => th[k] && !_NO_RISK_VARS.includes(k));
@@ -1044,29 +1062,34 @@ function renderThresholdsPanel(th) {
 
     function buildCard(k, cfg) {
         const div     = document.createElement('div');
+        div.className = 'thresh-card';
         const name    = getVariableName(k);
         const unit    = getUnit(k);
         const bounds  = _SENSOR_RANGES[k];
-        const rightText = bounds ? `Límite: ${bounds[0]} - ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
+        const risk    = computeRiskLevel(cfg);
+        div.classList.add('risk-' + risk);
+
+        const boundsText = bounds ? `Límite físico: ${bounds[0]} – ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
         const DIR_BADGE = {
-            higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191</span>',
-            lower:  '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193</span>',
+            higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191 Mayor es peor</span>',
+            lower:  '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193 Menor es peor</span>',
         };
-        const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-inactive);" title="Rango válido">\u27FA</span>';
+        const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-inactive);" title="Rango válido">\u27FA Rango válido</span>';
         const headerHtml = `<div class="thresh-card-header">
-            <span class="thresh-label">${name}${unit && k !== 'trip_count' ? ` (${unit})` : ''} ${dirBadge}</span>
-            ${rightText ? `<span class="thresh-hint">${rightText}</span>` : ''}
+            <span class="thresh-label">${name}${unit && k !== 'trip_count' ? ` (${unit})` : ''}</span>
+            ${dirBadge}
         </div>`;
 
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-2">
-                    <div class="form-group"><label class="form-label thresh-label-ok">Mín aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label thresh-label-crit">Máx aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label thresh-label-ok">M\u00EDn aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label thresh-label-crit">M\u00E1x aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-hint" style="margin-top:2px;">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
                 <div class="thresh-error-msg"></div>
-                <input type="hidden" data-var="${k}" data-level="direction" value="range">`;
+                <input type="hidden" data-var="${k}" data-level="direction" value="range">
+                <div class="thresh-card-footer"><span>${boundsText}</span></div>`;
         } else {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-3">
@@ -1075,7 +1098,8 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label thresh-label-crit">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg"></div>
-                <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">`;
+                <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">
+                <div class="thresh-card-footer"><span>${boundsText}</span></div>`;
         }
         return div;
     }
@@ -1095,9 +1119,48 @@ function renderThresholdsPanel(th) {
     }
 
     _originalThresholds = JSON.parse(JSON.stringify(th));
+    _dirtyThresholds = { bomba: false, elevador: false };
+    updateGlobalDirtyBadge();
     validateThresholdInputs('bomba');
     validateThresholdInputs('elevador');
     updateManualInputType();
+}
+
+function updateDirtyState(scope) {
+    const bomba = scope === 'bomba';
+    const panelId = bomba ? 'thresholdsBombaPanel' : 'thresholdsElevadorPanel';
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    let dirty = false;
+    panel.querySelectorAll('input[type="number"]').forEach(inp => {
+        const varKey = inp.dataset.var;
+        const lvl    = inp.dataset.level;
+        if (!varKey || !lvl || lvl === 'direction') return;
+        const orig = _originalThresholds[varKey]?.[lvl];
+        if (orig !== undefined && parseFloat(inp.value) !== orig) {
+            inp.classList.add('is-dirty');
+            inp.title = `Valor original: ${orig}${getUnit(varKey) ? ' ' + getUnit(varKey) : ''}`;
+            dirty = true;
+        } else {
+            inp.classList.remove('is-dirty');
+            inp.title = '';
+        }
+    });
+    _dirtyThresholds[scope] = dirty;
+    updateGlobalDirtyBadge();
+}
+
+function updateGlobalDirtyBadge() {
+    const badge = document.getElementById('globalDirtyBadge');
+    const totalDirty = Object.values(_dirtyThresholds).filter(Boolean).length;
+    if (badge) {
+        if (!totalDirty) {
+            badge.classList.add('d-none');
+        } else {
+            badge.classList.remove('d-none');
+            badge.textContent = `${totalDirty} panel(es) con cambios`;
+        }
+    }
 }
 
 function validateThresholdInputs(scope) {
@@ -1177,6 +1240,18 @@ function validateThresholdInputs(scope) {
     });
 
     if (btn) btn.disabled = hasError || !hasChanges;
+    updateDirtyState(scope);
+}
+
+function setLoadingState(scope, loading) {
+    if (scope === 'bomba' || scope === 'all') {
+        const btn = document.getElementById('saveThresholdsBombaBtn');
+        if (btn) { btn.classList.toggle('is-loading', loading); btn.disabled = loading; }
+    }
+    if (scope === 'elevador' || scope === 'all') {
+        const btn = document.getElementById('saveThresholdsElevadorBtn');
+        if (btn) { btn.classList.toggle('is-loading', loading); btn.disabled = loading; }
+    }
 }
 
 async function saveThresholds(scope) {
@@ -1193,6 +1268,7 @@ async function saveThresholds(scope) {
             newTh[v][l] = parseFloat(inp.value);
         });
     });
+    setLoadingState(scope, true);
     try {
         const resp = await csrfFetch(API.thresholdsUpdate, { method: 'POST', body: JSON.stringify(newTh) });
         const res  = await resp.json();
@@ -1206,7 +1282,45 @@ async function saveThresholds(scope) {
         }
     } catch (_) {
         window.showToast('Error de conexión. Inténtelo de nuevo.', 'error');
+    } finally {
+        setLoadingState(scope, false);
     }
+}
+
+function renderSkeletonCards(containerId) {
+    const panel = document.getElementById(containerId);
+    if (!panel) return;
+    panel.innerHTML = '';
+    for (let i = 0; i < 4; i++) {
+        const card = document.createElement('div');
+        card.className = 'skeleton-card';
+        card.innerHTML = '<div class="skeleton-line short"></div><div class="skeleton-block"></div><div class="skeleton-block"></div>';
+        panel.appendChild(card);
+    }
+}
+
+function resetPanelThresholds(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['thresholdsBombaPanel'] : ['thresholdsElevadorPanel'];
+    PANEL_IDS.forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const varKey = inp.dataset.var;
+            const lvl    = inp.dataset.level;
+            if (!varKey || !lvl || lvl === 'direction') return;
+            const orig = _originalThresholds[varKey]?.[lvl];
+            if (orig !== undefined) inp.value = orig;
+        });
+    });
+    validateThresholdInputs(scope);
+}
+
+async function resetAllThresholds() {
+    if (!await window.showConfirm('¿Restablecer todos los umbrales a sus valores originales (último guardado)?')) return;
+    resetPanelThresholds('bomba');
+    resetPanelThresholds('elevador');
+    window.showToast('Umbrales restablecidos a los valores guardados.', 'success');
 }
 
 let _originalLimits = {};
@@ -1866,10 +1980,16 @@ function setupAdminEvents() {
     const threshBombaPanel       = document.getElementById('thresholdsBombaPanel');
     const saveThreshElevadorBtn  = document.getElementById('saveThresholdsElevadorBtn');
     const threshElevadorPanel    = document.getElementById('thresholdsElevadorPanel');
+    const resetAllBtn            = document.getElementById('resetAllThresholdsBtn');
+    const resetBombaBtn          = document.querySelector('.reset-panel-btn[data-panel="bomba"]');
+    const resetElevadorBtn       = document.querySelector('.reset-panel-btn[data-panel="elevador"]');
     if (saveThreshBombaBtn)      saveThreshBombaBtn.addEventListener('click', () => saveThresholds('bomba'));
     if (threshBombaPanel)        threshBombaPanel.addEventListener('input', () => validateThresholdInputs('bomba'));
     if (saveThreshElevadorBtn)   saveThreshElevadorBtn.addEventListener('click', () => saveThresholds('elevador'));
     if (threshElevadorPanel)     threshElevadorPanel.addEventListener('input', () => validateThresholdInputs('elevador'));
+    if (resetAllBtn)             resetAllBtn.addEventListener('click', resetAllThresholds);
+    if (resetBombaBtn)           resetBombaBtn.addEventListener('click', () => resetPanelThresholds('bomba'));
+    if (resetElevadorBtn)        resetElevadorBtn.addEventListener('click', () => resetPanelThresholds('elevador'));
 
     // --- Panel de límites ---
     const saveLimitsBombaBtn     = document.getElementById('saveLimitsBombaBtn');
@@ -1927,9 +2047,18 @@ function setupAdminEvents() {
 function setupBuildingSelector() {
     const sel = document.getElementById('buildingSelect');
     if (!sel) return;
-    sel.addEventListener('change', function () {
+    sel.addEventListener('change', async function () {
         const newId = parseInt(this.value);
-        if (newId && newId !== EDIFICIO_ID) window.location.href = `?edificio_id=${newId}`;
+        if (!newId || newId === EDIFICIO_ID) return;
+        const hasDirty = Object.values(_dirtyThresholds).some(Boolean);
+        if (hasDirty) {
+            const confirmed = await window.showConfirm('Tienes cambios sin guardar. ¿Cambiar de edificio?');
+            if (!confirmed) {
+                this.value = EDIFICIO_ID;
+                return;
+            }
+        }
+        window.location.href = `?edificio_id=${newId}`;
     });
 }
 
@@ -1941,6 +2070,15 @@ function setupBuildingSelector() {
 window.addEventListener('DOMContentLoaded', () => {
     // --- Página de límites ---
     if (window.IS_LIMITS_PAGE) {
+        showState('stateLoading');
+        fetchInitialData();
+        if (IS_ADMIN) setupAdminEvents();
+        setupBuildingSelector();
+        return;
+    }
+
+    // --- Página de umbrales ---
+    if (document.getElementById('saveThresholdsBombaBtn') || document.getElementById('saveThresholdsElevadorBtn')) {
         showState('stateLoading');
         fetchInitialData();
         if (IS_ADMIN) setupAdminEvents();

@@ -41,20 +41,14 @@
         <div class="divider-v"></div>
         {% endif %}
         <div class="thresh-legend">
-            <span class="thresh-legend-item">
-                <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
-            </span>
-            <div class="divider-v"></div>
-            <span class="thresh-legend-item">
-                <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
-            </span>
-            <div class="divider-v"></div>
-            <span class="thresh-legend-item">
-                <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
-            </span>
-            <div class="divider-v"></div>
-            <span class="ml-auto text-xs text-secondary">
+            <span class="text-xs text-secondary">
                 Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
+            </span>
+            <span class="ml-auto row-sm">
+                <span id="globalDirtyBadge" class="changes-badge d-none"></span>
+                <button type="button" id="resetAllThresholdsBtn" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+                </button>
             </span>
         </div>
     </div>
@@ -67,9 +61,14 @@
 
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                    Umbrales de la bomba de agua
-                </h2>
+                <div class="panel-header-actions">
+                    <h2 class="form-page-title form-section-title m-0">
+                        Umbrales de la bomba de agua
+                    </h2>
+                    <button type="button" class="btn btn-secondary btn-sm reset-panel-btn" data-panel="bomba">
+                        <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+                    </button>
+                </div>
             </div>
             <div id="thresholdsBombaPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
@@ -81,9 +80,14 @@
 
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                    Umbrales del elevador
-                </h2>
+                <div class="panel-header-actions">
+                    <h2 class="form-page-title form-section-title m-0">
+                       Umbrales del elevador
+                    </h2>
+                    <button type="button" class="btn btn-secondary btn-sm reset-panel-btn" data-panel="elevador">
+                        <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+                    </button>
+                </div>
             </div>
             <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
@@ -92,6 +96,7 @@
                 </button>
             </div>
         </div>
+
     </div>
     {% endif %}
 </div>
