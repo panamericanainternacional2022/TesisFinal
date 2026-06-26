@@ -6,7 +6,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(10, 10, 10, 0.4);
+    background: var(--overlay-bg);
     backdrop-filter: blur(4px);
     display: flex;
     justify-content: center;
@@ -42,7 +42,7 @@
 .custom-modal-header {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--sp-1_5);
     margin-bottom: var(--sp-2);
 }
 

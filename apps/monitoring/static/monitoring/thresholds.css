@@ -93,10 +93,6 @@
     gap: var(--sp-1);
 }
 
-.thresh-label-ok { color: var(--state-ok); }
-.thresh-label-warn { color: var(--state-warn); }
-.thresh-label-crit { color: var(--state-critical); }
-
 .thresh-dir-badge { font-size: var(--text-s); }
 
 @media (max-width: 1024px) {

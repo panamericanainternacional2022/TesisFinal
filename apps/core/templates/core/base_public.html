@@ -8,6 +8,7 @@
     {% block meta_description %}{% endblock %}
 
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'core/utilities.css' %}">
     <link rel="stylesheet" href="{% static 'users/login.css' %}">
     <link rel="stylesheet" href="{% static 'users/navbar.css' %}">
     {% block extra_css %}{% endblock %}
@@ -20,7 +21,6 @@
         {% block content %}{% endblock %}
     </main>
 
-    <script src="{% static 'core/modal.js' %}" defer></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

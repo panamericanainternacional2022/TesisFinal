@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block extra_head_js %}
+    <script src="{% static 'core/form-state.js' %}" defer></script>
     <script src="{% static 'users/validacion.js' %}" defer></script>
 {% endblock %}
 
@@ -110,48 +111,8 @@
 {% block extra_js %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            function setupForm(form, isEditing) {
-                if (!form) return;
-                var submitBtn = form.querySelector('.btn-primary');
-                if (!submitBtn) return;
-
-                var initialValues = {};
-                form.querySelectorAll('input[name], select[name]').forEach(function (el) {
-                    initialValues[el.name] = el.value;
-                });
-
-                function setBtn(disabled) {
-                    submitBtn.disabled = disabled;
-                }
-
-                function checkState() {
-                    var hasErrors = form.querySelectorAll('.input-error').length > 0;
-                    var shouldEnable;
-                    if (isEditing) {
-                        var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
-                            .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
-                        shouldEnable = hasChanges && !hasErrors;
-                    } else {
-                        var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
-                            .every(function (el) { return el.value.trim() !== ''; });
-                        shouldEnable = allFilled && !hasErrors;
-                    }
-                    setBtn(!shouldEnable);
-                }
-
-                setTimeout(checkState, 0);
-
-                form.querySelectorAll('input, select').forEach(function (el) {
-                    el.addEventListener('input', function () { setTimeout(checkState, 0); });
-                    el.addEventListener('change', function () { setTimeout(checkState, 0); });
-                    el.addEventListener('blur', function () { setTimeout(checkState, 0); });
-                });
-
-                return checkState;
-            }
-
-            setupForm(document.querySelector('input[name="action"][value="update_profile"]').form, true);
-            setupForm(document.querySelector('input[name="action"][value="change_password"]').form, false);
+            initFormState(document.querySelector('input[name="action"][value="update_profile"]').form, true);
+            initFormState(document.querySelector('input[name="action"][value="change_password"]').form, false);
         });
     </script>
 {% endblock %}

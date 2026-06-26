@@ -3,7 +3,7 @@
 .filter-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(10, 10, 10, 0.35);
+    background: var(--overlay-bg-light);
     backdrop-filter: blur(3px);
     z-index: 1200;
     opacity: 0;

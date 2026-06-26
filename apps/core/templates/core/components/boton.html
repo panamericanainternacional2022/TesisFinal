@@ -4,7 +4,7 @@ Parámetros: url, type, class, text, id, disabled, target, aria_label, icon, ext
 {% if url %}
     <a href="{{ url }}" class="{{ class|default:'' }}"
        {% if id %}id="{{ id }}"{% endif %}
-       {% if target %}target="{{ target }}"{% endif %}
+       {% if target %}target="{{ target }}" rel="noopener noreferrer"{% endif %}
        {% if aria_label %}aria-label="{{ aria_label }}"{% endif %}{% for k, v in extra_attrs.items %} {{ k }}="{{ v }}"{% endfor %}>
        {% if icon %}<i class="{{ icon }}" aria-hidden="true"></i> {% endif %}{{ text }}
     </a>

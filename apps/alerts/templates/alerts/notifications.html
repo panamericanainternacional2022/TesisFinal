@@ -13,7 +13,7 @@
     <header class="page-header">
         <div class="row-start">
             <h1 class="m-0">Alertas</h1>
-            <span id="notificationBadgeCount" class="notif-count-badge" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{{ unread_notifications_count }}</span>
+            <span id="notificationBadgeCount" class="notif-count-badge{% if unread_notifications_count > 0 %} visible{% endif %}">{{ unread_notifications_count }}</span>
         </div>
         <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
     </header>
@@ -35,10 +35,10 @@
                 <div class="divider-v"></div>
                 {% endif %}
 
-                <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if rol == 'SA' %}true{% else %}false{% endif %}">
+                <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if request.session.usuario_es_admin %}true{% else %}false{% endif %}">
                     
                 </button>
-                {% if rol != 'SA' %}
+                {% if not request.session.usuario_es_admin %}
                 <button type="button" id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
                     
                 </button>
@@ -62,11 +62,11 @@
                     {% if notif.parsed_data.parsed %}
                         <div class="row-center mb-1">
                             <span class="sensor-badge
-                                {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
-                                {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
-                                {% elif notif.parsed_data.risk == RISK_MEDIO %}sensor-warning
-                                {% elif notif.parsed_data.risk == RISK_BAJO %}sensor-active
-                                {% else %}sensor-info{% endif %}">
+                                {% if notif.parsed_data.risk == RISK_CRITICO %}risk-crit
+                                {% elif notif.parsed_data.risk == RISK_ALTO %}risk-high
+                                {% elif notif.parsed_data.risk == RISK_MEDIO %}risk-med
+                                {% elif notif.parsed_data.risk == RISK_BAJO %}risk-low
+                                {% else %}risk-info{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
                             {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}

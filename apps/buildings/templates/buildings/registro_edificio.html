@@ -9,6 +9,7 @@
 {% endblock %}
 
 {% block extra_head_js %}
+    <script src="{% static 'core/form-state.js' %}" defer></script>
     <script src="{% static 'users/validacion.js' %}" defer></script>
 {% endblock %}
 
@@ -67,11 +68,11 @@
                 <div class="form-group full-width">
                     <label>Equipamiento del edificio</label>
                     <div class="equipment-grid">
-                        <div class="equip-card {% if has_pump %}equip-active{% endif %}" data-equip="bomba" onclick="toggleEquip(this)">
+                        <div class="equip-card js-equip-toggle {% if has_pump %}equip-active{% endif %}" data-equip="bomba">
                             <div class="equip-label">Bomba de agua</div>
                             <input type="hidden" name="con_bomba" value="{% if has_pump %}true{% else %}false{% endif %}" />
                         </div>
-                        <div class="equip-card {% if has_elevator %}equip-active{% endif %}" data-equip="elevador" onclick="toggleEquip(this)">
+                        <div class="equip-card js-equip-toggle {% if has_elevator %}equip-active{% endif %}" data-equip="elevador">
                             <div class="equip-label">Elevador</div>
                             <input type="hidden" name="con_elevador" value="{% if has_elevator %}true{% else %}false{% endif %}" />
                         </div>
@@ -95,56 +96,17 @@
 
 {% block extra_js %}
     <script>
-        function toggleEquip(card) {
-            card.classList.toggle('equip-active');
-            var inp = card.querySelector('input[type=hidden]');
-            inp.value = inp.value === 'true' ? 'false' : 'true';
-            setTimeout(checkFormState, 0);
-        }
-
-        var checkFormState;
         document.addEventListener('DOMContentLoaded', function () {
-            function setupForm(form, isEditing) {
-                if (!form) return;
-                var submitBtn = form.querySelector('.btn-primary');
-                if (!submitBtn) return;
+            var checkFormState = initFormState(document.querySelector('form'), {% if editing %}true{% else %}false{% endif %});
 
-                var initialValues = {};
-                form.querySelectorAll('input[name], select[name]').forEach(function (el) {
-                    initialValues[el.name] = el.value;
+            document.querySelectorAll('.js-equip-toggle').forEach(function (card) {
+                card.addEventListener('click', function () {
+                    this.classList.toggle('equip-active');
+                    var inp = this.querySelector('input[type=hidden]');
+                    inp.value = inp.value === 'true' ? 'false' : 'true';
+                    if (checkFormState) setTimeout(checkFormState, 0);
                 });
-
-                function setBtn(disabled) {
-                    submitBtn.disabled = disabled;
-                }
-
-                function checkState() {
-                    var hasErrors = form.querySelectorAll('.input-error').length > 0;
-                    var shouldEnable;
-                    if (isEditing) {
-                        var hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
-                            .some(function (el) { return el.value !== (initialValues[el.name] || ''); });
-                        shouldEnable = hasChanges && !hasErrors;
-                    } else {
-                        var allFilled = Array.from(form.querySelectorAll('input[required], select[required]'))
-                            .every(function (el) { return el.value.trim() !== ''; });
-                        shouldEnable = allFilled && !hasErrors;
-                    }
-                    setBtn(!shouldEnable);
-                }
-
-                setTimeout(checkState, 0);
-
-                form.querySelectorAll('input, select').forEach(function (el) {
-                    el.addEventListener('input', function () { setTimeout(checkState, 0); });
-                    el.addEventListener('change', function () { setTimeout(checkState, 0); });
-                    el.addEventListener('blur', function () { setTimeout(checkState, 0); });
-                });
-
-                return checkState;
-            }
-
-            checkFormState = setupForm(document.querySelector('form'), {% if editing %}true{% else %}false{% endif %});
+            });
         });
     </script>
 {% endblock %}

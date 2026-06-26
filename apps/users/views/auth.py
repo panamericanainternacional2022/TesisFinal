@@ -134,6 +134,7 @@ def _setup_session(request: HttpRequest, user: Usuario) -> None:
     request.session["usuario_id"] = user.id_usuario
     request.session["usuario_username"] = user.username
     request.session["usuario_rol"] = user.rol or "US"
+    request.session["usuario_es_admin"] = user.rol == "SA"
 
     person = user.id_persona
     if person:

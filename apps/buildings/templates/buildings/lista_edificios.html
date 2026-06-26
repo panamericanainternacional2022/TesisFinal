@@ -23,7 +23,7 @@
                     <input type="text" id="q-edificios" name="q" placeholder="Buscar por nombre o RIF" aria-label="Buscar edificios por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
                 </div>
                 <div class="select-container">
-                    <select name="equipamiento" aria-label="Filtrar por equipamiento" onchange="this.form.submit()" class="custom-select-init">
+                    <select name="equipamiento" aria-label="Filtrar por equipamiento" class="custom-select-init js-auto-submit">
                         <option value="" {% if not current_equipamiento %}selected{% endif %}>Todos los equipamientos</option>
                         <option value="bomba" {% if current_equipamiento == 'bomba' %}selected{% endif %}>Bombas de agua</option>
                         <option value="elevador" {% if current_equipamiento == 'elevador' %}selected{% endif %}>Elevadores</option>
@@ -95,5 +95,15 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.js-auto-submit').forEach(function (sel) {
+        sel.addEventListener('change', function () { this.form.submit(); });
+    });
+});
+</script>
 {% endblock %}
 

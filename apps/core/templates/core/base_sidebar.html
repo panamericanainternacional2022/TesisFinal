@@ -9,6 +9,7 @@
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="{% static 'core/design-tokens.css' %}">
+    <link rel="stylesheet" href="{% static 'core/utilities.css' %}">
     <link rel="stylesheet" href="{% static 'core/sidebar.css' %}">
     <link rel="stylesheet" href="{% static 'core/modal.css' %}">
     {% block extra_css %}{% endblock %}
@@ -53,10 +54,10 @@
             if (!badgeEl) return;
             if (count > 0) {
                 badgeEl.textContent   = count;
-                badgeEl.style.display = 'inline-flex';
+                badgeEl.classList.add('visible');
             } else {
                 badgeEl.textContent   = '';
-                badgeEl.style.display = 'none';
+                badgeEl.classList.remove('visible');
             }
         }
 

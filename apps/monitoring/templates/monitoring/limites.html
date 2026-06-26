@@ -25,7 +25,7 @@
     <div class="notif-card mt-3">
         <div class="no-notif">
             <i class="fa-solid fa-building" aria-hidden="true"></i>
-            {% if rol == 'SA' %}
+            {% if request.session.usuario_es_admin %}
             <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
             {% else %}
             <p>No tienes edificios asignados. Contacta al administrador.</p>

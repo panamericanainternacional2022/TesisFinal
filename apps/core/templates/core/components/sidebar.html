@@ -37,7 +37,7 @@
     </div>
 
     <nav class="sidebar-nav">
-        {% if request.session.usuario_rol == 'SA' %}
+        {% if request.session.usuario_es_admin %}
         <a href="{% url 'monitor' %}" class="sidebar-link">
             <i class="fa-solid fa-gauge-high" aria-hidden="true"></i> Panel de control
         </a>
@@ -50,7 +50,7 @@
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell" aria-hidden="true"></i>
             <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="alertas sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
@@ -71,7 +71,7 @@
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell" aria-hidden="true"></i>
             <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge" aria-label="alertas sin leer" style="display: {% if unread_notifications_count > 0 %}inline-flex{% else %}none{% endif %};">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="alertas sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'history' %}" class="sidebar-link">
             <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
@@ -83,7 +83,7 @@
     </nav>
 
     <div class="sidebar-footer">
-        <span class="sidebar-user">{% if request.session.usuario_rol == 'US' %}{{ request.session.usuario_nombre_completo }}{% else %}Administrador{% endif %}</span>
+        <span class="sidebar-user">{% if request.session.usuario_es_admin %}Administrador{% else %}{{ request.session.usuario_nombre_completo }}{% endif %}</span>
         <a href="{% url 'logout' %}" class="sidebar-link sidebar-logout">
             <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i> Cerrar sesión
         </a>

@@ -82,11 +82,11 @@
                     {% if notif.parsed_data.parsed %}
                         <div class="row-center mb-1">
                             <span class="sensor-badge
-                                {% if notif.parsed_data.risk == RISK_CRITICO %}sensor-critical
-                                {% elif notif.parsed_data.risk == RISK_ALTO %}sensor-high
-                                {% elif notif.parsed_data.risk == RISK_MEDIO %}sensor-warning
-                                {% elif notif.parsed_data.risk == RISK_BAJO %}sensor-active
-                                {% else %}sensor-info{% endif %}">
+                                {% if notif.parsed_data.risk == RISK_CRITICO %}risk-crit
+                                {% elif notif.parsed_data.risk == RISK_ALTO %}risk-high
+                                {% elif notif.parsed_data.risk == RISK_MEDIO %}risk-med
+                                {% elif notif.parsed_data.risk == RISK_BAJO %}risk-low
+                                {% else %}risk-info{% endif %}">
                                 {{ notif.parsed_data.risk }}
                             </span>
                             {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
@@ -129,11 +129,11 @@
     {% endif %}
 </div>
 
-<div id="filterPanelOverlay" class="filter-overlay" onclick="closeFilterPanel()"></div>
+<div id="filterPanelOverlay" class="filter-overlay"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
         <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span></div>
-        <button type="button" class="btn btn-icon" aria-label="Cerrar panel de filtros" onclick="closeFilterPanel()"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+        <button type="button" id="closeFilterPanelBtn" class="btn btn-icon" aria-label="Cerrar panel de filtros"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="filter-panel-body">
         {% if edificios|length > 1 %}
@@ -318,6 +318,8 @@
         function closeFilterPanel() { filterPanel.classList.remove('open'); filterOverlay.classList.remove('open'); document.body.style.overflow = ''; }
 
         document.getElementById('openFilterPanel').addEventListener('click', openFilterPanel);
+        filterOverlay.addEventListener('click', closeFilterPanel);
+        document.getElementById('closeFilterPanelBtn').addEventListener('click', closeFilterPanel);
 
         document.getElementById('applyPanelFilters').addEventListener('click', function () {
             const edi = document.getElementById('panel-edificio');
