@@ -1046,16 +1046,8 @@ function renderThresholdsPanel(th) {
         const div     = document.createElement('div');
         const name    = getVariableName(k);
         const unit    = getUnit(k);
-        const curVal  = currentReadings[k];
         const bounds  = _SENSOR_RANGES[k];
-        let boundsStr = bounds ? `Límite: ${bounds[0]} - ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
-        let rightText = '';
-        if (curVal !== undefined && curVal !== null) {
-            rightText = `Actual: ${formatNumeric(curVal, k)}${unit ? ' ' + unit : ''}`;
-            if (boundsStr) rightText += ` · ${boundsStr}`;
-        } else if (boundsStr) {
-            rightText = boundsStr;
-        }
+        const rightText = bounds ? `Límite: ${bounds[0]} - ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
         const DIR_BADGE = {
             higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191</span>',
             lower:  '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193</span>',
@@ -1823,14 +1815,7 @@ async function fetchInitialData() {
             currentThresholds = await resp.json();
             hideAllStates();
             renderThresholdsPanel(currentThresholds);
-            // Cargar lecturas actuales para mostrar "Actual:" en las tarjetas de umbral
-            try {
-                const statusResp = await fetch(API.status(EDIFICIO_ID));
-                if (statusResp.ok) {
-                    const statusData = await statusResp.json();
-                    if (statusData.current) { currentReadings = statusData.current; renderThresholdsPanel(currentThresholds); }
-                }
-            } catch (_) { /* no crítico */ }
+
         } catch (_) { showState('stateOffline'); }
         return;
     }
