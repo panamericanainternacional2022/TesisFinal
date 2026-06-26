@@ -15,8 +15,6 @@
         </div>
         <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
     </header>
-    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
-
     {% if not edificios %}
     
     <div class="notif-card mt-3">
@@ -31,40 +29,40 @@
     </div>
     {% else %}
 
+    <div class="toolbar">
+        {% if edificios|length > 1 %}
+        <div class="select-container">
+            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
+                {% for ed in edificios %}
+                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="divider-v"></div>
+        <div class="thresh-legend">
+            <span class="ml-auto text-xs text-secondary">
+                Cada número es el <strong>límite</strong> físico máximo permitido
+            </span>
+        </div>
+    </div>
+
     <div class="notif-card mt-3" id="stateNotifCard">
         {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
     </div>
 
     <div id="activeMonitoring" class="d-none">
-        <div class="notif-card mt-3">
-            <div class="p-3">
-                <div class="thresh-legend mb-0">
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
-                    </span>
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
-                    </span>
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
-                    </span>
-                    <span class="ml-auto text-xs text-secondary">
-                        Cada número es el <strong>límite</strong> físico máximo permitido
-                    </span>
-                </div>
-            </div>
-        </div>
 
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
                 <h2 class="form-page-title form-section-title">
-                    Bomba de agua
+                    Límites de la bomba de agua
                 </h2>
             </div>
             <div id="limitsBombaPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
                 <button type="button" id="saveLimitsBombaBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites de bomba
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
                 </button>
             </div>
         </div>
@@ -72,13 +70,13 @@
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
                 <h2 class="form-page-title form-section-title">
-                    Elevador
+                    Límites del elevador
                 </h2>
             </div>
             <div id="limitsElevadorPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
                 <button type="button" id="saveLimitsElevadorBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites de elevador
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
                 </button>
             </div>
         </div>

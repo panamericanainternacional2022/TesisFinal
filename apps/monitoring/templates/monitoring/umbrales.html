@@ -15,8 +15,6 @@
         </div>
         <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
     </header>
-    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
-
     {% if not edificios %}
     
     <div class="notif-card mt-3">
@@ -31,40 +29,52 @@
     </div>
     {% else %}
 
+    <div class="toolbar">
+        {% if edificios|length > 1 %}
+        <div class="select-container">
+            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
+                {% for ed in edificios %}
+                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="divider-v"></div>
+        {% endif %}
+        <div class="thresh-legend">
+            <span class="thresh-legend-item">
+                <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
+            </span>
+            <div class="divider-v"></div>
+            <span class="thresh-legend-item">
+                <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
+            </span>
+            <div class="divider-v"></div>
+            <span class="thresh-legend-item">
+                <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
+            </span>
+            <div class="divider-v"></div>
+            <span class="ml-auto text-xs text-secondary">
+                Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
+            </span>
+        </div>
+    </div>
+
     <div class="notif-card mt-3" id="stateNotifCard">
         {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
     </div>
 
     <div id="activeMonitoring" class="d-none">
-        <div class="notif-card mt-3">
-            <div class="p-3">
-                <div class="thresh-legend mb-0">
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-up" title="Mayor es peor — valores altos aumentan el riesgo">&#8593;</span> Mayor es peor
-                    </span>
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-down" title="Menor es peor — valores bajos aumentan el riesgo">&#8595;</span> Menor es peor
-                    </span>
-                    <span class="thresh-legend-item">
-                        <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
-                    </span>
-                    <span class="ml-auto text-xs text-secondary">
-                        Cada número es el <strong>límite</strong> donde comienza ese nivel de riesgo
-                    </span>
-                </div>
-            </div>
-        </div>
 
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
                 <h2 class="form-page-title form-section-title">
-                    Bomba de agua
+                    Umbrales de la bomba de agua
                 </h2>
             </div>
             <div id="thresholdsBombaPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
                 <button type="button" id="saveThresholdsBombaBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales de bomba
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
                 </button>
             </div>
         </div>
@@ -72,13 +82,13 @@
         <div class="panel mb-3">
             <div class="form-section-header mb-2">
                 <h2 class="form-page-title form-section-title">
-                    Elevador
+                    Umbrales del elevador
                 </h2>
             </div>
             <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
             <div class="actions-row mt-3">
                 <button type="button" id="saveThresholdsElevadorBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales de elevador
+                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
                 </button>
             </div>
         </div>
