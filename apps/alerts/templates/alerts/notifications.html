@@ -4,9 +4,7 @@
 {% block title %}Alertas{% endblock %}
 {% block meta_description %}<meta name="description" content="Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores en tiempo real.">{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/components.css' %}">
-{% endblock %}
+
 
 {% block content %}
 <div class="reports-card">
@@ -124,5 +122,4 @@
         window.CSRF_TOKEN = "{{ csrf_token }}";
         window.SELECTED_EDIFICIO_ID = {% if selected_edificio_id %}{{ selected_edificio_id }}{% elif edificios|length == 1 %}{{ edificios.0.id }}{% else %}0{% endif %};
     </script>
-    <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
 {% endblock %}

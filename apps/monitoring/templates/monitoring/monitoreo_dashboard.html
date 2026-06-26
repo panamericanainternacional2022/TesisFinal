@@ -3,10 +3,7 @@
 
 {% block title %}Panel de control{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/components.css' %}">
-    <link rel="stylesheet" href="{% static 'monitoring/dashboard.css' %}">
-{% endblock %}
+
 
 {% block extra_head_js %}
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -221,5 +218,4 @@
         window.IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
         window.CSRF_TOKEN = "{{ csrf_token }}";
     </script>
-    <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
 {% endblock %}

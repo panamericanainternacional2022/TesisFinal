@@ -3,15 +3,8 @@
 
 {% block title %}{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/components.css' %}">
-    <link rel="stylesheet" href="{% static 'core/form.css' %}">
-{% endblock %}
 
-{% block extra_head_js %}
-    <script src="{% static 'core/form-state.js' %}" defer></script>
-    <script src="{% static 'users/validacion.js' %}" defer></script>
-{% endblock %}
+
 
 {% block content %}
 <div class="reports-card">

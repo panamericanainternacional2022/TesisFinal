@@ -4,10 +4,7 @@
 {% block title %}Límites{% endblock %}
 {% block meta_description %}<meta name="description" content="Configuración de límites físicos máximos para sensores de bomba y elevador.">{% endblock %}
 
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'core/components.css' %}">
-    <link rel="stylesheet" href="{% static 'monitoring/thresholds.css' %}">
-{% endblock %}
+
 
 {% block content %}
 <div class="reports-card">
@@ -52,7 +49,7 @@
                     <span class="thresh-legend-item">
                         <span class="badge-dir-range" title="Rango válido — fuera del rango = riesgo Alto">&#10234;</span> Rango válido
                     </span>
-                    <span class="ml-auto text-s text-secondary">
+                    <span class="ml-auto text-xs text-secondary">
                         Cada número es el <strong>límite</strong> físico máximo permitido
                     </span>
                 </div>
@@ -88,18 +85,6 @@
     <script>
         window.IS_ADMIN = true;
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.IS_LIMITS_PAGE = true; // Para indicarle a live_monitoring.js que renderice límites en vez de umbrales
-    </script>
-    <script src="{% static 'monitoring/live_monitoring.js' %}?v=8" defer></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const sel = document.getElementById('buildingSelect');
-            if (sel && sel.tagName === 'SELECT') {
-                sel.addEventListener('change', function () {
-                    const id = parseInt(this.value);
-                    if (id) window.location.href = '?edificio_id=' + id;
-                });
-            }
-        });
+        window.IS_LIMITS_PAGE = true;
     </script>
 {% endblock %}
