@@ -452,7 +452,6 @@ const CHART_ELEV_VARS = _ELEVADOR_VARS.filter(
 
 const CSS_CLASSES = {
     riskCard:    { low: 'risk-low', med: 'risk-med', high: 'risk-high', crit: 'risk-crit' },
-    histItem:    { critico: 'hist-item-critico', alto: 'hist-item-alto', medio: 'hist-item-medio', bajo: 'hist-item-bajo', info: 'hist-item-info' },
     statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-med' },
 };
 
@@ -1227,7 +1226,7 @@ function renderLimitsPanel(ranges) {
         div.innerHTML = `
             <div class="thresh-card-header">
                 <span class="thresh-label">${name}${unit && k !== 'trip_count' ? ` (${unit})` : ''}</span>
-                ${threshStr ? `<span class="thresh-hint crit-threshold-hint" data-var="${k}">${threshStr}</span>` : ''}
+                ${threshStr ? `<span class="thresh-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">
                 <label class="form-label">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
@@ -1585,7 +1584,7 @@ function renderNotificationList(alerts) {
     unreadNotificationCount = filtered.length;
     setNotificationBadge(unreadNotificationCount);
     container.innerHTML = filtered.map(alert => `
-        <div class="notif-item js-live-notif-item">
+        <div class="notif-item">
             <div class="notif-icon"><i class="fa-solid fa-bell"></i></div>
             <div class="notif-body">
                 <p>${safeText(alert.message)}</p>
@@ -1615,7 +1614,7 @@ function addLiveNotificationEvent(data) {
 
     const riskLower = String(data.risk || 'info').toLowerCase();
     const li = document.createElement('li');
-    li.className = `notif-item ${CSS_CLASSES.histItem[riskLower] || 'hist-item-info'} js-live-notif-item`;
+    li.className = 'notif-item';
 
     const BADGE_MAP   = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'MEDIO': 'sensor-warning', 'BAJO': 'sensor-active' };
     const badgeClass  = BADGE_MAP[data.risk] || 'sensor-info';
