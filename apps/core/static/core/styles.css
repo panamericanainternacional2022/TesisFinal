@@ -627,9 +627,7 @@ button {
     border: var(--border-brutal) !important;
     color: var(--color-text-secondary) !important;
     cursor: not-allowed !important;
-    box-shadow: var(--shadow-brutal) !important;
     transform: none !important;
-    opacity: 1;
 }
 
 /* Input estático (solo lectura visual) */
@@ -845,7 +843,7 @@ button {
     box-shadow: var(--shadow-brutal);
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
     background: var(--color-accent-hover);
     color: var(--color-surface);
     transform: translate(-3px, -3px);
@@ -859,7 +857,7 @@ button {
     box-shadow: var(--shadow-brutal);
 }
 
-.btn-secondary:hover {
+.btn-secondary:hover:not(:disabled) {
     background: var(--color-accent-bg);
     color: var(--color-accent);
     transform: translate(-3px, -3px);
@@ -895,8 +893,6 @@ button {
     border: var(--border-brutal) !important;
     color: var(--color-text-secondary) !important;
     cursor: not-allowed !important;
-    pointer-events: none !important;
-    box-shadow: var(--shadow-brutal) !important;
     transform: none !important;
 }
 
