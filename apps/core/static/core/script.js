@@ -2422,7 +2422,7 @@ function initFormValidation() {
 
     // --- Formularios: inicialización y submit ---
     document.querySelectorAll('form').forEach((form) => {
-        form.querySelectorAll('input[data-validate], select').forEach((input) => {
+        form.querySelectorAll('input[data-validate], select[data-validate]').forEach((input) => {
             if (input.classList.contains('input-error') || !input.value) return;
             input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input'));
         });
