@@ -1065,8 +1065,8 @@ function renderThresholdsPanel(th) {
         if (cfg.direction === 'range') {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-2">
-                    <div class="form-group"><label class="form-label">M\u00EDn aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">M\u00E1x aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Mínimo aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Máximo aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">
@@ -1076,7 +1076,7 @@ function renderThresholdsPanel(th) {
                 <div class="thresh-grid-3">
                     <div class="form-group"><label class="form-label">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
                     <div class="form-group"><label class="form-label">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">\u2192 Cr\u00EDtico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">\u2192 Crítico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">
@@ -1116,7 +1116,7 @@ function updateDirtyState(scope) {
     const panelKeys = new Set();
     panel.querySelectorAll('input[type="number"]').forEach(inp => {
         const varKey = inp.dataset.var;
-        const lvl    = inp.dataset.level;
+        const lvl = inp.dataset.level;
         if (!varKey || !lvl || lvl === 'direction') return;
         const orig = _originalThresholds[varKey]?.[lvl];
         if (orig !== undefined && parseFloat(inp.value) !== orig) {
@@ -1301,7 +1301,7 @@ function renderLimitsPanel(ranges) {
         const thresh = currentThresholds[k];
         let refText = '';
         if (thresh?.high !== undefined) {
-            const label = thresh.direction === 'range' ? 'Máx aceptable' : 'Crítico';
+            const label = thresh.direction === 'range' ? 'Máximo aceptable' : 'Crítico';
             refText = `${label}: ${thresh.high}${unit ? ' ' + unit : ''}`;
         }
         const headerHtml = `<div class="thresh-card-header">
