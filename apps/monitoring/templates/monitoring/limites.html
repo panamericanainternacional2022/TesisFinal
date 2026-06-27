@@ -41,8 +41,11 @@
         <div class="divider-v"></div>
         {% endif %}
         <div class="thresh-legend">
-            <span class="ml-auto text-xs text-secondary">
-                Cada número es el <strong>límite</strong> físico máximo permitido
+            <span class="ml-auto row-sm">
+                <button type="button" id="resetAllLimitsBtn" class="btn btn-secondary">
+                    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+                </button>
+                <span id="globalLimitsDirtyBadge" class="changes-badge d-none"></span>
             </span>
         </div>
     </div>

@@ -466,6 +466,7 @@ let monitorConnectionTimeout = null;
 let currentThresholds = {};
 let _originalThresholds = {};
 let _dirtySensorKeys = new Set();
+let _limitsDirtyKeys = new Set();
 let currentReadings = {};
 let chart1, chart2;
 let unreadNotificationCount = 0;
@@ -1293,22 +1294,22 @@ function renderLimitsPanel(ranges) {
 
     function buildLimitCard(k, r) {
         const div = document.createElement('div');
+        div.className = 'thresh-card';
         const name = getVariableName(k);
         const unit = getUnit(k);
-        const [minVal, maxVal] = r;
+        const maxVal = r[1];
         const thresh = currentThresholds[k];
-        let threshStr = '';
+        let refText = '';
         if (thresh?.high !== undefined) {
             const label = thresh.direction === 'range' ? 'Máx aceptable' : 'Crítico';
-            threshStr = `${label}: ${thresh.high}${unit ? ' ' + unit : ''}`;
+            refText = `${label}: ${thresh.high}${unit ? ' ' + unit : ''}`;
         }
-        div.innerHTML = `
-            <div class="thresh-card-header">
-                <span class="thresh-label">${name}${unit ? ` (${unit})` : ''}</span>
-                ${threshStr ? `<span class="thresh-hint" data-var="${k}">${threshStr}</span>` : ''}
-            </div>
+        const headerHtml = `<div class="thresh-card-header">
+            <span class="thresh-label">${name}${unit ? ` (${unit})` : ''}</span>
+            ${refText ? `<span class="thresh-hint">${refText}</span>` : ''}
+        </div>`;
+        div.innerHTML = headerHtml + `
             <div class="form-group">
-                <label class="form-label">Límite máximo (Mínimo: ${minVal}${unit ? ' ' + unit : ''})</label>
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
                 <div class="limit-error-msg"></div>
             </div>`;
@@ -1325,6 +1326,8 @@ function renderLimitsPanel(ranges) {
     buildLimitSection('limitsBombaPanel', bombaVars);
     buildLimitSection('limitsElevadorPanel', elevadorVars);
     _originalLimits = JSON.parse(JSON.stringify(ranges));
+    _limitsDirtyKeys.clear();
+    updateLimitsDirtyBadge();
     validateLimitInputs('bomba');
     validateLimitInputs('elevador');
 }
@@ -1365,6 +1368,7 @@ function validateLimitInputs(scope) {
     });
 
     if (btn) btn.disabled = hasError || !hasChanges;
+    updateLimitsDirtyState(scope);
 }
 
 async function saveLimits(scope) {
@@ -1394,6 +1398,76 @@ async function saveLimits(scope) {
     } catch (_) {
         window.showToast('Error de conexión. Inténtelo de nuevo.', 'error');
     }
+}
+
+function updateLimitsDirtyState(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['limitsBombaPanel'] : ['limitsElevadorPanel'];
+    const panelVars = bomba ? _BOMBA_VARS : _ELEVADOR_VARS;
+    const panelKeys = new Set();
+    PANEL_IDS.forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const varKey = inp.dataset.var;
+            if (!varKey) return;
+            const orig = _originalLimits[varKey]?.[1];
+            const val = parseFloat(inp.value);
+            if (orig !== undefined && val !== orig) {
+                inp.classList.add('is-dirty');
+                inp.title = `Valor original: ${orig}${getUnit(varKey) ? ' ' + getUnit(varKey) : ''}`;
+                panelKeys.add(varKey);
+            } else {
+                inp.classList.remove('is-dirty');
+                inp.title = '';
+            }
+        });
+    });
+    for (const k of panelVars) {
+        if (!_LIMITS_EXCLUDE_VARS.includes(k)) {
+            if (panelKeys.has(k)) _limitsDirtyKeys.add(k);
+            else _limitsDirtyKeys.delete(k);
+        }
+    }
+    updateLimitsDirtyBadge();
+}
+
+function updateLimitsDirtyBadge() {
+    const badge = document.getElementById('globalLimitsDirtyBadge');
+    const resetBtn = document.getElementById('resetAllLimitsBtn');
+    const totalDirty = _limitsDirtyKeys.size;
+    if (badge) {
+        if (!totalDirty) {
+            badge.classList.add('d-none');
+        } else {
+            badge.classList.remove('d-none');
+            badge.textContent = `${totalDirty} sensor(es) modificado(s)`;
+        }
+    }
+    if (resetBtn) resetBtn.disabled = !totalDirty;
+}
+
+function resetPanelLimits(scope) {
+    const bomba = scope === 'bomba';
+    const PANEL_IDS = bomba ? ['limitsBombaPanel'] : ['limitsElevadorPanel'];
+    PANEL_IDS.forEach(panelId => {
+        const panel = document.getElementById(panelId);
+        if (!panel) return;
+        panel.querySelectorAll('input[type="number"]').forEach(inp => {
+            const varKey = inp.dataset.var;
+            if (!varKey) return;
+            const orig = _originalLimits[varKey]?.[1];
+            if (orig !== undefined) inp.value = orig;
+        });
+    });
+    validateLimitInputs(scope);
+}
+
+async function resetAllLimits() {
+    if (!await window.showConfirm('¿Restablecer todos los límites a sus valores originales (último guardado)?')) return;
+    resetPanelLimits('bomba');
+    resetPanelLimits('elevador');
+    window.showToast('Límites restablecidos a los valores guardados.', 'success');
 }
 
 
@@ -1959,6 +2033,9 @@ function setupAdminEvents() {
     if (saveLimitsElevadorBtn) saveLimitsElevadorBtn.addEventListener('click', () => saveLimits('elevador'));
     if (limitsElevadorPanel) limitsElevadorPanel.addEventListener('input', () => validateLimitInputs('elevador'));
 
+    const resetAllLimitsBtn = document.getElementById('resetAllLimitsBtn');
+    if (resetAllLimitsBtn) resetAllLimitsBtn.addEventListener('click', resetAllLimits);
+
     // --- Controles de valor manual (BUG FIX: un solo listener por elemento) ---
     const manualValInput = document.getElementById('manualValueInput');
     const manualValSelect = document.getElementById('manualValueSelect');
@@ -2008,7 +2085,7 @@ function setupBuildingSelector() {
     sel.addEventListener('change', async function () {
         const newId = parseInt(this.value);
         if (!newId || newId === EDIFICIO_ID) return;
-        const hasDirty = _dirtySensorKeys.size > 0;
+        const hasDirty = _dirtySensorKeys.size > 0 || _limitsDirtyKeys.size > 0;
         if (hasDirty) {
             const confirmed = await window.showConfirm('Tienes cambios sin guardar. ¿Cambiar de edificio?');
             if (!confirmed) {

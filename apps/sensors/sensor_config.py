@@ -1,5 +1,5 @@
 VAR_NAMES = {
-    "flow_rate":    "Caudal (flujo)",
+    "flow_rate":    "Caudal",
     "pressure":     "Presión",
     "temperature":  "Temperatura",
     "vibration":    "Vibración",
@@ -13,7 +13,7 @@ VAR_NAMES = {
     "trip_count":   "Conteo de viajes",
     "position":     "Posición",
     "door_status":  "Estado de puerta",
-    "rationing":                "Caudal (racionamiento)",
+    "rationing":                "Racionamiento",
     "auto_protection":          "Protección automática",
     "protection_pump":          "Protección para la bomba de agua",
     "protection_elevator":      "Protección para el elevador",
@@ -117,7 +117,7 @@ DEVICE_NAMES_ES = {
 
 NO_RISK_VARS = ["position"]
 
-LIMITS_EXCLUDE_VARS = ["tank_level", "trip_count"]
+LIMITS_EXCLUDE_VARS = ["tank_level", "trip_count", "flow_rate"]
 
 ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
 
