@@ -428,7 +428,7 @@ const API = {
 
 // --- Carga de configuración desde el DOM ---
 const _CONFIG = (() => {
-    const el = document.getElementById('dashConfig');
+    const el = document.getElementById('appConfig');
     return el ? JSON.parse(el.textContent) : {};
 })();
 
@@ -467,6 +467,10 @@ let currentThresholds = {};
 let _originalThresholds = {};
 let _dirtySensorKeys = new Set();
 let _limitsDirtyKeys = new Set();
+let _unsavedGuardDisabled = false;
+function _hasUnsavedChanges() {
+    return _dirtySensorKeys.size > 0 || _limitsDirtyKeys.size > 0;
+}
 let currentReadings = {};
 let chart1, chart2;
 let unreadNotificationCount = 0;
@@ -718,7 +722,7 @@ function showState(stateId) {
         const el = document.getElementById(id);
         if (el) el.style.display = id === stateId ? '' : 'none';
     });
-    const card = document.getElementById('stateNotifCard');
+    const card = document.getElementById('stateCard');
     if (card) card.style.display = 'block';
     const active = document.getElementById('activeMonitoring');
     if (active) active.style.display = 'none';
@@ -729,7 +733,7 @@ function hideAllStates() {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
-    const card = document.getElementById('stateNotifCard');
+    const card = document.getElementById('stateCard');
     if (card) card.style.display = 'none';
     const active = document.getElementById('activeMonitoring');
     if (active) active.style.display = 'block';
@@ -1958,7 +1962,7 @@ async function fetchInitialData() {
     }
 
     // --- Página de umbrales ---
-    if (document.getElementById('saveThresholdsBombaBtn') || document.getElementById('saveThresholdsElevadorBtn')) {
+    if (window.IS_THRESHOLDS_PAGE) {
         try {
             const resp = await fetch(API.thresholds(EDIFICIO_ID));
             if (!resp.ok) throw new Error(resp.statusText);
@@ -2085,15 +2089,42 @@ function setupBuildingSelector() {
     sel.addEventListener('change', async function () {
         const newId = parseInt(this.value);
         if (!newId || newId === EDIFICIO_ID) return;
-        const hasDirty = _dirtySensorKeys.size > 0 || _limitsDirtyKeys.size > 0;
-        if (hasDirty) {
+        if (_hasUnsavedChanges()) {
             const confirmed = await window.showConfirm('Tienes cambios sin guardar. ¿Cambiar de edificio?');
             if (!confirmed) {
                 this.value = EDIFICIO_ID;
                 return;
             }
         }
+        _unsavedGuardDisabled = true;
         window.location.href = `?edificio_id=${newId}`;
+    });
+}
+
+function setupUnsavedChangesGuard() {
+    const sidebar = document.querySelector('.sidebar');
+    if (sidebar) {
+        sidebar.addEventListener('click', (e) => {
+            const link = e.target.closest('a.sidebar-link');
+            if (!link || !_hasUnsavedChanges()) return;
+            const href = link.getAttribute('href');
+            if (!href || href === '#') return;
+            e.preventDefault();
+            window.showConfirm('Tienes cambios sin guardar. ¿Salir de la página?')
+                .then(confirmed => {
+                    if (confirmed) {
+                        _unsavedGuardDisabled = true;
+                        window.location.href = href;
+                    }
+                });
+        });
+    }
+    window.addEventListener('beforeunload', (e) => {
+        if (_unsavedGuardDisabled) return;
+        if (_hasUnsavedChanges()) {
+            e.preventDefault();
+            e.returnValue = '';
+        }
     });
 }
 
@@ -2109,15 +2140,17 @@ window.addEventListener('DOMContentLoaded', () => {
         fetchInitialData();
         if (IS_ADMIN) setupAdminEvents();
         setupBuildingSelector();
+        setupUnsavedChangesGuard();
         return;
     }
 
     // --- Página de umbrales ---
-    if (document.getElementById('saveThresholdsBombaBtn') || document.getElementById('saveThresholdsElevadorBtn')) {
+    if (window.IS_THRESHOLDS_PAGE) {
         showState('stateLoading');
         fetchInitialData();
         if (IS_ADMIN) setupAdminEvents();
         setupBuildingSelector();
+        setupUnsavedChangesGuard();
         return;
     }
 

@@ -1,98 +1,50 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'monitoring/_config_base.html' %}
 {% load static %}
 
-{% block title %}Límites{% endblock %}
-{% block meta_description %}<meta name="description" content="Configuración de límites físicos máximos para sensores de bomba y elevador.">{% endblock %}
+{% block config_title %}Límites{% endblock %}
+{% block config_description %}Configuración de límites físicos máximos para sensores de bomba y elevador.{% endblock %}
+{% block config_heading %}Límites{% endblock %}
+{% block config_subtext %}Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.{% endblock %}
 
+{% block config_toolbar_actions %}
+<button type="button" id="resetAllLimitsBtn" class="btn btn-secondary">
+    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+</button>
+<span id="globalLimitsDirtyBadge" class="changes-badge d-none"></span>
+{% endblock %}
 
+{% block config_loading %}
+{% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
+{% endblock %}
 
-{% block content %}
-<div class="reports-card">
-    
-    <header class="page-header">
-        <div class="row-start">
-            <h1 class="m-0">Límites</h1>
-        </div>
-        <p class="mt-1">Configura los límites físicos máximos de operación para cada sensor. Estos valores restringen los umbrales de riesgo permitidos y las validaciones de comandos manuales.</p>
-    </header>
-    {% if not edificios %}
-    
-    <div class="notif-card mt-3">
-        <div class="no-notif">
-            <i class="fa-solid fa-building" aria-hidden="true"></i>
-            {% if request.session.usuario_es_admin %}
-            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
-            {% else %}
-            <p>No tienes edificios asignados. Contacta al administrador.</p>
-            {% endif %}
-        </div>
+{% block config_panel_bomba %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Límites de la bomba de agua</h2>
     </div>
-    {% else %}
-
-    <div class="toolbar">
-        {% if edificios|length > 1 %}
-        <div class="select-container">
-            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
-                {% for ed in edificios %}
-                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="divider-v"></div>
-        {% endif %}
-        <div class="thresh-legend">
-            <span class="ml-auto row-sm">
-                <button type="button" id="resetAllLimitsBtn" class="btn btn-secondary">
-                    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
-                </button>
-                <span id="globalLimitsDirtyBadge" class="changes-badge d-none"></span>
-            </span>
-        </div>
+    <div id="limitsBombaPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveLimitsBombaBtn" class="btn btn-primary">
+            <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
+        </button>
     </div>
-
-    <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando límites..." loading_subtext="Obteniendo límites de operación del sensor." %}
-    </div>
-
-    <div id="activeMonitoring" class="d-none">
-
-        <div class="panel mb-3">
-            <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                    Límites de la bomba de agua
-                </h2>
-            </div>
-            <div id="limitsBombaPanel" class="thresh-grid"></div>
-            <div class="actions-row mt-3">
-                <button type="button" id="saveLimitsBombaBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
-                </button>
-            </div>
-        </div>
-
-        <div class="panel mb-3">
-            <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                    Límites del elevador
-                </h2>
-            </div>
-            <div id="limitsElevadorPanel" class="thresh-grid"></div>
-            <div class="actions-row mt-3">
-                <button type="button" id="saveLimitsElevadorBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
-                </button>
-            </div>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    {{ config_json|json_script:"dashConfig" }}
-    <script>
-        window.IS_ADMIN = true;
-        window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.IS_LIMITS_PAGE = true;
-    </script>
+{% block config_panel_elevador %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Límites del elevador</h2>
+    </div>
+    <div id="limitsElevadorPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveLimitsElevadorBtn" class="btn btn-primary">
+            <i class="fas fa-check" aria-hidden="true"></i> Guardar límites
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block config_extra_js_flags %}
+window.IS_LIMITS_PAGE = true;
 {% endblock %}

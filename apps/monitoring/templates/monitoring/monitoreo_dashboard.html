@@ -36,7 +36,7 @@
     </div>
     {% else %}
 
-    <div class="notif-card mt-3" id="stateNotifCard">
+    <div class="notif-card mt-3" id="stateCard">
         {% if is_admin %}
             {% include 'core/components/empty_state.html' with loading_text="Conectando al simulador..." loading_subtext="Obteniendo lecturas de telemetría y estado de sensores en tiempo real." offline_subtext="El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio." no_equipment_title="Edificio sin equipos de monitoreo" no_equipment_text="Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación." %}
         {% else %}
@@ -229,9 +229,8 @@
 {% endblock %}
 
 {% block extra_js %}
-    {{ config_json|json_script:"dashConfig" }}
+    {{ config_json|json_script:"appConfig" }}
     <script>
-        window.IS_ADMIN = {% if is_admin %}true{% else %}false{% endif %};
-        window.CSRF_TOKEN = "{{ csrf_token }}";
+        window.IS_ADMIN = {{ request.session.usuario_es_admin|lower }};
     </script>
 {% endblock %}

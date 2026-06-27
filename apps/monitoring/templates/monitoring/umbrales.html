@@ -1,98 +1,50 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'monitoring/_config_base.html' %}
 {% load static %}
 
-{% block title %}Umbrales{% endblock %}
-{% block meta_description %}<meta name="description" content="Configuración de umbrales de riesgo para sensores de bomba y elevador.">{% endblock %}
+{% block config_title %}Umbrales{% endblock %}
+{% block config_description %}Configuración de umbrales de riesgo para sensores de bomba y elevador.{% endblock %}
+{% block config_heading %}Umbrales{% endblock %}
+{% block config_subtext %}Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.{% endblock %}
 
+{% block config_toolbar_actions %}
+<button type="button" id="resetAllThresholdsBtn" class="btn btn-secondary">
+    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
+</button>
+<span id="globalDirtyBadge" class="changes-badge d-none"></span>
+{% endblock %}
 
+{% block config_loading %}
+{% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
+{% endblock %}
 
-{% block content %}
-<div class="reports-card">
-    
-    <header class="page-header">
-        <div class="row-start">
-            <h1 class="m-0">Umbrales</h1>
-        </div>
-        <p class="mt-1">Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.</p>
-    </header>
-    {% if not edificios %}
-    
-    <div class="notif-card mt-3">
-        <div class="no-notif">
-            <i class="fa-solid fa-building" aria-hidden="true"></i>
-            {% if request.session.usuario_es_admin %}
-            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
-            {% else %}
-            <p>No tienes edificios asignados. Contacta al administrador.</p>
-            {% endif %}
-        </div>
+{% block config_panel_bomba %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Umbrales de la bomba de agua</h2>
     </div>
-    {% else %}
-
-    <div class="toolbar">
-        {% if edificios|length > 1 %}
-        <div class="select-container">
-            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
-                {% for ed in edificios %}
-                <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="divider-v"></div>
-        {% endif %}
-        <div class="thresh-legend">
-            <span class="ml-auto row-sm">
-                <button type="button" id="resetAllThresholdsBtn" class="btn btn-secondary">
-                    <i class="fas fa-rotate-left" aria-hidden="true"></i> Restablecer
-                </button>
-                <span id="globalDirtyBadge" class="changes-badge d-none"></span>
-            </span>
-        </div>
+    <div id="thresholdsBombaPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveThresholdsBombaBtn" class="btn btn-primary">
+            <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
+        </button>
     </div>
-
-    <div class="notif-card mt-3" id="stateNotifCard">
-        {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
-    </div>
-
-    <div id="activeMonitoring" class="d-none">
-
-        <div class="panel mb-3">
-            <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                    Umbrales de la bomba de agua
-                </h2>
-            </div>
-            <div id="thresholdsBombaPanel" class="thresh-grid"></div>
-            <div class="actions-row mt-3">
-                <button type="button" id="saveThresholdsBombaBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
-                </button>
-            </div>
-        </div>
-
-        <div class="panel mb-3">
-            <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
-                   Umbrales del elevador
-                </h2>
-            </div>
-            <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
-            <div class="actions-row mt-3">
-                <button type="button" id="saveThresholdsElevadorBtn" class="btn btn-primary">
-                    <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
-                </button>
-            </div>
-        </div>
-
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    {{ config_json|json_script:"dashConfig" }}
-    <script>
-        window.IS_ADMIN = true;
-        window.CSRF_TOKEN = "{{ csrf_token }}";
-    </script>
+{% block config_panel_elevador %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Umbrales del elevador</h2>
+    </div>
+    <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveThresholdsElevadorBtn" class="btn btn-primary">
+            <i class="fas fa-check" aria-hidden="true"></i> Guardar umbrales
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block config_extra_js_flags %}
+window.IS_THRESHOLDS_PAGE = true;
 {% endblock %}
