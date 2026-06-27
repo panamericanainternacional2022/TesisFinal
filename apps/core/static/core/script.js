@@ -1254,18 +1254,6 @@ async function saveThresholds(scope) {
     }
 }
 
-function renderSkeletonCards(containerId) {
-    const panel = document.getElementById(containerId);
-    if (!panel) return;
-    panel.innerHTML = '';
-    for (let i = 0; i < 4; i++) {
-        const card = document.createElement('div');
-        card.className = 'skeleton-card';
-        card.innerHTML = '<div class="skeleton-line short"></div><div class="skeleton-block"></div><div class="skeleton-block"></div>';
-        panel.appendChild(card);
-    }
-}
-
 function resetPanelThresholds(scope) {
     const bomba = scope === 'bomba';
     const PANEL_IDS = bomba ? ['thresholdsBombaPanel'] : ['thresholdsElevadorPanel'];

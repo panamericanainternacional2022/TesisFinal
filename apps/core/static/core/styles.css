@@ -1812,6 +1812,12 @@ button {
     margin-bottom: var(--sp-3);
 }
 
+.thresh-card {
+
+    box-shadow: var(--shadow-brutal);
+
+}
+
 .thresh-card .thresh-label {
     font-size: var(--text-sm);
     font-weight: var(--weight-bold);
@@ -1832,7 +1838,7 @@ button {
 /* Input modificado (dirty) */
 input.is-dirty {
     border-color: var(--color-accent) !important;
-    box-shadow: 0 0 0 1px var(--color-accent);
+    box-shadow: var(--shadow-brutal);
 }
 
 /* Badge de cambios sin guardar */
@@ -1848,46 +1854,6 @@ input.is-dirty {
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-wide);
     white-space: nowrap;
-}
-
-/* Skeleton loader para estado de carga */
-@keyframes thresh-pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-    }
-
-    50% {
-        opacity: 0.4;
-    }
-}
-
-.skeleton-card {
-    border: var(--border-brutal);
-    padding: var(--sp-4);
-    background: var(--color-bg);
-    animation: thresh-pulse 1.5s ease-in-out infinite;
-    min-height: 120px;
-}
-
-.skeleton-card .skeleton-line {
-    height: 12px;
-    background: var(--color-text-placeholder);
-    margin-bottom: var(--sp-3);
-    opacity: 0.3;
-    border-radius: 0;
-}
-
-.skeleton-card .skeleton-line.short {
-    width: 60%;
-}
-
-.skeleton-card .skeleton-block {
-    height: 32px;
-    background: var(--color-text-placeholder);
-    opacity: 0.2;
-    margin-bottom: var(--sp-2);
 }
 
 
