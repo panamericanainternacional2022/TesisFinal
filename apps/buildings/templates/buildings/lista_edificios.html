@@ -9,8 +9,8 @@
 {% block list_search %}
 <label for="q-edificios" class="sr-only">Buscar edificios</label>
 <div class="input-with-icon search-input-filter">
-    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
     <input type="text" id="q-edificios" name="q" placeholder="Buscar por nombre o RIF" aria-label="Buscar edificios por nombre o RIF" class="search-input" value="{{ request.GET.q|default:'' }}" />
+    <i class="fa-solid fa-magnifying-glass input-icon input-icon--left" aria-hidden="true"></i>
 </div>
 {% endblock %}
 
