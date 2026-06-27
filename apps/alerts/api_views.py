@@ -158,6 +158,7 @@ def view_update_thresholds(request: HttpRequest) -> JsonResponse:
 def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
     from apps.alerts.services.sensor_limit_service import get_sensor_limits
     from apps.alerts.services.threshold_service import get_thresholds
+    from apps.sensors.sensor_config import LIMITS_EXCLUDE_VARS
     try:
         building_id = int(request.GET.get("edificio_id", 0))
     except (ValueError, TypeError):
@@ -166,6 +167,7 @@ def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
         return json_error("edificio_id requerido", status=400)
     
     limits = get_sensor_limits(building_id)
+    limits = {k: v for k, v in limits.items() if k not in LIMITS_EXCLUDE_VARS}
     thresholds = get_thresholds(building_id)
     return JsonResponse({
         "limits": limits,
@@ -179,7 +181,7 @@ def view_get_sensor_limits(request: HttpRequest) -> JsonResponse:
 def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
     from apps.alerts.services.sensor_limit_service import bulk_update_limits, get_sensor_limits
     from apps.alerts.services.threshold_service import get_thresholds
-    from apps.sensors.sensor_config import SENSOR_RANGES
+    from apps.sensors.sensor_config import SENSOR_RANGES, LIMITS_EXCLUDE_VARS
     try:
         raw = json.loads(request.body)
     except json.JSONDecodeError:
@@ -196,7 +198,7 @@ def view_update_sensor_limits(request: HttpRequest) -> JsonResponse:
         return json_error("edificio_id requerido")
 
     thresholds = get_thresholds(building_id)
-    data = raw
+    data = {k: v for k, v in raw.items() if k not in LIMITS_EXCLUDE_VARS}
     errors: dict[str, str] = {}
     cleaned_data: dict[str, float] = {}
 

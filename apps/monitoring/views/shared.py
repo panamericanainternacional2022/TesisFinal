@@ -14,13 +14,14 @@ DELTA_MAP = PERIOD_DELTA_MAP
 
 def build_monitoring_config(building_id: int) -> dict:
     from apps.sensors.sensor_config import (
-        NO_RISK_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
+        NO_RISK_VARS, LIMITS_EXCLUDE_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
         RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN,
         VALUE_DISPLAY_ES, BOOLEAN_VARS, ENUM_VARS, ENUM_RISK_VALUES,
     )
     from apps.alerts.services.sensor_limit_service import get_sensor_limits
     return {
         "no_risk_vars": NO_RISK_VARS,
+        "limits_exclude_vars": LIMITS_EXCLUDE_VARS,
         "pump_vars": PUMP_VARS,
         "elevator_vars": ELEVATOR_VARS,
         "var_names": VAR_NAMES,

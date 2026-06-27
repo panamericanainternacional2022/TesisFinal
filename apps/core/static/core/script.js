@@ -439,6 +439,7 @@ const _BOMBA_VARS = _CONFIG.pump_vars || [];
 const _ELEVADOR_VARS = _CONFIG.elevator_vars || [];
 const _RISK = _CONFIG.risk_labels || {};
 const _NO_RISK_VARS = _CONFIG.no_risk_vars || [];
+const _LIMITS_EXCLUDE_VARS = _CONFIG.limits_exclude_vars || [];
 const _BOOLEAN_VARS = _CONFIG.boolean_vars || [];
 const _ENUM_VARS = _CONFIG.enum_vars || [];
 const _ENUM_RISK_VALUES = _CONFIG.enum_risk_values || {};
@@ -1287,8 +1288,8 @@ async function resetAllThresholds() {
 let _originalLimits = {};
 
 function renderLimitsPanel(ranges) {
-    const bombaVars = _BOMBA_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
-    const elevadorVars = _ELEVADOR_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k));
+    const bombaVars = _BOMBA_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k) && !_LIMITS_EXCLUDE_VARS.includes(k));
+    const elevadorVars = _ELEVADOR_VARS.filter(k => ranges[k] && !_NO_RISK_VARS.includes(k) && !_LIMITS_EXCLUDE_VARS.includes(k));
 
     function buildLimitCard(k, r) {
         const div = document.createElement('div');
@@ -1303,7 +1304,7 @@ function renderLimitsPanel(ranges) {
         }
         div.innerHTML = `
             <div class="thresh-card-header">
-                <span class="thresh-label">${name}${unit && k !== 'trip_count' ? ` (${unit})` : ''}</span>
+                <span class="thresh-label">${name}${unit ? ` (${unit})` : ''}</span>
                 ${threshStr ? `<span class="thresh-hint" data-var="${k}">${threshStr}</span>` : ''}
             </div>
             <div class="form-group">

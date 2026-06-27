@@ -22,7 +22,7 @@ VAR_NAMES = {
 }
 
 UNITS = {
-    "flow_rate":    "L/s",
+    "flow_rate":    "l/s",
     "pressure":     "bar",
     "temperature":  "°C",
     "vibration":    "mm/s",
@@ -36,7 +36,7 @@ UNITS = {
     "position":     "piso",
     "door_status":  "",
     "motor_stuck":  "",
-    "rationing":    "L/s",
+    "rationing":    "l/s",
 }
 
 RISK_INFO    = "Info"
@@ -117,6 +117,8 @@ DEVICE_NAMES_ES = {
 
 NO_RISK_VARS = ["position"]
 
+LIMITS_EXCLUDE_VARS = ["tank_level", "trip_count"]
+
 ZERO_IS_CRITICAL_VARS = {"flow_rate", "pressure"}
 
 BOOLEAN_VARS = {"motor_stuck"}
@@ -158,7 +160,7 @@ PDF_BAR_VARS = [v for v in PDF_STATS_VARS if v not in ("speed", "trip_count")]
 PDF_BAR_LABELS = {
     "temperature": "Temp. (°C)",
     "pressure":    "Presión (bar)",
-    "flow_rate":   "Caudal (L/s)",
+    "flow_rate":   "Caudal (l/s)",
     "vibration":   "Vibración (mm/s)",
     "tank_level":  "Tanque (%)",
     "load":        "Carga (kg)",

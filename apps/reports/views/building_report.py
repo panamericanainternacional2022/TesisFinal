@@ -376,11 +376,11 @@ def _render_rationing_section(pdf: Any, sensor_data: dict) -> None:
     _flow_max = SENSOR_RANGES.get("flow_rate", (0, 60))[1]
     render_text_progress_bar(
         pdf,
-        label=f"Caudal actual vs. umbral de racionamiento ({RATIONING_THRESHOLD} L/s)",
+        label=f"Caudal actual vs. umbral de racionamiento ({RATIONING_THRESHOLD} l/s)",
         value=flow,
         max_value=_flow_max,
         threshold=RATIONING_THRESHOLD,
-        unit="L/s",
+        unit="l/s",
     )
 
     in_rationing = flow < RATIONING_THRESHOLD
