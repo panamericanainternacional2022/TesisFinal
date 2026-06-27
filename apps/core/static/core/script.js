@@ -1169,7 +1169,7 @@ function validateThresholdInputs(scope) {
     const findErrorMsgEl = (v) => {
         for (const pid of PANEL_IDS) {
             const el = document.getElementById(pid)?.querySelector(`input[data-var="${v}"]`);
-            if (el) return el.closest('div')?.querySelector('.thresh-error-msg') ?? null;
+            if (el) return el.closest('.thresh-card')?.querySelector('.thresh-error-msg') ?? null;
         }
         return null;
     };
