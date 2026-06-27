@@ -464,7 +464,7 @@ let sseSource = null;
 let monitorConnectionTimeout = null;
 let currentThresholds = {};
 let _originalThresholds = {};
-let _dirtyThresholds = { bomba: false, elevador: false };
+let _dirtySensorKeys = new Set();
 let currentReadings = {};
 let chart1, chart2;
 let unreadNotificationCount = 0;
@@ -1098,7 +1098,7 @@ function renderThresholdsPanel(th) {
     }
 
     _originalThresholds = JSON.parse(JSON.stringify(th));
-    _dirtyThresholds = { bomba: false, elevador: false };
+    _dirtySensorKeys.clear();
     updateGlobalDirtyBadge();
     validateThresholdInputs('bomba');
     validateThresholdInputs('elevador');
@@ -1108,40 +1108,46 @@ function renderThresholdsPanel(th) {
 function updateDirtyState(scope) {
     const bomba = scope === 'bomba';
     const panelId = bomba ? 'thresholdsBombaPanel' : 'thresholdsElevadorPanel';
+    const panelVars = bomba ? _BOMBA_VARS : _ELEVADOR_VARS;
     const panel = document.getElementById(panelId);
     if (!panel) return;
-    let dirty = false;
+    const panelKeys = new Set();
     panel.querySelectorAll('input[type="number"]').forEach(inp => {
         const varKey = inp.dataset.var;
-        const lvl = inp.dataset.level;
+        const lvl    = inp.dataset.level;
         if (!varKey || !lvl || lvl === 'direction') return;
         const orig = _originalThresholds[varKey]?.[lvl];
         if (orig !== undefined && parseFloat(inp.value) !== orig) {
             inp.classList.add('is-dirty');
             inp.title = `Valor original: ${orig}${getUnit(varKey) ? ' ' + getUnit(varKey) : ''}`;
-            dirty = true;
+            panelKeys.add(varKey);
         } else {
             inp.classList.remove('is-dirty');
             inp.title = '';
         }
     });
-    _dirtyThresholds[scope] = dirty;
+    for (const k of panelVars) {
+        if (panelKeys.has(k)) _dirtySensorKeys.add(k);
+        else _dirtySensorKeys.delete(k);
+    }
     updateGlobalDirtyBadge();
 }
 
 function updateGlobalDirtyBadge() {
     const badge = document.getElementById('globalDirtyBadge');
     const resetBtn = document.getElementById('resetAllThresholdsBtn');
-    const totalDirty = Object.values(_dirtyThresholds).filter(Boolean).length;
+    const saveAllBtn = document.getElementById('saveAllThresholdsBtn');
+    const totalDirty = _dirtySensorKeys.size;
     if (badge) {
         if (!totalDirty) {
             badge.classList.add('d-none');
         } else {
             badge.classList.remove('d-none');
-            badge.textContent = `${totalDirty} panel(es) con cambios`;
+            badge.textContent = `${totalDirty} sensor(es) modificado(s)`;
         }
     }
     if (resetBtn) resetBtn.disabled = !totalDirty;
+    if (saveAllBtn) saveAllBtn.disabled = totalDirty === 0;
 }
 
 function validateThresholdInputs(scope) {
@@ -2001,7 +2007,7 @@ function setupBuildingSelector() {
     sel.addEventListener('change', async function () {
         const newId = parseInt(this.value);
         if (!newId || newId === EDIFICIO_ID) return;
-        const hasDirty = Object.values(_dirtyThresholds).some(Boolean);
+        const hasDirty = _dirtySensorKeys.size > 0;
         if (hasDirty) {
             const confirmed = await window.showConfirm('Tienes cambios sin guardar. ¿Cambiar de edificio?');
             if (!confirmed) {
