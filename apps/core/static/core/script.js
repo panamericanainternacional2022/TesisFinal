@@ -1066,7 +1066,6 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label">M\u00EDn aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
                     <div class="form-group"><label class="form-label">M\u00E1x aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div class="thresh-hint" style="margin-top:2px;">Fuera de este rango = riesgo <strong style="color:var(--state-high);">Alto</strong></div>
                 <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">
                 <div class="thresh-card-footer"><span>${boundsText}</span></div>`;
@@ -1132,6 +1131,7 @@ function updateDirtyState(scope) {
 
 function updateGlobalDirtyBadge() {
     const badge = document.getElementById('globalDirtyBadge');
+    const resetBtn = document.getElementById('resetAllThresholdsBtn');
     const totalDirty = Object.values(_dirtyThresholds).filter(Boolean).length;
     if (badge) {
         if (!totalDirty) {
@@ -1141,6 +1141,7 @@ function updateGlobalDirtyBadge() {
             badge.textContent = `${totalDirty} panel(es) con cambios`;
         }
     }
+    if (resetBtn) resetBtn.disabled = !totalDirty;
 }
 
 function validateThresholdInputs(scope) {
@@ -1947,15 +1948,11 @@ function setupAdminEvents() {
     const saveThreshElevadorBtn = document.getElementById('saveThresholdsElevadorBtn');
     const threshElevadorPanel = document.getElementById('thresholdsElevadorPanel');
     const resetAllBtn = document.getElementById('resetAllThresholdsBtn');
-    const resetBombaBtn = document.querySelector('.reset-panel-btn[data-panel="bomba"]');
-    const resetElevadorBtn = document.querySelector('.reset-panel-btn[data-panel="elevador"]');
     if (saveThreshBombaBtn) saveThreshBombaBtn.addEventListener('click', () => saveThresholds('bomba'));
     if (threshBombaPanel) threshBombaPanel.addEventListener('input', () => validateThresholdInputs('bomba'));
     if (saveThreshElevadorBtn) saveThreshElevadorBtn.addEventListener('click', () => saveThresholds('elevador'));
     if (threshElevadorPanel) threshElevadorPanel.addEventListener('input', () => validateThresholdInputs('elevador'));
     if (resetAllBtn) resetAllBtn.addEventListener('click', resetAllThresholds);
-    if (resetBombaBtn) resetBombaBtn.addEventListener('click', () => resetPanelThresholds('bomba'));
-    if (resetElevadorBtn) resetElevadorBtn.addEventListener('click', () => resetPanelThresholds('elevador'));
 
     // --- Panel de límites ---
     const saveLimitsBombaBtn = document.getElementById('saveLimitsBombaBtn');
