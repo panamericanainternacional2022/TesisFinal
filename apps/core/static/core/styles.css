@@ -662,9 +662,11 @@ button {
     color: var(--color-text-placeholder);
     pointer-events: none;
 }
+
 .input-icon--left {
     left: var(--sp-4);
 }
+
 .input-icon--right {
     right: var(--sp-4);
 }
@@ -880,9 +882,9 @@ button {
 }
 
 /* Estado activo (presionado) compartido */
-.btn-primary:active,
-.btn-secondary:active,
-.btn-critical:active {
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-critical:active:not(:disabled) {
     transform: translate(0, 0);
     box-shadow: none;
 }
