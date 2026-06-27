@@ -61,6 +61,7 @@
     --state-high: #c2410c;
     --state-high-bg: #fff7ed;
     --state-critical: #dc2626;
+    --state-critical-hover: #ce1a1a;
     --state-critical-bg: #fef2f2;
     --state-inactive: #6b6b6b;
     --state-inactive-bg: #f5f5f5;
@@ -624,14 +625,13 @@ button {
     transform: translate(-3px, -3px);
 }
 
-.form-input:disabled,
-.search-input:disabled,
 .custom-select-trigger:disabled {
     background: var(--color-bg) !important;
-    border: var(--border-brutal) !important;
+    border: 3px solid var(--color-text-secondary) !important;
     color: var(--color-text-secondary) !important;
     cursor: not-allowed !important;
     transform: none !important;
+    box-shadow: 3px 3px 0px var(--color-text-secondary) !important;
 }
 
 /* Input estático (solo lectura visual) */
@@ -866,15 +866,15 @@ button {
 }
 
 .btn-critical {
-    background: var(--color-surface);
+    background: var(--state-critical);
     border: var(--border-brutal);
-    color: var(--state-critical);
+    color: var(--color-surface);
     box-shadow: var(--shadow-brutal);
 }
 
-.btn-critical:hover {
-    background: var(--state-critical-bg);
-    color: var(--state-critical);
+.btn-critical:hover:not(:disabled) {
+    background: var(--state-critical-hover);
+    color: var(--color-surface);
     transform: translate(-3px, -3px);
     box-shadow: 6px 6px 0px var(--color-ink);
 }
@@ -891,10 +891,11 @@ button {
 .btn:disabled,
 .btn-icon:disabled {
     background: var(--color-bg) !important;
-    border: var(--border-brutal) !important;
+    border: 3px solid var(--color-text-secondary) !important;
     color: var(--color-text-secondary) !important;
     cursor: not-allowed !important;
     transform: none !important;
+    box-shadow: 3px 3px 0px var(--color-text-secondary) !important;
 }
 
 /* ─── Botón ícono ─── */
