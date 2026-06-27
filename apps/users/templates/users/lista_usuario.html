@@ -1,207 +1,224 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'core/_list_base.html' %}
 {% load static %}
 
-{% block title %}Usuarios{% endblock %}
+{% block list_title %}Usuarios{% endblock %}
 
+{% block list_heading %}Usuarios{% endblock %}
+{% block list_subtext %}Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.{% endblock %}
 
+{% block list_search %}
+<label for="q-usuarios" class="sr-only">Buscar usuarios</label>
+<div class="input-with-icon search-input-filter">
+    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
+    <input type="text" id="q-usuarios" name="q" placeholder="Buscar por nombre o c&#233;dula" aria-label="Buscar usuarios por nombre o c&#233;dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
+</div>
+{% endblock %}
 
-{% block content %}
-<div class="reports-card">
-    <header class="page-header">
-        <div class="row-start">
-            <h1 class="m-0">Usuarios</h1>
-        </div>
-        <p class="mt-1">Administra el acceso al sistema. Agrega, edita o desactiva cuentas de residentes, administradores y personal técnico.</p>
-    </header>
-    <div class="toolbar">
-        <form method="get" action="" class="row-center m-0">
-                <label for="q-usuarios" class="sr-only">Buscar usuarios</label>
-                <div class="input-with-icon search-input-filter">
-                    <i class="fa-solid fa-magnifying-glass search-icon-inside" aria-hidden="true"></i>
-                    <input type="text" id="q-usuarios" name="q" placeholder="Buscar por nombre o c&#233;dula" aria-label="Buscar usuarios por nombre o c&#233;dula" class="search-input" value="{{ request.GET.q|default:'' }}" />
-                </div>
-                <div class="select-container">
-                    <select name="edificio" aria-label="Filtrar por edificio" class="custom-select-init js-auto-submit">
-                        <option value="">Todos los edificios</option>
-                        {% for edf in edificios %}
-                            <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="select-container">
-                    <select name="estado" aria-label="Filtrar por estado" class="custom-select-init js-auto-submit">
-                        <option value="" {% if not current_estado %}selected{% endif %}>Todos los estados</option>
-                        <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
-                        <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
-                    </select>
-                </div>
-            </form>
-            <div class="actions-dropdown">
-                <button type="button" id="userActionsToggle" class="btn btn-icon" aria-label="M&#225;s acciones" aria-haspopup="true" aria-expanded="false">
-                    <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
-                </button>
-                <div class="dropdown-menu" id="userActionsMenu">
-                    {% url 'user_create' as registro_url %}
-                    <a href="{{ registro_url }}" class="dropdown-item">
-                        <i class="fa-solid fa-plus" aria-hidden="true"></i> Agregar usuario
-                    </a>
-                    {% if usuarios %}
-                    <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="dropdown-item">
-                        <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
-                    </a>
-                    <button type="button" class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
-                        <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar a todos
-                    </button>
-                    {% endif %}
-                </div>
-            </div>
-    </div>
+{% block list_filters %}
+<input type="hidden" name="edificio" id="hidden-edificio" value="{{ selected_edificio_id|default:'' }}">
+<input type="hidden" name="estado" id="hidden-estado" value="{{ current_estado }}">
+<button id="openUserFilterPanel" type="button" class="btn btn-primary">
+    <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
+    {% if selected_edificio_id or current_estado %}
+    <span class="filter-dot"></span>
+    {% endif %}
+</button>
+{% endblock %}
 
-    <div class="table-wrapper">
-        <div class="table-responsive">
-            <table class="report-table">
-                <thead>
-                    <tr>
-                        <th>Cédula</th>
-                        <th>Nombre</th>
-                        <th>Apellido</th>
-                        <th>Edificio</th>
-                        <th>Correo</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if usuarios %}
-                        {% for usuario in usuarios %}
-                            <tr>
-                                <td>{{ usuario.cedula }}</td>
-                                <td>{{ usuario.nombre }}</td>
-                                <td>{{ usuario.last_name }}</td>
-                                <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
-                                <td>{{ usuario.email|default:'—' }}</td>
-                                <td>
-                                    <div class="actions-dropdown">
-                                        <button type="button" class="btn btn-icon" aria-label="Acciones" aria-haspopup="true" aria-expanded="false" title="Acciones">
-                                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
-                                        </button>
-                                        <div class="dropdown-menu">
-                                            <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
-                                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
-                                            </a>
-                                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item js-btn-confirm-delete" data-confirm="¿Estás seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
-                                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
-                                            </a>
-                                            {% if usuario.email %}
-                                            <button type="button" class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
-                                                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar correo
-                                            </button>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td colspan="6" class="table-empty-cell">
-                                No hay usuarios registrados.
-                            </td>
-                        </tr>
-                    {% endif %}
-                </tbody>
-            </table>
-        </div>
+{% block list_actions %}
+{% url 'user_create' as registro_url %}
+{% include 'core/components/boton.html' with url=registro_url class='btn btn-primary' text='Agregar usuario' %}
+<div class="actions-dropdown">
+    <button type="button" class="btn btn-icon" aria-label="M&#225;s acciones">
+        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+    </button>
+    <div class="dropdown-menu">
+        {% if usuarios %}
+        <a href="{% url 'user_pdf' %}?{{ filter_query_string }}" class="dropdown-item">
+            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
+        </a>
+        <button type="button" class="dropdown-item" id="sendAllEmailBtn" data-edificio-id="{{ selected_edificio_id|default:'' }}">
+            <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar a todos
+        </button>
+        {% endif %}
     </div>
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.js-auto-submit').forEach(function (sel) {
-                sel.addEventListener('change', function () { this.form.submit(); });
-            });
+{% block list_table %}
+<thead>
+    <tr>
+        <th>C&#233;dula</th>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>Edificio</th>
+        <th>Correo</th>
+        <th>Acciones</th>
+    </tr>
+</thead>
+<tbody>
+    {% if usuarios %}
+        {% for usuario in usuarios %}
+            <tr>
+                <td>{{ usuario.cedula }}</td>
+                <td>{{ usuario.nombre }}</td>
+                <td>{{ usuario.last_name }}</td>
+                <td title="{{ usuario.edificio_nombre }}">{{ usuario.edificio_nombre }}</td>
+                <td>{{ usuario.email|default:'—' }}</td>
+                <td>
+                    <div class="actions-dropdown">
+                        <button type="button" class="btn btn-icon" aria-label="Acciones" aria-haspopup="true" aria-expanded="false" title="Acciones">
+                            <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'user_edit' usuario.id %}" class="dropdown-item">
+                                <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i> Editar
+                            </a>
+                            <a href="{% url 'user_delete' usuario.id %}" class="dropdown-item js-btn-confirm-delete" data-confirm="&#191;Est&#225;s seguro de eliminar a {{ usuario.nombre }} {{ usuario.last_name }}?">
+                                <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Eliminar
+                            </a>
+                            {% if usuario.email %}
+                            <button type="button" class="dropdown-item send-email-btn" data-email="{{ usuario.email }}">
+                                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar correo
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    {% else %}
+        <tr>
+            <td colspan="6" class="table-empty-cell">
+                No hay usuarios registrados.
+            </td>
+        </tr>
+    {% endif %}
+</tbody>
+{% endblock %}
 
-            // ── Botones individuales de envío por correo ──
-            document.querySelectorAll('.send-email-btn').forEach(btn => {
-                btn.addEventListener('click', async (e) => {
-                    e.stopPropagation();
-                    const email    = btn.dataset.email;
-                    const origHTML = btn.innerHTML;
-                    btn.disabled   = true;
-                    btn.innerHTML  = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
-                    try {
-                        const resp = await csrfFetch('/api/send-test-email/', {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify({ email })
-                        });
-                        const data = await resp.json();
-                        showToast(
-                            data.message || (resp.ok ? 'Correo enviado correctamente.' : 'No se pudo enviar el correo.'),
-                            resp.ok ? 'success' : 'error'
-                        );
-                    } catch {
-                        showToast('Error de conexión con el servidor.', 'error');
-                    } finally {
-                        btn.disabled  = false;
-                        btn.innerHTML = origHTML;
-                    }
-                });
-            });
+{% block list_after %}
+<div id="userFilterOverlay" class="filter-overlay"></div>
+<aside id="userFilterPanel" class="filter-panel">
+    <div class="filter-panel-header">
+        <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span></div>
+        <button type="button" id="closeUserFilterPanel" class="btn btn-icon" aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <div class="filter-panel-body">
+        {% if edificios|length > 1 %}
+        <div class="filter-panel-section">
+            <div class="filter-section-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</div>
+            <select id="panel-edificio" class="custom-select-init">
+                <option value="">Todos los edificios</option>
+                {% for edf in edificios %}
+                <option value="{{ edf.id }}" {% if edf.id == selected_edificio_id %}selected{% endif %}>{{ edf.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="filter-panel-section">
+            <div class="filter-section-label"><i class="fa-solid fa-user-check" aria-hidden="true"></i> Estado</div>
+            <select id="panel-estado" class="custom-select-init">
+                <option value="">Todos los estados</option>
+                <option value="registrado" {% if current_estado == 'registrado' %}selected{% endif %}>Registrados</option>
+                <option value="por_registrar" {% if current_estado == 'por_registrar' %}selected{% endif %}>Por registrar</option>
+            </select>
+        </div>
+    </div>
+    <div class="filter-panel-footer">
+        <button type="button" id="applyUserPanelFilters" class="btn btn-primary btn-flex">
+            <i class="fa-solid fa-filter" aria-hidden="true"></i> Aplicar
+        </button>
+        <a href="{% url 'user_list' %}" class="btn btn-secondary btn-flex">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Limpiar
+        </a>
+    </div>
+</aside>
+{% endblock %}
 
-            // ── Botón "Enviar a todos" ──
-            const sendAllBtn = document.getElementById('sendAllEmailBtn');
-            if (sendAllBtn) {
-                sendAllBtn.addEventListener('click', async () => {
-                    const edificioId = sendAllBtn.dataset.edificioId;
-                    if (!edificioId) {
-                        showToast('Seleccione un edificio específico antes de usar «Enviar a todos».', 'info');
-                        return;
-                    }
-                    const origHTML   = sendAllBtn.innerHTML;
-                    sendAllBtn.disabled  = true;
-                    sendAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
-                    try {
-                        const resp = await csrfFetch('/api/send-all-subscribers/', {
-                            method:  'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body:    JSON.stringify({ edificio_id: edificioId })
-                        });
-                        const data = await resp.json();
-                        showToast(
-                            data.message || (resp.ok ? 'Correos enviados correctamente.' : 'No se pudieron enviar los correos.'),
-                            resp.ok ? 'success' : 'error'
-                        );
-                    } catch {
-                        showToast('Error de conexión con el servidor.', 'error');
-                    } finally {
-                        sendAllBtn.disabled  = false;
-                        sendAllBtn.innerHTML = origHTML;
-                    }
-                });
-            }
+{% block list_extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // ── Filter panel ──
+    var overlay = document.getElementById('userFilterOverlay');
+    var panel   = document.getElementById('userFilterPanel');
+    var openBtn = document.getElementById('openUserFilterPanel');
+    var closeBtn= document.getElementById('closeUserFilterPanel');
 
-            // ── Dropdown del header de acciones (ID único — lógica distinta al .actions-dropdown genérico) ──
-            const userActionsToggle = document.getElementById('userActionsToggle');
-            const userActionsMenu   = document.getElementById('userActionsMenu');
-            if (userActionsToggle && userActionsMenu) {
-                userActionsToggle.addEventListener('click', function (e) {
-                    e.stopImmediatePropagation();
-                    const opened = !userActionsMenu.classList.contains('open');
-                    closeAllDropdowns();
-                    if (opened) {
-                        userActionsMenu.classList.add('open');
-                        userActionsToggle.classList.add('open');
-                    }
+    function openFilterPanel()  { panel.classList.add('open'); overlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeFilterPanel() { panel.classList.remove('open'); overlay.classList.remove('open'); document.body.style.overflow = ''; }
+
+    if (openBtn) openBtn.addEventListener('click', openFilterPanel);
+    if (overlay) overlay.addEventListener('click', closeFilterPanel);
+    if (closeBtn) closeBtn.addEventListener('click', closeFilterPanel);
+
+    document.getElementById('applyUserPanelFilters').addEventListener('click', function () {
+        var edi = document.getElementById('panel-edificio');
+        var est = document.getElementById('panel-estado');
+        if (edi) document.getElementById('hidden-edificio').value = edi.value;
+        document.getElementById('hidden-estado').value = est.value;
+        document.getElementById('q-usuarios').form.submit();
+    });
+
+    // ── Botones individuales de envío por correo ──
+    document.querySelectorAll('.send-email-btn').forEach(function (btn) {
+        btn.addEventListener('click', async function (e) {
+            e.stopPropagation();
+            var email    = btn.dataset.email;
+            var origHTML = btn.innerHTML;
+            btn.disabled   = true;
+            btn.innerHTML  = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
+            try {
+                var resp = await csrfFetch('/api/send-test-email/', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ email: email })
                 });
-                userActionsMenu.addEventListener('click', function () {
-                    setTimeout(() => {
-                        userActionsMenu.classList.remove('open');
-                        userActionsToggle.classList.remove('open');
-                    }, 150);
-                });
+                var data = await resp.json();
+                showToast(
+                    data.message || (resp.ok ? 'Correo enviado correctamente.' : 'No se pudo enviar el correo.'),
+                    resp.ok ? 'success' : 'error'
+                );
+            } catch (_) {
+                showToast('Error de conexión con el servidor.', 'error');
+            } finally {
+                btn.disabled  = false;
+                btn.innerHTML = origHTML;
             }
         });
-    </script>
+    });
+
+    // ── Botón "Enviar a todos" ──
+    var sendAllBtn = document.getElementById('sendAllEmailBtn');
+    if (sendAllBtn) {
+        sendAllBtn.addEventListener('click', async function () {
+            var edificioId = sendAllBtn.dataset.edificioId;
+            if (!edificioId) {
+                showToast('Seleccione un edificio específico antes de usar «Enviar a todos».', 'info');
+                return;
+            }
+            var origHTML   = sendAllBtn.innerHTML;
+            sendAllBtn.disabled  = true;
+            sendAllBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i> Enviando...';
+            try {
+                var resp = await csrfFetch('/api/send-all-subscribers/', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body:    JSON.stringify({ edificio_id: edificioId })
+                });
+                var data = await resp.json();
+                showToast(
+                    data.message || (resp.ok ? 'Correos enviados correctamente.' : 'No se pudieron enviar los correos.'),
+                    resp.ok ? 'success' : 'error'
+                );
+            } catch (_) {
+                showToast('Error de conexión con el servidor.', 'error');
+            } finally {
+                sendAllBtn.disabled  = false;
+                sendAllBtn.innerHTML = origHTML;
+            }
+        });
+    }
+});
+</script>
 {% endblock %}

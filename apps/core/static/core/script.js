@@ -397,9 +397,16 @@ window.initConfirmDelete = () => {
     });
 };
 
+function initAutoSubmit() {
+    document.querySelectorAll('.js-auto-submit').forEach(el => {
+        el.addEventListener('change', function () { this.form.submit(); });
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initDropdowns();
     initConfirmDelete();
+    initAutoSubmit();
 });
 
 
