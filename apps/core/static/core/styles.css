@@ -1661,6 +1661,11 @@ button {
     box-shadow: none;
 }
 
+.custom-modal-container .form-input.input-invalid {
+    border-color: var(--state-critical);
+    box-shadow: 3px 3px 0px var(--state-critical);
+}
+
 .custom-modal-header {
     display: flex;
     align-items: center;

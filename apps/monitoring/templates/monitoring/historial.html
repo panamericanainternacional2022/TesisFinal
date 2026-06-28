@@ -300,12 +300,13 @@
 
             // Mostrar/ocultar error
             errorBox.style.display = (bothFilled && !valid) ? 'block' : 'none';
-            inputDesde.style.boxShadow = (!valid) ? '3px 3px 0px var(--state-critical)' : '3px 3px 0px var(--color-ink)';
-            inputDesde.style.borderColor = (!valid) ? 'var(--state-critical)' : 'var(--color-ink)';
+
+            const invalid = !valid && bothFilled;
+            inputDesde.classList.toggle('input-invalid', invalid);
+            inputHasta.classList.toggle('input-invalid', invalid);
 
             // Habilitar botón Aplicar solo con ambas fechas y válidas
-            const enable = bothFilled && valid;
-            applyBtn.disabled = !enable;
+            applyBtn.disabled = !(bothFilled && valid);
         }
 
         inputDesde.addEventListener('change', checkCustomDates);
