@@ -1597,15 +1597,19 @@ function updateManualRiskPreview() {
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
+    const errorMsg = document.getElementById('manualErrorMsg');
     const status = validateManualInput();
     if (status.hasError) {
-        span.innerHTML = `<div class="error-msg">${status.errorText}</div>`;
-        return;
-    }
-    if (status.empty) {
+        if (errorMsg) errorMsg.textContent = status.errorText;
         span.innerHTML = '';
         return;
     }
+    if (status.empty) {
+        if (errorMsg) errorMsg.textContent = '';
+        span.innerHTML = '';
+        return;
+    }
+    if (errorMsg) errorMsg.textContent = '';
 
     const isEnum = v === 'door_status' || v === 'motor_stuck';
     const raw = isEnum ? sel.value : inp.value;

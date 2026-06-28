@@ -2098,13 +2098,18 @@ input.is-dirty.input-error-state:active {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr auto;
     gap: var(--sp-4);
-    align-items: end;
+    align-items: start;
 }
 
-#manualControlsRow>.risk-preview {
-    grid-column: 3;
-    margin-top: 0;
-    min-height: 1em;
+#manualRiskPreview:empty {
+    display: none;
+}
+#manualValueContainer .error-msg,
+#manualValueContainer .risk-preview {
+    margin-top: 4px;
+}
+#manualControlsRow > div:last-child {
+    padding-top: calc(1em + var(--sp-1));
 }
 
 #simControls>.risk-preview {
@@ -2324,7 +2329,7 @@ input.is-dirty.input-error-state:active {
 }
 
 .self-end {
-    align-self: flex-end;
+    align-self: end;
 }
 
 .col-stack {

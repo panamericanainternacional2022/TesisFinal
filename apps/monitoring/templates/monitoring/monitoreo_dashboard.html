@@ -122,7 +122,6 @@
                         <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Reiniciar
                     </button>
                 </div>
-                <div class="risk-preview" aria-hidden="true"></div>
             </div>
         </div>
 
@@ -150,13 +149,13 @@
                     <input type="number" step="any" id="manualValueInput" class="form-input"
                            placeholder="Ej: 42.5">
                     <select id="manualValueSelect" aria-label="Valor manual del sensor" class="custom-select-init"></select>
+                    <div class="error-msg" id="manualErrorMsg"></div>
                 </div>
-                <div class="self-end">
+                <div>
                     <button type="button" id="sendManualBtn" class="btn btn-primary">
                         <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar
                     </button>
                 </div>
-                <div class="risk-preview" id="manualRiskPreview"></div>
             </div>
         </div>
         {% endif %}
