@@ -1597,15 +1597,10 @@ function updateManualRiskPreview() {
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
-    const errorMsg = document.getElementById('manualErrorMsg');
     const status = validateManualInput();
-    if (errorMsg) {
-        if (status.hasError) {
-            errorMsg.textContent = status.errorText;
-            span.innerHTML = '';
-            return;
-        }
-        errorMsg.innerHTML = '';
+    if (status.hasError) {
+        span.innerHTML = `<span class="error-msg">${status.errorText}</span>`;
+        return;
     }
     if (status.empty) {
         span.innerHTML = '';
