@@ -1868,7 +1868,7 @@ button {
 /* Input modificado (dirty) */
 input.is-dirty {
     border-color: var(--color-accent) !important;
-    box-shadow: var(--shadow-brutal);
+    box-shadow: 6px 6px 0px var(--color-accent) !important;
 }
 
 /* Badge de cambios sin guardar */

@@ -1186,8 +1186,13 @@ function validateThresholdInputs(scope) {
         return null;
     };
 
-    const setInputColors = (inpKeys, inputMap, color) =>
-        inpKeys.forEach(k => { if (inputMap[k]) inputMap[k].style.borderColor = color; });
+    const setInputColors = (inpKeys, inputMap, borderColor, shadowColor) =>
+        inpKeys.forEach(k => {
+            if (inputMap[k]) {
+                inputMap[k].style.borderColor = borderColor;
+                inputMap[k].style.boxShadow = shadowColor || '';
+            }
+        });
 
     PANEL_IDS.forEach(panelId => {
         const panel = document.getElementById(panelId);
@@ -1203,7 +1208,7 @@ function validateThresholdInputs(scope) {
             const highInp = findInp(v, 'high');
             const inputMap = { low: lowInp, med: medInp, high: highInp };
 
-            setInputColors(['low', 'med', 'high'], inputMap, '');
+            setInputColors(['low', 'med', 'high'], inputMap, '', '');
 
             const errorMsgEl = findErrorMsgEl(v);
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
@@ -1220,7 +1225,7 @@ function validateThresholdInputs(scope) {
 
             if (!result.valid) {
                 hasError = true;
-                setInputColors(result.errorInputs, inputMap, 'var(--state-critical)');
+                setInputColors(result.errorInputs, inputMap, 'var(--state-critical)', '3px 3px 0px var(--state-critical)');
                 if (errorMsgEl && result.errorText) { errorMsgEl.textContent = result.errorText; errorMsgEl.style.display = 'block'; }
             }
         });
@@ -1356,12 +1361,14 @@ function validateLimitInputs(scope) {
             const v = inp.dataset.var;
             const val = parseFloat(inp.value);
             inp.style.borderColor = '';
+            inp.style.boxShadow = '';
             const errorMsgEl = inp.closest('.form-group')?.querySelector('.limit-error-msg');
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
 
             const showError = (text) => {
                 hasError = true;
                 inp.style.borderColor = 'var(--state-critical)';
+                inp.style.boxShadow = '3px 3px 0px var(--state-critical)';
                 if (errorMsgEl) { errorMsgEl.textContent = text; errorMsgEl.style.display = 'block'; }
             };
 
@@ -1631,7 +1638,10 @@ function validateManualInput() {
             }
         }
     }
-    if (inp) inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
+    if (inp) {
+        inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
+        inp.style.boxShadow = hasError ? '3px 3px 0px var(--state-critical)' : '';
+    }
     if (sendBtn) sendBtn.disabled = empty || hasError;
     return { hasError, errorText, empty };
 }
