@@ -1091,9 +1091,9 @@ function renderThresholdsPanel(th) {
         } else {
             div.innerHTML = headerHtml + `
                 <div class="thresh-grid-3">
-                    <div class="form-group"><label class="form-label">\u2192 Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">\u2192 Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
-                    <div class="form-group"><label class="form-label">\u2192 Crítico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Medio</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
+                    <div class="form-group"><label class="form-label">Crítico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
                 <div class="thresh-error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">
@@ -1599,12 +1599,11 @@ function updateManualRiskPreview() {
 
     const status = validateManualInput();
     if (status.hasError) {
-        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-s);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
+        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-xs);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
         return;
     }
     if (status.empty) {
-        const hint = buildThresholdHint(v);
-        span.innerHTML = hint ? `<span class="thresh-hint">${hint}</span>` : '';
+        span.innerHTML = '';
         return;
     }
 
@@ -1614,9 +1613,16 @@ function updateManualRiskPreview() {
     if (v === 'motor_stuck') val = (raw === 'true' || raw === '1');
     else if (!isEnum) { const n = parseFloat(raw); if (isNaN(n)) return; val = n; }
 
-    span.innerHTML = _NO_RISK_VARS.includes(v)
-        ? ''
-        : (() => { const ri = getRiskClass(v, val); return `Riesgo estimado: <span class="badge ${ri.badge}">${ri.label}</span>`; })();
+    if (_NO_RISK_VARS.includes(v)) {
+        span.innerHTML = '';
+        return;
+    }
+
+    const ri = getRiskClass(v, val);
+    const cls = ri.badge.replace('badge-', '');
+    const _RISK_ICONS = { crit: 'fa-circle-exclamation', high: 'fa-circle-exclamation', med: 'fa-circle-check', low: 'fa-circle-check', info: 'fa-circle-check', unknown: 'fa-circle-check' };
+    const _RISK_CLASSES = { crit: 'risk-crit', high: 'risk-high', med: 'risk-med', low: 'risk-low', info: 'risk-info', unknown: 'risk-info' };
+    span.innerHTML = `Riesgo estimado: <span class="risk-icon ${_RISK_CLASSES[cls] || 'risk-info'}"><i class="fa-solid ${_RISK_ICONS[cls] || 'fa-circle-check'}" aria-hidden="true"></i> ${ri.label}</span>`;
 }
 
 function validateManualInput() {
@@ -1886,7 +1892,7 @@ function startAlertCountdown(disabledUntilMs) {
     const tick = () => {
         const remaining = disabledUntilMs - Date.now();
         if (remaining <= 0) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; reEnableAlerts(); return; }
-        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:var(--text-s);opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
+        btn.innerHTML = `<i class="fa-solid fa-bell-slash"></i> Activar alertas <span style="font-size:var(--text-xs);opacity:0.7;font-weight:normal;">(${formatCountdown(remaining)})</span>`;
     };
     tick();
     alertCountdownInterval = setInterval(tick, 1000);

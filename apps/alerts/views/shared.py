@@ -5,8 +5,26 @@ from django.db.models import Q, QuerySet
 
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, VALUE_DISPLAY_ES, FAULT_NAMES_ES,
+    RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
 )
 from apps.alerts.models import Notification
+
+
+_RISK_ICONS = {
+    RISK_CRITICO: "fa-circle-exclamation",
+    RISK_ALTO:    "fa-circle-exclamation",
+    RISK_MEDIO:   "fa-circle-check",
+    RISK_BAJO:    "fa-circle-check",
+    RISK_INFO:    "fa-circle-check",
+}
+
+_RISK_CSS = {
+    RISK_CRITICO: "risk-crit",
+    RISK_ALTO:    "risk-high",
+    RISK_MEDIO:   "risk-med",
+    RISK_BAJO:    "risk-low",
+    RISK_INFO:    "risk-info",
+}
 
 
 def exclude_severity_levels(queryset: QuerySet, levels: Optional[List[str]] = None) -> QuerySet:
@@ -102,6 +120,8 @@ def _make_parsed(
         "value": value_display,
         "unit": UNITS.get(variable, ""),
         "action": action,
+        "risk_icon": _RISK_ICONS.get(risk, "fa-circle-check"),
+        "risk_css": _RISK_CSS.get(risk, "risk-info"),
     }
 
 

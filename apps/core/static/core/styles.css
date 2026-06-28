@@ -1202,28 +1202,7 @@ button {
     gap: var(--sp-4);
     padding: var(--sp-4) var(--sp-5);
     border-bottom: var(--border-brutal);
-    border-left: 4px solid transparent;
     transition: background var(--transition-fast);
-}
-
-.notif-item.risk-critico {
-    border-left-color: var(--state-critical);
-}
-
-.notif-item.risk-alto {
-    border-left-color: var(--state-high);
-}
-
-.notif-item.risk-medio {
-    border-left-color: var(--state-warn);
-}
-
-.notif-item.risk-bajo {
-    border-left-color: var(--state-ok);
-}
-
-.notif-item.risk-info {
-    border-left-color: var(--state-inactive);
 }
 
 .notif-item:last-child {
@@ -1277,14 +1256,21 @@ button {
 }
 
 .notif-title {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-3);
     font-weight: var(--weight-bold);
     font-size: var(--text-base);
     color: var(--color-ink);
     margin-bottom: 4px;
-    flex-wrap: wrap;
+}
+
+.risk-icon {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--text-xs);
+    font-weight: var(--weight-bold);
+    background: none;
+    padding: 0;
+    border: none;
 }
 
 /* ─── Estado vacío ─── */
@@ -2148,6 +2134,25 @@ input.is-dirty.input-thresh-error:active {
     flex-wrap: wrap;
     gap: var(--sp-4);
     align-items: flex-end;
+}
+
+#manualControlsRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr auto;
+    gap: var(--sp-4);
+    align-items: end;
+}
+
+#manualControlsRow > .risk-preview {
+    grid-column: 3;
+    margin-top: 0;
+    min-height: 1em;
+}
+
+#simControls > .risk-preview {
+    flex: 1 1 100%;
+    margin-top: 0;
+    min-height: 1em;
 }
 
 /* ─── Drawer title ─── */
