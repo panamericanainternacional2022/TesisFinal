@@ -19,11 +19,9 @@
         {% block list_actions %}{% endblock %}
     </div>
     <div class="table-wrapper">
-        <div class="table-responsive">
-            <table class="report-table">
-                {% block list_table %}{% endblock %}
-            </table>
-        </div>
+        <table class="report-table">
+            {% block list_table %}{% endblock %}
+        </table>
     </div>
 </div>
 {% block list_after %}{% endblock %}

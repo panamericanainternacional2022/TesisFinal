@@ -630,12 +630,12 @@ button {
     box-shadow: none;
 }
 
-.input-with-icon .form-input:hover ~ .input-icon,
+.input-with-icon .form-input:hover~.input-icon,
 .input-with-icon:focus-within .input-icon {
     transform: translateY(-50%) translate(-3px, -3px);
 }
 
-.input-with-icon .form-input:active ~ .input-icon {
+.input-with-icon .form-input:active~.input-icon {
     transform: translateY(-50%);
 }
 
@@ -761,7 +761,7 @@ button {
     z-index: 200;
     display: none;
     flex-direction: column;
-    max-height: 280px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
@@ -1018,10 +1018,6 @@ button {
    ============================================================ */
 .table-wrapper {
     overflow: visible;
-}
-
-.table-responsive {
-    /* overflow handled by .table-wrapper */
 }
 
 .report-table {
