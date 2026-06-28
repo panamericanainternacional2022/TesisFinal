@@ -620,9 +620,23 @@ button {
     box-shadow: 6px 6px 0px var(--color-ink);
 }
 
-.input-with-icon:hover,
-.input-with-icon:focus-within {
+.input-with-icon .form-input:hover,
+.input-with-icon:focus-within .form-input {
     transform: translate(-3px, -3px);
+}
+
+.input-with-icon .form-input:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+}
+
+.input-with-icon .form-input:hover ~ .input-icon,
+.input-with-icon:focus-within .input-icon {
+    transform: translateY(-50%) translate(-3px, -3px);
+}
+
+.input-with-icon .form-input:active ~ .input-icon {
+    transform: translateY(-50%);
 }
 
 .custom-select-trigger:disabled {
@@ -651,7 +665,6 @@ button {
     position: relative;
     display: flex;
     align-items: center;
-    transition: transform var(--transition-fast);
 }
 
 .input-icon {
@@ -661,6 +674,7 @@ button {
     font-size: var(--text-sm);
     color: var(--color-text-placeholder);
     pointer-events: none;
+    transition: transform var(--transition-fast);
 }
 
 .input-icon--left {
@@ -1007,7 +1021,7 @@ button {
 }
 
 .table-responsive {
-    overflow-x: auto;
+    /* overflow handled by .table-wrapper */
 }
 
 .report-table {
@@ -1823,6 +1837,16 @@ button {
     font-weight: var(--weight-bold);
     color: var(--color-ink);
     letter-spacing: var(--tracking-tight);
+}
+
+.thresh-card .form-input:hover,
+.thresh-card .form-input:focus {
+    transform: translate(-3px, -3px);
+}
+
+.thresh-card .form-input:active {
+    transform: translate(0, 0);
+    box-shadow: none;
 }
 
 .thresh-card-footer {
