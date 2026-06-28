@@ -1,168 +1,109 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'core/_event_list_base.html' %}
 {% load static %}
-{% load date_extras %}
 
-{% block title %}Historial{% endblock %}
-{% block meta_description %}<meta name="description" content="Historial completo de eventos, fallas y alertas del sistema INES.">{% endblock %}
+{% block event_list_title %}Historial{% endblock %}
+{% block event_list_description %}Historial completo de eventos, fallas y alertas del sistema INES.{% endblock %}
 
+{% block event_list_heading %}Historial{% endblock %}
+{% block event_list_badge %}
+<span class="notif-count-badge">
+    {{ total_count }}
+</span>
+{% endblock %}
+{% block event_list_subtext %}Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.{% endblock %}
 
+{% block event_list_empty_admin %}
+{% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para ver su historial." %}
+{% endblock %}
 
-{% block content %}
-<div class="reports-card">
-    
-    <header class="page-header">
-        <div class="row-start">
-            <h1 class="m-0">Historial</h1>
-            <span class="notif-count-badge">
-                {{ total_count }}
-            </span>
+{% block event_list_loading_text %}Cargando historial…{% endblock %}
+{% block event_list_error_text %}No se pudo cargar el historial. Verifica tu conexión e intenta de nuevo.{% endblock %}
+
+{% block event_list_toolbar %}
+<form method="GET" action="" id="historialFilterForm" class="row-center m-0">
+
+    <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
+    <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
+    <input type="hidden" name="variable"    id="hidden-variable"    value="{{ variable_filter }}">
+    <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
+    <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
+
+    <div class="row-center">
+
+        <div class="select-container">
+            <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
+                <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
+                <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
+                <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
+                <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Últimos 3 días</option>
+                <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
+                <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
+            </select>
         </div>
-        <p class="mt-1">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
-    </header>
-    {% if not edificios %}
-    <div class="notif-card mt-3">
-        {% if request.session.usuario_es_admin %}
-        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para ver su historial." %}
-        {% else %}
-        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
+
+        {% if periodo_seleccionado == 'custom' %}
+        <button type="button" id="editCustomDatesBtn" class="btn btn-secondary">
+            <i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Editar fechas
+        </button>
         {% endif %}
+
+        <div class="divider-v"></div>
+
+        <button id="openFilterPanel" type="button" class="btn btn-primary">
+            <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
+            {% if severidad or variable_filter or selected_edificio_id %}
+            <span class="filter-dot"></span>
+            {% endif %}
+        </button>
+
+        <a id="pdfDownloadBtn"
+           href="{% url 'history_pdf' %}?{{ filter_query_string }}"
+           class="btn btn-secondary"
+           title="Descargar PDF con los filtros actuales">
+            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
+        </a>
+    </div>
+</form>
+{% endblock %}
+
+{% block event_list_content %}
+<div id="historial-list">
+    {% if notificaciones %}
+    <ul class="notif-list">
+    {% for notif in notificaciones %}
+    {% include 'core/components/notification_item.html' %}
+    {% endfor %}
+    </ul>
+    {% elif severidad or variable_filter or selected_edificio_id %}
+    <div class="no-notif" id="historial-no-events-filters">
+        <i class="fa-solid fa-filter-circle-xmark empty-state-icon" aria-hidden="true"></i>
+        <p>No se encontraron eventos que coincidan con los filtros seleccionados. Prueba con un período más amplio o limpia los filtros.</p>
+        <div class="empty-state-action">
+            <a href="?periodo=24h" class="btn btn-secondary">Limpiar filtros</a>
+        </div>
+    </div>
+    {% elif periodo_seleccionado == 'custom' %}
+    <div class="no-notif" id="historial-no-events-custom">
+        <i class="fa-solid fa-calendar-xmark empty-state-icon" aria-hidden="true"></i>
+        <p>No hay eventos entre el {{ fecha_desde }} y el {{ fecha_hasta }}. Prueba con un rango más amplio.</p>
+        <div class="empty-state-action">
+            <a href="{% url 'history' %}" class="btn btn-secondary">Ver todo el historial</a>
+        </div>
     </div>
     {% else %}
-    <div class="toolbar">
-        <form method="GET" action="" id="historialFilterForm" class="row-center m-0">
-            
-            <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
-            <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
-            <input type="hidden" name="variable"    id="hidden-variable"    value="{{ variable_filter }}">
-            <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
-            <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
-
-            <div class="row-center">
-                
-                <div class="select-container">
-                    <select id="periodoSelect" name="periodo" aria-label="Período de historial" class="custom-select-init">
-                        <option value="24h"    {% if periodo_seleccionado == '24h'    or not periodo_seleccionado %}selected{% endif %}>Últimas 24 horas</option>
-                        <option value="1h"     {% if periodo_seleccionado == '1h'     %}selected{% endif %}>Última hora</option>
-                        <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
-                        <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Últimos 3 días</option>
-                        <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
-                        <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
-                    </select>
-                </div>
-                
-                {% if periodo_seleccionado == 'custom' %}
-                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary">
-                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Editar fechas
-                </button>
-                {% endif %}
-
-                <div class="divider-v"></div>
-
-                <button id="openFilterPanel" type="button" class="btn btn-primary">
-                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
-                    {% if severidad or variable_filter or selected_edificio_id %}
-                    <span class="filter-dot"></span>
-                    {% endif %}
-                </button>
-
-                <a id="pdfDownloadBtn"
-                   href="{% url 'history_pdf' %}?{{ filter_query_string }}"
-                   class="btn btn-secondary"
-                   title="Descargar PDF con los filtros actuales">
-                    <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
-                </a>
-            </div>
-        </form>
+    <div class="no-notif" id="historial-no-events">
+        <i class="fa-solid fa-clock empty-state-icon" aria-hidden="true"></i>
+        <p>No hay eventos registrados en el sistema. El historial se irá poblando a medida que los sensores generen lecturas.</p>
     </div>
-    {% endif %}
-
-    {% if edificios %}
-    
-    <div class="notif-card">
-        <div id="stateLoading" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Cargando historial…</h3>
-        </div>
-        <div id="stateError" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Error de carga</h3>
-            <p class="help-text">No se pudo cargar el historial. Verifica tu conexión e intenta de nuevo.</p>
-            <div class="empty-state-action">
-                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
-            </div>
-        </div>
-        <div id="historial-list">
-            {% if notificaciones %}
-            <ul class="notif-list">
-            {% for notif in notificaciones %}
-            <li class="notif-item">
-                <div class="notif-body">
-                    {% if notif.parsed_data.parsed %}
-                        <div class="row-center mb-1">
-                            <span class="sensor-badge
-                                {% if notif.parsed_data.risk == RISK_CRITICO %}risk-crit
-                                {% elif notif.parsed_data.risk == RISK_ALTO %}risk-high
-                                {% elif notif.parsed_data.risk == RISK_MEDIO %}risk-med
-                                {% elif notif.parsed_data.risk == RISK_BAJO %}risk-low
-                                {% else %}risk-info{% endif %}">
-                                {{ notif.parsed_data.risk }}
-                            </span>
-                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
-                            <span class="code-badge">
-                                {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
-                            </span>
-                            {% endif %}
-                            <span class="value-bold">
-                                {{ notif.parsed_data.variable }}
-                            </span>
-                        </div>
-                        <p class="notif-meta-text">
-                            {{ notif.parsed_data.action }}
-                        </p>
-                    {% else %}
-                        <p class="notif-body-text">
-                            {{ notif.mensaje }}
-                        </p>
-                    {% endif %}
-                    <div class="notif-meta mt-1">
-                        <span title="{{ notif.date|date:'d/m/Y H:i' }}"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ notif.date|naturaltime_es }}</span>
-                        {% if notif.monitoring_equipment.building %}
-                        <span><i class="fa-solid fa-building" aria-hidden="true"></i> {{ notif.monitoring_equipment.building.name }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </li>
-            {% endfor %}
-            </ul>
-            {% elif severidad or variable_filter or selected_edificio_id %}
-            <div class="no-notif" id="historial-no-events-filters">
-                <i class="fa-solid fa-filter-circle-xmark empty-state-icon" aria-hidden="true"></i>
-                <p>No se encontraron eventos que coincidan con los filtros seleccionados. Prueba con un período más amplio o limpia los filtros.</p>
-                <div class="empty-state-action">
-                    <a href="?periodo=24h" class="btn btn-secondary">Limpiar filtros</a>
-                </div>
-            </div>
-            {% elif periodo_seleccionado == 'custom' %}
-            <div class="no-notif" id="historial-no-events-custom">
-                <i class="fa-solid fa-calendar-xmark empty-state-icon" aria-hidden="true"></i>
-                <p>No hay eventos entre el {{ fecha_desde }} y el {{ fecha_hasta }}. Prueba con un rango más amplio.</p>
-                <div class="empty-state-action">
-                    <a href="{% url 'history' %}" class="btn btn-secondary">Ver todo el historial</a>
-                </div>
-            </div>
-            {% else %}
-            <div class="no-notif" id="historial-no-events">
-                <i class="fa-solid fa-clock empty-state-icon" aria-hidden="true"></i>
-                <p>No hay eventos registrados en el sistema. El historial se irá poblando a medida que los sensores generen lecturas.</p>
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {% include 'core/components/pagination.html' with page_obj=notificaciones extra_query=filter_query_string %}
     {% endif %}
 </div>
+{% endblock %}
 
+{% block event_list_pagination %}
+{% include 'core/components/pagination.html' with page_obj=notificaciones extra_query=filter_query_string %}
+{% endblock %}
+
+{% block event_list_after %}
 <div id="filterPanelOverlay" class="filter-overlay"></div>
 <aside id="filterPanel" class="filter-panel">
     <div class="filter-panel-header">
@@ -229,7 +170,7 @@
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
-            
+
             <div id="customDateError" class="error-inline">
                 <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
@@ -247,123 +188,104 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    <script>
-        const periodoSelect = document.getElementById('periodoSelect');
-        const form          = document.getElementById('historialFilterForm');
+{% block event_list_extra_js %}
+<script>
+    const periodoSelect = document.getElementById('periodoSelect');
+    const form          = document.getElementById('historialFilterForm');
 
-        periodoSelect.addEventListener('change', function () {
-            if (this.value === 'custom') {
-                openCustomDateModal();
-                // Devolver al valor anterior sin enviar
-                this.value = this.dataset.prev || '24h';
-            } else {
-                this.dataset.prev = this.value;
-                // Auto-submit preservando filtros del panel
-                form.submit();
-            }
-        });
-        // Guardar valor inicial como "prev"
-        periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '24h' : periodoSelect.value;
-
-        // Botón "Editar" junto al select
-        const editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
-        if (editCustomDatesBtn) {
-            editCustomDatesBtn.addEventListener('click', openCustomDateModal);
+    periodoSelect.addEventListener('change', function () {
+        if (this.value === 'custom') {
+            openCustomDateModal();
+            this.value = this.dataset.prev || '24h';
+        } else {
+            this.dataset.prev = this.value;
+            form.submit();
         }
+    });
+    periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '24h' : periodoSelect.value;
 
-        /* ═══════════════════════════════════════════════════════
-           MODAL DE RANGO PERSONALIZADO
-         ═══════════════════════════════════════════════════════ */
-        const backdrop      = document.getElementById('customDateBackdrop');
-        const inputDesde    = document.getElementById('modal-fecha-desde');
-        const inputHasta    = document.getElementById('modal-fecha-hasta');
-        const applyBtn      = document.getElementById('applyCustomDate');
-        const cancelBtn     = document.getElementById('cancelCustomDate');
-        const errorBox      = document.getElementById('customDateError');
+    const editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
+    if (editCustomDatesBtn) {
+        editCustomDatesBtn.addEventListener('click', openCustomDateModal);
+    }
 
-        function openCustomDateModal() {
-            backdrop.classList.add('active');
-            document.body.style.overflow = 'hidden';
-            checkCustomDates();
-        }
-        function closeCustomDateModal() {
-            backdrop.classList.remove('active');
-            document.body.style.overflow = '';
-        }
+    const backdrop      = document.getElementById('customDateBackdrop');
+    const inputDesde    = document.getElementById('modal-fecha-desde');
+    const inputHasta    = document.getElementById('modal-fecha-hasta');
+    const applyBtn      = document.getElementById('applyCustomDate');
+    const cancelBtn     = document.getElementById('cancelCustomDate');
+    const errorBox      = document.getElementById('customDateError');
 
-        function checkCustomDates() {
-            const desde = inputDesde.value;
-            const hasta = inputHasta.value;
-            const bothFilled = desde && hasta;
-            const valid = !bothFilled || desde <= hasta;
+    function openCustomDateModal() {
+        backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        checkCustomDates();
+    }
+    function closeCustomDateModal() {
+        backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+    }
 
-            // Mostrar/ocultar error
-            errorBox.style.display = (bothFilled && !valid) ? 'block' : 'none';
+    function checkCustomDates() {
+        const desde = inputDesde.value;
+        const hasta = inputHasta.value;
+        const bothFilled = desde && hasta;
+        const valid = !bothFilled || desde <= hasta;
+        errorBox.style.display = (bothFilled && !valid) ? 'block' : 'none';
+        const invalid = !valid && bothFilled;
+        inputDesde.classList.toggle('input-invalid', invalid);
+        inputHasta.classList.toggle('input-invalid', invalid);
+        applyBtn.disabled = !(bothFilled && valid);
+    }
 
-            const invalid = !valid && bothFilled;
-            inputDesde.classList.toggle('input-invalid', invalid);
-            inputHasta.classList.toggle('input-invalid', invalid);
+    inputDesde.addEventListener('change', checkCustomDates);
+    inputHasta.addEventListener('change', checkCustomDates);
 
-            // Habilitar botón Aplicar solo con ambas fechas y válidas
-            applyBtn.disabled = !(bothFilled && valid);
-        }
+    const todayStr = new Date().toISOString().split('T')[0];
+    inputDesde.setAttribute('max', todayStr);
+    inputHasta.setAttribute('max', todayStr);
 
-        inputDesde.addEventListener('change', checkCustomDates);
-        inputHasta.addEventListener('change', checkCustomDates);
+    cancelBtn.addEventListener('click', closeCustomDateModal);
 
-        // Max fechas = hoy para ambos inputs
-        const todayStr = new Date().toISOString().split('T')[0];
-        inputDesde.setAttribute('max', todayStr);
-        inputHasta.setAttribute('max', todayStr);
+    backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) closeCustomDateModal();
+    });
 
-        cancelBtn.addEventListener('click', closeCustomDateModal);
+    applyBtn.addEventListener('click', function () {
+        if (!inputDesde.value || !inputHasta.value) return;
+        document.getElementById('hidden-fecha-desde').value = inputDesde.value;
+        document.getElementById('hidden-fecha-hasta').value = inputHasta.value;
+        periodoSelect.value = 'custom';
+        closeCustomDateModal();
+        form.submit();
+    });
 
-        // Click fuera del contenedor cierra el modal
-        backdrop.addEventListener('click', function (e) {
-            if (e.target === backdrop) closeCustomDateModal();
-        });
-
-        applyBtn.addEventListener('click', function () {
-            if (!inputDesde.value || !inputHasta.value) return;
-            document.getElementById('hidden-fecha-desde').value = inputDesde.value;
-            document.getElementById('hidden-fecha-hasta').value = inputHasta.value;
-            // Fijar periodo = custom en el select antes de enviar
+    (function () {
+        const stored = "{{ periodo_seleccionado }}";
+        if (stored === 'custom') {
             periodoSelect.value = 'custom';
-            closeCustomDateModal();
-            form.submit();
-        });
+            periodoSelect.dataset.prev = '24h';
+        }
+    })();
 
-        // Si al cargar ya teníamos custom, marcar el select
-        (function () {
-            const stored = "{{ periodo_seleccionado }}";
-            if (stored === 'custom') {
-                periodoSelect.value = 'custom';
-                periodoSelect.dataset.prev = '24h';
-            }
-        })();
+    const filterPanel   = document.getElementById('filterPanel');
+    const filterOverlay = document.getElementById('filterPanelOverlay');
 
-        /* ═══════════════════════════════════════════════════════
-           PANEL LATERAL
-        ═══════════════════════════════════════════════════════ */
-        const filterPanel   = document.getElementById('filterPanel');
-        const filterOverlay = document.getElementById('filterPanelOverlay');
+    function openFilterPanel()  { filterPanel.classList.add('open'); filterOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeFilterPanel() { filterPanel.classList.remove('open'); filterOverlay.classList.remove('open'); document.body.style.overflow = ''; }
 
-        function openFilterPanel()  { filterPanel.classList.add('open'); filterOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
-        function closeFilterPanel() { filterPanel.classList.remove('open'); filterOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+    document.getElementById('openFilterPanel').addEventListener('click', openFilterPanel);
+    filterOverlay.addEventListener('click', closeFilterPanel);
+    document.getElementById('closeFilterPanelBtn').addEventListener('click', closeFilterPanel);
 
-        document.getElementById('openFilterPanel').addEventListener('click', openFilterPanel);
-        filterOverlay.addEventListener('click', closeFilterPanel);
-        document.getElementById('closeFilterPanelBtn').addEventListener('click', closeFilterPanel);
-
-        document.getElementById('applyPanelFilters').addEventListener('click', function () {
-            const edi = document.getElementById('panel-edificio');
-            const sev = document.getElementById('panel-severidad');
-            const vrb = document.getElementById('panel-variable');
-            if (edi) document.getElementById('hidden-edificio').value  = edi.value;
-            if (sev) document.getElementById('hidden-severidad').value = sev.value;
-            if (vrb) document.getElementById('hidden-variable').value  = vrb.value;
-            form.submit();
-        });
-    </script>
+    document.getElementById('applyPanelFilters').addEventListener('click', function () {
+        const edi = document.getElementById('panel-edificio');
+        const sev = document.getElementById('panel-severidad');
+        const vrb = document.getElementById('panel-variable');
+        if (edi) document.getElementById('hidden-edificio').value  = edi.value;
+        if (sev) document.getElementById('hidden-severidad').value = sev.value;
+        if (vrb) document.getElementById('hidden-variable').value  = vrb.value;
+        form.submit();
+    });
+</script>
 {% endblock %}

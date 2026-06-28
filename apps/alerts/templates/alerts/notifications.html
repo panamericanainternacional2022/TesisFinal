@@ -1,144 +1,91 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'core/_event_list_base.html' %}
 {% load static %}
-{% load date_extras %}
 
-{% block title %}Alertas{% endblock %}
-{% block meta_description %}<meta name="description" content="Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores en tiempo real.">{% endblock %}
+{% block event_list_title %}Alertas{% endblock %}
+{% block event_list_description %}Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores en tiempo real.{% endblock %}
 
+{% block event_list_heading %}Alertas{% endblock %}
+{% block event_list_badge %}
+<span id="notificationBadgeCount" class="notif-count-badge{% if unread_notifications_count > 0 %} visible{% endif %}">{{ unread_notifications_count }}</span>
+{% endblock %}
+{% block event_list_subtext %}Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.{% endblock %}
 
+{% block event_list_empty_admin %}
+{% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para monitorear sensores." %}
+{% endblock %}
 
-{% block content %}
-<div class="reports-card">
-    <header class="page-header">
-        <div class="row-start">
-            <h1 class="m-0">Alertas</h1>
-            <span id="notificationBadgeCount" class="notif-count-badge{% if unread_notifications_count > 0 %} visible{% endif %}">{{ unread_notifications_count }}</span>
+{% block event_list_loading_text %}Cargando alertas…{% endblock %}
+{% block event_list_error_text %}No se pudieron cargar las alertas. Verifica tu conexión e intenta de nuevo.{% endblock %}
+
+{% block event_list_toolbar %}
+<form method="GET" action="" id="alertsFilterForm" class="row-center m-0">
+    <div class="row-center">
+        {% if edificios|length > 1 %}
+        <div class="select-container">
+            <select name="edificio" id="edificio-filter" aria-label="Filtrar por edificio" class="custom-select-init">
+                <option value="">Todos los edificios</option>
+                {% for building in edificios %}
+                <option value="{{ building.id }}" {% if selected_edificio_id == building.id %}selected{% endif %}>
+                    {{ building.name }}
+                </option>
+                {% endfor %}
+            </select>
         </div>
-        <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
-    </header>
-    {% if not edificios %}
-    <div class="notif-card mt-3">
-        {% if request.session.usuario_es_admin %}
-        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para monitorear sensores." %}
+        <div class="divider-v"></div>
+        {% endif %}
+
+        <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if request.session.usuario_es_admin %}true{% else %}false{% endif %}">
+
+        </button>
+        {% if not request.session.usuario_es_admin %}
+        <button type="button" id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
+
+        </button>
+        {% endif %}
+        <button type="button" id="clearDbNotificationsBtn" class="btn btn-critical">
+            <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Limpiar alertas
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block event_list_content %}
+<div id="live-notifications-list">
+    {% if notifications %}
+    <ul class="notif-list">
+    {% for notif in notifications %}
+    {% include 'core/components/notification_item.html' %}
+    {% endfor %}
+    </ul>
+    {% else %}
+    <div class="no-notif" id="live-no-notif">
+        {% if not alerts_disabled %}
+        <i class="fa-solid fa-bell" aria-hidden="true"></i>
+        <p>No hay alertas pendientes. Todos los sensores operan dentro de los parámetros normales.</p>
         {% else %}
-        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
+        <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
+        <p>Las alertas están desactivadas. Los operadores no recibirán notificaciones hasta que se activen desde el panel de control.</p>
         {% endif %}
     </div>
-    {% else %}
-    <div class="toolbar">
-        <form method="GET" action="" id="alertsFilterForm" class="row-center m-0">
-            <div class="row-center">
-                {% if edificios|length > 1 %}
-                <div class="select-container">
-                    <select name="edificio" id="edificio-filter" aria-label="Filtrar por edificio" onchange="this.form.submit()" class="custom-select-init">
-                        <option value="">Todos los edificios</option>
-                        {% for building in edificios %}
-                        <option value="{{ building.id }}" {% if selected_edificio_id == building.id %}selected{% endif %}>
-                            {{ building.name }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="divider-v"></div>
-                {% endif %}
-
-                <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if request.session.usuario_es_admin %}true{% else %}false{% endif %}">
-                    
-                </button>
-                {% if not request.session.usuario_es_admin %}
-                <button type="button" id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
-                    
-                </button>
-                {% endif %}
-                <button type="button" id="clearDbNotificationsBtn" class="btn btn-critical">
-                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Limpiar alertas
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <div class="notif-card">
-        <div id="stateLoading" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Cargando notificaciones…</h3>
-        </div>
-        <div id="stateError" class="no-notif empty-state d-none">
-            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Error de carga</h3>
-            <p class="help-text">No se pudieron cargar las notificaciones. Verifica tu conexión e intenta de nuevo.</p>
-            <div class="empty-state-action">
-                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
-            </div>
-        </div>
-        <div id="live-notifications-list">
-            {% if notifications %}
-            <ul class="notif-list">
-            {% for notif in notifications %}
-            <li class="notif-item">
-                <div class="notif-body">
-                    {% if notif.parsed_data.parsed %}
-                        <div class="row-center mb-1">
-                            <span class="sensor-badge
-                                {% if notif.parsed_data.risk == RISK_CRITICO %}risk-crit
-                                {% elif notif.parsed_data.risk == RISK_ALTO %}risk-high
-                                {% elif notif.parsed_data.risk == RISK_MEDIO %}risk-med
-                                {% elif notif.parsed_data.risk == RISK_BAJO %}risk-low
-                                {% else %}risk-info{% endif %}">
-                                {{ notif.parsed_data.risk }}
-                            </span>
-                            {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
-                            <span class="code-badge">
-                                {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
-                            </span>
-                            {% endif %}
-                            <span class="value-bold">
-                                {{ notif.parsed_data.variable }}
-                            </span>
-                        </div>
-                        <p class="notif-meta-text">
-                            {{ notif.parsed_data.action }}
-                        </p>
-                    {% else %}
-                        <p class="notif-body-text">
-                            {{ notif.mensaje }}
-                        </p>
-                    {% endif %}
-                    <div class="notif-meta mt-1">
-                        <span title="{{ notif.date|date:'d/m/Y H:i' }}"><i class="fa-solid fa-clock" aria-hidden="true"></i> {{ notif.date|naturaltime_es }}</span>
-                        {% if notif.monitoring_equipment.building %}
-                        <span><i class="fa-solid fa-building" aria-hidden="true"></i> {{ notif.monitoring_equipment.building.name }}</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </li>
-            {% endfor %}
-            </ul>
-            {% else %}
-            <div class="no-notif" id="live-no-notif">
-                {% if not alerts_disabled %}
-                <i class="fa-solid fa-bell" aria-hidden="true"></i>
-                <p>No hay alertas pendientes. Todos los sensores operan dentro de los parámetros normales.</p>
-                {% else %}
-                <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
-                <p>Las alertas están desactivadas. Los operadores no recibirán notificaciones hasta que se activen desde el panel de control.</p>
-                {% endif %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {% if selected_edificio_id %}
-        {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_edificio_id %}
-    {% else %}
-        {% include 'core/components/pagination.html' with page_obj=notifications %}
-    {% endif %}
     {% endif %}
 </div>
 {% endblock %}
 
-{% block extra_js %}
-    <script>
-        window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.SELECTED_EDIFICIO_ID = {% if selected_edificio_id %}{{ selected_edificio_id }}{% elif edificios|length == 1 %}{{ edificios.0.id }}{% else %}0{% endif %};
-    </script>
+{% block event_list_pagination %}
+{% if selected_edificio_id %}
+    {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_edificio_id %}
+{% else %}
+    {% include 'core/components/pagination.html' with page_obj=notifications %}
+{% endif %}
+{% endblock %}
+
+{% block event_list_extra_js %}
+<script>
+    window.CSRF_TOKEN = "{{ csrf_token }}";
+    window.SELECTED_EDIFICIO_ID = {% if selected_edificio_id %}{{ selected_edificio_id }}{% elif edificios|length == 1 %}{{ edificios.0.id }}{% else %}0{% endif %};
+
+    document.getElementById('edificio-filter')?.addEventListener('change', function () {
+        this.form.submit();
+    });
+</script>
 {% endblock %}

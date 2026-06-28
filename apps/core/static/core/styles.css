@@ -761,7 +761,7 @@ button {
     z-index: 200;
     display: none;
     flex-direction: column;
-    max-height: 200px;
+    max-height: 220px;
     overflow-y: auto;
 }
 

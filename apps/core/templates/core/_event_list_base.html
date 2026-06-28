@@ -1,0 +1,56 @@
+{% extends 'core/base_sidebar.html' %}
+{% load static %}
+
+{% block title %}{% block event_list_title %}{% endblock %}{% endblock %}
+{% block meta_description %}<meta name="description" content="{% block event_list_description %}{% endblock %}">{% endblock %}
+
+{% block content %}
+<div class="reports-card">
+
+    <header class="page-header">
+        <div class="row-start">
+            <h1 class="m-0">{% block event_list_heading %}{% endblock %}</h1>
+            {% block event_list_badge %}{% endblock %}
+        </div>
+        <p class="mt-1">{% block event_list_subtext %}{% endblock %}</p>
+    </header>
+    {% if not edificios %}
+    <div class="notif-card mt-3">
+        {% if request.session.usuario_es_admin %}
+        {% block event_list_empty_admin %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega uno para comenzar." %}
+        {% endblock %}
+        {% else %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
+        {% endif %}
+    </div>
+    {% else %}
+    <div class="toolbar">
+        {% block event_list_toolbar %}{% endblock %}
+    </div>
+
+    <div class="notif-card">
+        <div id="stateLoading" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">{% block event_list_loading_text %}Cargando…{% endblock %}</h3>
+        </div>
+        <div id="stateError" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Error de carga</h3>
+            <p class="help-text">{% block event_list_error_text %}No se pudieron cargar los datos. Verifica tu conexión e intenta de nuevo.{% endblock %}</p>
+            <div class="empty-state-action">
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
+            </div>
+        </div>
+        {% block event_list_content %}{% endblock %}
+    </div>
+
+    {% block event_list_pagination %}{% endblock %}
+    {% endif %}
+</div>
+{% block event_list_after %}{% endblock %}
+{% endblock %}
+
+{% block extra_js %}
+{% block event_list_extra_js %}{% endblock %}
+{% endblock %}
