@@ -817,9 +817,7 @@ button {
 .error-msg:empty {
     display: none;
 }
-.risk-preview .error-msg {
-    margin-top: 0;
-}
+
 
 .input-error-state {
     border-color: var(--state-critical) !important;

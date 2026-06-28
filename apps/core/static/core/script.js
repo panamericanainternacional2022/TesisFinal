@@ -1599,7 +1599,7 @@ function updateManualRiskPreview() {
 
     const status = validateManualInput();
     if (status.hasError) {
-        span.innerHTML = `<span class="error-msg">${status.errorText}</span>`;
+        span.innerHTML = `<div class="error-msg">${status.errorText}</div>`;
         return;
     }
     if (status.empty) {
