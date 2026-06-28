@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import HttpRequest
 from django.utils import timezone
 from django.core.paginator import Paginator
+from urllib.parse import urlencode
 import datetime as dt
 
 from apps.core.auth_decorators import login_required
@@ -26,10 +27,16 @@ def notifications_view(request: HttpRequest):
             "notifications": None, "edificios": [], "rol": "US",
             "alerts_disabled": False, "alerts_disabled_until_ms": None,
             "email_alerts_disabled": False,
+            "filter_query_string": "",
         })
 
     rol = request.session.get("usuario_rol", "US")
     building_id_raw = get_building_id_param(request, "building", "edificio")
+
+    filter_params = {}
+    if building_id_raw and building_id_raw.isdigit():
+        filter_params["edificio"] = building_id_raw
+    filter_query_string = urlencode(filter_params)
 
     notifications, _ = _build_notification_query(usuario_id, rol, building_id_raw)
 
@@ -79,6 +86,7 @@ def notifications_view(request: HttpRequest):
             "alerts_disabled": alerts_disabled,
             "alerts_disabled_until_ms": alerts_disabled_until_ms,
             "email_alerts_disabled": email_alerts_disabled,
+            "filter_query_string": filter_query_string,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
             "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
         },

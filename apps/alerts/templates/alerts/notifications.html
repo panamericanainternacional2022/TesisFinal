@@ -72,11 +72,7 @@
 {% endblock %}
 
 {% block event_list_pagination %}
-{% if selected_edificio_id %}
-    {% include 'core/components/pagination.html' with page_obj=notifications extra_query='edificio='|add:selected_edificio_id %}
-{% else %}
-    {% include 'core/components/pagination.html' with page_obj=notifications %}
-{% endif %}
+{% include 'core/components/pagination.html' with page_obj=notifications extra_query=filter_query_string %}
 {% endblock %}
 
 {% block event_list_extra_js %}
