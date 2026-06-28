@@ -87,10 +87,19 @@
                 </td>
             </tr>
         {% endfor %}
+    {% elif request.GET.q or selected_edificio_id or current_estado %}
+        <tr>
+            <td colspan="6" class="table-empty-cell">
+                No se encontraron usuarios que coincidan con los filtros aplicados. Prueba con otros criterios de búsqueda.
+                <div class="empty-state-action">
+                    <a href="{% url 'user_list' %}" class="btn btn-secondary">Limpiar filtros</a>
+                </div>
+            </td>
+        </tr>
     {% else %}
         <tr>
             <td colspan="6" class="table-empty-cell">
-                No hay usuarios registrados.
+                No hay usuarios registrados en el sistema. Agrega el primero para comenzar.
             </td>
         </tr>
     {% endif %}

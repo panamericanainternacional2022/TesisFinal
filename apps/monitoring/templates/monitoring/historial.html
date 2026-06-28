@@ -19,7 +19,15 @@
         </div>
         <p class="mt-1">Registro cronológico de todos los eventos del sistema. Filtra por severidad, variable o período para analizar el comportamiento de los sensores.</p>
     </header>
-    {% if edificios %}
+    {% if not edificios %}
+    <div class="notif-card mt-3">
+        {% if request.session.usuario_es_admin %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para ver su historial." %}
+        {% else %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
+        {% endif %}
+    </div>
+    {% else %}
     <div class="toolbar">
         <form method="GET" action="" id="historialFilterForm" class="row-center m-0">
             
@@ -71,6 +79,18 @@
     {% if edificios %}
     
     <div class="notif-card">
+        <div id="stateLoading" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Cargando historial…</h3>
+        </div>
+        <div id="stateError" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Error de carga</h3>
+            <p class="help-text">No se pudo cargar el historial. Verifica tu conexión e intenta de nuevo.</p>
+            <div class="empty-state-action">
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
+            </div>
+        </div>
         <div id="historial-list">
             {% if notificaciones %}
             <ul class="notif-list">
@@ -114,10 +134,26 @@
             </li>
             {% endfor %}
             </ul>
+            {% elif severidad or variable_filter or selected_edificio_id %}
+            <div class="no-notif" id="historial-no-events-filters">
+                <i class="fa-solid fa-filter-circle-xmark empty-state-icon" aria-hidden="true"></i>
+                <p>No se encontraron eventos que coincidan con los filtros seleccionados. Prueba con un período más amplio o limpia los filtros.</p>
+                <div class="empty-state-action">
+                    <a href="?periodo=24h" class="btn btn-secondary">Limpiar filtros</a>
+                </div>
+            </div>
+            {% elif periodo_seleccionado == 'custom' %}
+            <div class="no-notif" id="historial-no-events-custom">
+                <i class="fa-solid fa-calendar-xmark empty-state-icon" aria-hidden="true"></i>
+                <p>No hay eventos entre el {{ fecha_desde }} y el {{ fecha_hasta }}. Prueba con un rango más amplio.</p>
+                <div class="empty-state-action">
+                    <a href="{% url 'history' %}" class="btn btn-secondary">Ver todo el historial</a>
+                </div>
+            </div>
             {% else %}
             <div class="no-notif" id="historial-no-events">
-                <i class="fa-solid fa-folder-open" aria-hidden="true"></i>
-                <p>No se encontraron eventos con los filtros aplicados.</p>
+                <i class="fa-solid fa-clock empty-state-icon" aria-hidden="true"></i>
+                <p>No hay eventos registrados en el sistema. El historial se irá poblando a medida que los sensores generen lecturas.</p>
             </div>
             {% endif %}
         </div>

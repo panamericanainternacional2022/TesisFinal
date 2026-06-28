@@ -16,7 +16,15 @@
         </div>
         <p class="mt-1">Historial completo de alertas, anomalías, eventos del sistema y reportes de sensores almacenados en la base de datos en tiempo real.</p>
     </header>
-    {% if edificios %}
+    {% if not edificios %}
+    <div class="notif-card mt-3">
+        {% if request.session.usuario_es_admin %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega un edificio para monitorear sensores." %}
+        {% else %}
+        {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
+        {% endif %}
+    </div>
+    {% else %}
     <div class="toolbar">
         <form method="GET" action="" id="alertsFilterForm" class="row-center m-0">
             <div class="row-center">
@@ -48,10 +56,20 @@
             </div>
         </form>
     </div>
-    {% endif %}
 
-    {% if edificios %}
     <div class="notif-card">
+        <div id="stateLoading" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Cargando notificaciones…</h3>
+        </div>
+        <div id="stateError" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Error de carga</h3>
+            <p class="help-text">No se pudieron cargar las notificaciones. Verifica tu conexión e intenta de nuevo.</p>
+            <div class="empty-state-action">
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
+            </div>
+        </div>
         <div id="live-notifications-list">
             {% if notifications %}
             <ul class="notif-list">
@@ -98,11 +116,11 @@
             {% else %}
             <div class="no-notif" id="live-no-notif">
                 {% if not alerts_disabled %}
-                <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
-                <p>No hay alertas pendientes.</p>
+                <i class="fa-solid fa-bell" aria-hidden="true"></i>
+                <p>No hay alertas pendientes. Todos los sensores operan dentro de los parámetros normales.</p>
                 {% else %}
-                <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
-                <p>Las alertas están desactivadas.</p>
+                <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
+                <p>Las alertas están desactivadas. Los operadores no recibirán notificaciones hasta que se activen desde el panel de control.</p>
                 {% endif %}
             </div>
             {% endif %}

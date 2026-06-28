@@ -38,9 +38,9 @@
 
     <div class="notif-card mt-3" id="stateCard">
         {% if is_admin %}
-            {% include 'core/components/empty_state.html' with loading_text="Conectando al simulador..." loading_subtext="Obteniendo lecturas de telemetría y estado de sensores en tiempo real." offline_subtext="El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio." no_equipment_title="Edificio sin equipos de monitoreo" no_equipment_text="Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocie equipos a este edificio desde el panel de administración para comenzar la simulación." %}
+            {% include 'core/components/empty_state.html' with loading_text="Conectando al simulador..." loading_subtext="Obteniendo lecturas de telemetría y estado de sensores en tiempo real." offline_subtext="El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Contacta al administrador del edificio." no_equipment_title="Edificio sin equipos de monitoreo" no_equipment_text="Este edificio no tiene configurado ningún equipo de monitoreo (Bomba de agua o elevador). Asocia equipos a este edificio desde el panel de administración para comenzar la simulación." %}
         {% else %}
-            {% include 'core/components/empty_state.html' with loading_text="Conectando al simulador..." loading_subtext="Obteniendo lecturas de telemetría y estado de sensores en tiempo real." offline_subtext="El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Póngase en contacto con el administrador del edificio." no_equipment_title="Edificio sin equipos de monitoreo" no_equipment_text="Este edificio no tiene equipos de monitoreo configurados. Contacta con el administrador para más información." %}
+            {% include 'core/components/empty_state.html' with loading_text="Conectando al simulador..." loading_subtext="Obteniendo lecturas de telemetría y estado de sensores en tiempo real." offline_subtext="El servicio de telemetría y sensores en tiempo real no está transmitiendo datos en este momento. Contacta al administrador del edificio." no_equipment_title="Edificio sin equipos de monitoreo" no_equipment_text="Este edificio no tiene equipos de monitoreo configurados. Contacta al administrador para más información." %}
         {% endif %}
     </div>
 
@@ -174,6 +174,10 @@
                 </h2>
             </div>
             <div class="sensor-cards-grid" id="bombaCards"></div>
+            <div class="no-notif empty-state d-none" id="bombaNoData">
+                <i class="fa-solid fa-eye-slash empty-state-icon" aria-hidden="true"></i>
+                <p class="help-text">No se recibieron lecturas de los sensores de la bomba. Verifica que el equipo esté operativo y conectado.</p>
+            </div>
         </div>
 
         <div id="elevadorSection" class="sensor-section">
@@ -183,6 +187,10 @@
                 </h2>
             </div>
             <div class="sensor-cards-grid" id="elevadorCards"></div>
+            <div class="no-notif empty-state d-none" id="elevadorNoData">
+                <i class="fa-solid fa-eye-slash empty-state-icon" aria-hidden="true"></i>
+                <p class="help-text">No se recibieron lecturas de los sensores del elevador. Verifica que el equipo esté operativo y conectado.</p>
+            </div>
         </div>
 
         <div id="recommendationsPanel" class="panel mb-3">
@@ -192,9 +200,13 @@
                 </h2>
             </div>
             <div id="recommendationsContent" class="col-stack">
-                <div class="status-banner">
+                <div class="status-banner" id="recsLoading">
                     <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
                     <span>Cargando recomendaciones...</span>
+                </div>
+                <div class="no-notif empty-state d-none" id="recsEmpty">
+                    <i class="fa-solid fa-lightbulb empty-state-icon" aria-hidden="true"></i>
+                    <p class="help-text">No hay recomendaciones en este momento. El sistema generará sugerencias automáticamente cuando detecte patrones anómalos.</p>
                 </div>
             </div>
         </div>

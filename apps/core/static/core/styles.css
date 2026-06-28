@@ -1049,7 +1049,7 @@ button {
     background: var(--color-accent-bg);
 }
 
-.report-table td a {
+.report-table td a:not(.btn) {
     color: var(--color-ink);
     text-decoration: none;
     font-weight: var(--weight-medium);
@@ -1972,6 +1972,10 @@ input.is-dirty {
 .empty-state-icon {
     font-size: var(--text-2xl);
     margin-bottom: var(--sp-4);
+}
+
+.empty-state-action {
+    margin-top: var(--sp-4);
 }
 
 /* ─── Separador vertical ─── */
