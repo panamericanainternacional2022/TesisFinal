@@ -620,22 +620,22 @@ button {
     box-shadow: 6px 6px 0px var(--color-ink);
 }
 
-.input-with-icon .form-input:hover,
-.input-with-icon:focus-within .form-input {
+.input-with-icon :is(.form-input, .search-input):hover,
+.input-with-icon:focus-within :is(.form-input, .search-input) {
     transform: translate(-3px, -3px);
 }
 
-.input-with-icon .form-input:active {
+.input-with-icon :is(.form-input, .search-input):active {
     transform: translate(0, 0);
     box-shadow: none;
 }
 
-.input-with-icon .form-input:hover~.input-icon,
-.input-with-icon:focus-within .input-icon {
+.input-with-icon :is(.form-input, .search-input):hover ~ .input-icon,
+.input-with-icon:focus-within :is(.form-input, .search-input) ~ .input-icon {
     transform: translateY(-50%) translate(-3px, -3px);
 }
 
-.input-with-icon .form-input:active~.input-icon {
+.input-with-icon :is(.form-input, .search-input):active ~ .input-icon {
     transform: translateY(-50%);
 }
 
@@ -1649,6 +1649,16 @@ button {
 
 .custom-modal-backdrop.active .custom-modal-container {
     transform: scale(1);
+}
+
+.custom-modal-container .form-input:hover,
+.custom-modal-container .form-input:focus {
+    transform: translate(-3px, -3px);
+}
+
+.custom-modal-container .form-input:active {
+    transform: translate(0, 0);
+    box-shadow: none;
 }
 
 .custom-modal-header {
