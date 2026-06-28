@@ -822,6 +822,19 @@ button {
     box-shadow: 6px 6px 0px var(--color-ink) !important;
 }
 
+.input-error:hover,
+.input-error:focus {
+    border-color: var(--color-ink) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 9px 9px 0px var(--color-ink) !important;
+}
+
+.input-error:active {
+    border-color: var(--color-ink) !important;
+    background: var(--color-surface) !important;
+    box-shadow: none !important;
+}
+
 .error-inline {
     display: none;
     padding: var(--sp-2) var(--sp-3);
@@ -1217,7 +1230,6 @@ button {
 
 .notif-body p {
     margin: 0 0 4px;
-    color: var(--color-text-primary);
     font-size: var(--text-base);
     line-height: var(--leading-normal);
 }
@@ -1225,7 +1237,6 @@ button {
 .notif-body-text {
     margin: 0;
     font-size: var(--text-base);
-    color: var(--color-text-primary);
     line-height: var(--leading-normal);
 }
 
@@ -1666,6 +1677,19 @@ button {
     box-shadow: 3px 3px 0px var(--state-critical);
 }
 
+.custom-modal-container .form-input.input-invalid:hover,
+.custom-modal-container .form-input.input-invalid:focus {
+    border-color: var(--state-critical);
+    box-shadow: 6px 6px 0px var(--state-critical);
+    transform: translate(-3px, -3px);
+}
+
+.custom-modal-container .form-input.input-invalid:active {
+    border-color: var(--state-critical);
+    box-shadow: none;
+    transform: translate(0, 0);
+}
+
 .custom-modal-header {
     display: flex;
     align-items: center;
@@ -1877,7 +1901,44 @@ button {
 /* Input modificado (dirty) */
 input.is-dirty {
     border-color: var(--color-accent) !important;
+    box-shadow: 3px 3px 0px var(--color-accent) !important;
+}
+
+input.is-dirty:hover,
+input.is-dirty:focus {
+    border-color: var(--color-accent) !important;
     box-shadow: 6px 6px 0px var(--color-accent) !important;
+}
+
+input.is-dirty:active {
+    border-color: var(--color-accent) !important;
+    box-shadow: none !important;
+}
+
+/* Input con error de validación (umbrales, límites, comandos manuales) */
+.input-thresh-error {
+    border-color: var(--state-critical);
+    box-shadow: 3px 3px 0px var(--state-critical);
+}
+
+.input-thresh-error:hover,
+.input-thresh-error:focus {
+    box-shadow: 6px 6px 0px var(--state-critical);
+}
+
+/* Error tiene prioridad sobre dirty */
+input.is-dirty.input-thresh-error {
+    border-color: var(--state-critical) !important;
+    box-shadow: 3px 3px 0px var(--state-critical) !important;
+}
+
+input.is-dirty.input-thresh-error:hover,
+input.is-dirty.input-thresh-error:focus {
+    box-shadow: 6px 6px 0px var(--state-critical) !important;
+}
+
+input.is-dirty.input-thresh-error:active {
+    box-shadow: none !important;
 }
 
 /* Badge de cambios sin guardar */

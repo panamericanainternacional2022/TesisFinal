@@ -1019,9 +1019,15 @@ function _validateThresholdRange(dir, low, med, high) {
     if (dir === 'range') {
         if (!(low < high)) return { valid: false, errorText: 'El mínimo aceptable debe ser menor al máximo aceptable.', errorInputs: ['low', 'high'] };
     } else if (dir === 'higher') {
-        if (!(low < med && med < high)) return { valid: false, errorText: 'Los valores deben estar ordenados: Medio < Alto < Crítico.', errorInputs: ['low', 'med', 'high'] };
+        const errs = [];
+        if (low >= med) errs.push('low', 'med');
+        if (med >= high) errs.push('med', 'high');
+        if (errs.length) return { valid: false, errorText: 'Los valores deben estar ordenados: Medio < Alto < Crítico.', errorInputs: [...new Set(errs)] };
     } else if (dir === 'lower') {
-        if (!(low > med && med > high)) return { valid: false, errorText: 'Los valores deben estar ordenados: Medio > Alto > Crítico.', errorInputs: ['low', 'med', 'high'] };
+        const errs = [];
+        if (low <= med) errs.push('low', 'med');
+        if (med <= high) errs.push('med', 'high');
+        if (errs.length) return { valid: false, errorText: 'Los valores deben estar ordenados: Medio > Alto > Crítico.', errorInputs: [...new Set(errs)] };
     }
     return { valid: true, errorText: '', errorInputs: [] };
 }
@@ -1186,11 +1192,10 @@ function validateThresholdInputs(scope) {
         return null;
     };
 
-    const setInputColors = (inpKeys, inputMap, borderColor, shadowColor) =>
+    const setInputColors = (inpKeys, inputMap, hasError) =>
         inpKeys.forEach(k => {
             if (inputMap[k]) {
-                inputMap[k].style.borderColor = borderColor;
-                inputMap[k].style.boxShadow = shadowColor || '';
+                inputMap[k].classList.toggle('input-thresh-error', hasError);
             }
         });
 
@@ -1208,7 +1213,7 @@ function validateThresholdInputs(scope) {
             const highInp = findInp(v, 'high');
             const inputMap = { low: lowInp, med: medInp, high: highInp };
 
-            setInputColors(['low', 'med', 'high'], inputMap, '', '');
+            setInputColors(['low', 'med', 'high'], inputMap, false);
 
             const errorMsgEl = findErrorMsgEl(v);
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
@@ -1225,7 +1230,7 @@ function validateThresholdInputs(scope) {
 
             if (!result.valid) {
                 hasError = true;
-                setInputColors(result.errorInputs, inputMap, 'var(--state-critical)', '3px 3px 0px var(--state-critical)');
+                setInputColors(result.errorInputs, inputMap, true);
                 if (errorMsgEl && result.errorText) { errorMsgEl.textContent = result.errorText; errorMsgEl.style.display = 'block'; }
             }
         });
@@ -1360,15 +1365,13 @@ function validateLimitInputs(scope) {
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
             const v = inp.dataset.var;
             const val = parseFloat(inp.value);
-            inp.style.borderColor = '';
-            inp.style.boxShadow = '';
+            inp.classList.remove('input-thresh-error');
             const errorMsgEl = inp.closest('.form-group')?.querySelector('.limit-error-msg');
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
 
             const showError = (text) => {
                 hasError = true;
-                inp.style.borderColor = 'var(--state-critical)';
-                inp.style.boxShadow = '3px 3px 0px var(--state-critical)';
+                inp.classList.add('input-thresh-error');
                 if (errorMsgEl) { errorMsgEl.textContent = text; errorMsgEl.style.display = 'block'; }
             };
 
@@ -1641,8 +1644,7 @@ function validateManualInput() {
         }
     }
     if (inp) {
-        inp.style.borderColor = hasError ? 'var(--state-critical)' : '';
-        inp.style.boxShadow = hasError ? '3px 3px 0px var(--state-critical)' : '';
+        inp.classList.toggle('input-thresh-error', hasError);
     }
     if (sendBtn) sendBtn.disabled = empty || hasError;
     return { hasError, errorText, empty };
