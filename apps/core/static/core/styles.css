@@ -630,12 +630,12 @@ button {
     box-shadow: none;
 }
 
-.input-with-icon :is(.form-input, .search-input):hover ~ .input-icon,
-.input-with-icon:focus-within :is(.form-input, .search-input) ~ .input-icon {
+.input-with-icon :is(.form-input, .search-input):hover~.input-icon,
+.input-with-icon:focus-within :is(.form-input, .search-input)~.input-icon {
     transform: translateY(-50%) translate(-3px, -3px);
 }
 
-.input-with-icon :is(.form-input, .search-input):active ~ .input-icon {
+.input-with-icon :is(.form-input, .search-input):active~.input-icon {
     transform: translateY(-50%);
 }
 
@@ -1851,11 +1851,15 @@ button {
 }
 
 .thresh-card .form-input:hover,
-.thresh-card .form-input:focus {
+.thresh-card .form-input:focus,
+.admin-controls-row .form-input:hover,
+.admin-controls-row .form-input:focus {
+
     transform: translate(-3px, -3px);
 }
 
-.thresh-card .form-input:active {
+.thresh-card .form-input:active,
+.admin-controls-row .form-input:active {
     transform: translate(0, 0);
     box-shadow: none;
 }
