@@ -30,6 +30,7 @@
     </div>
 
     <div class="notif-card">
+        {% block event_list_states %}
         <div id="stateLoading" class="no-notif empty-state d-none">
             <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
             <h3 class="section-label">{% block event_list_loading_text %}Cargando…{% endblock %}</h3>
@@ -42,6 +43,7 @@
                 <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
             </div>
         </div>
+        {% endblock %}
         {% block event_list_content %}{% endblock %}
     </div>
 

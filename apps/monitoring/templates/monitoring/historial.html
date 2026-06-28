@@ -116,8 +116,8 @@
             <div class="filter-section-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</div>
             <select id="panel-edificio" aria-label="Filtrar por edificio" class="custom-select-init">
                 <option value="">Todos los edificios</option>
-                {% for edif in edificios %}
-                <option value="{{ edif.id }}" {% if selected_edificio_id == edif.id %}selected{% endif %}>{{ edif.name }}</option>
+                {% for building in edificios %}
+                <option value="{{ building.id }}" {% if selected_edificio_id == building.id %}selected{% endif %}>{{ building.name }}</option>
                 {% endfor %}
             </select>
         </div>

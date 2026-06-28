@@ -80,8 +80,8 @@
                     <label for="id_edificio">Elegir edificio</label>
                     <select id="id_edificio" name="id_edificio" required class="custom-select-init {% if form_errors.id_edificio %}input-error{% endif %}">
                         {% if not editing %}<option value="">Seleccione un edificio</option>{% endif %}
-                        {% for edificio in edificios %}
-                            <option value="{{ edificio.id }}" {% if user.id_edificio == edificio.id %}selected{% endif %}>{{ edificio.name }}</option>
+                        {% for building in edificios %}
+                            <option value="{{ building.id }}" {% if user.id_edificio == building.id %}selected{% endif %}>{{ building.name }}</option>
                         {% endfor %}
                     </select>
                     <div class="validation-error">{% if form_errors.id_edificio %}{{ form_errors.id_edificio }}{% endif %}</div>

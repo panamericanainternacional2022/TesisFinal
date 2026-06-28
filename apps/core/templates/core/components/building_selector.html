@@ -14,8 +14,8 @@
 <div class="{{ wrapper_class|default:'toolbar' }}">
     <div class="select-container">
         <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
-            {% for ed in edificios %}
-            <option value="{{ ed.id }}" {% if ed.id == edificio_id %}selected{% endif %}>{{ ed.name }}</option>
+            {% for building in edificios %}
+            <option value="{{ building.id }}" {% if building.id == edificio_id %}selected{% endif %}>{{ building.name }}</option>
             {% endfor %}
         </select>
     </div>
