@@ -807,42 +807,34 @@ button {
 }
 
 /* ─── Validación ─── */
-.validation-error {
-    color: var(--state-critical);
-    font-size: var(--text-xs);
-    font-weight: var(--weight-medium);
-    margin-top: 4px;
-    padding-left: 2px;
-    min-height: 16px;
-}
-
-.input-error {
-    border-color: var(--color-ink) !important;
-    background: var(--color-surface) !important;
-    box-shadow: 6px 6px 0px var(--color-ink) !important;
-}
-
-.input-error:hover,
-.input-error:focus {
-    border-color: var(--color-ink) !important;
-    background: var(--color-surface) !important;
-    box-shadow: 9px 9px 0px var(--color-ink) !important;
-}
-
-.input-error:active {
-    border-color: var(--color-ink) !important;
-    background: var(--color-surface) !important;
-    box-shadow: none !important;
-}
-
-.error-inline {
-    display: none;
-    padding: var(--sp-2) var(--sp-3);
-    background: var(--state-critical-bg);
-    border: var(--border-brutal);
+.error-msg {
     color: var(--state-critical);
     font-size: var(--text-xs);
     font-weight: var(--weight-bold);
+    margin-top: 4px;
+}
+
+.error-msg:empty {
+    display: none;
+}
+
+.input-error-state {
+    border-color: var(--state-critical) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 3px 3px 0px var(--state-critical) !important;
+}
+
+.input-error-state:hover,
+.input-error-state:focus {
+    border-color: var(--state-critical) !important;
+    background: var(--color-surface) !important;
+    box-shadow: 6px 6px 0px var(--state-critical) !important;
+}
+
+.input-error-state:active {
+    border-color: var(--state-critical) !important;
+    background: var(--color-surface) !important;
+    box-shadow: none !important;
 }
 
 
@@ -1690,24 +1682,6 @@ button {
     box-shadow: none;
 }
 
-.custom-modal-container .form-input.input-invalid {
-    border-color: var(--state-critical);
-    box-shadow: 3px 3px 0px var(--state-critical);
-}
-
-.custom-modal-container .form-input.input-invalid:hover,
-.custom-modal-container .form-input.input-invalid:focus {
-    border-color: var(--state-critical);
-    box-shadow: 6px 6px 0px var(--state-critical);
-    transform: translate(-3px, -3px);
-}
-
-.custom-modal-container .form-input.input-invalid:active {
-    border-color: var(--state-critical);
-    box-shadow: none;
-    transform: translate(0, 0);
-}
-
 .custom-modal-header {
     display: flex;
     align-items: center;
@@ -1840,13 +1814,7 @@ button {
     font-size: var(--text-xs);
 }
 
-.thresh-error-msg,
-.limit-error-msg {
-    display: none;
-    color: var(--state-critical);
-    font-size: var(--text-xs);
-    margin-top: 4px;
-}
+
 
 @media (max-width: 1024px) {
     .thresh-grid {
@@ -1933,29 +1901,18 @@ input.is-dirty:active {
     box-shadow: none !important;
 }
 
-/* Input con error de validación (umbrales, límites, comandos manuales) */
-.input-thresh-error {
-    border-color: var(--state-critical);
-    box-shadow: 3px 3px 0px var(--state-critical);
-}
-
-.input-thresh-error:hover,
-.input-thresh-error:focus {
-    box-shadow: 6px 6px 0px var(--state-critical);
-}
-
 /* Error tiene prioridad sobre dirty */
-input.is-dirty.input-thresh-error {
+input.is-dirty.input-error-state {
     border-color: var(--state-critical) !important;
     box-shadow: 3px 3px 0px var(--state-critical) !important;
 }
 
-input.is-dirty.input-thresh-error:hover,
-input.is-dirty.input-thresh-error:focus {
+input.is-dirty.input-error-state:hover,
+input.is-dirty.input-error-state:focus {
     box-shadow: 6px 6px 0px var(--state-critical) !important;
 }
 
-input.is-dirty.input-thresh-error:active {
+input.is-dirty.input-error-state:active {
     box-shadow: none !important;
 }
 
@@ -2143,13 +2100,13 @@ input.is-dirty.input-thresh-error:active {
     align-items: end;
 }
 
-#manualControlsRow > .risk-preview {
+#manualControlsRow>.risk-preview {
     grid-column: 3;
     margin-top: 0;
     min-height: 1em;
 }
 
-#simControls > .risk-preview {
+#simControls>.risk-preview {
     flex: 1 1 100%;
     margin-top: 0;
     min-height: 1em;

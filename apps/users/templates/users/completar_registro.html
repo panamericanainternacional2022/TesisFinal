@@ -31,20 +31,20 @@
  
             <div class="form-group">
                 <label for="username">Nombre de usuario</label>
-                <input type="text" id="username" name="username" class="form-input {% if form_errors.username %}input-error{% endif %}" placeholder="Ej. jperez" value="{{ username_val|default:'' }}" data-validate="username" required>
-                <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
+                <input type="text" id="username" name="username" class="form-input {% if form_errors.username %}input-error-state{% endif %}" placeholder="Ej. jperez" value="{{ username_val|default:'' }}" data-validate="username" required>
+                <div class="error-msg">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
             </div>
  
             <div class="form-group">
                 <label for="password">Contraseña</label>
-                <input type="password" id="password" name="password" class="form-input {% if form_errors.password %}input-error{% endif %}" placeholder="Mínimo 6 caracteres" data-validate="password" required>
-                <div class="validation-error">{% if form_errors.password %}{{ form_errors.password }}{% endif %}</div>
+                <input type="password" id="password" name="password" class="form-input {% if form_errors.password %}input-error-state{% endif %}" placeholder="Mínimo 6 caracteres" data-validate="password" required>
+                <div class="error-msg">{% if form_errors.password %}{{ form_errors.password }}{% endif %}</div>
             </div>
  
             <div class="form-group">
                 <label for="confirm_password">Confirmar contraseña</label>
-                <input type="password" id="confirm_password" name="confirm_password" class="form-input {% if form_errors.confirm_password %}input-error{% endif %}" placeholder="Repite tu contraseña" data-validate="confirm-password" required>
-                <div class="validation-error">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
+                <input type="password" id="confirm_password" name="confirm_password" class="form-input {% if form_errors.confirm_password %}input-error-state{% endif %}" placeholder="Repite tu contraseña" data-validate="confirm-password" required>
+                <div class="error-msg">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
             </div>
  
             {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}

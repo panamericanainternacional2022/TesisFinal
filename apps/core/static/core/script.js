@@ -213,7 +213,7 @@ window.initFormState = function initFormState(form, isEditing) {
     const setBtn = (disabled) => { submitBtn.disabled = disabled; };
 
     const checkState = () => {
-        const hasErrors = form.querySelectorAll('.input-error').length > 0;
+        const hasErrors = form.querySelectorAll('.input-error-state').length > 0;
         let shouldEnable;
         if (isEditing) {
             const hasChanges = Array.from(form.querySelectorAll('input[name], select[name]'))
@@ -1043,14 +1043,14 @@ function _validateThresholdBounds(dir, low, high, bounds, unit) {
     if (outOfRange) return { valid: false, errorText: `Los umbrales deben estar dentro de los límites del sensor (${minBound} - ${maxBound}${unitStr}).`, errorInputs: ['low', 'high'] };
 
     if (dir === 'lower') {
-        if (low > maxBound) return { valid: false, errorText: `El umbral medio no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['low'] };
-        if (high < minBound) return { valid: false, errorText: `El umbral crítico no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['high'] };
+        if (low > maxBound) return { valid: false, errorText: `El umbral medio no puede ser mayor al límite.`, errorInputs: ['low'] };
+        if (high < minBound) return { valid: false, errorText: `El umbral crítico no puede ser menor al límite.`, errorInputs: ['high'] };
     } else if (dir === 'higher') {
-        if (low < minBound) return { valid: false, errorText: `El umbral medio no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['low'] };
-        if (high > maxBound) return { valid: false, errorText: `El umbral crítico no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['high'] };
+        if (low < minBound) return { valid: false, errorText: `El umbral medio no puede ser menor al límite.`, errorInputs: ['low'] };
+        if (high > maxBound) return { valid: false, errorText: `El umbral crítico no puede ser mayor al límite.`, errorInputs: ['high'] };
     } else { // range
-        if (low < minBound) return { valid: false, errorText: `El mínimo aceptable no puede ser menor al límite físico (${minBound}${unitStr}).`, errorInputs: ['low'] };
-        if (high > maxBound) return { valid: false, errorText: `El máximo aceptable no puede ser mayor al límite físico (${maxBound}${unitStr}).`, errorInputs: ['high'] };
+        if (low < minBound) return { valid: false, errorText: `El mínimo aceptable no puede ser menor al límite.`, errorInputs: ['low'] };
+        if (high > maxBound) return { valid: false, errorText: `El máximo aceptable no puede ser mayor al límite.`, errorInputs: ['high'] };
     }
     return { valid: true, errorText: '', errorInputs: [] };
 }
@@ -1085,7 +1085,7 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label">Mínimo aceptable</label><input type="number" step="any" data-var="${k}" data-level="low" value="${cfg.low}" class="form-input"></div>
                     <div class="form-group"><label class="form-label">Máximo aceptable</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div class="thresh-error-msg"></div>
+                <div class="error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="range">
                 <div class="thresh-card-footer"><span>${boundsText}</span></div>`;
         } else {
@@ -1095,7 +1095,7 @@ function renderThresholdsPanel(th) {
                     <div class="form-group"><label class="form-label">Alto</label><input type="number" step="any" data-var="${k}" data-level="medium" value="${cfg.medium}" class="form-input"></div>
                     <div class="form-group"><label class="form-label">Crítico</label><input type="number" step="any" data-var="${k}" data-level="high" value="${cfg.high}" class="form-input"></div>
                 </div>
-                <div class="thresh-error-msg"></div>
+                <div class="error-msg"></div>
                 <input type="hidden" data-var="${k}" data-level="direction" value="${cfg.direction}">
                 <div class="thresh-card-footer"><span>${boundsText}</span></div>`;
         }
@@ -1187,7 +1187,7 @@ function validateThresholdInputs(scope) {
     const findErrorMsgEl = (v) => {
         for (const pid of PANEL_IDS) {
             const el = document.getElementById(pid)?.querySelector(`input[data-var="${v}"]`);
-            if (el) return el.closest('.thresh-card')?.querySelector('.thresh-error-msg') ?? null;
+            if (el) return el.closest('.thresh-card')?.querySelector('.error-msg') ?? null;
         }
         return null;
     };
@@ -1195,7 +1195,7 @@ function validateThresholdInputs(scope) {
     const setInputColors = (inpKeys, inputMap, hasError) =>
         inpKeys.forEach(k => {
             if (inputMap[k]) {
-                inputMap[k].classList.toggle('input-thresh-error', hasError);
+                inputMap[k].classList.toggle('input-error-state', hasError);
             }
         });
 
@@ -1332,7 +1332,7 @@ function renderLimitsPanel(ranges) {
         div.innerHTML = headerHtml + `
             <div class="form-group">
                 <input type="number" step="any" data-var="${k}" data-level="max" value="${maxVal}" class="form-input">
-                <div class="limit-error-msg"></div>
+                <div class="error-msg"></div>
             </div>`;
         return div;
     }
@@ -1365,13 +1365,13 @@ function validateLimitInputs(scope) {
         panel.querySelectorAll('input[type="number"]').forEach(inp => {
             const v = inp.dataset.var;
             const val = parseFloat(inp.value);
-            inp.classList.remove('input-thresh-error');
-            const errorMsgEl = inp.closest('.form-group')?.querySelector('.limit-error-msg');
+            inp.classList.remove('input-error-state');
+            const errorMsgEl = inp.closest('.form-group')?.querySelector('.error-msg');
             if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
 
             const showError = (text) => {
                 hasError = true;
-                inp.classList.add('input-thresh-error');
+                inp.classList.add('input-error-state');
                 if (errorMsgEl) { errorMsgEl.textContent = text; errorMsgEl.style.display = 'block'; }
             };
 
@@ -1597,10 +1597,15 @@ function updateManualRiskPreview() {
     const span = document.getElementById('manualRiskPreview');
     if (!span || !v) return;
 
+    const errorMsg = document.getElementById('manualErrorMsg');
     const status = validateManualInput();
-    if (status.hasError) {
-        span.innerHTML = `<span style="color:var(--state-critical);font-weight:bold;font-size:var(--text-xs);"><i class="fa-solid fa-circle-exclamation"></i> ${status.errorText}</span>`;
-        return;
+    if (errorMsg) {
+        if (status.hasError) {
+            errorMsg.textContent = status.errorText;
+            span.innerHTML = '';
+            return;
+        }
+        errorMsg.innerHTML = '';
     }
     if (status.empty) {
         span.innerHTML = '';
@@ -1650,7 +1655,7 @@ function validateManualInput() {
         }
     }
     if (inp) {
-        inp.classList.toggle('input-thresh-error', hasError);
+        inp.classList.toggle('input-error-state', hasError);
     }
     if (sendBtn) sendBtn.disabled = empty || hasError;
     return { hasError, errorText, empty };
@@ -2268,21 +2273,21 @@ function initFormValidation() {
     // --- Utilidades de error ---
     const mostrarError = (input, mensaje) => {
         const grupo = input.closest('.form-group') || input.parentElement;
-        let errEl = grupo.querySelector('.validation-error');
-        if (!errEl) { errEl = document.createElement('div'); errEl.className = 'validation-error'; grupo.appendChild(errEl); }
+        let errEl = grupo.querySelector('.error-msg');
+        if (!errEl) { errEl = document.createElement('div'); errEl.className = 'error-msg'; grupo.appendChild(errEl); }
         errEl.textContent = mensaje;
-        input.classList.add('input-error');
+        input.classList.add('input-error-state');
     };
 
     const limpiarError = (input) => {
         const grupo = input.closest('.form-group') || input.parentElement;
-        const errEl = grupo.querySelector('.validation-error');
+        const errEl = grupo.querySelector('.error-msg');
         if (errEl) errEl.textContent = '';
-        input.classList.remove('input-error');
+        input.classList.remove('input-error-state');
     };
 
     const tieneErrores = (form) => {
-        if (form.querySelectorAll('.input-error').length > 0) return true;
+        if (form.querySelectorAll('.input-error-state').length > 0) return true;
         return Array.from(form.querySelectorAll('input[required], select[required]'))
             .some(el => !el.value || el.value.trim() === '');
     };
@@ -2450,7 +2455,7 @@ function initFormValidation() {
     // --- Formularios: inicialización y submit ---
     document.querySelectorAll('form').forEach((form) => {
         form.querySelectorAll('input[data-validate], select[data-validate]').forEach((input) => {
-            if (input.classList.contains('input-error') || !input.value) return;
+            if (input.classList.contains('input-error-state') || !input.value) return;
             input.dispatchEvent(new Event(input.tagName === 'SELECT' ? 'change' : 'input'));
         });
         toggleSubmit(form);
@@ -2465,7 +2470,7 @@ function initFormValidation() {
             if (hasErrors || tieneErrores(form)) {
                 e.preventDefault();
                 toggleSubmit(form);
-                const firstError = form.querySelector('.input-error');
+                const firstError = form.querySelector('.input-error-state');
                 if (firstError) { firstError.scrollIntoView({ behavior: 'smooth', block: 'center' }); firstError.focus(); }
             }
         });

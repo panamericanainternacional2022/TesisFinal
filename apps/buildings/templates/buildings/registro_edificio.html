@@ -23,18 +23,18 @@
                 <div class="form-group">
                     <label for="nombreEdificio">Nombre del edificio</label>
                     <div class="input-with-icon">
-                        <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ building.name|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error{% endif %}" />
+                        <input placeholder="Ej. Residencia La Campiña" type="text" id="nombreEdificio" name="nombreEdificio" value="{{ building.name|default:'' }}" data-validate="solo-letras" maxlength="40" required class="form-input {% if form_errors.nombreEdificio or form_errors.nombreEdificio_long %}input-error-state{% endif %}" />
                         <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
                     </div>
-                    <div class="validation-error">{% if form_errors.nombreEdificio %}{{ form_errors.nombreEdificio }}{% elif form_errors.nombreEdificio_long %}{{ form_errors.nombreEdificio_long }}{% endif %}</div>
+                    <div class="error-msg">{% if form_errors.nombreEdificio %}{{ form_errors.nombreEdificio }}{% elif form_errors.nombreEdificio_long %}{{ form_errors.nombreEdificio_long }}{% endif %}</div>
                 </div>
                 <div class="form-group">
                     <label for="rif">RIF</label>
                     <div class="input-with-icon">
-                        <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ building.rif|default:'' }}" data-validate="rif" data-exclude-id="{% if editing %}{{ building.id }}{% endif %}" maxlength="16" required class="form-input {% if form_errors.rif or form_errors.rif_unico or form_errors.rif_long %}input-error{% endif %}" />
+                        <input placeholder="J-00000000-0" type="text" id="rif" name="rif" value="{{ building.rif|default:'' }}" data-validate="rif" data-exclude-id="{% if editing %}{{ building.id }}{% endif %}" maxlength="16" required class="form-input {% if form_errors.rif or form_errors.rif_unico or form_errors.rif_long %}input-error-state{% endif %}" />
                         <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
                     </div>
-                    <div class="validation-error">{% if form_errors.rif %}{{ form_errors.rif }}{% elif form_errors.rif_unico %}{{ form_errors.rif_unico }}{% elif form_errors.rif_long %}{{ form_errors.rif_long }}{% endif %}</div>
+                    <div class="error-msg">{% if form_errors.rif %}{{ form_errors.rif }}{% elif form_errors.rif_unico %}{{ form_errors.rif_unico }}{% elif form_errors.rif_long %}{{ form_errors.rif_long }}{% endif %}</div>
                 </div>
             </div>
 
@@ -42,18 +42,18 @@
                 <div class="form-group">
                     <label for="direccion">Dirección</label>
                     <div class="input-with-icon">
-                        <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="direccion" name="direccion" value="{{ building.address|default:'' }}" data-validate="direccion" maxlength="100" required class="form-input {% if form_errors.direccion or form_errors.direccion_long %}input-error{% endif %}" />
+                        <input placeholder="Ej. Calle Principal, Ciudad" type="text" id="direccion" name="direccion" value="{{ building.address|default:'' }}" data-validate="direccion" maxlength="100" required class="form-input {% if form_errors.direccion or form_errors.direccion_long %}input-error-state{% endif %}" />
                         <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
                     </div>
-                    <div class="validation-error">{% if form_errors.direccion %}{{ form_errors.direccion }}{% elif form_errors.direccion_long %}{{ form_errors.direccion_long }}{% endif %}</div>
+                    <div class="error-msg">{% if form_errors.direccion %}{{ form_errors.direccion }}{% elif form_errors.direccion_long %}{{ form_errors.direccion_long }}{% endif %}</div>
                 </div>
                 <div class="form-group">
                     <label for="cantidadPisos">Cantidad de pisos</label>
                     <div class="input-with-icon">
-                        <input placeholder="Ej. 10" type="number" id="cantidadPisos" name="cantidadPisos" min="1" step="1" value="{{ building.floors|default:'' }}" required class="form-input {% if form_errors.cantidadPisos %}input-error{% endif %}" />
+                        <input placeholder="Ej. 10" type="number" id="cantidadPisos" name="cantidadPisos" min="1" step="1" value="{{ building.floors|default:'' }}" required class="form-input {% if form_errors.cantidadPisos %}input-error-state{% endif %}" />
                         <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
                     </div>
-                    <div class="validation-error">{% if form_errors.cantidadPisos %}{{ form_errors.cantidadPisos }}{% endif %}</div>
+                    <div class="error-msg">{% if form_errors.cantidadPisos %}{{ form_errors.cantidadPisos }}{% endif %}</div>
                 </div>
             </div>
 

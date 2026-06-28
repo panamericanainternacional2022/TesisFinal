@@ -21,13 +21,13 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="login-username">Nombre de usuario</label>
-            <input type="text" id="login-username" name="username" class="form-input {% if form_errors.username %}input-error{% endif %}" placeholder="Usuario" required autofocus autocomplete="username" data-validate="username">
-            <div class="validation-error">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
+            <input type="text" id="login-username" name="username" class="form-input {% if form_errors.username %}input-error-state{% endif %}" placeholder="Usuario" required autofocus autocomplete="username" data-validate="username">
+            <div class="error-msg">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
         </div>
         <div class="form-group">
             <label for="login-password">Contraseña</label>
-            <input type="password" id="login-password" name="password" class="form-input {% if form_errors.password %}input-error{% endif %}" placeholder="Contraseña" required autocomplete="current-password" data-validate="password">
-            <div class="validation-error">{% if form_errors.password %}{{ form_errors.password }}{% endif %}</div>
+            <input type="password" id="login-password" name="password" class="form-input {% if form_errors.password %}input-error-state{% endif %}" placeholder="Contraseña" required autocomplete="current-password" data-validate="password">
+            <div class="error-msg">{% if form_errors.password %}{{ form_errors.password }}{% endif %}</div>
         </div>
 
         {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Ingresar' %}

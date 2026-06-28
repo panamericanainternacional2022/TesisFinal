@@ -171,8 +171,8 @@
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
 
-            <div id="customDateError" class="error-inline">
-                <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i> La fecha "Desde" no puede ser posterior a "Hasta"
+            <div id="customDateError" class="error-msg" style="display:none">
+                La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
         </div>
 
@@ -233,8 +233,8 @@
         const valid = !bothFilled || desde <= hasta;
         errorBox.style.display = (bothFilled && !valid) ? 'block' : 'none';
         const invalid = !valid && bothFilled;
-        inputDesde.classList.toggle('input-invalid', invalid);
-        inputHasta.classList.toggle('input-invalid', invalid);
+        inputDesde.classList.toggle('input-error-state', invalid);
+        inputHasta.classList.toggle('input-error-state', invalid);
         applyBtn.disabled = !(bothFilled && valid);
     }
 
