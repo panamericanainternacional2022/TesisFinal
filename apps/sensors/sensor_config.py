@@ -370,6 +370,7 @@ SENSOR_RANGES = {
     "load":        (0, 1200),
     "energy":      (0, 20),
     "trip_count":  (0, 100000),
+    "position":    (0, 100),
 }
 
 RISK_UNKNOWN = "Desconocido"

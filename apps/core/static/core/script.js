@@ -1535,9 +1535,11 @@ function updateManualInputType() {
         if (range) {
             inp.min = range[0]; inp.max = range[1];
             inp.placeholder = `Ej: ${range[0]} - ${range[1]}${getUnit(v) ? ` ${getUnit(v)}` : ''}`;
+            inp.step = v === 'position' ? '1' : 'any';
         } else {
             inp.removeAttribute('min'); inp.removeAttribute('max');
             inp.placeholder = `Ingrese valor numérico${getUnit(v) ? ` (${getUnit(v)})` : ''}`;
+            inp.step = 'any';
         }
     }
     updateManualRiskPreview();

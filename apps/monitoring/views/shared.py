@@ -19,6 +19,13 @@ def build_monitoring_config(building_id: int) -> dict:
         VALUE_DISPLAY_ES, BOOLEAN_VARS, ENUM_VARS, ENUM_RISK_VALUES,
     )
     from apps.alerts.services.sensor_limit_service import get_sensor_limits
+    from apps.buildings.models import Building
+    ranges = get_sensor_limits(building_id)
+    try:
+        building = Building.objects.get(id=building_id)
+        ranges["position"] = (0, building.floors)
+    except Building.DoesNotExist:
+        pass
     return {
         "no_risk_vars": NO_RISK_VARS,
         "limits_exclude_vars": LIMITS_EXCLUDE_VARS,
@@ -27,7 +34,7 @@ def build_monitoring_config(building_id: int) -> dict:
         "var_names": VAR_NAMES,
         "units": UNITS,
         "value_display_es": VALUE_DISPLAY_ES,
-        "sensor_ranges": get_sensor_limits(building_id),
+        "sensor_ranges": ranges,
         "edificio_id": building_id,
         "boolean_vars": list(BOOLEAN_VARS),
         "enum_vars": list(ENUM_VARS),
