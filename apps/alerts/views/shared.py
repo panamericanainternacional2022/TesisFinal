@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional
 from django.db.models import Q, QuerySet
 
 from apps.sensors.sensor_config import (
-    VAR_NAMES, UNITS, VALUE_DISPLAY_ES,
+    VAR_NAMES, UNITS, VALUE_DISPLAY_ES, FAULT_NAMES_ES,
 )
 from apps.alerts.models import Notification
 
@@ -86,6 +86,10 @@ def _make_parsed(
 
     if variable in VALUE_DISPLAY_ES:
         value_display = VALUE_DISPLAY_ES[variable].get(value_str, raw_str.capitalize())
+        if value_str in ("true", "false") and variable in ("motor_stuck",):
+            value_display = ""
+    elif variable.startswith("fault_resolved_"):
+        value_display = FAULT_NAMES_ES.get(value_str, raw_str.capitalize())
     elif raw_str:
         value_display = raw_str
     else:

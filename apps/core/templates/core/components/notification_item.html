@@ -1,8 +1,14 @@
 {% load date_extras %}
-<li class="notif-item">
+<li class="notif-item{% if notif.parsed_data.parsed %}
+    {% if notif.parsed_data.risk == RISK_CRITICO %} risk-critico
+    {% elif notif.parsed_data.risk == RISK_ALTO %} risk-alto
+    {% elif notif.parsed_data.risk == RISK_MEDIO %} risk-medio
+    {% elif notif.parsed_data.risk == RISK_BAJO %} risk-bajo
+    {% else %} risk-info{% endif %}{% endif %}">
     <div class="notif-body">
         {% if notif.parsed_data.parsed %}
-            <div class="row-center mb-1">
+            <div class="notif-title">
+                {{ notif.parsed_data.variable }}
                 <span class="sensor-badge
                     {% if notif.parsed_data.risk == RISK_CRITICO %}risk-crit
                     {% elif notif.parsed_data.risk == RISK_ALTO %}risk-high
@@ -11,19 +17,19 @@
                     {% else %}risk-info{% endif %}">
                     {{ notif.parsed_data.risk }}
                 </span>
-                {% if notif.parsed_data.value and notif.parsed_data.value != "True" and notif.parsed_data.value != "true" and notif.parsed_data.value != "False" and notif.parsed_data.value != "false" %}
+            </div>
+            {% if notif.parsed_data.value %}
+            <div class="row-center mb-1">
                 <span class="code-badge">
                     {{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}
                 </span>
-                {% endif %}
-                <span class="value-bold">
-                    {{ notif.parsed_data.variable }}
-                </span>
             </div>
+            {% endif %}
             <p class="notif-meta-text">
                 {{ notif.parsed_data.action }}
             </p>
         {% else %}
+            <div class="notif-title">Notificación</div>
             <p class="notif-body-text">
                 {{ notif.mensaje }}
             </p>

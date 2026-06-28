@@ -1202,7 +1202,28 @@ button {
     gap: var(--sp-4);
     padding: var(--sp-4) var(--sp-5);
     border-bottom: var(--border-brutal);
+    border-left: 4px solid transparent;
     transition: background var(--transition-fast);
+}
+
+.notif-item.risk-critico {
+    border-left-color: var(--state-critical);
+}
+
+.notif-item.risk-alto {
+    border-left-color: var(--state-high);
+}
+
+.notif-item.risk-medio {
+    border-left-color: var(--state-warn);
+}
+
+.notif-item.risk-bajo {
+    border-left-color: var(--state-ok);
+}
+
+.notif-item.risk-info {
+    border-left-color: var(--state-inactive);
 }
 
 .notif-item:last-child {
@@ -1253,6 +1274,17 @@ button {
     font-size: var(--text-xs);
     color: var(--color-text-secondary);
     line-height: var(--leading-normal);
+}
+
+.notif-title {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-3);
+    font-weight: var(--weight-bold);
+    font-size: var(--text-base);
+    color: var(--color-ink);
+    margin-bottom: 4px;
+    flex-wrap: wrap;
 }
 
 /* ─── Estado vacío ─── */
