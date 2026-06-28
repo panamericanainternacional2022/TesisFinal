@@ -1600,16 +1600,16 @@ function updateManualRiskPreview() {
     const errorMsg = document.getElementById('manualErrorMsg');
     const status = validateManualInput();
     if (status.hasError) {
-        if (errorMsg) errorMsg.textContent = status.errorText;
+        if (errorMsg) { errorMsg.textContent = status.errorText; errorMsg.style.display = 'block'; }
         span.innerHTML = '';
         return;
     }
     if (status.empty) {
-        if (errorMsg) errorMsg.textContent = '';
+        if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
         span.innerHTML = '';
         return;
     }
-    if (errorMsg) errorMsg.textContent = '';
+    if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
 
     const isEnum = v === 'door_status' || v === 'motor_stuck';
     const raw = isEnum ? sel.value : inp.value;
@@ -2275,13 +2275,14 @@ function initFormValidation() {
         let errEl = grupo.querySelector('.error-msg');
         if (!errEl) { errEl = document.createElement('div'); errEl.className = 'error-msg'; grupo.appendChild(errEl); }
         errEl.textContent = mensaje;
+        errEl.style.display = 'block';
         input.classList.add('input-error-state');
     };
 
     const limpiarError = (input) => {
         const grupo = input.closest('.form-group') || input.parentElement;
         const errEl = grupo.querySelector('.error-msg');
-        if (errEl) errEl.textContent = '';
+        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
         input.classList.remove('input-error-state');
     };
 
