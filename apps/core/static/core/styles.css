@@ -1230,7 +1230,7 @@ button {
 
 .notif-body p {
     margin: 0 0 4px;
-    font-size: var(--text-base);
+    font-size: var(--text-sm);
     line-height: var(--leading-normal);
 }
 
@@ -2240,7 +2240,7 @@ input.is-dirty.input-thresh-error:active {
 .value-bold {
     font-weight: var(--weight-bold);
     color: var(--color-ink);
-    font-size: var(--text-md);
+    font-size: var(--text-base);
 }
 
 .status-label-sm {
