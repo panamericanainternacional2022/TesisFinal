@@ -488,7 +488,12 @@ let alertCountdownInterval = null;
 // 5. FUNCIONES UTILITARIAS / LÓGICA DE NEGOCIO
 // =============================================================================
 
-const safeText = (value) => (value === null || value === undefined) ? '-' : String(value);
+const _htmlEscapeDiv = document.createElement('div');
+const safeText = (value) => {
+    if (value === null || value === undefined) return '-';
+    _htmlEscapeDiv.textContent = String(value);
+    return _htmlEscapeDiv.innerHTML;
+};
 
 function formatNumeric(value, variable) {
     if (typeof value !== 'number') return safeText(value);

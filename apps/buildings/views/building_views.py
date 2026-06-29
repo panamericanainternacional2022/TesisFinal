@@ -26,9 +26,7 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
 
     buildings = Building.objects.all().prefetch_related("equipment")
 
-    if equipamiento == "bomba":
-        buildings = buildings.filter(equipment__equipment_type="bomba")
-    elif equipamiento == "elevador":
+    if equipamiento == "elevador":
         buildings = buildings.filter(equipment__equipment_type="elevador")
 
     if query:
@@ -74,6 +72,13 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
                 "rif": data["rif"],
                 "cantidadPisos": data.get("floors"),
             })
+            if not form_errors:
+                try:
+                    floors_val = int(data["floors"])
+                    if config.has_elevator and floors_val <= 1:
+                        form_errors["cantidadPisos"] = "Un edificio de 1 piso no puede tener elevador."
+                except (ValueError, TypeError):
+                    form_errors["cantidadPisos"] = "La cantidad de pisos debe ser un número entero."
             if form_errors:
                 messages.error(request, "Corrija los errores indicados en el formulario.")
             else:
@@ -93,7 +98,6 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
             "editing": False,
             "form_errors": form_errors,
             "building": building_data,
-            "has_pump": config.has_pump,
             "has_elevator": config.has_elevator,
         },
     )
@@ -106,7 +110,6 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
     form_errors = {}
 
     equipment_types = set(building.equipment.values_list("equipment_type", flat=True))
-    has_pump = MonitoringEquipment.TYPE_PUMP in equipment_types
     has_elevator = MonitoringEquipment.TYPE_ELEVATOR in equipment_types
 
     if request.method == "POST":
@@ -114,18 +117,8 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
         if data.get("rif"):
             data["rif"] = normalize_rif(data["rif"])
 
-        building.name = data["name"]
-        building.address = data["address"]
-        building.rif = data["rif"]
-        if data.get("floors"):
-            try:
-                building.floors = int(data["floors"])
-            except ValueError:
-                pass
-
-        has_pump = request.POST.get("con_bomba") == "true"
         has_elevator = request.POST.get("con_elevador") == "true"
-        config = EquipmentConfig(has_pump=has_pump, has_elevator=has_elevator)
+        config = EquipmentConfig(has_elevator=has_elevator)
 
         if not (data["name"] and data["rif"] and data["address"] and data.get("floors")):
             messages.error(request, "Complete el nombre, la dirección, el RIF y la cantidad de pisos del edificio.")
@@ -140,10 +133,21 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
                 },
                 exclude_building_id=building.id,
             )
+            if not form_errors:
+                try:
+                    floors_val = int(data["floors"])
+                    if config.has_elevator and floors_val <= 1:
+                        form_errors["cantidadPisos"] = "Un edificio de 1 piso no puede tener elevador."
+                except (ValueError, TypeError):
+                    form_errors["cantidadPisos"] = "La cantidad de pisos debe ser un número entero."
             if form_errors:
                 messages.error(request, "Corrija los errores indicados en el formulario.")
             else:
                 with transaction.atomic():
+                    building.name = data["name"]
+                    building.address = data["address"]
+                    building.rif = data["rif"]
+                    building.floors = int(data["floors"])
                     building.save()
                     sync_equipment_for_building(building, config)
                 messages.success(request, "Edificio actualizado correctamente.")
@@ -156,7 +160,6 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
             "editing": True,
             "building": building,
             "form_errors": form_errors,
-            "has_pump": has_pump,
             "has_elevator": has_elevator,
         },
     )

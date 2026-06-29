@@ -10,7 +10,7 @@ class Notification(models.Model):
         "buildings.MonitoringEquipment", on_delete=models.CASCADE, db_column="id_equipo_monitoreo",
         blank=True, null=True,
     )
-    date = models.DateTimeField(db_column="fecha")
+    date = models.DateTimeField(db_column="fecha", db_index=True)
     message = models.JSONField(default=dict, blank=True, db_column="mensaje")
 
     class Meta:

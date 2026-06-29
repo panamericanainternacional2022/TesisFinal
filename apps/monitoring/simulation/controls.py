@@ -1,4 +1,5 @@
 import logging
+import math
 import time as time_module
 
 from django.http import JsonResponse
@@ -47,10 +48,15 @@ def manual_update(request) -> JsonResponse:
                 return json_error_response('door_status debe ser "open" o "closed"')
             parsed_value = str(value)
     elif variable in BOOLEAN_VARS:
-        parsed_value = bool(value)
+        if isinstance(value, str) and value.lower() == "false":
+            parsed_value = False
+        else:
+            parsed_value = bool(value)
     else:
         try:
             parsed_value = float(value)
+            if math.isnan(parsed_value) or math.isinf(parsed_value):
+                return json_error_response("Valor numérico inválido (NaN o Infinito)")
         except (ValueError, TypeError):
             return json_error_response("Valor numérico inválido")
 
@@ -199,6 +205,8 @@ def sim_set_speed(request, building_id: int) -> JsonResponse:
     try:
         body = parse_json_body(request)
         speed = float(body.get("speed", 1.0))
+        if math.isnan(speed) or math.isinf(speed):
+            return json_error_response("Velocidad inválida (NaN o Infinito)")
     except (SimulatorError, ValueError, TypeError):
         return json_error_response("JSON inválido o speed no numérico")
 

@@ -61,9 +61,8 @@
                 <div class="form-group full-width">
                     <label>Equipamiento del edificio</label>
                     <div class="equipment-grid">
-                        <div class="equip-card js-equip-toggle {% if has_pump %}equip-active{% endif %}" data-equip="bomba">
-                            <div class="equip-label">Bomba de agua</div>
-                            <input type="hidden" name="con_bomba" value="{% if has_pump %}true{% else %}false{% endif %}" />
+                        <div class="equip-card equip-active" style="cursor:default;opacity:1">
+                            <div class="equip-label">Bomba de agua <span style="font-size:0.75rem;color:var(--green-600)">(incluida)</span></div>
                         </div>
                         <div class="equip-card js-equip-toggle {% if has_elevator %}equip-active{% endif %}" data-equip="elevador">
                             <div class="equip-label">Elevador</div>

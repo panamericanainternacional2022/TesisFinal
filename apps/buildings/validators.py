@@ -5,6 +5,9 @@ from django.core.exceptions import ValidationError
 
 from apps.buildings.models import Building
 
+REGEX_BUILDING_NAME: re.Pattern = re.compile(r"^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ0-9\s]+$")
+MAX_FLOORS = 150
+
 
 def validate_unique_rif(rif: str, exclude_building_id: Optional[int] = None) -> None:
     if not rif:
@@ -19,11 +22,11 @@ def validate_unique_rif(rif: str, exclude_building_id: Optional[int] = None) -> 
 def validate_building_form(
     data: dict, exclude_building_id: Optional[int] = None
 ) -> dict[str, str]:
-    from apps.users.validators import REGEX_ONLY_LETTERS, REGEX_ADDRESS
+    from apps.users.validators import REGEX_ADDRESS
     errors: dict[str, str] = {}
 
-    _check_field(data, "nombreEdificio", REGEX_ONLY_LETTERS,
-                 "El nombre del edificio solo acepta letras.", errors, "nombreEdificio")
+    _check_field(data, "nombreEdificio", REGEX_BUILDING_NAME,
+                 "El nombre del edificio solo acepta letras y números.", errors, "nombreEdificio")
     _check_min_length(data, "nombreEdificio", 3, "El nombre del edificio",
                       errors, "nombreEdificio_min")
     _check_max_length(data, "nombreEdificio", 40, "El nombre del edificio",
@@ -45,7 +48,9 @@ def validate_building_form(
             val = int(floors_val)
             if val <= 0:
                 errors["cantidadPisos"] = "La cantidad de pisos debe ser mayor a 0."
-        except ValueError:
+            elif val > MAX_FLOORS:
+                errors["cantidadPisos"] = f"La cantidad de pisos no puede exceder {MAX_FLOORS}."
+        except (ValueError, TypeError):
             errors["cantidadPisos"] = "La cantidad de pisos debe ser un número entero."
 
     return errors

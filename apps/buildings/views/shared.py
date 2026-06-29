@@ -22,7 +22,6 @@ def extract_building_data(request: HttpRequest) -> dict:
 
 def extract_equipment_config(request: HttpRequest) -> EquipmentConfig:
     return EquipmentConfig(
-        has_pump=request.POST.get("con_bomba") == "true",
         has_elevator=request.POST.get("con_elevador") == "true",
     )
 

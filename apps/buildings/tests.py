@@ -97,7 +97,6 @@ class RegisterBuildingViewTests(BuildingViewTestBase):
             "direccion": "Av. Principal, Urb. Centro",
             "rif": "J-11111111-0",
             "cantidadPisos": "10",
-            "con_bomba": "true",
             "con_elevador": "true",
         })
         self.assertEqual(response.status_code, 302)
@@ -107,6 +106,52 @@ class RegisterBuildingViewTests(BuildingViewTestBase):
         response = self.client.post(reverse("register_building"), {})
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Complete el nombre")
+
+    def test_building_name_with_numbers_is_valid(self) -> None:
+        response = self.client.post(reverse("register_building"), {
+            "nombreEdificio": "Edificio 24 de Julio",
+            "direccion": "Av. Principal, Urb. Centro",
+            "rif": "J-11111112-0",
+            "cantidadPisos": "5",
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Building.objects.filter(rif="J-11111112-0").exists())
+
+    def test_floors_exceeds_max_rejected(self) -> None:
+        response = self.client.post(reverse("register_building"), {
+            "nombreEdificio": "Edificio Alto",
+            "direccion": "Av. Principal, Urb. Centro",
+            "rif": "J-11111113-0",
+            "cantidadPisos": "999",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "no puede exceder")
+
+    def test_elevator_with_one_floor_rejected(self) -> None:
+        response = self.client.post(reverse("register_building"), {
+            "nombreEdificio": "Edificio Bajo",
+            "direccion": "Av. Principal, Urb. Centro",
+            "rif": "J-11111114-0",
+            "cantidadPisos": "1",
+            "con_elevador": "true",
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "1 piso no puede tener elevador")
+
+    def test_pump_always_created_without_con_bomba(self) -> None:
+        response = self.client.post(reverse("register_building"), {
+            "nombreEdificio": "Edificio SinBomba",
+            "direccion": "Av. Principal, Urb. Centro",
+            "rif": "J-11111115-0",
+            "cantidadPisos": "3",
+        })
+        self.assertEqual(response.status_code, 302)
+        building = Building.objects.get(rif="J-11111115-0")
+        self.assertTrue(building.equipment.filter(equipment_type="bomba").exists())
+
+    def test_pump_filter_removed_still_works(self) -> None:
+        response = self.client.get(reverse("building_list"), {"equipamiento": "bomba"})
+        self.assertEqual(response.status_code, 200)
 
 
 class BuildingListViewTests(BuildingViewTestBase):

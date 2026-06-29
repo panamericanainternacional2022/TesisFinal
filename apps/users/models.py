@@ -9,7 +9,7 @@ class Persona(models.Model):
     middle_name = models.CharField(max_length=40, db_column="segundo_nombre", blank=True, default="")
     first_last_name = models.CharField(max_length=40, db_column="primer_apellido")
     second_last_name = models.CharField(max_length=40, db_column="segundo_apellido", blank=True, default="")
-    email = models.EmailField(max_length=75)
+    email = models.EmailField(max_length=75, unique=True)
 
     class Meta:
         db_table = "persona"
@@ -26,7 +26,10 @@ class Usuario(models.Model):
     id_persona = models.OneToOneField(
         Persona, on_delete=models.CASCADE, db_column="id_persona"
     )
-    rol = models.CharField(max_length=2, default="US")
+    rol = models.CharField(
+        max_length=2, default="US",
+        choices=[("US", "Usuario"), ("SA", "Super Administrador")],
+    )
     registered = models.BooleanField(default=False, db_column="registrado")
     alerts_disabled = models.BooleanField(default=False)
     alerts_disabled_until = models.DateTimeField(null=True, blank=True)

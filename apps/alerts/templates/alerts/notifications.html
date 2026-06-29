@@ -231,7 +231,7 @@
 
 {% block extra_js %}
 <script>
-    window.CSRF_TOKEN = "{{ csrf_token }}";
+    window.CSRF_TOKEN = "{{ csrf_token|escapejs }}";
 
     var periodoSelect = document.getElementById('periodoSelect');
     var form          = document.getElementById('eventosFilterForm');
@@ -304,7 +304,7 @@
     });
 
     (function () {
-        var stored = "{{ periodo_seleccionado }}";
+        var stored = "{{ periodo_seleccionado|escapejs }}";
         if (stored === 'custom') {
             periodoSelect.value = 'custom';
             periodoSelect.dataset.prev = '24h';
