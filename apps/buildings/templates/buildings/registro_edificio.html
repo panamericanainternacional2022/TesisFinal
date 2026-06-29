@@ -60,14 +60,14 @@
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Equipamiento del edificio</label>
-                    <div class="equipment-grid">
-                        <div class="equip-card equip-active" style="cursor:default;opacity:1">
-                            <div class="equip-label">Bomba de agua <span style="font-size:0.75rem;color:var(--green-600)">(incluida)</span></div>
-                        </div>
-                        <div class="equip-card js-equip-toggle {% if has_elevator %}equip-active{% endif %}" data-equip="elevador">
-                            <div class="equip-label">Elevador</div>
-                            <input type="hidden" name="con_elevador" value="{% if has_elevator %}true{% else %}false{% endif %}" />
-                        </div>
+                    <div class="flex" role="group" style="gap:0.5rem">
+                        <button type="button" class="btn" style="background:var(--color-accent);border:var(--border-brutal);color:var(--color-surface);box-shadow:var(--shadow-brutal);pointer-events:none;cursor:default;opacity:0.65;filter:saturate(0.6)">
+                            <i class="fa-solid fa-tint" aria-hidden="true"></i> Bomba de agua
+                        </button>
+                        <button type="button" class="btn js-equip-toggle {% if has_elevator %}btn-primary{% else %}btn-secondary{% endif %}">
+                            <i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Elevador
+                        </button>
+                        <input type="hidden" name="con_elevador" value="{% if has_elevator %}true{% else %}false{% endif %}" />
                     </div>
                 </div>
             </div>
@@ -91,10 +91,11 @@
         document.addEventListener('DOMContentLoaded', function () {
             var checkFormState = initFormState(document.querySelector('form'), {% if editing %}true{% else %}false{% endif %});
 
-            document.querySelectorAll('.js-equip-toggle').forEach(function (card) {
-                card.addEventListener('click', function () {
-                    this.classList.toggle('equip-active');
-                    var inp = this.querySelector('input[type=hidden]');
+            document.querySelectorAll('.js-equip-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    this.classList.toggle('btn-primary');
+                    this.classList.toggle('btn-secondary');
+                    var inp = document.querySelector('input[name="con_elevador"]');
                     inp.value = inp.value === 'true' ? 'false' : 'true';
                     if (checkFormState) setTimeout(checkFormState, 0);
                 });

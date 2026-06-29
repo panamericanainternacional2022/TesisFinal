@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => CustomSelect.init());
 
 window.initFormState = function initFormState(form, isEditing) {
     if (!form) return;
-    const submitBtn = form.querySelector('.btn-primary');
+    const submitBtn = form.querySelector('button[type=submit]');
     if (!submitBtn) return;
 
     const initialValues = {};
