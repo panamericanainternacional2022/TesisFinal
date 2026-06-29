@@ -16,11 +16,16 @@
     </header>
 
     {% if not edificios %}
-    {% if request.session.usuario_es_admin %}
-    {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No hay edificios registrados en el sistema. Agrega uno para comenzar." %}
-    {% else %}
-    {% include 'core/components/empty_state.html' with icon="fa-building" title="Sin edificios" message="No tienes edificios asignados. Contacta al administrador para obtener acceso." %}
-    {% endif %}
+    <div class="notif-card mt-3">
+        <div class="no-notif">
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
+            {% if request.session.usuario_es_admin %}
+            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+            {% else %}
+            <p>No tienes edificios asignados. Contacta al administrador.</p>
+            {% endif %}
+        </div>
+    </div>
     {% else %}
 
     <div class="toolbar">

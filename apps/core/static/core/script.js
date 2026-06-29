@@ -371,6 +371,7 @@ window.initDropdowns = () => {
     document.addEventListener('click', (e) => {
         const trigger = e.target.closest('.actions-dropdown .btn-icon');
         if (trigger) {
+            if (trigger.disabled) return;
             e.stopPropagation();
             const menu = trigger.nextElementSibling;
             const isOpen = menu.classList.contains('open');

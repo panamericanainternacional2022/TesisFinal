@@ -29,7 +29,7 @@
 {% url 'user_create' as registro_url %}
 {% include 'core/components/boton.html' with url=registro_url class='btn btn-primary' text='Agregar usuario' %}
 <div class="actions-dropdown">
-    <button type="button" class="btn btn-icon" aria-label="M&#225;s acciones">
+    <button type="button" class="btn btn-icon" aria-label="M&#225;s acciones" {% if not usuarios %}disabled{% endif %}>
         <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
     </button>
     <div class="dropdown-menu">
