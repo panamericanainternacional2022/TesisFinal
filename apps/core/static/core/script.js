@@ -420,7 +420,6 @@ const API = {
     limitsUpdate: '/api/sensor-limits/update/',
     manualUpdate: '/api/manual-update/',
     toggleAlerts: '/notifications/toggle-alerts/',
-    toggleEmailAlerts: '/notifications/toggle-email-alerts/',
     clearNotifications: '/notifications/clear/',
     simStatus: (id) => `/api/sim/${id}/status/`,
     simPause: (id) => `/api/sim/${id}/pause/`,
@@ -1976,20 +1975,6 @@ function initLiveNotifications() {
         });
     }
 
-    const emailToggleBtn = document.getElementById('toggleEmailAlertsBtn');
-    if (emailToggleBtn) {
-        emailToggleBtn.addEventListener('click', async () => {
-            const newEnabled = emailToggleBtn.dataset.enabled !== 'true';
-            emailToggleBtn.dataset.enabled = newEnabled ? 'true' : 'false';
-            emailToggleBtn.className = newEnabled ? 'btn btn-primary' : 'btn btn-secondary';
-            emailToggleBtn.innerHTML = newEnabled
-                ? '<i class="fa-solid fa-envelope"></i> Desactivar correos'
-                : '<i class="fa-solid fa-envelope"></i> Activar correos';
-            await csrfFetch(API.toggleEmailAlerts, { method: 'POST', body: JSON.stringify({ enabled: newEnabled }) });
-            await window.showAlert(newEnabled ? 'Correos activados con éxito.' : 'Correos desactivados con éxito.', 'success');
-        });
-    }
-
     const clearBtn = document.getElementById('clearDbNotificationsBtn');
     if (clearBtn) {
         clearBtn.addEventListener('click', async () => {
@@ -2239,16 +2224,6 @@ window.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const emailToggleBtn = document.getElementById('toggleEmailAlertsBtn');
-        if (emailToggleBtn) {
-            emailToggleBtn.disabled = false;
-            emailToggleBtn.classList.remove('is-hidden');
-            const emailEnabled = emailToggleBtn.dataset.enabled === 'true';
-            emailToggleBtn.className = emailEnabled ? 'btn btn-primary' : 'btn btn-secondary';
-            emailToggleBtn.innerHTML = emailEnabled
-                ? '<i class="fa-solid fa-envelope"></i> Desactivar correos'
-                : '<i class="fa-solid fa-envelope-slash"></i> Activar correos';
-        }
         return;
     }
 

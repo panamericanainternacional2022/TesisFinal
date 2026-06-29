@@ -1,6 +1,6 @@
 from django.urls import path
 from .views.notifications import notifications_view
-from .views.alert_controls import toggle_alerts_session_view, toggle_email_alerts_view, clear_notifications_view
+from .views.alert_controls import toggle_alerts_session_view, clear_notifications_view
 from .api_views import (
     view_get_thresholds,
     view_update_thresholds,
@@ -23,11 +23,6 @@ urlpatterns = [
         "notifications/clear/",
         clear_notifications_view,
         name="clear_notifications",
-    ),
-    path(
-        "notifications/toggle-email-alerts/",
-        toggle_email_alerts_view,
-        name="toggle_email_alerts",
     ),
     path("api/notifications/count/", view_notification_count, name="api_notification_count"),
     path("api/thresholds/", view_get_thresholds, name="api_thresholds"),

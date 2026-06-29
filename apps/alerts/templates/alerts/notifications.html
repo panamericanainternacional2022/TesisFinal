@@ -37,11 +37,6 @@
         <button type="button" id="toggleAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if request.session.usuario_es_admin %}true{% else %}false{% endif %}">
             <span class="js-fallback">Alertas</span>
         </button>
-        {% if not request.session.usuario_es_admin %}
-        <button type="button" id="toggleEmailAlertsBtn" class="btn btn-secondary is-hidden" data-enabled="{% if email_alerts_disabled %}false{% else %}true{% endif %}">
-            <span class="js-fallback">Alertas por correo</span>
-        </button>
-        {% endif %}
         <button type="button" id="clearDbNotificationsBtn" class="btn btn-critical">
             <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Limpiar alertas
         </button>

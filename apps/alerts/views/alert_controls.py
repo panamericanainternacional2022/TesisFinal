@@ -67,35 +67,6 @@ def _disable_alerts(
 
 @login_required
 @require_http_methods(["POST"])
-def toggle_email_alerts_view(request: HttpRequest) -> JsonResponse:
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return json_error("Invalid JSON")
-
-    enabled = data.get("enabled", True)
-    usuario_id = request.session.get("usuario_id")
-
-    from apps.core.auth_decorators import is_admin_role
-    rol = request.session.get("usuario_rol", "US")
-    if is_admin_role(rol):
-        return json_error("Admin cannot disable email alerts")
-
-    try:
-        usuario_obj = Usuario.objects.get(pk=usuario_id)
-    except Exception:
-        return json_error("User not found")
-
-    disabled = not enabled
-    usuario_obj.email_alerts_disabled = disabled
-    usuario_obj.save(update_fields=["email_alerts_disabled"])
-    request.session["email_alerts_disabled"] = disabled
-
-    return json_ok({"email_alerts_disabled": disabled})
-
-
-@login_required
-@require_http_methods(["POST"])
 def clear_notifications_view(request: HttpRequest) -> JsonResponse:
     import logging
     _logger = logging.getLogger(__name__)
