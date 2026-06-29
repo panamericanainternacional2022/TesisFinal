@@ -756,6 +756,16 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
     const badgeEl = document.getElementById(badgeId);
     const emptyEl = document.getElementById(emptyId);
     if (!badgeEl || !emptyEl) return;
+
+    const cellEl = badgeEl.closest('.status-cell');
+    if (cellEl) {
+        cellEl.classList.remove('cell-ok', 'cell-warn', 'cell-crit', 'cell-muted');
+        if (statusVal === 'operativo') cellEl.classList.add('cell-ok');
+        else if (statusVal === 'falla') cellEl.classList.add('cell-crit');
+        else if (statusVal === 'mantenimiento') cellEl.classList.add('cell-warn');
+        else cellEl.classList.add('cell-ok');
+    }
+
     if (statusVal) {
         badgeEl.style.display = 'inline-block';
         badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
@@ -783,17 +793,29 @@ function updateEquipmentVisibility(equipTypes) {
     const pumpNI = document.getElementById('pumpNotInstalled');
     const pumpBadge = document.getElementById('pumpStatusBadge');
     const pumpEmpty = document.getElementById('pumpStatusEmpty');
-    if (pumpNI && pumpBadge && pumpEmpty) {
-        if (!hasPump) { pumpBadge.style.display = 'none'; pumpEmpty.style.display = 'none'; pumpNI.style.display = 'inline'; }
-        else pumpNI.style.display = 'none';
+    const pumpCell = document.getElementById('pumpStatusRow');
+    if (pumpNI && pumpBadge && pumpEmpty && pumpCell) {
+        if (!hasPump) {
+            pumpBadge.style.display = 'none'; pumpEmpty.style.display = 'none'; pumpNI.style.display = 'inline';
+            pumpCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit'); pumpCell.classList.add('cell-muted');
+        } else {
+            pumpNI.style.display = 'none';
+            pumpCell.classList.remove('cell-muted');
+        }
     }
 
     const elevNI = document.getElementById('elevatorNotInstalled');
     const elevBadge = document.getElementById('elevatorStatusBadge');
     const elevEmpty = document.getElementById('elevatorStatusEmpty');
-    if (elevNI && elevBadge && elevEmpty) {
-        if (!hasElev) { elevBadge.style.display = 'none'; elevEmpty.style.display = 'none'; elevNI.style.display = 'inline'; }
-        else elevNI.style.display = 'none';
+    const elevCell = document.getElementById('elevatorStatusRow');
+    if (elevNI && elevBadge && elevEmpty && elevCell) {
+        if (!hasElev) {
+            elevBadge.style.display = 'none'; elevEmpty.style.display = 'none'; elevNI.style.display = 'inline';
+            elevCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit'); elevCell.classList.add('cell-muted');
+        } else {
+            elevNI.style.display = 'none';
+            elevCell.classList.remove('cell-muted');
+        }
     }
     return true;
 }
@@ -938,6 +960,12 @@ function applyPayload(data) {
                 : parseFloat(document.querySelector('[data-speed].btn-primary')?.dataset.speed || 1.0);
             simSpd.textContent = isPaused ? 'Pausada' : `${speed.toFixed(1)}x`;
             simSpd.className = isPaused ? 'badge badge-med' : 'badge badge-info';
+
+            const simCell = document.getElementById('simStatusRow');
+            if (simCell) {
+                simCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit');
+                simCell.classList.add(isPaused ? 'cell-warn' : 'cell-ok');
+            }
         }
     }
 
