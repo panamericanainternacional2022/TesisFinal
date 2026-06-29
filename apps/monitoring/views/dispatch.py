@@ -21,11 +21,8 @@ def monitoring_view(request: HttpRequest) -> HttpResponse:
 
 
 def history_view(request: HttpRequest) -> HttpResponse:
-    from apps.core.auth_decorators import is_admin_role
-    rol = request.session.get("usuario_rol", "US")
-    if is_admin_role(rol):
-        return render_admin_history(request)
-    return render_user_history(request)
+    from django.shortcuts import redirect
+    return redirect("notifications")
 
 
 def thresholds_view(request: HttpRequest) -> HttpResponse:

@@ -1,9 +1,6 @@
 import datetime as dt
 
-from apps.alerts.views.shared import _build_notification_query, exclude_severity_levels
-from apps.sensors.sensor_config import RISK_INFORMATIVO
-
-_EXCLUDED_SEVERITIES = [RISK_INFORMATIVO]
+from apps.alerts.views.shared import _build_notification_query
 
 
 def unread_notifications(request):
@@ -19,8 +16,6 @@ def unread_notifications(request):
     if alerts_cleared_at:
         cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
         notifications = notifications.filter(date__gt=cleared_dt)
-
-    notifications = exclude_severity_levels(notifications, _EXCLUDED_SEVERITIES)
 
     notifications_count = notifications.distinct().count()
 

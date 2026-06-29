@@ -11,11 +11,14 @@ from apps.users.models import Usuario
 from apps.buildings.models import Building
 from apps.alerts.models import Notification
 from apps.alerts.views.shared import (
-    parse_notification_for_display, exclude_severity_levels, _build_notification_query,
+    parse_notification_for_display, _build_notification_query,
 )
 from apps.sensors.sensor_config import RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO, PAGE_SIZE
-
-_EXCLUDED_SEVERITIES = [RISK_INFORMATIVO]
+from apps.monitoring.views.shared import (
+    filter_date_range, build_query_string,
+    parse_notifications, extract_variables,
+    extract_severities, filter_severity_python, filter_by_variable,
+)
 
 
 @login_required
@@ -27,10 +30,18 @@ def notifications_view(request: HttpRequest):
             "notifications": None, "edificios": [], "rol": "US",
             "alerts_disabled": False, "alerts_disabled_until_ms": None,
             "filter_query_string": "",
+            "severidad": "", "variable_filter": "", "all_variables": [],
+            "ALL_SEVERITIES": [], "fecha_desde": "", "fecha_hasta": "",
+            "periodo_seleccionado": "24h", "total_count": 0,
         })
 
     rol = request.session.get("usuario_rol", "US")
     building_id_raw = get_building_id_param(request, "building", "edificio")
+    severity = request.GET.get("severidad", "").strip()
+    variable_filter = request.GET.get("variable", "").strip()
+    period = request.GET.get("periodo", "24h").strip()
+    date_from = request.GET.get("fecha_desde", "").strip()
+    date_to = request.GET.get("fecha_hasta", "").strip()
 
     filter_params = {}
     if building_id_raw and building_id_raw.isdigit():
@@ -53,18 +64,22 @@ def notifications_view(request: HttpRequest):
         cleared_dt = dt.datetime.fromtimestamp(alerts_cleared_at, tz=dt.timezone.utc)
         notifications = notifications.filter(date__gt=cleared_dt)
 
-    notifications = notifications.select_related("user", "monitoring_equipment__building")
+    notifications = filter_date_range(notifications, period, date_from, date_to)
 
-    notifications = exclude_severity_levels(notifications, _EXCLUDED_SEVERITIES)
+    notifications = (
+        notifications
+        .select_related("user", "monitoring_equipment__building")
+        .distinct()
+        .order_by("-date")
+    )
 
-    notifications = notifications.distinct().order_by("-date")
+    parsed_list = parse_notifications(notifications)
 
-    paginator = Paginator(notifications, PAGE_SIZE)
-    page_number = request.GET.get("page")
-    page_obj = paginator.get_page(page_number)
+    all_variables = extract_variables(parsed_list)
+    available_severities = extract_severities(parsed_list)
 
-    for notif in page_obj:
-        parse_notification_for_display(notif)
+    parsed_list = filter_severity_python(parsed_list, severity)
+    parsed_list = filter_by_variable(parsed_list, variable_filter)
 
     _update_alert_disabled_state(request, usuario_id)
 
@@ -72,19 +87,42 @@ def notifications_view(request: HttpRequest):
     alerts_disabled_until_ts = request.session.get("alerts_disabled_until_ts", None)
     alerts_disabled_until_ms = int(alerts_disabled_until_ts * 1000) if alerts_disabled_until_ts else None
 
+    query_string = build_query_string(
+        edificio=building_id_raw,
+        severidad=severity,
+        variable=variable_filter,
+        periodo=period,
+        fecha_desde=date_from if period == "custom" else None,
+        fecha_hasta=date_to if period == "custom" else None,
+    )
+
+    paginator = Paginator(parsed_list, PAGE_SIZE)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    for notif in page_obj:
+        parse_notification_for_display(notif)
+
     return render(
         request,
         "alerts/notifications.html",
         {
             "notifications": page_obj,
             "edificios": buildings,
-            "selected_edificio_id": int(building_id_raw) if building_id_raw.isdigit() else None,
+            "selected_edificio_id": int(building_id_raw) if building_id_raw and building_id_raw.isdigit() else None,
             "rol": rol,
             "alerts_disabled": alerts_disabled,
             "alerts_disabled_until_ms": alerts_disabled_until_ms,
-            "filter_query_string": filter_query_string,
+            "filter_query_string": query_string,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
             "RISK_INFORMATIVO": RISK_INFORMATIVO,
+            "severidad": severity,
+            "variable_filter": variable_filter,
+            "all_variables": all_variables,
+            "ALL_SEVERITIES": available_severities,
+            "fecha_desde": date_from,
+            "fecha_hasta": date_to,
+            "periodo_seleccionado": period,
+            "total_count": len(parsed_list),
         },
     )
 
@@ -124,5 +162,3 @@ def _update_alert_disabled_state(request: HttpRequest, usuario_id: int) -> None:
         request.session["alerts_cleared_at"] = user_obj.alerts_cleared_at.timestamp()
     elif user_obj:
         request.session.pop("alerts_cleared_at", None)
-
-

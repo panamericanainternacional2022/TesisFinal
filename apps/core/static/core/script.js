@@ -1950,7 +1950,7 @@ function initLiveNotifications() {
             if (!isEnabled) {
                 if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
                 toggleBtn.dataset.enabled = 'true'; toggleBtn.dataset.disabledUntilMs = '';
-                toggleBtn.className = 'btn btn-primary';
+                toggleBtn.className = 'btn btn-critical';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
                 await csrfFetch(API.toggleAlerts, { method: 'POST', body: JSON.stringify({ enabled: true }) });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
@@ -1958,7 +1958,7 @@ function initLiveNotifications() {
             } else {
                 const minutes = await showDurationPicker();
                 if (minutes === undefined) return;
-                toggleBtn.dataset.enabled = 'false'; toggleBtn.className = 'btn btn-secondary';
+                toggleBtn.dataset.enabled = 'false'; toggleBtn.className = 'btn btn-critical';
                 if (minutes !== null) {
                     const untilMs = Date.now() + minutes * 60 * 1000;
                     toggleBtn.dataset.disabledUntilMs = untilMs;
@@ -2213,13 +2213,13 @@ window.addEventListener('DOMContentLoaded', () => {
             const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
-                toggleBtn.className = 'btn btn-primary';
+                toggleBtn.className = 'btn btn-critical';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
             } else if (disabledUntilMs && disabledUntilMs > Date.now()) {
-                toggleBtn.className = 'btn btn-secondary';
+                toggleBtn.className = 'btn btn-critical';
                 startAlertCountdown(disabledUntilMs);
             } else {
-                toggleBtn.className = 'btn btn-secondary';
+                toggleBtn.className = 'btn btn-critical';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell-slash"></i> Activar alertas';
             }
         }

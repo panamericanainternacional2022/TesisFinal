@@ -49,11 +49,8 @@
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell" aria-hidden="true"></i>
-            <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="alertas sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
-        </a>
-        <a href="{% url 'history' %}" class="sidebar-link">
-            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
+            <span>Eventos</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="eventos sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'thresholds' %}" class="sidebar-link">
             <i class="fa-solid fa-sliders" aria-hidden="true"></i> Umbrales
@@ -70,11 +67,8 @@
         </a>
         <a href="{% url 'notifications' %}" class="sidebar-link">
             <i class="fa-solid fa-bell" aria-hidden="true"></i>
-            <span>Alertas</span>
-            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="alertas sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
-        </a>
-        <a href="{% url 'history' %}" class="sidebar-link">
-            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i> Historial
+            <span>Eventos</span>
+            <span id="notificationBadgeSidebar" class="sidebar-notif-badge{% if unread_notifications_count > 0 %} visible{% endif %}" aria-label="eventos sin leer">{% if unread_notifications_count > 0 %}{{ unread_notifications_count }}{% endif %}</span>
         </a>
         <a href="{% url 'configuration' %}" class="sidebar-link">
             <i class="fa-solid fa-gears" aria-hidden="true"></i> Configuración
