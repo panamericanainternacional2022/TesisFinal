@@ -48,6 +48,7 @@ class MonitoringEquipment(models.Model):
 
     class Meta:
         db_table = "equipo_monitoreo"
+        ordering = ["equipment_type"]
 
     def __str__(self) -> str:
         return self.name
