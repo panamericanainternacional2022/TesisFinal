@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 from .utils import (
     get_attribute, translate_device_to_spanish,
 )
-from apps.sensors.sensor_config import RISK_CRITICO, RISK_INFO, RISK_BAJO
+from apps.sensors.sensor_config import RISK_CRITICO, RISK_INFORMATIVO
 
 logger = logging.getLogger(__name__)
 
@@ -85,16 +85,16 @@ def _notify_protection_ended(device: str, sim: Optional['BuildingSimulator'], pn
     from apps.alerts.services.alert_service import persist_notification_in_django, get_professional_action
     from .utils import translate_device_to_spanish
     device_es = translate_device_to_spanish(device)
-    action = get_professional_action(f"protection_{device}", RISK_BAJO, None)
+    action = get_professional_action(f"protection_{device}", RISK_INFORMATIVO, None)
     eid = sim.edificio_id if sim else None
     persist_notification_in_django(
-        f"protection_{device}", None, RISK_BAJO, action, edificio_id=eid,
+        f"protection_{device}", None, RISK_INFORMATIVO, action, edificio_id=eid,
     )
     notification_payload = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
         "variable": f"protection_{device}",
         "value": None,
-        "risk": RISK_BAJO,
+        "risk": RISK_INFORMATIVO,
         "message": action,
     }
     pn.append(notification_payload)

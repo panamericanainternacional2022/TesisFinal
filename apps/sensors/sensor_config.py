@@ -39,30 +39,23 @@ UNITS = {
     "rationing":    "l/s",
 }
 
-RISK_INFO    = "Info"
-RISK_BAJO    = "Bajo"
-RISK_MEDIO   = "Medio"
-RISK_ALTO    = "Alto"
-RISK_CRITICO = "Crítico"
-RISK_NORMAL  = "Normal"
+RISK_NORMAL      = "Normal"
+RISK_INFORMATIVO = "Informativo"
+RISK_ALTO        = "Alto"
+RISK_CRITICO     = "Crítico"
 
-SEVERITY_LEVELS = [RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO]
+SEVERITY_LEVELS = [RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO]
 
 RISK_COLORS = {
-    RISK_INFO: {
-        "pdf":     {"bg": (249, 250, 251), "text": (55, 65, 81)},
-        "email":   {"bg": "#f9fafb", "border": "#e5e7eb", "text": "#374151"},
-        "desc":    "Eventos informativos del sistema",
-    },
-    RISK_BAJO: {
+    RISK_NORMAL: {
         "pdf":     {"bg": (240, 253, 244), "text": (22, 101, 52)},
         "email":   {"bg": "#f0fdf4", "border": "#bbf7d0", "text": "#16a34a"},
         "desc":    "Valores normales de funcionamiento",
     },
-    RISK_MEDIO: {
-        "pdf":     {"bg": (255, 251, 235), "text": (146, 64, 14)},
-        "email":   {"bg": "#fffbeb", "border": "#fde68a", "text": "#b45309"},
-        "desc":    "Cerca del límite sugerido",
+    RISK_INFORMATIVO: {
+        "pdf":     {"bg": (219, 234, 254), "text": (30, 64, 175)},
+        "email":   {"bg": "#dbeafe", "border": "#bfdbfe", "text": "#1e40af"},
+        "desc":    "Eventos informativos del sistema",
     },
     RISK_ALTO: {
         "pdf":     {"bg": (255, 247, 237), "text": (194, 65, 12)},
@@ -89,19 +82,16 @@ RISK_STYLES: dict[str, tuple[tuple[int, int, int], tuple[int, int, int]]] = {
 EMAIL_COLOR_PALETTE: dict[str, dict[str, str]] = {
     risk: v["email"]
     for risk, v in RISK_COLORS.items()
-    if risk != RISK_INFO
 }
 EMAIL_FALLBACK_COLORS: dict[str, str] = {
     "bg": "#f5f5f5", "border": "#e0e0e0", "text": "#6b6b6b",
 }
 
 RISK_NAMES_ES = {
-    RISK_CRITICO: "crítica",
-    RISK_ALTO:    "alta",
-    RISK_MEDIO:   "media",
-    RISK_BAJO:    "baja",
-    RISK_NORMAL:  "normal",
-    RISK_INFO:    "informativa",
+    RISK_CRITICO:      "crítica",
+    RISK_ALTO:         "alta",
+    RISK_INFORMATIVO:  "informativa",
+    RISK_NORMAL:       "normal",
 }
 
 DEVICE_NAMES_ES = {
@@ -236,61 +226,52 @@ RECOMMENDATION_FALLBACK_ACTION_TEMPLATE: str = "Verifica el sensor {}. Programa 
 
 ACTIONS: dict[str, dict[str, str]] = {
     "flow_rate": {
-        RISK_BAJO: "Caudal dentro del rango normal. Monitoreo rutinario activo.",
-        RISK_MEDIO: "Caudal ligeramente bajo. Verifica posibles obstrucciones o filtros sucios.",
+        RISK_NORMAL: "Caudal dentro del rango normal. Monitoreo rutinario activo.",
         RISK_ALTO: "Caudal significativamente bajo. Verifica posibles fugas o fallas parciales en la bomba.",
         RISK_CRITICO: "Caudal crítico bajo (flujo casi nulo). Parada preventiva de bomba activada. Inspecciona la tubería de succión y la bomba.",
     },
     "pressure": {
-        RISK_BAJO: "Presión dentro del rango normal. Monitoreo rutinario activo.",
+        RISK_NORMAL: "Presión dentro del rango normal. Monitoreo rutinario activo.",
         RISK_ALTO: "Presión fuera del rango operativo seguro (2.0 - 8.0 bar). Verifica posibles fugas (presión baja) o bloqueos (presión alta).",
         RISK_CRITICO: "Presión en nivel crítico (flujo nulo o sobrepresión extrema). Detén la bomba de inmediato y verifique la tubería.",
     },
     "temperature": {
-        RISK_BAJO: "Temperatura normal. Ventilación adecuada.",
-        RISK_MEDIO: "Temperatura moderadamente elevada. Verifica la ventilación de la sala de máquinas.",
+        RISK_NORMAL: "Temperatura normal. Ventilación adecuada.",
         RISK_ALTO: "Temperatura alta del motor de bomba. Aumenta la ventilación de la sala de máquinas.",
         RISK_CRITICO: "Temperatura crítica del motor. Riesgo de sobrecalentamiento y fusión. Apagado de emergencia y verificación del sistema de enfriamiento.",
     },
     "vibration": {
-        RISK_BAJO: "Vibración normal. Alineación mecánica correcta.",
-        RISK_MEDIO: "Vibración moderada. Verifica sujetadores mecánicos y estado de rodamientos.",
+        RISK_NORMAL: "Vibración normal. Alineación mecánica correcta.",
         RISK_ALTO: "Vibración por encima del estándar. Programa mantenimiento mecánico.",
         RISK_CRITICO: "Vibración mecánica severa. Desalineación grave o falla de rodamiento. Detén el equipo inmediatamente.",
     },
     "tank_level": {
-        RISK_BAJO: "Nivel de tanque bajo. Monitorea el reabastecimiento.",
-        RISK_MEDIO: "Nivel de tanque en zona de precaución. Programa relleno próximamente.",
+        RISK_NORMAL: "Nivel de tanque bajo. Monitorea el reabastecimiento.",
         RISK_ALTO: "Nivel de tanque alto. Monitorea el llenado automático.",
         RISK_CRITICO: "Nivel de tanque crítico. Riesgo de cavitación de bomba. Detén succión y rellena el tanque urgentemente.",
     },
     "speed": {
-        RISK_BAJO: "Velocidad de elevador normal.",
-        RISK_MEDIO: "Velocidad moderadamente alta. Monitorea el variador de frecuencia.",
+        RISK_NORMAL: "Velocidad de elevador normal.",
         RISK_ALTO: "Velocidad de elevador por encima del límite seguro. Programa inspección del VFD.",
         RISK_CRITICO: "Sobrepaso de velocidad crítico. Frenado de emergencia activado. Inspección de seguridad obligatoria.",
     },
     "load": {
-        RISK_BAJO: "Carga de cabina normal.",
-        RISK_MEDIO: "Carga de cabina moderada. Monitorea el comportamiento del motor.",
+        RISK_NORMAL: "Carga de cabina normal.",
         RISK_ALTO: "Carga de cabina cerca del límite de diseño. Monitorea el comportamiento del motor.",
         RISK_CRITICO: "Sobrecarga de cabina de elevador. Retira el exceso de peso para reanudar operación.",
     },
     "energy": {
-        RISK_BAJO: "Consumo de energía normal.",
-        RISK_MEDIO: "Consumo de energía moderadamente alto. Verifica la eficiencia operativa.",
+        RISK_NORMAL: "Consumo de energía normal.",
         RISK_ALTO: "Consumo de energía inusualmente alto. Monitorea la eficiencia.",
         RISK_CRITICO: "Pico de energía crítico. Posible cortocircuito o sobreesfuerzo del motor. Verifica protecciones eléctricas.",
     },
     "voltage": {
-        RISK_BAJO: "Voltaje dentro del rango nominal (200-240 V).",
-        RISK_MEDIO: "Desviación leve de voltaje. Verifica la estabilidad de la red eléctrica.",
+        RISK_NORMAL: "Voltaje dentro del rango nominal (200-240 V).",
         RISK_ALTO: "Inestabilidad de voltaje (fuera del rango 200 V - 240 V). Riesgo para componentes electrónicos.",
         RISK_CRITICO: "Fluctuación crítica de voltaje. Desconecta el equipo para evitar daños.",
     },
     "current": {
-        RISK_BAJO: "Corriente del motor dentro del rango operativo.",
-        RISK_MEDIO: "Corriente del motor moderadamente alta. Monitorea la temperatura del bobinado.",
+        RISK_NORMAL: "Corriente del motor dentro del rango operativo.",
         RISK_ALTO: "Corriente del motor por encima del límite recomendado. Verifica carga y estado del bobinado.",
         RISK_CRITICO: "Amperaje crítico (sobrecarga eléctrica). Apagado automático por protección activo.",
     },
@@ -298,20 +279,17 @@ ACTIONS: dict[str, dict[str, str]] = {
         RISK_CRITICO: "Eje del motor del elevador atascado/bloqueado. Detén la cabina y realiza liberación de emergencia de pasajeros.",
     },
     "trip_count": {
-        RISK_BAJO: "Conteo de viajes dentro del rango normal.",
-        RISK_MEDIO: "Conteo de viajes alto. Programa inspección del sistema de tracción próximamente.",
+        RISK_NORMAL: "Conteo de viajes dentro del rango normal.",
         RISK_ALTO: "Conteo de viajes alto. Verifica desgaste en componentes mecánicos del elevador.",
         RISK_CRITICO: "Conteo de viajes crítico. Inspección técnica obligatoria antes de continuar operación.",
     },
     "position": {
-        RISK_BAJO: "Posición del elevador dentro del rango operativo normal.",
-        RISK_MEDIO: "Posición del elevador en zona de precaución. Monitorea el desplazamiento.",
+        RISK_NORMAL: "Posición del elevador dentro del rango operativo normal.",
         RISK_ALTO: "Posición del elevador fuera del rango seguro. Verifica el sistema de límites.",
         RISK_CRITICO: "Posición crítica detectada. Detén el elevador y verifique el sistema de guía.",
     },
     "door_status": {
-        RISK_BAJO: "Estado de puerta normal.",
-        RISK_MEDIO: "Comportamiento irregular de puerta. Monitorea ciclos de apertura y cierre.",
+        RISK_NORMAL: "Estado de puerta normal.",
         RISK_ALTO: "Fallo de cierre de puerta. Verifica mecanismo de enclavamiento.",
         RISK_CRITICO: "Puerta sin respuesta. Detén operación e inspeccione el sistema de puerta.",
     },
@@ -322,18 +300,16 @@ ACTIONS: dict[str, dict[str, str]] = {
         RISK_CRITICO: "Protección automática activada. Operación forzada / Estado seguro activado.",
     },
     "protection_pump": {
-        RISK_INFO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
-        RISK_BAJO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
+        RISK_INFORMATIVO: "Protección para la bomba de agua finalizada. Operación normal restaurada.",
     },
     "protection_elevator": {
-        RISK_INFO: "Protección para el elevador finalizada. Operación normal restaurada.",
-        RISK_BAJO: "Protección para el elevador finalizada. Operación normal restaurada.",
+        RISK_INFORMATIVO: "Protección para el elevador finalizada. Operación normal restaurada.",
     },
     "fault_resolved_pump": {
-        RISK_BAJO: "Falla en la bomba de agua resuelta. Operación normal restaurada.",
+        RISK_INFORMATIVO: "Falla en la bomba de agua resuelta. Operación normal restaurada.",
     },
     "fault_resolved_elevator": {
-        RISK_BAJO: "Falla en el elevador resuelta. Operación normal restaurada.",
+        RISK_INFORMATIVO: "Falla en el elevador resuelta. Operación normal restaurada.",
     },
 }
 

@@ -15,7 +15,7 @@ DELTA_MAP = PERIOD_DELTA_MAP
 def build_monitoring_config(building_id: int) -> dict:
     from apps.sensors.sensor_config import (
         NO_RISK_VARS, LIMITS_EXCLUDE_VARS, PUMP_VARS, ELEVATOR_VARS, VAR_NAMES, UNITS,
-        RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN,
+        RISK_NORMAL, RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN,
         VALUE_DISPLAY_ES, BOOLEAN_VARS, ENUM_VARS, ENUM_RISK_VALUES,
     )
     from apps.alerts.services.sensor_limit_service import get_sensor_limits
@@ -40,9 +40,8 @@ def build_monitoring_config(building_id: int) -> dict:
         "enum_vars": list(ENUM_VARS),
         "enum_risk_values": {k: list(v) for k, v in ENUM_RISK_VALUES.items()},
         "risk_labels": {
-            "info": RISK_INFO,
-            "bajo": RISK_BAJO,
-            "medio": RISK_MEDIO,
+            "normal": RISK_NORMAL,
+            "informativo": RISK_INFORMATIVO,
             "alto": RISK_ALTO,
             "critico": RISK_CRITICO,
             "unknown": RISK_UNKNOWN,

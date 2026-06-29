@@ -13,7 +13,7 @@ from .shared import (
     filter_by_variable, build_query_string,
 )
 from apps.sensors.sensor_config import (
-    RISK_CRITICO, RISK_ALTO, RISK_MEDIO, RISK_BAJO, RISK_INFO,
+    RISK_CRITICO, RISK_ALTO, RISK_INFORMATIVO, RISK_NORMAL,
     PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, PAGE_SIZE,
 )
 
@@ -44,7 +44,7 @@ def render_user_monitoring(request) -> HttpResponse:
             "config_json": build_monitoring_config(building_id),
             "is_admin": False,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
-            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "RISK_INFORMATIVO": RISK_INFORMATIVO, "RISK_NORMAL": RISK_NORMAL,
             "PUMP_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in PUMP_FAULT_KEYS],
             "ELEVATOR_FAULT_OPTIONS": [(k, FAULT_NAMES_ES[k]) for k in ELEVATOR_FAULT_KEYS],
         },
@@ -116,7 +116,7 @@ def render_user_history(request) -> HttpResponse:
             "total_count": len(parsed_list),
             "periodo_seleccionado": period,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
-            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "RISK_INFORMATIVO": RISK_INFORMATIVO, "RISK_NORMAL": RISK_NORMAL,
         },
     )
 

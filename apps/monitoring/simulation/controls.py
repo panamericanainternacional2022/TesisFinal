@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 @login_required
 @admin_required
 def manual_update(request) -> JsonResponse:
-    from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS, ENUM_VARS
+    from apps.sensors.sensor_config import PUMP_VARS, RISK_CRITICO, RISK_ALTO, RISK_NORMAL, BOOLEAN_VARS, ENUM_VARS
     from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
     try:
         body = parse_json_body(request)
@@ -68,9 +68,9 @@ def manual_update(request) -> JsonResponse:
 
     thresholds = get_thresholds(sim.edificio_id)
     if variable in BOOLEAN_VARS:
-        risk = RISK_CRITICO if parsed_value else RISK_BAJO
+        risk = RISK_CRITICO if parsed_value else RISK_NORMAL
     elif variable in ENUM_VARS:
-        risk = RISK_CRITICO if parsed_value == "open" else RISK_BAJO
+        risk = RISK_CRITICO if parsed_value == "open" else RISK_NORMAL
     else:
         risk, _ = classify_risk(variable, parsed_value, thresholds)
 

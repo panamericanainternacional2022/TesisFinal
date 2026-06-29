@@ -26,7 +26,7 @@ def view_notification_count(request: HttpRequest) -> JsonResponse:
 
     import datetime as dt_mod
     from apps.alerts.views.shared import _build_notification_query, exclude_severity_levels
-    from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
+    from apps.sensors.sensor_config import RISK_INFORMATIVO
 
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:
@@ -40,7 +40,7 @@ def view_notification_count(request: HttpRequest) -> JsonResponse:
         cleared_dt = dt_mod.datetime.fromtimestamp(alerts_cleared_at, tz=dt_mod.timezone.utc)
         notifications = notifications.filter(date__gt=cleared_dt)
 
-    notifications = exclude_severity_levels(notifications, [RISK_INFO, RISK_BAJO, RISK_MEDIO])
+    notifications = exclude_severity_levels(notifications, [RISK_INFORMATIVO])
     return JsonResponse({"count": notifications.distinct().count()})
 
 

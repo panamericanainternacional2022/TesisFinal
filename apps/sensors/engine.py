@@ -5,7 +5,7 @@ import eventlet
 
 from apps.sensors.sensor_config import (
     PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, ALERT_VARS,
-    RISK_CRITICO, RISK_ALTO, RISK_BAJO, BOOLEAN_VARS, ENUM_VARS,
+    RISK_CRITICO, RISK_ALTO, RISK_NORMAL, BOOLEAN_VARS, ENUM_VARS,
     ENUM_RISK_VALUES,
     SIM_TICK_INTERVAL,
 )
@@ -134,7 +134,7 @@ def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None
             continue
         risk, color = (
             classify_risk(var, value, thresholds) if var not in BOOLEAN_VARS
-            else (RISK_CRITICO if value else RISK_BAJO, "red" if value else "green")
+            else (RISK_CRITICO if value else RISK_NORMAL, "red" if value else "green")
         )
         sensor_type = "Bomba" if var in PUMP_VARS else "Elevador"
         new_readings.append({

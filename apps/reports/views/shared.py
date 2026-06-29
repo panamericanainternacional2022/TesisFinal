@@ -9,7 +9,7 @@ from django.utils import timezone
 from apps.alerts.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.sensors.sensor_config import (
-    RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
+    RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO,
     SEVERITY_LEVELS, MAX_PDF_EVENTS,
     SEVERITY_DISPLAY_LEVELS, RISK_STYLES,
 )

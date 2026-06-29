@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.urls import reverse
 from apps.core.auth_decorators import is_admin_role, login_required, ADMIN_ROLES
 from apps.core.services.risk_service import classify_risk
-from apps.sensors.sensor_config import RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN
+from apps.sensors.sensor_config import RISK_NORMAL, RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO, RISK_UNKNOWN
 
 
 class IsAdminRoleTests(TestCase):
@@ -60,15 +60,15 @@ class ClassifyRiskTests(TestCase):
         self.assertEqual(risk, RISK_CRITICO)
         self.assertEqual(color, "red")
 
-    def test_motor_stuck_false_returns_bajo(self):
+    def test_motor_stuck_false_returns_normal(self):
         risk, color = classify_risk("motor_stuck", False)
-        self.assertEqual(risk, RISK_BAJO)
+        self.assertEqual(risk, RISK_NORMAL)
         self.assertEqual(color, "green")
 
-    def test_no_risk_vars_return_bajo(self):
+    def test_no_risk_vars_return_normal(self):
         for var in ("position", "door_status"):
             risk, color = classify_risk(var, 42)
-            self.assertEqual(risk, RISK_BAJO)
+            self.assertEqual(risk, RISK_NORMAL)
             self.assertEqual(color, "green")
 
     def test_zero_flow_rate_returns_critico(self):
@@ -91,7 +91,7 @@ class ClassifyRiskTests(TestCase):
             "temperature": {"direction": "range", "low": 20, "high": 80},
         }
         risk, color = classify_risk("temperature", 50, thresholds=thresholds)
-        self.assertEqual(risk, RISK_BAJO)
+        self.assertEqual(risk, RISK_NORMAL)
 
     def test_range_direction_high(self):
         thresholds = {
@@ -105,8 +105,8 @@ class ClassifyRiskTests(TestCase):
             "flow_rate": {"direction": "higher", "low": 10, "medium": 20, "high": 30},
         }
         test_cases = [
-            (5, RISK_BAJO, "green"),
-            (15, RISK_MEDIO, "yellow"),
+            (5, RISK_NORMAL, "green"),
+            (15, RISK_ALTO, "orange"),
             (25, RISK_ALTO, "orange"),
             (35, RISK_CRITICO, "red"),
         ]
@@ -120,8 +120,8 @@ class ClassifyRiskTests(TestCase):
             "tank_level": {"direction": "lower", "low": 80, "medium": 60, "high": 40},
         }
         test_cases = [
-            (90, RISK_BAJO, "green"),
-            (70, RISK_MEDIO, "yellow"),
+            (90, RISK_NORMAL, "green"),
+            (70, RISK_ALTO, "orange"),
             (50, RISK_ALTO, "orange"),
             (30, RISK_CRITICO, "red"),
         ]

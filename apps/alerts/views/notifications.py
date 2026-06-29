@@ -13,9 +13,9 @@ from apps.alerts.models import Notification
 from apps.alerts.views.shared import (
     parse_notification_for_display, exclude_severity_levels, _build_notification_query,
 )
-from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO, PAGE_SIZE
+from apps.sensors.sensor_config import RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO, PAGE_SIZE
 
-_EXCLUDED_SEVERITIES = [RISK_INFO, RISK_BAJO, RISK_MEDIO]
+_EXCLUDED_SEVERITIES = [RISK_INFORMATIVO]
 
 
 @login_required
@@ -88,7 +88,7 @@ def notifications_view(request: HttpRequest):
             "email_alerts_disabled": email_alerts_disabled,
             "filter_query_string": filter_query_string,
             "RISK_CRITICO": RISK_CRITICO, "RISK_ALTO": RISK_ALTO,
-            "RISK_MEDIO": RISK_MEDIO, "RISK_BAJO": RISK_BAJO, "RISK_INFO": RISK_INFO,
+            "RISK_INFORMATIVO": RISK_INFORMATIVO,
         },
     )
 

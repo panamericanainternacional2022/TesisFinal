@@ -4,7 +4,7 @@ import logging
 from dataclasses import dataclass
 from typing import Callable
 
-from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, VAR_NAMES, RISK_CRITICO, RISK_BAJO, BOOLEAN_VARS, PAYLOAD_HISTORY_SLICE, API_NOTIFICATION_LIMIT
+from apps.sensors.sensor_config import STATS_VARS, PUMP_VARS, ELEVATOR_VARS, SYSTEM_VARS, VAR_NAMES, RISK_CRITICO, RISK_NORMAL, BOOLEAN_VARS, PAYLOAD_HISTORY_SLICE, API_NOTIFICATION_LIMIT
 from apps.sensors.simulation.constants import MAX_HISTORY_SIZE
 
 logger = logging.getLogger(__name__)
@@ -108,7 +108,7 @@ def _build_sensors_list(sensor_data: dict, relevant_vars: set[str], thresholds: 
         if var not in relevant_vars:
             continue
         if var in BOOLEAN_VARS:
-            risk, color = (RISK_CRITICO, "red") if value else (RISK_BAJO, "green")
+            risk, color = (RISK_CRITICO, "red") if value else (RISK_NORMAL, "green")
         else:
             risk, color = classify_risk(var, value, thresholds)
         sensors.append({

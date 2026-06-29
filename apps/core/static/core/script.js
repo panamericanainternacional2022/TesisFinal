@@ -460,7 +460,7 @@ const CHART_ELEV_VARS = _ELEVADOR_VARS.filter(
 );
 
 const CSS_CLASSES = {
-    riskCard: { low: 'risk-low', med: 'risk-med', high: 'risk-high', crit: 'risk-crit' },
+    riskCard: { normal: 'risk-normal', high: 'risk-high', crit: 'risk-crit' },
     statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-med' },
 };
 
@@ -513,8 +513,7 @@ function translateSensorValue(variable, value) {
 function getRiskBadge(risk) {
     if (risk === _RISK.critico) return 'badge-crit';
     if (risk === _RISK.alto) return 'badge-high';
-    if (risk === _RISK.medio) return 'badge-med';
-    if (risk === _RISK.bajo) return 'badge-low';
+    if (risk === _RISK.normal) return 'badge-normal';
     return 'badge-info';
 }
 
@@ -522,40 +521,38 @@ function getRiskClass(varName, value) {
     if (_BOOLEAN_VARS.includes(varName)) {
         const crit = !!value;
         return {
-            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
-            badge: `badge-${crit ? 'crit' : 'low'}`,
-            label: crit ? _RISK.critico : _RISK.bajo,
+            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.normal,
+            badge: `badge-${crit ? 'crit' : 'normal'}`,
+            label: crit ? _RISK.critico : _RISK.normal,
         };
     }
     if (_ENUM_VARS.includes(varName)) {
         const risky = _ENUM_RISK_VALUES[varName] || [];
         const crit = risky.includes(String(value).toLowerCase());
         return {
-            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.low,
-            badge: `badge-${crit ? 'crit' : 'low'}`,
-            label: crit ? _RISK.critico : _RISK.bajo,
+            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.normal,
+            badge: `badge-${crit ? 'crit' : 'normal'}`,
+            label: crit ? _RISK.critico : _RISK.normal,
         };
     }
     if (_NO_RISK_VARS.includes(varName)) {
-        return { card: CSS_CLASSES.riskCard.low, badge: 'badge-low', label: _RISK.bajo };
+        return { card: CSS_CLASSES.riskCard.normal, badge: 'badge-normal', label: _RISK.normal };
     }
 
     const cfg = currentThresholds[varName];
     if (!cfg) return { card: '', badge: 'badge-info', label: _RISK.unknown };
 
-    let risk = _RISK.bajo, cls = 'low';
+    let risk = _RISK.normal, cls = 'normal';
     if (cfg.direction === 'range') {
         if (!(value >= cfg.low && value <= cfg.high)) { risk = _RISK.alto; cls = 'high'; }
     } else {
-        const { direction: d, low, medium: med, high } = cfg;
+        const { direction: d, low, high } = cfg;
         if (d === 'higher') {
             if (value > high) { risk = _RISK.critico; cls = 'crit'; }
-            else if (value > med) { risk = _RISK.alto; cls = 'high'; }
-            else if (value > low) { risk = _RISK.medio; cls = 'med'; }
+            else if (value > low) { risk = _RISK.alto; cls = 'high'; }
         } else {
             if (value < high) { risk = _RISK.critico; cls = 'crit'; }
-            else if (value < med) { risk = _RISK.alto; cls = 'high'; }
-            else if (value < low) { risk = _RISK.medio; cls = 'med'; }
+            else if (value < low) { risk = _RISK.alto; cls = 'high'; }
         }
     }
     return { card: CSS_CLASSES.riskCard[cls] || '', badge: `badge-${cls}`, label: risk };
@@ -705,7 +702,7 @@ function updateCharts(history) {
         if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
         if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
         if (r.risk === _RISK.alto) return getCSSVar('--state-high') || '#c2410c';
-        if (r.risk === _RISK.medio) return getCSSVar('--state-warn') || '#b45309';
+        if (r.risk === _RISK.informativo) return getCSSVar('--state-warn') || '#2563eb';
         return getCSSVar('--state-ok') || '#16a34a';
     };
 
@@ -770,7 +767,7 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
         badgeEl.style.display = 'inline-block';
         badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
         emptyEl.style.display = 'none';
-        badgeEl.className = CSS_CLASSES.statusBadge[statusVal] || 'badge badge-low';
+        badgeEl.className = CSS_CLASSES.statusBadge[statusVal] || 'badge badge-normal';
     } else {
         badgeEl.style.display = 'none';
         emptyEl.style.display = 'inline';
@@ -907,7 +904,7 @@ function connectSSE() {
 
 // Extraída de applyPayload para responsabilidad única
 function _countUnreadAlerts(alertLog) {
-    const EXCLUDED = [_RISK.info, _RISK.bajo, _RISK.medio];
+    const EXCLUDED = [_RISK.normal, _RISK.informativo];
     const clearedAtMs = window.ALERTS_CLEARED_AT ? window.ALERTS_CLEARED_AT * 1000 : null;
     return (alertLog || []).filter(a => {
         if (EXCLUDED.includes(a.risk)) return false;
@@ -1652,8 +1649,8 @@ function updateManualRiskPreview() {
 
     const ri = getRiskClass(v, val);
     const cls = ri.badge.replace('badge-', '');
-    const _RISK_ICONS = { crit: 'fa-circle-exclamation', high: 'fa-circle-exclamation', med: 'fa-circle-check', low: 'fa-circle-check', info: 'fa-circle-check', unknown: 'fa-circle-check' };
-    const _RISK_CLASSES = { crit: 'risk-crit', high: 'risk-high', med: 'risk-med', low: 'risk-low', info: 'risk-info', unknown: 'risk-info' };
+    const _RISK_ICONS = { crit: 'fa-circle-exclamation', high: 'fa-circle-exclamation', normal: 'fa-circle-check', info: 'fa-circle-check', unknown: 'fa-circle-check' };
+    const _RISK_CLASSES = { crit: 'risk-crit', high: 'risk-high', normal: 'risk-normal', info: 'risk-info', unknown: 'risk-info' };
     span.innerHTML = `Riesgo estimado: <span class="risk-icon ${_RISK_CLASSES[cls] || 'risk-info'}"><i class="fa-solid ${_RISK_ICONS[cls] || 'fa-circle-check'}" aria-hidden="true"></i> ${ri.label}</span>`;
 }
 
@@ -1795,7 +1792,7 @@ function renderNotificationList(alerts) {
     if (!container) return;
     document.getElementById('live-no-notif')?.remove();
 
-    const filtered = (alerts || []).filter(a => a.risk !== _RISK.info);
+    const filtered = (alerts || []).filter(a => a.risk !== _RISK.informativo);
     if (!filtered.length) {
         unreadNotificationCount = 0;
         setNotificationBadge(0);
@@ -1837,7 +1834,7 @@ function addLiveNotificationEvent(data) {
     const li = document.createElement('li');
     li.className = 'notif-item';
 
-    const BADGE_MAP = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'MEDIO': 'sensor-warning', 'BAJO': 'sensor-active' };
+    const BADGE_MAP = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'INFORMATIVO': 'sensor-info', 'NORMAL': 'sensor-active' };
     const badgeClass = BADGE_MAP[data.risk] || 'sensor-info';
     const valueStr = String(data.value);
     const unit = getUnit(data.variable);

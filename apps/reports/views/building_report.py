@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from apps.buildings.models import Building, MonitoringEquipment
 from apps.core.auth_decorators import login_required
 from apps.sensors.sensor_config import (
-    RISK_BAJO, RISK_MEDIO, RISK_ALTO, RISK_CRITICO,
+    RISK_NORMAL, RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO,
     SEVERITY_LEVELS, SEVERITY_DISPLAY_LEVELS, RISK_STYLES,
     PUMP_VARS, ELEVATOR_VARS, RATIONING_THRESHOLD, SENSOR_RANGES,
 )
@@ -197,7 +197,7 @@ def _render_executive_summary(
 
     render_section_divider(pdf, "Resumen ejecutivo")
 
-    counts = {rl: 0 for rl in SEVERITY_LEVELS}
+    counts = {rl: 0 for rl in list(SEVERITY_LEVELS) + [RISK_NORMAL]}
     for var in relevant_vars:
         if var in sensor_data:
             risk, _ = classify_risk(var, sensor_data[var], thresholds)

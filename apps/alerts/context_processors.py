@@ -1,9 +1,9 @@
 import datetime as dt
 
 from apps.alerts.views.shared import _build_notification_query, exclude_severity_levels
-from apps.sensors.sensor_config import RISK_INFO, RISK_BAJO, RISK_MEDIO
+from apps.sensors.sensor_config import RISK_INFORMATIVO
 
-_EXCLUDED_SEVERITIES = [RISK_INFO, RISK_BAJO, RISK_MEDIO]
+_EXCLUDED_SEVERITIES = [RISK_INFORMATIVO]
 
 
 def unread_notifications(request):

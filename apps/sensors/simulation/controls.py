@@ -3,7 +3,7 @@ import time
 import logging
 from typing import Optional
 
-from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, RISK_BAJO
+from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS, PUMP_FAULT_KEYS, ELEVATOR_FAULT_KEYS, FAULT_NAMES_ES, RISK_INFORMATIVO
 from apps.sensors.simulation.constants import (
     DEFAULT_SENSOR_DATA, FLOOR_COUNT, SAFE_RESET_VALUES,
     CLEAR_FAULT_MIN_FLOW, CLEAR_FAULT_MIN_PRESSURE, CLEAR_FAULT_MAX_VIBRATION,
@@ -134,7 +134,7 @@ def _notify_faults_resolved(edificio_id: int, old_faults: dict[str, str]) -> Non
             nombre_dispositivo = _DEVICE_ES.get(dev, dev)
             action = f"Falla '{nombre_falla}' en {nombre_dispositivo} resuelta. Operación normal restaurada."
             persist_notification_in_django(
-                f"fault_resolved_{dev}", fault_type, RISK_BAJO, action, edificio_id=edificio_id,
+                f"fault_resolved_{dev}", fault_type, RISK_INFORMATIVO, action, edificio_id=edificio_id,
             )
     except Exception as exc:
         logger.warning("No se pudo enviar notificación de resolución de falla: %s", exc)

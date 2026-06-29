@@ -1113,8 +1113,10 @@ button {
 
 /* Variantes de estado */
 .risk-low,
+.risk-normal,
 .sensor-active,
-.badge-low {
+.badge-low,
+.badge-normal {
     background: var(--state-ok-bg);
     color: var(--state-ok);
 }
