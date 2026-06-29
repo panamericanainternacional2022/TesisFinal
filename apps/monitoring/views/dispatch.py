@@ -2,14 +2,10 @@ from django.http import HttpRequest, HttpResponse
 
 from .admin import (
     render_admin_monitoring,
-    render_admin_history,
     render_admin_thresholds,
     render_admin_limits,
 )
-from .user import (
-    render_user_monitoring,
-    render_user_history,
-)
+from .user import render_user_monitoring
 
 
 def monitoring_view(request: HttpRequest) -> HttpResponse:

@@ -4,30 +4,6 @@ from django.http import StreamingHttpResponse
 from unittest.mock import patch, MagicMock
 from apps.users.models import Persona, Usuario
 from apps.buildings.models import Building, MonitoringEquipment
-from apps.alerts.models import Notification
-from apps.sensors.sensor_config import RISK_ALTO
-
-
-class HistorialViewTests(TestCase):
-    def setUp(self):
-        self.persona = Persona.objects.create(ci="12345678", first_name="Admin", first_last_name="User", email="a@a.com")
-        from django.contrib.auth.hashers import make_password
-        self.usuario = Usuario.objects.create(username="admin", password=make_password("admin123"), id_persona=self.persona, rol="SA", registered=True)
-        self.edificio = Building.objects.create(name="Test", rif="J-11111111-0", address="Dir", floors=10)
-        self.equipo = MonitoringEquipment.objects.create(name="Bomba", building=self.edificio, equipment_type="bomba")
-        self.client.post(reverse("login"), {"username": "admin", "password": "admin123"})
-
-    def test_historial_empty(self):
-        response = self.client.get(reverse("history"))
-        self.assertEqual(response.status_code, 200)
-
-    def test_historial_with_data(self):
-        Notification.objects.create(
-            user=self.usuario, monitoring_equipment=self.equipo,
-            date="2026-01-01 12:00:00+00", message=f'{{"risk": "{RISK_ALTO}", "variable": "temperature", "value": 85, "action": "Revisar"}}',
-        )
-        response = self.client.get(reverse("history"))
-        self.assertEqual(response.status_code, 200)
 
 
 class MonitorViewTests(TestCase):
