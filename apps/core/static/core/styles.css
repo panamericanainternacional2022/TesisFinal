@@ -456,6 +456,7 @@ button {
    ============================================================ */
 .page-header {
     padding: var(--sp-5);
+    margin-bottom: var(--sp-5);
 }
 
 .page-header h1 {

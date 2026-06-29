@@ -21,7 +21,17 @@
         <p class="mt-1">Sigue el estado actual de los sensores de tu edificio. Lecturas en vivo, indicadores de riesgo y estadísticas actualizadas al instante.</p>
         {% endif %}
     </header>
-    {% include 'core/components/building_selector.html' with edificios=edificios edificio_id=edificio_id wrapper_class='toolbar' %}
+    {% if edificios|length > 1 %}
+    <div class="toolbar">
+        <div class="select-container">
+            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
+                {% for building in edificios %}
+                <option value="{{ building.id }}" {% if building.id == edificio_id %}selected{% endif %}>{{ building.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    {% endif %}
 
     {% if not edificios %}
     <div class="notif-card mt-3">
