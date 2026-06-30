@@ -32,14 +32,14 @@ def notifications_view(request: HttpRequest):
             "filter_query_string": "",
             "severidad": "", "variable_filter": "", "all_variables": [],
             "ALL_SEVERITIES": [], "fecha_desde": "", "fecha_hasta": "",
-            "periodo_seleccionado": "24h", "total_count": 0,
+            "periodo_seleccionado": "1h", "total_count": 0,
         })
 
     rol = request.session.get("usuario_rol", "US")
     building_id_raw = get_building_id_param(request, "building", "edificio")
     severity = request.GET.get("severidad", "").strip()
     variable_filter = request.GET.get("variable", "").strip()
-    period = request.GET.get("periodo", "24h").strip()
+    period = request.GET.get("periodo", "1h").strip()
     date_from = request.GET.get("fecha_desde", "").strip()
     date_to = request.GET.get("fecha_hasta", "").strip()
 

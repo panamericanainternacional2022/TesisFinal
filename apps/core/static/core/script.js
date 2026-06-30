@@ -960,8 +960,8 @@ function applyPayload(data) {
 
             const simCell = document.getElementById('simStatusRow');
             if (simCell) {
-                simCell.classList.remove('cell-normal', 'cell-high', 'cell-crit');
-                simCell.classList.add(isPaused ? 'cell-high' : 'cell-normal');
+                simCell.classList.remove('cell-normal', 'cell-high', 'cell-crit', 'cell-info');
+                simCell.classList.add(isPaused ? 'cell-high' : 'cell-info');
             }
         }
     }

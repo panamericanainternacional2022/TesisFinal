@@ -1117,6 +1117,7 @@ button {
     background: var(--state-normal-bg);
     color: var(--state-normal);
     border-color: var(--state-normal);
+    box-shadow: 3px 3px 0px var(--state-normal);
 }
 
 .risk-high,
@@ -1127,6 +1128,10 @@ button {
     border-color: var(--state-high);
 }
 
+.badge-high {
+    box-shadow: 3px 3px 0px var(--state-high);
+}
+
 .risk-crit,
 .sensor-critical,
 .badge-crit {
@@ -1135,12 +1140,20 @@ button {
     border-color: var(--state-critical);
 }
 
+.badge-crit {
+    box-shadow: 3px 3px 0px var(--state-critical);
+}
+
 .risk-info,
 .sensor-info,
 .badge-info {
     background: var(--state-info-bg);
     color: var(--state-info);
     border-color: var(--state-info);
+}
+
+.badge-info {
+    box-shadow: 3px 3px 0px var(--state-info);
 }
 
 /* Badges de dirección */
