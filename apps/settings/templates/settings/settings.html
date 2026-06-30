@@ -3,14 +3,11 @@
 
 {% block title %}Configuración{% endblock %}
 
-
-
-
 {% block content %}
-<div class="reports-card">
+<section class="reports-card" aria-labelledby="config-title">
     <header class="page-header">
         <div class="row-start">
-            <h1 class="m-0">Configuración</h1>
+            <h1 class="m-0" id="config-title">Configuración</h1>
         </div>
         <p class="mt-1">Tus datos personales y preferencias del sistema. Actualiza tu perfil, correo electrónico y opciones de seguridad.</p>
     </header>
@@ -19,86 +16,90 @@
         {% csrf_token %}
         <input type="hidden" name="action" value="update_profile">
 
-        <div class="form-section-header mb-2">
-            <h2 class="form-page-title form-section-title">
-                Datos del perfil
-            </h2>
-        </div>
-
-        <div class="form-card-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="username">Nombre de usuario</label>
-                    <div class="input-with-icon">
-                        <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="form-input {% if form_errors.username %}input-error-state{% endif %}" />
-                        <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
-                    </div>
-                    <div class="error-msg">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
-                </div>
-
-                <div class="form-group">
-                    <label for="email">Correo electrónico</label>
-                    <div class="input-with-icon">
-                        <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error-state{% endif %}" />
-                        <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
-                    </div>
-                    <div class="error-msg">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
-                </div>
+        <section aria-labelledby="profile-section-title">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title" id="profile-section-title">
+                    Datos del perfil
+                </h2>
             </div>
 
-            <div class="actions-row">
-                {% include 'core/components/button.html' with type='submit' class='btn btn-primary' text='Actualizar perfil' id='profileSubmitBtn' %}
+            <div class="form-card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="username">Nombre de usuario</label>
+                        <div class="input-with-icon">
+                            <input type="text" id="username" name="username" value="{{ usuario.username|default:'' }}" data-validate="username" required class="form-input {% if form_errors.username %}input-error-state{% endif %}" />
+                            <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
+                        </div>
+                        <div class="error-msg">{% if form_errors.username %}{{ form_errors.username }}{% endif %}</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Correo electrónico</label>
+                        <div class="input-with-icon">
+                            <input type="email" id="email" name="email" value="{{ persona.email|default:'' }}" data-validate="email" maxlength="75" required class="form-input {% if form_errors.email or form_errors.email_unico %}input-error-state{% endif %}" />
+                            <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
+                        </div>
+                        <div class="error-msg">{% if form_errors.email %}{{ form_errors.email }}{% elif form_errors.email_unico %}{{ form_errors.email_unico }}{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    {% include 'core/components/button.html' with type='submit' class='btn btn-primary' text='Actualizar perfil' id='profileSubmitBtn' %}
+                </div>
             </div>
-        </div>
+        </section>
     </form>
 
     <form class="form-card mt-0" method="post" novalidate>
         {% csrf_token %}
         <input type="hidden" name="action" value="change_password">
 
-        <div class="form-section-header mb-2">
-            <h2 class="form-page-title form-section-title">
-                Seguridad y contraseña
-            </h2>
-        </div>
-
-        <div class="form-card-body">
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="current_password">Contraseña actual</label>
-                    <div class="input-with-icon">
-                        <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" required class="form-input {% if form_errors.current_password %}input-error-state{% endif %}" />
-                        <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
-                    </div>
-                    <div class="error-msg">{% if form_errors.current_password %}{{ form_errors.current_password }}{% endif %}</div>
-                </div>
+        <section aria-labelledby="password-section-title">
+            <div class="form-section-header mb-2">
+                <h2 class="form-page-title form-section-title" id="password-section-title">
+                    Seguridad y contraseña
+                </h2>
             </div>
 
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="new_password">Nueva contraseña</label>
-                    <div class="input-with-icon">
-                        <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" required class="form-input {% if form_errors.new_password %}input-error-state{% endif %}" />
-                        <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
+            <div class="form-card-body">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="current_password">Contraseña actual</label>
+                        <div class="input-with-icon">
+                            <input type="password" id="current_password" name="current_password" placeholder="Ingresa tu contraseña actual" required class="form-input {% if form_errors.current_password %}input-error-state{% endif %}" />
+                            <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
+                        </div>
+                        <div class="error-msg">{% if form_errors.current_password %}{{ form_errors.current_password }}{% endif %}</div>
                     </div>
-                    <div class="error-msg">{% if form_errors.new_password %}{{ form_errors.new_password }}{% endif %}</div>
                 </div>
-                <div class="form-group">
-                    <label for="confirm_password">Confirmar contraseña</label>
-                    <div class="input-with-icon">
-                        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" required class="form-input {% if form_errors.confirm_password %}input-error-state{% endif %}" />
-                        <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
-                    </div>
-                    <div class="error-msg">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
-                </div>
-            </div>
 
-            <div class="actions-row">
-                {% include 'core/components/button.html' with type='submit' class='btn btn-primary' text='Actualizar contraseña' id='passwordSubmitBtn' %}
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="new_password">Nueva contraseña</label>
+                        <div class="input-with-icon">
+                            <input type="password" id="new_password" name="new_password" placeholder="Nueva contraseña" data-validate="password" required class="form-input {% if form_errors.new_password %}input-error-state{% endif %}" />
+                            <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
+                        </div>
+                        <div class="error-msg">{% if form_errors.new_password %}{{ form_errors.new_password }}{% endif %}</div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirmar contraseña</label>
+                        <div class="input-with-icon">
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Repite la nueva contraseña" data-validate="confirm-password" required class="form-input {% if form_errors.confirm_password %}input-error-state{% endif %}" />
+                            <i class="fa-solid fa-lock input-icon input-icon--right" aria-hidden="true"></i>
+                        </div>
+                        <div class="error-msg">{% if form_errors.confirm_password %}{{ form_errors.confirm_password }}{% endif %}</div>
+                    </div>
+                </div>
+
+                <div class="actions-row">
+                    {% include 'core/components/button.html' with type='submit' class='btn btn-primary' text='Actualizar contraseña' id='passwordSubmitBtn' %}
+                </div>
             </div>
-        </div>
+        </section>
     </form>
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

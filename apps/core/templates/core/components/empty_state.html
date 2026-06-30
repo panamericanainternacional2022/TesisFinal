@@ -32,7 +32,7 @@
 {% if icon %}
 <div class="no-notif empty-state"{% if id %} id="{{ id }}"{% endif %}>
     <i class="fa-solid {{ icon }} empty-state-icon" aria-hidden="true"></i>
-    {% if title %}<h3 class="section-label">{{ title }}</h3>{% endif %}
+    {% if title %}<h2 class="section-label">{{ title }}</h2>{% endif %}
     <p class="help-text">{{ message }}</p>
     {% if action_url and action_text %}
     <div class="empty-state-action">
@@ -42,21 +42,21 @@
 </div>
 {% else %}
 
-<div id="stateLoading" class="no-notif empty-state">
+<div id="stateLoading" class="no-notif empty-state" role="status">
     <i class="fa-solid fa-spinner fa-spin empty-state-icon text-ink" aria-hidden="true"></i>
-    <h3 class="section-label">{{ loading_text|default:"Cargando..." }}</h3>
+    <h2 class="section-label">{{ loading_text|default:"Cargando..." }}</h2>
     <p class="help-text">{{ loading_subtext|default:"Obteniendo datos del sensor." }}</p>
 </div>
 
 <div id="stateOffline" class="no-notif empty-state d-none">
     <i class="fa-solid fa-triangle-exclamation empty-state-icon text-warn" aria-hidden="true"></i>
-    <h3 class="section-label">Sin conexión</h3>
+    <h2 class="section-label">Sin conexión</h2>
     <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuración. Verifica que el servidor esté activo." }}</p>
 </div>
 
 <div id="stateNoEquipment" class="no-notif empty-state d-none">
     <i class="fa-solid fa-circle-info empty-state-icon text-secondary" aria-hidden="true"></i>
-    <h3 class="section-label">{{ no_equipment_title|default:"Sin equipos de monitoreo" }}</h3>
+    <h2 class="section-label">{{ no_equipment_title|default:"Sin equipos de monitoreo" }}</h2>
     <p class="help-text">{{ no_equipment_text|default:"Este edificio no tiene equipos configurados." }}</p>
 </div>
 {% endif %}

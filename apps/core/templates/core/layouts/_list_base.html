@@ -5,10 +5,10 @@
 {% block meta_description %}{% endblock %}
 
 {% block content %}
-<div class="reports-card">
+<section class="reports-card" aria-labelledby="page-title">
     <header class="page-header">
         <div class="row-start">
-            <h1 class="m-0">{% block list_heading %}{% endblock %}</h1>
+            <h1 class="m-0" id="page-title">{% block list_heading %}{% endblock %}</h1>
         </div>
         <p class="mt-1">{% block list_subtext %}{% endblock %}</p>
     </header>
@@ -19,12 +19,12 @@
         </form>
         {% block list_actions %}{% endblock %}
     </div>
-    <div class="table-wrapper">
+    <div class="table-wrapper" tabindex="0" role="region" aria-label="Tabla de datos">
         <table class="report-table">
             {% block list_table %}{% endblock %}
         </table>
     </div>
-</div>
+</section>
 {% block list_after %}{% endblock %}
 {% endblock %}
 

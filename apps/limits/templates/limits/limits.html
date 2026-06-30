@@ -18,9 +18,9 @@
 {% endblock %}
 
 {% block config_panel_bomba %}
-<div class="panel mb-3">
+<section class="panel mb-3" aria-labelledby="limits-bomba-title">
     <div class="form-section-header mb-2">
-        <h2 class="form-page-title form-section-title">Límites de la bomba de agua</h2>
+        <h2 class="form-page-title form-section-title" id="limits-bomba-title">Límites de la bomba de agua</h2>
     </div>
     <div id="limitsBombaPanel" class="thresh-grid"></div>
     <div class="actions-row mt-3">
@@ -28,13 +28,13 @@
             <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar límites
         </button>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block config_panel_elevador %}
-<div class="panel mb-3">
+<section class="panel mb-3" aria-labelledby="limits-elevador-title">
     <div class="form-section-header mb-2">
-        <h2 class="form-page-title form-section-title">Límites del elevador</h2>
+        <h2 class="form-page-title form-section-title" id="limits-elevador-title">Límites del elevador</h2>
     </div>
     <div id="limitsElevadorPanel" class="thresh-grid"></div>
     <div class="actions-row mt-3">
@@ -42,7 +42,7 @@
             <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar límites
         </button>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block config_extra_js_flags %}

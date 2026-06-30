@@ -2,10 +2,10 @@
 <li class="notif-item{% if notif.parsed_data.parsed %} {{ notif.parsed_data.risk_css }}{% endif %}">
     <div class="notif-body">
         {% if notif.parsed_data.parsed %}
-            <div class="notif-title">{{ notif.parsed_data.variable }}{% if notif.parsed_data.value %} ({{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}){% endif %}</div>
+            <h3 class="notif-title" style="margin: 0 0 4px; font-size: var(--text-base); font-weight: var(--weight-bold);">{{ notif.parsed_data.variable }}{% if notif.parsed_data.value %} ({{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}){% endif %}</h3>
             <p class="notif-meta-text">{{ notif.parsed_data.action }}</p>
         {% else %}
-            <div class="notif-title">Notificación</div>
+            <h3 class="notif-title" style="margin: 0 0 4px; font-size: var(--text-base); font-weight: var(--weight-bold);">Notificación</h3>
             <p class="notif-body-text">{{ notif.mensaje }}</p>
         {% endif %}
         <div class="notif-meta mt-1">

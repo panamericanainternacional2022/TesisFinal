@@ -5,10 +5,10 @@
 {% block meta_description %}<meta name="description" content="{% block config_description %}{% endblock %}">{% endblock %}
 
 {% block content %}
-<div class="reports-card">
+<section class="reports-card" aria-labelledby="page-title">
     <header class="page-header">
         <div class="row-start">
-            <h1 class="m-0">{% block config_heading %}{% endblock %}</h1>
+            <h1 class="m-0" id="page-title">{% block config_heading %}{% endblock %}</h1>
         </div>
         <p class="mt-1">{% block config_subtext %}{% endblock %}</p>
     </header>
@@ -27,8 +27,9 @@
     <div class="toolbar">
         {% if edificios|length > 1 %}
         <div class="select-container">
+            <label for="buildingSelect" class="sr-only">Seleccionar edificio</label>
             <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
-{% for building in edificios %}
+                 {% for building in edificios %}
                  <option value="{{ building.id }}" {% if building.id == edificio_id %}selected{% endif %}>{{ building.name }}</option>
                  {% endfor %}
             </select>
@@ -51,7 +52,7 @@
         {% block config_panel_elevador %}{% endblock %}
     </div>
     {% endif %}
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

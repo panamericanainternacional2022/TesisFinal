@@ -10,10 +10,10 @@
 {% endblock %}
 
 {% block content %}
-<div class="reports-card">
+<section class="reports-card" aria-labelledby="dashboard-title">
     <header class="page-header">
         <div class="row-start">
-            <h1 class="m-0">Panel de control</h1>
+            <h1 class="m-0" id="dashboard-title">Panel de control</h1>
         </div>
         {% if is_admin %}
         <p class="mt-1">Visión general del sistema en tiempo real. Monitorea sensores, simula escenarios de falla y controla el estado de la infraestructura desde un solo lugar.</p>
@@ -24,6 +24,7 @@
     {% if edificios|length > 1 %}
     <div class="toolbar">
         <div class="select-container">
+            <label for="buildingSelect" class="sr-only">Seleccionar edificio</label>
             <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
                 {% for building in edificios %}
                 <option value="{{ building.id }}" {% if building.id == edificio_id %}selected{% endif %}>{{ building.name }}</option>
@@ -56,37 +57,39 @@
 
     <div id="activeMonitoring" class="d-none">
 
-        <div class="status-grid" id="statusGrid">
+        <dl class="status-grid" id="statusGrid">
             <div id="pumpStatusRow" class="status-cell cell-normal">
-                <div class="status-cell-label">Bomba de agua</div>
-                <div class="status-cell-value">
+                <dt class="status-cell-label">Bomba de agua</dt>
+                <dd class="status-cell-value">
                     <span id="pumpStatusBadge" class="badge badge-normal">Normal</span>
-                </div>
+                </dd>
             </div>
             <div id="elevatorStatusRow" class="status-cell cell-normal">
-                <div class="status-cell-label">Elevador</div>
-                <div class="status-cell-value">
+                <dt class="status-cell-label">Elevador</dt>
+                <dd class="status-cell-value">
                     <span id="elevatorStatusBadge" class="badge badge-normal">Normal</span>
-                </div>
+                </dd>
             </div>
             {% if is_admin %}
             <div id="simStatusRow" class="status-cell cell-info">
-                <div class="status-cell-label">Simulación</div>
-                <div class="status-cell-value">
+                <dt class="status-cell-label">Simulación</dt>
+                <dd class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>
-                </div>
+                </dd>
             </div>
             {% endif %}
             <div class="status-cell cell-info">
-                <div class="status-cell-label">Última actualización</div>
-                <span class="badge badge-info" id="lastUpdate">--:--:--</span>
+                <dt class="status-cell-label">Última actualización</dt>
+                <dd class="status-cell-value">
+                    <span class="badge badge-info" id="lastUpdate">--:--:--</span>
+                </dd>
             </div>
-        </div>
+        </dl>
 
         {% if is_admin %}
-        <div class="panel mb-3">
+        <section class="panel mb-3" aria-labelledby="sim-controls-title">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
+                <h2 class="form-page-title form-section-title" id="sim-controls-title">
                     Controles de simulación
                 </h2>
             </div>
@@ -129,11 +132,11 @@
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="panel mb-3">
+        <section class="panel mb-3" aria-labelledby="manual-controls-title">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
+                <h2 class="form-page-title form-section-title" id="manual-controls-title">
                     Controles manuales
                 </h2>
             </div>
@@ -159,18 +162,18 @@
                     <div id="manualRiskPreview" class="risk-preview"></div>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="visibility: hidden;">Enviar</label>
+                    <label class="form-label sr-only" for="sendManualBtn">Enviar</label>
                     <button type="button" id="sendManualBtn" class="btn btn-primary">
                         <i class="fa-solid fa-paper-plane" aria-hidden="true"></i> Enviar
                     </button>
                 </div>
             </div>
-        </div>
+        </section>
         {% endif %}
 
-        <div id="bombaSection" class="sensor-section">
+        <section id="bombaSection" class="sensor-section" aria-labelledby="bomba-sensors-title">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
+                <h2 class="form-page-title form-section-title" id="bomba-sensors-title">
                     Sensores de la bomba de agua
                 </h2>
             </div>
@@ -179,11 +182,11 @@
                 <i class="fa-solid fa-eye-slash empty-state-icon" aria-hidden="true"></i>
                 <p class="help-text">No se recibieron lecturas de los sensores de la bomba. Verifica que el equipo esté operativo y conectado.</p>
             </div>
-        </div>
+        </section>
 
-        <div id="elevadorSection" class="sensor-section">
+        <section id="elevadorSection" class="sensor-section" aria-labelledby="elevador-sensors-title">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
+                <h2 class="form-page-title form-section-title" id="elevador-sensors-title">
                     Sensores del elevador
                 </h2>
             </div>
@@ -192,11 +195,11 @@
                 <i class="fa-solid fa-eye-slash empty-state-icon" aria-hidden="true"></i>
                 <p class="help-text">No se recibieron lecturas de los sensores del elevador. Verifica que el equipo esté operativo y conectado.</p>
             </div>
-        </div>
+        </section>
 
-        <div id="recommendationsPanel" class="panel mb-3">
+        <section id="recommendationsPanel" class="panel mb-3" aria-labelledby="recs-title">
             <div class="form-section-header mb-2">
-                <h2 class="form-page-title form-section-title">
+                <h2 class="form-page-title form-section-title" id="recs-title">
                     Recomendaciones del sistema
                 </h2>
             </div>
@@ -210,25 +213,25 @@
                     <p class="help-text">No hay recomendaciones en este momento. El sistema generará sugerencias automáticamente cuando detecte patrones anómalos.</p>
                 </div>
             </div>
-        </div>
+        </section>
 
         <div class="grid-charts">
-            <div id="chartPumpPanel" class="chart-panel">
+            <section id="chartPumpPanel" class="chart-panel" aria-labelledby="chart-pump-title">
                 <div class="form-section-header mb-2">
-                    <h2 class="form-page-title form-section-title">
+                    <h2 class="form-page-title form-section-title" id="chart-pump-title">
                         Variables de la bomba de agua
                     </h2>
                 </div>
                 <canvas id="chart1" class="mb-3"></canvas>
-            </div>
-            <div id="chartElevatorPanel" class="chart-panel">
+            </section>
+            <section id="chartElevatorPanel" class="chart-panel" aria-labelledby="chart-elevator-title">
                 <div class="form-section-header mb-2">
-                    <h2 class="form-page-title form-section-title">
+                    <h2 class="form-page-title form-section-title" id="chart-elevator-title">
                         Variables del elevador
                     </h2>
                 </div>
                 <canvas id="chart2" class="mb-3"></canvas>
-            </div>
+            </section>
         </div>
 
         <div class="grid-charts">
@@ -238,7 +241,7 @@
     </div>
 
     {% endif %}
-</div>
+</section>
 {% endblock %}
 
 {% block extra_js %}

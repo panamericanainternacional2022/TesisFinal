@@ -1,9 +1,9 @@
 {% if messages %}
-    <div class="toast-container">
+    <div class="toast-container" role="status" aria-live="polite">
         {% for message in messages %}
             <div class="toast-item {% if message.tags == 'success' %}toast-success js-alert-fadeable{% elif message.tags == 'warning' %}toast-warning{% elif message.tags == 'error' %}toast-error{% else %}toast-info{% endif %}">
                 {% if message.tags != 'success' %}
-                <button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+                <button type="button" class="btn btn-icon toast-close" aria-label="Cerrar notificación"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
                 {% endif %}
                 <div class="toast-body-content">
                     {{ message.message }}

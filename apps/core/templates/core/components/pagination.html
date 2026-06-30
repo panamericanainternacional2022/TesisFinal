@@ -7,7 +7,7 @@
       - extra_query  : string con parámetros query adicionales (ej. "edificio=3&severidad=Alto")
 {% endcomment %}
 {% if page_obj.has_other_pages %}
-<div class="pagination-container">
+<nav class="pagination-container" aria-label="Paginación">
     {% if page_obj.has_previous %}
         <a href="?page=1{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Primera página"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></a>
         <a href="?page={{ page_obj.previous_page_number }}{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Página anterior"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></a>
@@ -23,5 +23,5 @@
         <button type="button" disabled class="btn btn-icon" aria-label="Página siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
         <button type="button" disabled class="btn btn-icon" aria-label="Última página" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
     {% endif %}
-</div>
+</nav>
 {% endif %}

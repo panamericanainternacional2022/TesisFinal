@@ -5,11 +5,11 @@
 {% block meta_description %}<meta name="description" content="Historial completo de eventos, alertas y notificaciones del sistema INES.">{% endblock %}
 
 {% block content %}
-<div class="reports-card">
+<section class="reports-card" aria-labelledby="events-title">
 
     <header class="page-header">
         <div class="row-start">
-            <h1 class="m-0">Eventos</h1>
+            <h1 class="m-0" id="events-title">Eventos</h1>
             <span id="notificationBadgeCount" class="notif-count-badge{% if total_count > 0 %} visible{% endif %}">{{ total_count }}</span>
         </div>
         <p class="mt-1">Registro cronológico de alertas, eventos del sistema y reportes de sensores. Filtra por severidad, variable o período para analizar el comportamiento del sistema.</p>
@@ -91,13 +91,13 @@
     </div>
 
     <div class="notif-card">
-        <div id="stateLoading" class="no-notif empty-state d-none">
+        <div id="stateLoading" class="no-notif empty-state d-none" role="status">
             <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Cargando eventos…</h3>
+            <h2 class="section-label">Cargando eventos…</h2>
         </div>
         <div id="stateError" class="no-notif empty-state d-none">
             <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
-            <h3 class="section-label">Error de carga</h3>
+            <h2 class="section-label">Error de carga</h2>
             <p class="help-text">No se pudieron cargar los eventos. Verifica tu conexión e intenta de nuevo.</p>
             <div class="empty-state-action">
                 <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
@@ -143,18 +143,18 @@
     {% include 'core/components/pagination.html' with page_obj=notifications extra_query=filter_query_string %}
 
     {% endif %}
-</div>
+</section>
 
-<div id="filterPanelOverlay" class="filter-overlay"></div>
-<aside id="filterPanel" class="filter-panel">
+<div id="filterPanelOverlay" class="filter-overlay" aria-hidden="true"></div>
+<aside id="filterPanel" class="filter-panel" aria-labelledby="filter-panel-title">
     <div class="filter-panel-header">
-        <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span></div>
+        <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><h2 id="filter-panel-title" class="section-label m-0" style="font-size: inherit; font-weight: inherit; color: inherit;">Filtros</h2></div>
         <button type="button" id="closeFilterPanelBtn" class="btn btn-icon" aria-label="Cerrar panel de filtros"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
     </div>
     <div class="filter-panel-body">
         {% if edificios|length > 1 %}
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</div>
+            <label class="filter-section-label" for="panel-edificio-filter" style="display:block"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</label>
             <select id="panel-edificio-filter" aria-label="Filtrar por edificio" class="custom-select-init">
                 <option value="">Todos los edificios</option>
                 {% for building in edificios %}
@@ -164,7 +164,7 @@
         </div>
         {% endif %}
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Severidad</div>
+            <label class="filter-section-label" for="panel-severidad" style="display:block"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Severidad</label>
             <select id="panel-severidad" aria-label="Filtrar por severidad" class="custom-select-init">
                 <option value="">Todas las severidades</option>
                 {% for sev in ALL_SEVERITIES %}
@@ -173,7 +173,7 @@
             </select>
         </div>
         <div class="filter-panel-section">
-            <div class="filter-section-label"><i class="fa-solid fa-gauge" aria-hidden="true"></i> Variable</div>
+            <label class="filter-section-label" for="panel-variable" style="display:block"><i class="fa-solid fa-gauge" aria-hidden="true"></i> Variable</label>
             <select id="panel-variable" aria-label="Filtrar por variable" class="custom-select-init">
                 <option value="">Todas las variables</option>
                 {% for var in all_variables %}
@@ -193,21 +193,21 @@
 </aside>
 
 <div id="customDateBackdrop" class="custom-modal-backdrop">
-    <div class="custom-modal-container max-w-420">
+    <div class="custom-modal-container max-w-420" role="dialog" aria-modal="true" aria-labelledby="custom-modal-title">
         <div class="row-md mb-2">
             <i class="fa-solid fa-calendar-days text-xl text-ink" aria-hidden="true"></i>
-            <span class="drawer-title">Rango personalizado</span>
+            <h2 id="custom-modal-title" class="drawer-title m-0" style="font-size: inherit; font-weight: inherit; color: inherit;">Rango personalizado</h2>
         </div>
         <p class="text-sm text-secondary m-0 mb-3">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
 
         <div class="col-stack">
             <div>
-                <div class="field-label">Desde</div>
+                <label class="field-label" for="modal-fecha-desde" style="display:block">Desde</label>
                 <input type="date" id="modal-fecha-desde"
                        value="{{ fecha_desde }}" class="form-input">
             </div>
             <div>
-                <div class="field-label">Hasta</div>
+                <label class="field-label" for="modal-fecha-hasta" style="display:block">Hasta</label>
                 <input type="date" id="modal-fecha-hasta"
                        value="{{ fecha_hasta }}" class="form-input">
             </div>

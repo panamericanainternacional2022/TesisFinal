@@ -18,9 +18,9 @@
 {% endblock %}
 
 {% block config_panel_bomba %}
-<div class="panel mb-3">
+<section class="panel mb-3" aria-labelledby="thresh-bomba-title">
     <div class="form-section-header mb-2">
-        <h2 class="form-page-title form-section-title">Umbrales de la bomba de agua</h2>
+        <h2 class="form-page-title form-section-title" id="thresh-bomba-title">Umbrales de la bomba de agua</h2>
     </div>
     <div id="thresholdsBombaPanel" class="thresh-grid"></div>
     <div class="actions-row mt-3">
@@ -28,13 +28,13 @@
             <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar umbrales
         </button>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block config_panel_elevador %}
-<div class="panel mb-3">
+<section class="panel mb-3" aria-labelledby="thresh-elevador-title">
     <div class="form-section-header mb-2">
-        <h2 class="form-page-title form-section-title">Umbrales del elevador</h2>
+        <h2 class="form-page-title form-section-title" id="thresh-elevador-title">Umbrales del elevador</h2>
     </div>
     <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
     <div class="actions-row mt-3">
@@ -42,7 +42,7 @@
             <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar umbrales
         </button>
     </div>
-</div>
+</section>
 {% endblock %}
 
 {% block config_extra_js_flags %}
