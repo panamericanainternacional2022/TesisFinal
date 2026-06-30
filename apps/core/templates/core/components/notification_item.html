@@ -1,5 +1,5 @@
 {% load date_extras %}
-<li class="notif-item">
+<li class="notif-item{% if notif.parsed_data.parsed %} {{ notif.parsed_data.risk_css }}{% endif %}">
     <div class="notif-body">
         {% if notif.parsed_data.parsed %}
             <div class="notif-title">{{ notif.parsed_data.variable }}{% if notif.parsed_data.value %} ({{ notif.parsed_data.value }}{% if notif.parsed_data.unit %} {{ notif.parsed_data.unit }}{% endif %}){% endif %}</div>
