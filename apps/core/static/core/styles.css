@@ -1110,8 +1110,7 @@ button {
     border: var(--border-brutal);
 }
 
-/* Variantes de estado */
-.risk-normal,
+/* Variantes de estado (indicador) */
 .sensor-normal,
 .badge-normal {
     background: var(--state-normal-bg);
@@ -1120,7 +1119,6 @@ button {
     box-shadow: 3px 3px 0px var(--state-normal);
 }
 
-.risk-high,
 .sensor-high,
 .badge-high {
     background: var(--state-high-bg);
@@ -1132,7 +1130,6 @@ button {
     box-shadow: 3px 3px 0px var(--state-high);
 }
 
-.risk-crit,
 .sensor-critical,
 .badge-crit {
     background: var(--state-critical-bg);
@@ -1144,7 +1141,6 @@ button {
     box-shadow: 3px 3px 0px var(--state-critical);
 }
 
-.risk-info,
 .sensor-info,
 .badge-info {
     background: var(--state-info-bg);
@@ -1503,7 +1499,7 @@ button {
 /* Grid de tarjetas de sensores (resetea superficie compartida) */
 .sensor-cards-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--sp-5);
     background: transparent;
     border: none;
@@ -1512,6 +1508,30 @@ button {
 
 .sensor-card {
     padding: var(--sp-5);
+    position: relative;
+}
+
+.sensor-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 5px;
+    background: transparent;
+    transition: background var(--transition-base);
+}
+
+.sensor-card.risk-normal::before {
+    background: var(--state-normal);
+}
+
+.sensor-card.risk-high::before {
+    background: var(--state-high);
+}
+
+.sensor-card.risk-crit::before {
+    background: var(--state-critical);
 }
 
 .sensor-card-name {
