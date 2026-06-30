@@ -1089,7 +1089,7 @@ function renderThresholdsPanel(th) {
         const boundsText = bounds ? `Límite: ${bounds[0]} – ${bounds[1]}${unit ? ' ' + unit : ''}` : '';
         const DIR_BADGE = {
             higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191 Mayor es peor</span>',
-            lower: '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193 Menor es peor</span>',
+            lower: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Menor es peor">\u2193 Menor es peor</span>',
         };
         const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-info);" title="Rango válido">\u27FA Rango válido</span>';
         const headerHtml = `<div class="thresh-card-header">

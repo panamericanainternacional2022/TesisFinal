@@ -1885,7 +1885,7 @@ button {
 }
 
 .custom-modal-icon-warn {
-    color: var(--state-high);
+    color: var(--state-critical);
 }
 
 /* ============================================================
