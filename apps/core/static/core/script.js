@@ -460,7 +460,6 @@ const CHART_ELEV_VARS = _ELEVADOR_VARS.filter(
 );
 
 const CSS_CLASSES = {
-    riskCard: { normal: 'risk-normal', high: 'risk-high', crit: 'risk-crit' },
     statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-high' },
 };
 
@@ -525,27 +524,19 @@ function getRiskBadge(risk) {
 function getRiskClass(varName, value) {
     if (_BOOLEAN_VARS.includes(varName)) {
         const crit = !!value;
-        return {
-            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.normal,
-            badge: `badge-${crit ? 'crit' : 'normal'}`,
-            label: crit ? _RISK.critico : _RISK.normal,
-        };
+        return { badge: `badge-${crit ? 'crit' : 'normal'}`, label: crit ? _RISK.critico : _RISK.normal };
     }
     if (_ENUM_VARS.includes(varName)) {
         const risky = _ENUM_RISK_VALUES[varName] || [];
         const crit = risky.includes(String(value).toLowerCase());
-        return {
-            card: crit ? CSS_CLASSES.riskCard.crit : CSS_CLASSES.riskCard.normal,
-            badge: `badge-${crit ? 'crit' : 'normal'}`,
-            label: crit ? _RISK.critico : _RISK.normal,
-        };
+        return { badge: `badge-${crit ? 'crit' : 'normal'}`, label: crit ? _RISK.critico : _RISK.normal };
     }
     if (_NO_RISK_VARS.includes(varName)) {
-        return { card: CSS_CLASSES.riskCard.normal, badge: 'badge-normal', label: _RISK.normal };
+        return { badge: 'badge-normal', label: _RISK.normal };
     }
 
     const cfg = currentThresholds[varName];
-    if (!cfg) return { card: '', badge: 'badge-info', label: _RISK.unknown };
+    if (!cfg) return { badge: 'badge-info', label: _RISK.unknown };
 
     let risk = _RISK.normal, cls = 'normal';
     if (cfg.direction === 'range') {
@@ -560,7 +551,7 @@ function getRiskClass(varName, value) {
             else if (value < low) { risk = _RISK.alto; cls = 'high'; }
         }
     }
-    return { card: CSS_CLASSES.riskCard[cls] || '', badge: `badge-${cls}`, label: risk };
+    return { badge: `badge-${cls}`, label: risk };
 }
 
 const getCSSVar = (name) =>
@@ -571,15 +562,14 @@ const getCSSVar = (name) =>
 // 6. RENDERIZADO DE UI: Tarjetas, Gráficos, Estados
 // =============================================================================
 
-function renderCard(variable, value, risk, badgeClass, cardClass) {
+function renderCard(variable, value, risk, badgeClass) {
     const name = getVariableName(variable);
     const displayValue = translateSensorValue(variable, value)
         ?? `${formatNumeric(value, variable)} ${getUnit(variable)}`;
     const isNoRisk = _NO_RISK_VARS.includes(variable);
-    const finalCardClass = isNoRisk ? '' : cardClass;
     const badgeHtml = isNoRisk ? '' : `<span class="badge ${badgeClass}">${risk}</span>`;
     return `
-        <div class="sensor-card ${finalCardClass}">
+        <div class="sensor-card">
             <div class="sensor-card-name">${name}</div>
             <div class="sensor-card-value">${displayValue}</div>
             <div class="sensor-card-footer">${badgeHtml}</div>
@@ -596,13 +586,12 @@ function updateCards(data) {
         const ri = getRiskClass(k, v);
         const displayValue = translateSensorValue(k, v) ?? `${formatNumeric(v, k)} ${getUnit(k)}`;
         const isNoRisk = _NO_RISK_VARS.includes(k);
-        const finalClass = isNoRisk ? '' : ri.card;
 
         let card = document.getElementById(`sensor-card-${k}`);
         if (!card) {
             card = document.createElement('div');
             card.id = `sensor-card-${k}`;
-            card.className = `sensor-card ${finalClass}`;
+            card.className = 'sensor-card';
             const badgeHtml = isNoRisk ? '' : `<span class="badge ${ri.badge}">${ri.label}</span>`;
             card.innerHTML = `
                 <div class="sensor-card-name">${getVariableName(k)}</div>
@@ -612,7 +601,7 @@ function updateCards(data) {
             if (_BOMBA_VARS.includes(k)) bombaContainer.appendChild(card);
             else if (_ELEVADOR_VARS.includes(k)) elevadorContainer.appendChild(card);
         } else {
-            card.className = `sensor-card ${finalClass}`;
+            card.className = 'sensor-card';
             const valEl = card.querySelector('.sensor-card-value');
             if (valEl && valEl.textContent !== displayValue) valEl.textContent = displayValue;
             const footerEl = card.querySelector('.sensor-card-footer');

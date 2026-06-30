@@ -1152,6 +1152,23 @@ button {
     box-shadow: 3px 3px 0px var(--state-info);
 }
 
+/* Variantes de estado (texto) */
+.risk-normal {
+    color: var(--state-normal);
+}
+
+.risk-high {
+    color: var(--state-high);
+}
+
+.risk-crit {
+    color: var(--state-critical);
+}
+
+.risk-info {
+    color: var(--state-info);
+}
+
 /* Badges de dirección */
 .badge-dir-up {
     color: var(--state-critical);
