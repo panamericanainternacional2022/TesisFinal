@@ -29,7 +29,7 @@ def login_view(request: HttpRequest) -> HttpResponse:
                 error = "Usuario o contraseña incorrectos."
         else:
             error = "Ingrese usuario y contraseña."
-    return render(request, "users/login.html", {"error": error})
+    return render(request, "public/auth/login.html", {"error": error})
 
 
 def logout_view(request: HttpRequest) -> HttpResponse:
@@ -42,7 +42,7 @@ def complete_registration_view(request: HttpRequest) -> HttpResponse:
     if not token:
         return render(
             request,
-            "users/completar_registro.html",
+            "public/auth/completar_registro.html",
             {"error": "Token de registro faltante o inválido."},
         )
 
@@ -54,13 +54,13 @@ def complete_registration_view(request: HttpRequest) -> HttpResponse:
         if user.registered:
             return render(
                 request,
-                "users/completar_registro.html",
+                "public/auth/completar_registro.html",
                 {"error": "Este registro ya fue completado anteriormente. Puede iniciar sesión."},
             )
     except (signing.BadSignature, signing.SignatureExpired, Usuario.DoesNotExist):
         return render(
             request,
-            "users/completar_registro.html",
+            "public/auth/completar_registro.html",
             {"error": "El enlace de registro ha expirado o es inválido."},
         )
 
@@ -109,7 +109,7 @@ def complete_registration_view(request: HttpRequest) -> HttpResponse:
 
     return render(
         request,
-        "users/completar_registro.html",
+        "public/auth/completar_registro.html",
         {
             "usuario": user,
             "token": token,

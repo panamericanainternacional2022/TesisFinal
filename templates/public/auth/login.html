@@ -1,4 +1,4 @@
-{% extends 'core/base_public.html' %}
+{% extends 'layouts/base_public.html' %}
 {% load static %}
 
 {% block title %}Acceso al sistema{% endblock %}
@@ -31,7 +31,7 @@
         </div>
 
         <div style="text-align: center;">
-            {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Ingresar' %}
+            {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Ingresar' %}
         </div>
     </form>
 </section>

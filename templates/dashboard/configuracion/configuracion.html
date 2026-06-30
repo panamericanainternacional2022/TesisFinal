@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'layouts/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Configuración{% endblock %}
@@ -47,7 +47,7 @@
             </div>
 
             <div class="actions-row">
-                {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Actualizar perfil' id='profileSubmitBtn' %}
+                {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Actualizar perfil' id='profileSubmitBtn' %}
             </div>
         </div>
     </form>
@@ -94,7 +94,7 @@
             </div>
 
             <div class="actions-row">
-                {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Actualizar contraseña' id='passwordSubmitBtn' %}
+                {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Actualizar contraseña' id='passwordSubmitBtn' %}
             </div>
         </div>
     </form>

@@ -1,4 +1,4 @@
-{% extends 'monitoring/_config_base.html' %}
+{% extends 'layouts/_config_base.html' %}
 {% load static %}
 
 {% block config_title %}Umbrales{% endblock %}
@@ -14,7 +14,7 @@
 {% endblock %}
 
 {% block config_loading %}
-{% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
+{% include 'components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
 {% endblock %}
 
 {% block config_panel_bomba %}

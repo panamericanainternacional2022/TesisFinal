@@ -26,7 +26,7 @@ def notifications_view(request: HttpRequest):
     from apps.core.auth_decorators import is_admin_role
     usuario_id = request.session.get("usuario_id")
     if not usuario_id:
-        return render(request, "alerts/notifications.html", {
+        return render(request, "dashboard/eventos/notifications.html", {
             "notifications": None, "edificios": [], "rol": "US",
             "alerts_disabled": False, "alerts_disabled_until_ms": None,
             "filter_query_string": "",
@@ -104,7 +104,7 @@ def notifications_view(request: HttpRequest):
 
     return render(
         request,
-        "alerts/notifications.html",
+        "dashboard/eventos/notifications.html",
         {
             "notifications": page_obj,
             "edificios": buildings,

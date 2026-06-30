@@ -31,7 +31,7 @@ def render_admin_monitoring(request) -> HttpResponse:
 
     return render(
         request,
-        "monitoring/monitoreo_dashboard.html",
+        "dashboard/panel/monitoreo_dashboard.html",
         {
             "rol": rol,
             "edificios": buildings,
@@ -66,7 +66,7 @@ def render_admin_thresholds(request) -> HttpResponse:
 
     return render(
         request,
-        "monitoring/umbrales.html",
+        "dashboard/umbrales/umbrales.html",
         {
             "rol": rol,
             "edificios": buildings,
@@ -97,7 +97,7 @@ def render_admin_limits(request) -> HttpResponse:
 
     return render(
         request,
-        "monitoring/limites.html",
+        "dashboard/limites/limites.html",
         {
             "rol": rol,
             "edificios": buildings,
@@ -115,7 +115,7 @@ def building_monitoring_view(request, building_id: int) -> HttpResponse:
     building = get_object_or_404(Building, pk=building_id)
     return render(
         request,
-        "monitoring/monitoreo_dashboard.html",
+        "dashboard/panel/monitoreo_dashboard.html",
         {
             "rol": rol,
             "edificios": [building],

@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'layouts/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}{% if editing %}Modificar datos de usuario{% else %}Registro de nuevo usuario{% endif %}{% endblock %}
@@ -90,11 +90,11 @@
 
             <div class="actions-row">
                 {% url 'user_list' as back_url %}
-                {% include 'core/components/boton.html' with url=back_url class='btn btn-secondary' text='Volver' %}
+                {% include 'components/boton.html' with url=back_url class='btn btn-secondary' text='Volver' %}
                 {% if editing %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Guardar cambios' id='submitBtn' %}
+                    {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Guardar cambios' id='submitBtn' %}
                 {% else %}
-                    {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Registrar usuario' id='submitBtn' disabled=True %}
+                    {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Registrar usuario' id='submitBtn' disabled=True %}
                 {% endif %}
             </div>
         </div>

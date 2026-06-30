@@ -8,15 +8,15 @@
     {% block meta_description %}{% endblock %}
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'core/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
     {% block extra_css %}{% endblock %}
 
-    <script src="{% static 'core/script.js' %}" defer></script>
+    <script src="{% static 'js/script.js' %}" defer></script>
     {% block extra_head_js %}{% endblock %}
 </head>
 <body class="preload">
     <div class="main-layout">
-        {% include 'core/components/sidebar.html' %}
+        {% include 'components/sidebar.html' %}
 
         <main class="main-content">
             <div class="form-page pb-0">
@@ -25,7 +25,7 @@
         </main>
     </div>
 
-    {% include 'core/components/toast_messages.html' %}
+    {% include 'components/toast_messages.html' %}
 
     <script>
         // Timestamp (Unix segundos) desde el que se cuentan alertas "no leídas".

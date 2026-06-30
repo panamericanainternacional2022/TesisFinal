@@ -1,4 +1,4 @@
-{% extends 'core/base_public.html' %}
+{% extends 'layouts/base_public.html' %}
 {% load static %}
 
 {% block title %}Completar registro{% endblock %}
@@ -48,7 +48,7 @@
             </div>
  
             <div style="text-align: center;">
-                {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}
+                {% include 'components/boton.html' with type='submit' class='btn btn-primary' text='Activar cuenta y acceder' %}
             </div>
         </form>
     {% endif %}

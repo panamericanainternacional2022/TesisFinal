@@ -30,7 +30,7 @@ def render_user_monitoring(request) -> HttpResponse:
 
     return render(
         request,
-        "monitoring/monitoreo_dashboard.html",
+        "dashboard/panel/monitoreo_dashboard.html",
         {
             "rol": rol,
             "edificios": edificios,

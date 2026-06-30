@@ -28,7 +28,7 @@ from .shared import (
 @login_required
 @admin_required
 def user_register_view(request: HttpRequest) -> HttpResponse:
-    return render(request, "users/registro_usuario.html", {"user": {}})
+    return render(request, "dashboard/usuarios/registro_usuario.html", {"user": {}})
 
 
 @login_required
@@ -77,7 +77,7 @@ def user_list_view(request: HttpRequest) -> HttpResponse:
 
     return render(
         request,
-        "users/lista_usuario.html",
+        "dashboard/usuarios/lista_usuario.html",
         {
             "usuarios": users,
             "edificios": buildings,
@@ -168,7 +168,7 @@ def user_create_view(request: HttpRequest) -> HttpResponse:
         "form_errors": form_errors,
     }
 
-    return render(request, "users/registro_usuario.html", context)
+    return render(request, "dashboard/usuarios/registro_usuario.html", context)
 
 
 @login_required
@@ -222,7 +222,7 @@ def user_update_view(request: HttpRequest, user_id: int) -> HttpResponse:
 
     return render(
         request,
-        "users/registro_usuario.html",
+        "dashboard/usuarios/registro_usuario.html",
         {
             "user": data,
             "editing": True,

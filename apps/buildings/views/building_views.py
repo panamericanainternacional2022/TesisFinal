@@ -39,7 +39,7 @@ def building_list_view(request: HttpRequest) -> HttpResponse:
     msgs = pop_messages(request)
     return render(
         request,
-        "buildings/lista_edificios.html",
+        "dashboard/edificios/lista_edificios.html",
         {
             "buildings": list(buildings),
             "page_messages": msgs,
@@ -93,7 +93,7 @@ def register_building_view(request: HttpRequest) -> HttpResponse:
 
     return render(
         request,
-        "buildings/registro_edificio.html",
+        "dashboard/edificios/registro_edificio.html",
         {
             "editing": False,
             "form_errors": form_errors,
@@ -155,7 +155,7 @@ def edit_building_view(request: HttpRequest, building_id: int) -> HttpResponse:
 
     return render(
         request,
-        "buildings/registro_edificio.html",
+        "dashboard/edificios/registro_edificio.html",
         {
             "editing": True,
             "building": building,

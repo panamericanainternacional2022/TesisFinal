@@ -22,7 +22,7 @@ def configuration_view(request: HttpRequest) -> HttpResponse:
 
     return render(
         request,
-        "buildings/configuracion.html",
+        "dashboard/configuracion/configuracion.html",
         {
             "usuario": user,
             "persona": person,
@@ -47,7 +47,7 @@ def _handle_config_post(
             messages.error(request, "No se detectaron cambios en los datos del perfil.")
             return render(
                 request,
-                "buildings/configuracion.html",
+                "dashboard/configuracion/configuracion.html",
                 {
                     "usuario": user,
                     "persona": person,
@@ -72,7 +72,7 @@ def _handle_config_post(
         messages.error(request, "Corrija los errores indicados en los datos del perfil.")
         return render(
             request,
-            "buildings/configuracion.html",
+            "dashboard/configuracion/configuracion.html",
             {
                 "usuario": {"username": username},
                 "persona": {"email": email},
@@ -85,7 +85,7 @@ def _handle_config_post(
             messages.error(request, "Todos los campos de contraseña son obligatorios.")
             return render(
                 request,
-                "buildings/configuracion.html",
+                "dashboard/configuracion/configuracion.html",
                 {
                     "usuario": user,
                     "persona": person,
@@ -98,7 +98,7 @@ def _handle_config_post(
             form_errors["current_password"] = "La contraseña actual no es correcta."
             return render(
                 request,
-                "buildings/configuracion.html",
+                "dashboard/configuracion/configuracion.html",
                 {
                     "usuario": user,
                     "persona": person,
@@ -117,7 +117,7 @@ def _handle_config_post(
         messages.error(request, "Corrija los errores indicados en el formulario de contraseña.")
         return render(
             request,
-            "buildings/configuracion.html",
+            "dashboard/configuracion/configuracion.html",
             {
                 "usuario": user,
                 "persona": person,

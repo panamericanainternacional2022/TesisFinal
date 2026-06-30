@@ -1,4 +1,4 @@
-{% extends 'core/_list_base.html' %}
+{% extends 'layouts/_list_base.html' %}
 {% load static %}
 
 {% block list_title %}Edificios{% endblock %}
@@ -25,7 +25,7 @@
 
 {% block list_actions %}
 {% url 'register_building' as registro_url %}
-{% include 'core/components/boton.html' with url=registro_url class='btn btn-primary' text='Agregar edificio' %}
+{% include 'components/boton.html' with url=registro_url class='btn btn-primary' text='Agregar edificio' %}
 {% endblock %}
 
 {% block list_table %}

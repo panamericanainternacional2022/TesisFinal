@@ -1,4 +1,4 @@
-{% extends 'core/base_sidebar.html' %}
+{% extends 'layouts/base_sidebar.html' %}
 {% load static %}
 
 {% block title %}Eventos{% endblock %}
@@ -107,7 +107,7 @@
             {% if notifications %}
             <ul class="notif-list">
             {% for notif in notifications %}
-            {% include 'core/components/notification_item.html' %}
+            {% include 'components/notification_item.html' %}
             {% endfor %}
             </ul>
             {% elif severidad or variable_filter or selected_edificio_id %}
@@ -140,7 +140,7 @@
         </div>
     </div>
 
-    {% include 'core/components/pagination.html' with page_obj=notifications extra_query=filter_query_string %}
+    {% include 'components/pagination.html' with page_obj=notifications extra_query=filter_query_string %}
 
     {% endif %}
 </div>
