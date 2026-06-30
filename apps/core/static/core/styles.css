@@ -1412,6 +1412,8 @@ button {
     padding: 0 5px;
     border-radius: var(--radius);
     vertical-align: middle;
+    margin-left: auto;
+    box-shadow: 2px 2px 0px var(--color-ink);
 }
 
 .sidebar-notif-badge.visible,
