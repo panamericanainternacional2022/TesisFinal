@@ -1411,6 +1411,14 @@ button {
     box-shadow: 2px 2px 0px var(--color-ink);
 }
 
+.page-header .notif-count-badge {
+    min-width: 28px;
+    height: 28px;
+    font-size: var(--text-sm);
+    padding: 0 var(--sp-2);
+    box-shadow: 3px 3px 0px var(--color-ink);
+}
+
 .sidebar-notif-badge {
     min-width: 18px;
     height: 18px;
@@ -1436,13 +1444,13 @@ button {
     flex-direction: column;
     gap: var(--sp-3);
     pointer-events: none;
-    max-width: 380px;
+    max-width: 420px;
     width: calc(100% - 48px);
 }
 
 .toast-item {
     pointer-events: auto;
-    padding: 15px;
+    padding: 16px 20px;
     position: relative;
     border: var(--border-brutal);
     box-shadow: var(--shadow-brutal);
@@ -1452,6 +1460,10 @@ button {
     opacity: 0;
     transform: translateX(120%);
     transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1), opacity 350ms ease;
+}
+
+.toast-item.has-close {
+    padding-right: 48px;
 }
 
 .toast-success {
@@ -2288,10 +2300,6 @@ input.is-dirty.input-error-state:active {
 #manualValueContainer .error-msg,
 #manualValueContainer .risk-preview {
     margin-top: 4px;
-}
-
-#manualControlsRow>div:last-child {
-    padding-top: calc(1em + var(--sp-1));
 }
 
 #simControls>.risk-preview {

@@ -317,10 +317,10 @@ window.initFormState = function initFormState(form, isEditing) {
         }
         const hasClose = type !== 'success';
         const toast = document.createElement('div');
-        toast.className = `toast-item toast-${type}`;
+        toast.className = `toast-item toast-${type}${hasClose ? ' has-close' : ''}`;
         toast.innerHTML = `
             ${hasClose ? '<button type="button" class="btn btn-icon toast-close"><i class="fa-solid fa-xmark"></i></button>' : ''}
-            <div class="toast-body-content" style="${hasClose ? 'padding-right:15px;' : 'padding-right:0;'}">${message}</div>
+            <div class="toast-body-content">${message}</div>
         `;
         container.appendChild(toast);
         requestAnimationFrame(() => { toast.style.transform = 'translateX(0)'; toast.style.opacity = '1'; });
@@ -1924,7 +1924,7 @@ async function reEnableAlerts() {
     const btn = document.getElementById('toggleAlertsBtn');
     if (!btn) return;
     btn.dataset.enabled = 'true'; btn.dataset.disabledUntilMs = '';
-    btn.className = 'btn btn-primary';
+    btn.className = 'btn btn-secondary';
     btn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
     await csrfFetch(API.toggleAlerts, { method: 'POST', body: JSON.stringify({ enabled: true }) });
     await window.showAlert('Alertas reactivadas.', 'success');
@@ -1944,7 +1944,7 @@ function initLiveNotifications() {
             if (!isEnabled) {
                 if (alertCountdownInterval) { clearInterval(alertCountdownInterval); alertCountdownInterval = null; }
                 toggleBtn.dataset.enabled = 'true'; toggleBtn.dataset.disabledUntilMs = '';
-                toggleBtn.className = 'btn btn-critical';
+                toggleBtn.className = 'btn btn-secondary';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
                 await csrfFetch(API.toggleAlerts, { method: 'POST', body: JSON.stringify({ enabled: true }) });
                 await window.showAlert('Alertas activadas con éxito.', 'success');
@@ -2207,7 +2207,7 @@ window.addEventListener('DOMContentLoaded', () => {
             const sessionEnabled = toggleBtn.dataset.enabled === 'true';
             const disabledUntilMs = parseInt(toggleBtn.dataset.disabledUntilMs || '0', 10);
             if (sessionEnabled) {
-                toggleBtn.className = 'btn btn-critical';
+                toggleBtn.className = 'btn btn-secondary';
                 toggleBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Desactivar alertas';
             } else if (disabledUntilMs && disabledUntilMs > Date.now()) {
                 toggleBtn.className = 'btn btn-critical';
