@@ -57,7 +57,7 @@
     <div id="activeMonitoring" class="d-none">
 
         <div class="status-grid" id="statusGrid">
-            <div id="pumpStatusRow" class="status-cell cell-ok">
+            <div id="pumpStatusRow" class="status-cell cell-normal">
                 <div class="status-cell-label">Bomba de agua</div>
                 <div class="status-cell-value">
                     <span id="pumpStatusBadge" class="badge d-none"></span>
@@ -65,7 +65,7 @@
                     <span id="pumpNotInstalled" class="status-label-sm d-none">No instalado</span>
                 </div>
             </div>
-            <div id="elevatorStatusRow" class="status-cell cell-ok">
+            <div id="elevatorStatusRow" class="status-cell cell-normal">
                 <div class="status-cell-label">Elevador</div>
                 <div class="status-cell-value">
                     <span id="elevatorStatusBadge" class="badge d-none"></span>
@@ -74,7 +74,7 @@
                 </div>
             </div>
             {% if is_admin %}
-            <div id="simStatusRow" class="status-cell cell-ok">
+            <div id="simStatusRow" class="status-cell cell-normal">
                 <div class="status-cell-label">Simulación</div>
                 <div class="status-cell-value">
                     <span id="simSpeedDisplay" class="badge badge-info">1.0x</span>

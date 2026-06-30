@@ -707,8 +707,8 @@ function updateCharts(history) {
         if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
         if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
         if (r.risk === _RISK.alto) return getCSSVar('--state-high') || '#c2410c';
-        if (r.risk === _RISK.informativo) return getCSSVar('--state-inactive') || '#6b6b6b';
-        return getCSSVar('--state-ok') || '#16a34a';
+        if (r.risk === _RISK.informativo) return getCSSVar('--state-info') || '#6b6b6b';
+        return getCSSVar('--state-normal') || '#16a34a';
     };
 
     const applyToChart = (chartInst, vars) => {
@@ -761,11 +761,11 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
 
     const cellEl = badgeEl.closest('.status-cell');
     if (cellEl) {
-        cellEl.classList.remove('cell-ok', 'cell-warn', 'cell-crit', 'cell-muted');
-        if (statusVal === 'operativo') cellEl.classList.add('cell-ok');
+        cellEl.classList.remove('cell-normal', 'cell-warn', 'cell-crit', 'cell-info');
+        if (statusVal === 'operativo') cellEl.classList.add('cell-normal');
         else if (statusVal === 'falla') cellEl.classList.add('cell-crit');
         else if (statusVal === 'mantenimiento') cellEl.classList.add('cell-warn');
-        else cellEl.classList.add('cell-ok');
+        else cellEl.classList.add('cell-normal');
     }
 
     if (statusVal) {
@@ -799,10 +799,10 @@ function updateEquipmentVisibility(equipTypes) {
     if (pumpNI && pumpBadge && pumpEmpty && pumpCell) {
         if (!hasPump) {
             pumpBadge.style.display = 'none'; pumpEmpty.style.display = 'none'; pumpNI.style.display = 'inline';
-            pumpCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit'); pumpCell.classList.add('cell-muted');
+            pumpCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit'); pumpCell.classList.add('cell-info');
         } else {
             pumpNI.style.display = 'none';
-            pumpCell.classList.remove('cell-muted');
+            pumpCell.classList.remove('cell-info');
         }
     }
 
@@ -813,10 +813,10 @@ function updateEquipmentVisibility(equipTypes) {
     if (elevNI && elevBadge && elevEmpty && elevCell) {
         if (!hasElev) {
             elevBadge.style.display = 'none'; elevEmpty.style.display = 'none'; elevNI.style.display = 'inline';
-            elevCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit'); elevCell.classList.add('cell-muted');
+            elevCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit'); elevCell.classList.add('cell-info');
         } else {
             elevNI.style.display = 'none';
-            elevCell.classList.remove('cell-muted');
+            elevCell.classList.remove('cell-info');
         }
     }
     return true;
@@ -965,8 +965,8 @@ function applyPayload(data) {
 
             const simCell = document.getElementById('simStatusRow');
             if (simCell) {
-                simCell.classList.remove('cell-ok', 'cell-warn', 'cell-crit');
-                simCell.classList.add(isPaused ? 'cell-warn' : 'cell-ok');
+                simCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit');
+                simCell.classList.add(isPaused ? 'cell-warn' : 'cell-normal');
             }
         }
     }
@@ -1103,7 +1103,7 @@ function renderThresholdsPanel(th) {
             higher: '<span class="thresh-dir-badge" style="color:var(--state-critical);" title="Mayor es peor">\u2191 Mayor es peor</span>',
             lower: '<span class="thresh-dir-badge" style="color:var(--state-high);" title="Menor es peor">\u2193 Menor es peor</span>',
         };
-        const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-inactive);" title="Rango válido">\u27FA Rango válido</span>';
+        const dirBadge = DIR_BADGE[cfg.direction] || '<span class="thresh-dir-badge" style="color:var(--state-info);" title="Rango válido">\u27FA Rango válido</span>';
         const headerHtml = `<div class="thresh-card-header">
             <span class="thresh-label">${name}${unit && k !== 'trip_count' ? ` (${unit})` : ''}</span>
             ${dirBadge}

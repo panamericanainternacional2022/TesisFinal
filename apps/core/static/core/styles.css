@@ -54,15 +54,15 @@
     --color-text-placeholder: #9e9e9e;
 
     /* Estados semánticos */
-    --state-ok: #16a34a;
-    --state-ok-bg: #f0fdf4;
+    --state-normal: #16a34a;
+    --state-normal-bg: #f0fdf4;
     --state-high: #c2410c;
     --state-high-bg: #fff7ed;
     --state-critical: #dc2626;
     --state-critical-hover: #ce1a1a;
     --state-critical-bg: #fef2f2;
-    --state-inactive: #6b6b6b;
-    --state-inactive-bg: #f5f5f5;
+    --state-info: #6b6b6b;
+    --state-info-bg: #f5f5f5;
 
     /* Espaciado (escala progresiva) */
     --sp-1: 4px;
@@ -1111,13 +1111,11 @@ button {
 }
 
 /* Variantes de estado */
-.risk-low,
 .risk-normal,
 .sensor-active,
-.badge-low,
 .badge-normal {
-    background: var(--state-ok-bg);
-    color: var(--state-ok);
+    background: var(--state-normal-bg);
+    color: var(--state-normal);
 }
 
 .risk-high,
@@ -1137,8 +1135,8 @@ button {
 .risk-info,
 .sensor-info,
 .badge-info {
-    background: var(--state-inactive-bg);
-    color: var(--state-inactive);
+    background: var(--state-info-bg);
+    color: var(--state-info);
 }
 
 /* Badges de dirección */
@@ -1155,7 +1153,7 @@ button {
 }
 
 .badge-dir-range {
-    color: var(--state-inactive);
+    color: var(--state-info);
     font-weight: var(--weight-bold);
     font-size: var(--text-xs);
 }
@@ -1352,8 +1350,13 @@ button {
 }
 
 .toast-success {
-    background-color: var(--state-ok-bg);
-    color: var(--state-ok);
+    background-color: var(--state-normal-bg);
+    color: var(--state-normal);
+}
+
+.toast-warning {
+    background-color: var(--state-high-bg);
+    color: var(--state-high);
 }
 
 .toast-error {
@@ -1362,8 +1365,8 @@ button {
 }
 
 .toast-info {
-    background-color: var(--state-inactive-bg);
-    color: var(--state-inactive);
+    background-color: var(--state-info-bg);
+    color: var(--state-info);
 }
 
 .toast-body-content {
@@ -1431,12 +1434,12 @@ button {
     left: 0;
     bottom: 0;
     width: 5px;
-    background: var(--state-ok);
+    background: var(--state-normal);
     transition: background var(--transition-base);
 }
 
-.status-cell.cell-ok::before {
-    background: var(--state-ok);
+.status-cell.cell-normal::before {
+    background: var(--state-normal);
 }
 
 .status-cell.cell-warn::before {
@@ -1447,8 +1450,8 @@ button {
     background: var(--state-critical);
 }
 
-.status-cell.cell-muted::before {
-    background: var(--state-inactive);
+.status-cell.cell-info::before {
+    background: var(--state-info);
 }
 
 .status-cell-label {
@@ -1743,16 +1746,19 @@ button {
 }
 
 .custom-modal-icon-success {
-    color: var(--state-ok);
+    color: var(--state-normal);
 }
 
 .custom-modal-icon-error {
     color: var(--state-critical);
 }
 
+.custom-modal-icon-warn {
+    color: var(--state-high);
+}
 
 /* ============================================================
-   16. THRESHOLDS
+    16. THRESHOLDS
    ============================================================ */
 .thresh-legend {
     display: flex;
@@ -1992,8 +1998,8 @@ input.is-dirty.input-error-state:active {
 }
 
 .status-banner {
-    background: var(--state-ok-bg);
-    color: var(--state-ok);
+    background: var(--state-normal-bg);
+    color: var(--state-normal);
     border: var(--border-brutal);
     padding: var(--sp-4) var(--sp-5);
     box-shadow: var(--shadow-brutal);
@@ -2414,6 +2420,10 @@ input.is-dirty.input-error-state:active {
 
 .text-secondary {
     color: var(--color-text-secondary);
+}
+
+.text-warn {
+    color: var(--state-high);
 }
 
 .text-sm {
