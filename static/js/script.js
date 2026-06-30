@@ -358,10 +358,46 @@
         });
     }
 
+    // Polling ligero para actualizar el badge de notificaciones en el sidebar
+    function initSidebarPolling() {
+        const badgeEl = document.getElementById('notificationBadgeSidebar');
+        if (!badgeEl) return;
+
+        // El dashboard tiene su propio SSE que ya actualiza el badge en tiempo real.
+        const isDashboard = !!document.getElementById('activeMonitoring');
+        if (isDashboard) return;
+
+        const POLL_INTERVAL_MS = 30000;   // 30 segundos
+        const COUNT_URL        = '/api/notifications/count/';
+
+        function applyCount(count) {
+            if (count > 0) {
+                badgeEl.textContent   = count;
+                badgeEl.classList.add('visible');
+            } else {
+                badgeEl.textContent   = '';
+                badgeEl.classList.remove('visible');
+            }
+        }
+
+        async function pollCount() {
+            try {
+                const resp = await fetch(COUNT_URL, { credentials: 'same-origin' });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                applyCount(data.count || 0);
+            } catch (_) { /* silent */ }
+        }
+
+        pollCount();
+        setInterval(pollCount, POLL_INTERVAL_MS);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         initDropdowns();
         initConfirmDelete();
         initAutoSubmit();
+        initSidebarPolling();
     });
 
 
