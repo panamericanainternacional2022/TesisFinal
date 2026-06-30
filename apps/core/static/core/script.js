@@ -1234,7 +1234,7 @@ function validateThresholdInputs(scope) {
             setInputColors(['low', 'med', 'high'], inputMap, false);
 
             const errorMsgEl = findErrorMsgEl(v);
-            if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
+            if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.visibility = 'hidden'; }
 
             const dir = dirInp?.value;
             const low = parseFloat(lowInp?.value);
@@ -1249,7 +1249,7 @@ function validateThresholdInputs(scope) {
             if (!result.valid) {
                 hasError = true;
                 setInputColors(result.errorInputs, inputMap, true);
-                if (errorMsgEl && result.errorText) { errorMsgEl.textContent = result.errorText; errorMsgEl.style.display = 'block'; }
+                if (errorMsgEl && result.errorText) { errorMsgEl.textContent = result.errorText; errorMsgEl.style.visibility = 'visible'; }
             }
         });
     });
@@ -1385,12 +1385,12 @@ function validateLimitInputs(scope) {
             const val = parseFloat(inp.value);
             inp.classList.remove('input-error-state');
             const errorMsgEl = inp.closest('.form-group')?.querySelector('.error-msg');
-            if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.display = 'none'; }
+            if (errorMsgEl) { errorMsgEl.textContent = ''; errorMsgEl.style.visibility = 'hidden'; }
 
             const showError = (text) => {
                 hasError = true;
                 inp.classList.add('input-error-state');
-                if (errorMsgEl) { errorMsgEl.textContent = text; errorMsgEl.style.display = 'block'; }
+                if (errorMsgEl) { errorMsgEl.textContent = text; errorMsgEl.style.visibility = 'visible'; }
             };
 
             if (isNaN(val)) return showError('Introduzca un número válido.');
@@ -1618,16 +1618,16 @@ function updateManualRiskPreview() {
     const errorMsg = document.getElementById('manualErrorMsg');
     const status = validateManualInput();
     if (status.hasError) {
-        if (errorMsg) { errorMsg.textContent = status.errorText; errorMsg.style.display = 'block'; }
+        if (errorMsg) { errorMsg.textContent = status.errorText; errorMsg.style.visibility = 'visible'; }
         span.innerHTML = '';
         return;
     }
     if (status.empty) {
-        if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
+        if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.visibility = 'hidden'; }
         span.innerHTML = '';
         return;
     }
-    if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.display = 'none'; }
+    if (errorMsg) { errorMsg.textContent = ''; errorMsg.style.visibility = 'hidden'; }
 
     const isEnum = v === 'door_status' || v === 'motor_stuck';
     const raw = isEnum ? sel.value : inp.value;
@@ -2270,14 +2270,14 @@ function initFormValidation() {
         let errEl = grupo.querySelector('.error-msg');
         if (!errEl) { errEl = document.createElement('div'); errEl.className = 'error-msg'; grupo.appendChild(errEl); }
         errEl.textContent = mensaje;
-        errEl.style.display = 'block';
+        errEl.style.visibility = 'visible';
         input.classList.add('input-error-state');
     };
 
     const limpiarError = (input) => {
         const grupo = input.closest('.form-group') || input.parentElement;
         const errEl = grupo.querySelector('.error-msg');
-        if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+        if (errEl) { errEl.textContent = ''; errEl.style.visibility = 'hidden'; }
         input.classList.remove('input-error-state');
     };
 

@@ -212,7 +212,7 @@
                        value="{{ fecha_hasta }}" class="form-input">
             </div>
 
-            <div id="customDateError" class="error-msg" style="display:none">
+            <div id="customDateError" class="error-msg" style="visibility:hidden">
                 La fecha "Desde" no puede ser posterior a "Hasta"
             </div>
         </div>
@@ -274,7 +274,7 @@
         var hasta = inputHasta.value;
         var bothFilled = desde && hasta;
         var valid = !bothFilled || desde <= hasta;
-        errorBox.style.display = (bothFilled && !valid) ? 'block' : 'none';
+        errorBox.style.visibility = (bothFilled && !valid) ? 'visible' : 'hidden';
         var invalid = !valid && bothFilled;
         inputDesde.classList.toggle('input-error-state', invalid);
         inputHasta.classList.toggle('input-error-state', invalid);

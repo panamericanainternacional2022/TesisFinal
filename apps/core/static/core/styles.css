@@ -849,11 +849,13 @@ button {
     color: var(--state-critical);
     font-size: var(--text-xs);
     font-weight: var(--weight-bold);
+    line-height: var(--leading-tight);
     margin-top: 4px;
+    min-height: 1.2em;
 }
 
 .error-msg:empty {
-    display: none;
+    visibility: hidden;
 }
 
 
@@ -2280,7 +2282,7 @@ input.is-dirty.input-error-state:active {
 }
 
 #manualRiskPreview:empty {
-    display: none;
+    visibility: hidden;
 }
 
 #manualValueContainer .error-msg,
