@@ -50,7 +50,7 @@
                 <div class="form-group">
                     <label for="cantidadPisos">Cantidad de pisos</label>
                     <div class="input-with-icon">
-                        <input placeholder="Ej. 10" type="number" id="cantidadPisos" name="cantidadPisos" min="1" step="1" value="{{ building.floors|default:'' }}" required class="form-input {% if form_errors.cantidadPisos %}input-error-state{% endif %}" />
+                        <input placeholder="Ej. 10" type="number" id="cantidadPisos" name="cantidadPisos" min="1" step="1" value="{{ building.floors|default:'' }}" data-validate="cantidad-pisos" required class="form-input {% if form_errors.cantidadPisos %}input-error-state{% endif %}" />
                         <i class="fa-solid fa-pen input-icon input-icon--right" aria-hidden="true"></i>
                     </div>
                     <div class="error-msg">{% if form_errors.cantidadPisos %}{{ form_errors.cantidadPisos }}{% endif %}</div>

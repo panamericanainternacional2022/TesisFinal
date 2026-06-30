@@ -2261,6 +2261,7 @@ function initFormValidation() {
         'email': { regex: /^[a-zA-Z0-9.@]$/, useUpper: false, allowDelete: false },
         'rif': { regex: /^[J\d\-]$/, useUpper: true, allowDelete: false },
         'cedula': { regex: /^[VE\d.\-]$/, useUpper: true, allowDelete: false },
+        'cantidad-pisos': { regex: /^\d$/, useUpper: false, allowDelete: true },
     };
 
     // --- Utilidades de error ---
@@ -2398,6 +2399,26 @@ function initFormValidation() {
         toggleSubmit(input.form);
     };
 
+    const validarCantidadPisos = (input) => {
+        const valor = input.value;
+        const MAX_FLOORS = 150;
+        if (valor && !/^\d+$/.test(valor)) {
+            mostrarError(input, 'La cantidad de pisos debe ser un número entero.');
+        } else if (valor) {
+            const num = parseInt(valor, 10);
+            if (num === 0) {
+                mostrarError(input, 'La cantidad de pisos debe ser mayor a 0.');
+            } else if (num > MAX_FLOORS) {
+                mostrarError(input, `La cantidad de pisos no puede exceder ${MAX_FLOORS}.`);
+            } else {
+                limpiarError(input);
+            }
+        } else {
+            limpiarError(input);
+        }
+        toggleSubmit(input.form);
+    };
+
     const VALIDATORS = {
         'solo-letras': validarSoloLetras,
         'solo-numeros': validarSoloNumeros,
@@ -2407,6 +2428,7 @@ function initFormValidation() {
         'password': validarPassword,
         'confirm-password': validarConfirmPassword,
         'username': validarUsername,
+        'cantidad-pisos': validarCantidadPisos,
     };
 
     // --- Registro de listeners ---
