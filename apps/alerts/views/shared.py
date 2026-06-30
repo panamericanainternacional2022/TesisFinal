@@ -5,18 +5,20 @@ from django.db.models import Q, QuerySet
 
 from apps.sensors.sensor_config import (
     VAR_NAMES, UNITS, VALUE_DISPLAY_ES, FAULT_NAMES_ES,
-    RISK_CRITICO, RISK_ALTO, RISK_INFORMATIVO,
+    RISK_NORMAL, RISK_CRITICO, RISK_ALTO, RISK_INFORMATIVO,
 )
 from apps.alerts.models import Notification
 
 
 _RISK_ICONS = {
+    RISK_NORMAL:      "fa-circle-check",
     RISK_CRITICO:     "fa-circle-exclamation",
     RISK_ALTO:        "fa-circle-exclamation",
     RISK_INFORMATIVO: "fa-circle-info",
 }
 
 _RISK_CSS = {
+    RISK_NORMAL:      "risk-normal",
     RISK_CRITICO:     "risk-crit",
     RISK_ALTO:        "risk-high",
     RISK_INFORMATIVO: "risk-info",

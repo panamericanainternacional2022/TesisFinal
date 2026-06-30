@@ -44,7 +44,7 @@ RISK_INFORMATIVO = "Informativo"
 RISK_ALTO        = "Alto"
 RISK_CRITICO     = "Crítico"
 
-SEVERITY_LEVELS = [RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO]
+SEVERITY_LEVELS = [RISK_NORMAL, RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO]
 
 RISK_COLORS = {
     RISK_NORMAL: {
@@ -53,17 +53,17 @@ RISK_COLORS = {
         "desc":    "Valores normales de funcionamiento",
     },
     RISK_INFORMATIVO: {
-        "pdf":     {"bg": (219, 234, 254), "text": (30, 64, 175)},
-        "email":   {"bg": "#dbeafe", "border": "#bfdbfe", "text": "#1e40af"},
+        "pdf":     {"bg": (245, 245, 245), "text": (107, 107, 107)},
+        "email":   {"bg": "#f5f5f5", "border": "#e0e0e0", "text": "#6b6b6b"},
         "desc":    "Eventos informativos del sistema",
     },
     RISK_ALTO: {
         "pdf":     {"bg": (255, 247, 237), "text": (194, 65, 12)},
-        "email":   {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
+        "email":   {"bg": "#fff7ed", "border": "#fed7aa", "text": "#c2410c"},
         "desc":    "Fuera de rango seguro",
     },
     RISK_CRITICO: {
-        "pdf":     {"bg": (254, 242, 242), "text": (153, 27, 27)},
+        "pdf":     {"bg": (254, 242, 242), "text": (220, 38, 38)},
         "email":   {"bg": "#fef2f2", "border": "#fecaca", "text": "#dc2626"},
         "desc":    "Estado de peligro, acción inmediata",
     },

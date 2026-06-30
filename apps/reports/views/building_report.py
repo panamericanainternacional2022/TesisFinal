@@ -32,9 +32,9 @@ _CRITICAL_LEVELS = {RISK_ALTO, RISK_CRITICO}
 
 _EQUIP_STATUS_STYLE: dict[str, tuple[tuple, tuple]] = {
     "activo":    ((240, 253, 244), (22, 101, 52)),
-    "inactivo":  ((249, 250, 251), (55, 65, 81)),
-    "fallo":     ((254, 242, 242), (153, 27, 27)),
-    "pausado":   ((255, 251, 235), (146, 64, 14)),
+    "inactivo":  ((245, 245, 245), (107, 107, 107)),
+    "fallo":     ((254, 242, 242), (220, 38, 38)),
+    "pausado":   ((255, 247, 237), (194, 65, 12)),
 }
 _EQUIP_TYPE_ES: dict[str, str] = {
     "bomba":    "Bomba de agua",
@@ -386,7 +386,7 @@ def _render_rationing_section(pdf: Any, sensor_data: dict) -> None:
     in_rationing = flow < RATIONING_THRESHOLD
     if in_rationing:
         pdf.set_fill_color(254, 242, 242)
-        pdf.set_text_color(153, 27, 27)
+        pdf.set_text_color(220, 38, 38)
         label = "ACTIVO — El caudal está por debajo del umbral de racionamiento."
     else:
         pdf.set_fill_color(240, 253, 244)

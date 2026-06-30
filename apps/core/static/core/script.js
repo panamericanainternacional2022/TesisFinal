@@ -461,7 +461,7 @@ const CHART_ELEV_VARS = _ELEVADOR_VARS.filter(
 
 const CSS_CLASSES = {
     riskCard: { normal: 'risk-normal', high: 'risk-high', crit: 'risk-crit' },
-    statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-med' },
+    statusBadge: { falla: 'badge badge-crit', mantenimiento: 'badge badge-high' },
 };
 
 let EDIFICIO_ID = _CONFIG.edificio_id || window.SELECTED_EDIFICIO_ID || 0;
@@ -707,7 +707,7 @@ function updateCharts(history) {
         if (!r) return getCSSVar('--color-ink') || '#0a0a0a';
         if (r.risk === _RISK.critico) return getCSSVar('--state-critical') || '#dc2626';
         if (r.risk === _RISK.alto) return getCSSVar('--state-high') || '#c2410c';
-        if (r.risk === _RISK.informativo) return getCSSVar('--state-warn') || '#2563eb';
+        if (r.risk === _RISK.informativo) return getCSSVar('--state-inactive') || '#6b6b6b';
         return getCSSVar('--state-ok') || '#16a34a';
     };
 
@@ -961,7 +961,7 @@ function applyPayload(data) {
                 ? data.sim_speed
                 : parseFloat(document.querySelector('[data-speed].btn-primary')?.dataset.speed || 1.0);
             simSpd.textContent = isPaused ? 'Pausada' : `${speed.toFixed(1)}x`;
-            simSpd.className = isPaused ? 'badge badge-med' : 'badge badge-info';
+            simSpd.className = isPaused ? 'badge badge-high' : 'badge badge-info';
 
             const simCell = document.getElementById('simStatusRow');
             if (simCell) {
@@ -1023,8 +1023,8 @@ function updateStatsAndRecs(stats, recs, attempts) {
             cardHtml = `<div class="status-banner"><i class="fa-solid fa-circle-check"></i><span>${rec}</span></div>`;
         } else {
             const isCrit = rec.toLowerCase().includes('crític') || rec.toLowerCase().includes('urgente') || rec.toLowerCase().includes('atascado');
-            const bgColor = isCrit ? 'var(--state-critical-bg)' : 'var(--state-warn-bg)';
-            const borderColor = isCrit ? 'var(--state-critical)' : 'var(--state-warn)';
+            const bgColor = isCrit ? 'var(--state-critical-bg)' : 'var(--state-high-bg)';
+            const borderColor = isCrit ? 'var(--state-critical)' : 'var(--state-high)';
             const icon = isCrit ? 'fa-solid fa-circle-exclamation' : 'fa-solid fa-triangle-exclamation';
             const doorNote = (rec.includes('puertas') && typeof attempts === 'number' && attempts > 0)
                 ? ` (Intentos fallidos: ${attempts})` : '';

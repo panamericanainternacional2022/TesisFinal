@@ -56,8 +56,6 @@
     /* Estados semánticos */
     --state-ok: #16a34a;
     --state-ok-bg: #f0fdf4;
-    --state-warn: #b45309;
-    --state-warn-bg: #fffbeb;
     --state-high: #c2410c;
     --state-high-bg: #fff7ed;
     --state-critical: #dc2626;
@@ -1122,13 +1120,6 @@ button {
     color: var(--state-ok);
 }
 
-.risk-med,
-.sensor-warning,
-.badge-med {
-    background: var(--state-warn-bg);
-    color: var(--state-warn);
-}
-
 .risk-high,
 .sensor-high,
 .badge-high {
@@ -1365,11 +1356,6 @@ button {
     color: var(--state-ok);
 }
 
-.toast-warning {
-    background-color: var(--state-warn-bg);
-    color: var(--state-warn);
-}
-
 .toast-error {
     background-color: var(--state-critical-bg);
     color: var(--state-critical);
@@ -1454,7 +1440,7 @@ button {
 }
 
 .status-cell.cell-warn::before {
-    background: var(--state-warn);
+    background: var(--state-high);
 }
 
 .status-cell.cell-crit::before {
@@ -1662,7 +1648,7 @@ button {
     width: 7px;
     height: 7px;
     border-radius: 50%;
-    background: var(--state-warn);
+    background: var(--state-high);
 }
 
 @media (max-width: 700px) {
@@ -1754,10 +1740,6 @@ button {
 
 .custom-modal-icon {
     font-size: var(--text-xl);
-}
-
-.custom-modal-icon-warn {
-    color: var(--state-warn);
 }
 
 .custom-modal-icon-success {
@@ -2007,11 +1989,6 @@ input.is-dirty.input-error-state:active {
     gap: var(--sp-2);
     border: var(--border-brutal);
     box-shadow: var(--shadow-brutal);
-}
-
-.sys-alert-warn {
-    background: var(--state-warn-bg);
-    color: var(--state-warn);
 }
 
 .status-banner {
@@ -2433,10 +2410,6 @@ input.is-dirty.input-error-state:active {
 /* Tipografía */
 .text-ink {
     color: var(--color-ink);
-}
-
-.text-warn {
-    color: var(--state-warn);
 }
 
 .text-secondary {

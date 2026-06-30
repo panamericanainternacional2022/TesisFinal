@@ -145,7 +145,7 @@ def render_text_progress_bar(
 
     if threshold is not None and value < threshold:
         bar_fill = (254, 242, 242)
-        bar_text = (153, 27, 27)
+        bar_text = (220, 38, 38)
         estado = "⚠ Por debajo del umbral"
     else:
         bar_fill = (240, 253, 244)
@@ -175,7 +175,7 @@ def render_text_progress_bar(
     pdf.set_fill_color(229, 231, 235)
     pdf.rect(bar_x, bar_y, bar_w, bar_h, "F")
 
-    fill_color = (22, 101, 52) if (threshold is None or value >= threshold) else (153, 27, 27)
+    fill_color = (22, 101, 52) if (threshold is None or value >= threshold) else (220, 38, 38)
     pdf.set_fill_color(*fill_color)
     pdf.rect(bar_x, bar_y, bar_w * ratio, bar_h, "F")
 
