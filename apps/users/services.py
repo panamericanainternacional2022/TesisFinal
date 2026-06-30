@@ -5,7 +5,7 @@ from typing import Any
 from django.core import signing
 from django.urls import reverse
 
-from apps.alerts.services.email_sender import send_email_raw, build_activation_email_html
+from apps.events.services.email_sender import send_email_raw, build_activation_email_html
 from apps.users.models import Usuario
 
 _ACTIVATION_EMAIL_PLAIN = """Estimado/a usuario/a:

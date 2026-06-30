@@ -1,0 +1,50 @@
+{% extends 'core/layouts/_config_base.html' %}
+{% load static %}
+
+{% block config_title %}Umbrales{% endblock %}
+{% block config_description %}Configuración de umbrales de riesgo para sensores de bomba y elevador.{% endblock %}
+{% block config_heading %}Umbrales{% endblock %}
+{% block config_subtext %}Configura los límites de riesgo para cada sensor. Los cambios aplican en tiempo real al sistema de monitoreo y alertas.{% endblock %}
+
+{% block config_toolbar_actions %}
+<button type="button" id="resetAllThresholdsBtn" class="btn btn-secondary">
+    <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Restablecer
+</button>
+<span id="globalDirtyBadge" class="changes-badge d-none"></span>
+{% endblock %}
+
+{% block config_loading %}
+{% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." loading_subtext="Obteniendo configuración de umbrales de riesgo." %}
+{% endblock %}
+
+{% block config_panel_bomba %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Umbrales de la bomba de agua</h2>
+    </div>
+    <div id="thresholdsBombaPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveThresholdsBombaBtn" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar umbrales
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block config_panel_elevador %}
+<div class="panel mb-3">
+    <div class="form-section-header mb-2">
+        <h2 class="form-page-title form-section-title">Umbrales del elevador</h2>
+    </div>
+    <div id="thresholdsElevadorPanel" class="thresh-grid"></div>
+    <div class="actions-row mt-3">
+        <button type="button" id="saveThresholdsElevadorBtn" class="btn btn-primary">
+            <i class="fa-solid fa-check" aria-hidden="true"></i> Guardar umbrales
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block config_extra_js_flags %}
+window.IS_THRESHOLDS_PAGE = true;
+{% endblock %}

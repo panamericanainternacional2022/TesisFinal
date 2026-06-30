@@ -127,7 +127,7 @@ def _notify_faults_resolved(edificio_id: int, old_faults: dict[str, str]) -> Non
     if not old_faults:
         return
     try:
-        from apps.alerts.services.alert_service import persist_notification_in_django
+        from apps.events.services.alert_service import persist_notification_in_django
         _DEVICE_ES = {"pump": "Bomba", "elevator": "Elevador"}
         for dev, fault_type in old_faults.items():
             nombre_falla = FAULT_NAMES_ES.get(fault_type, fault_type)

@@ -29,7 +29,9 @@ from apps.buildings.models import (
     UserBuilding,
     MonitoringEquipment,
 )
-from apps.alerts.models import Notification, ThresholdConfig, SensorLimitConfig
+from apps.events.models import Notification
+from apps.thresholds.models import ThresholdConfig
+from apps.limits.models import SensorLimitConfig
 from apps.sensors.sensor_config import DEFAULT_THRESHOLDS, SENSOR_RANGES
 
 

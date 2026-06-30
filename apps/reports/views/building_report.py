@@ -12,7 +12,7 @@ from apps.sensors.sensor_config import (
     SEVERITY_LEVELS, SEVERITY_DISPLAY_LEVELS, RISK_STYLES,
     PUMP_VARS, ELEVATOR_VARS, RATIONING_THRESHOLD, SENSOR_RANGES,
 )
-from apps.alerts.models import Notification
+from apps.events.models import Notification
 
 from .shared import _pdf_font, draw_row, safe_text
 from .pdf_rendering import (
@@ -44,7 +44,7 @@ _EQUIP_TYPE_ES: dict[str, str] = {
 
 def generate_building_report_bytes(edificio_id: int) -> tuple[bytes, str]:
     from apps.core.services.risk_service import classify_risk
-    from apps.alerts.services.threshold_service import get_thresholds
+    from apps.thresholds.services import get_thresholds
     from apps.sensors.sensor_config import (
         VAR_NAMES, UNITS, STATS_VARS, ACTIONS, VALUE_DISPLAY_ES,
     )
@@ -456,7 +456,7 @@ def _render_alerts_section(pdf: Any, edificio_id: int, now: dt.datetime) -> None
 
 
 def _render_recommendations_section(pdf: Any, sensor_data: dict) -> None:
-    from apps.alerts.services.recommendation_engine import generate_recommendations
+    from apps.events.services.recommendation_engine import generate_recommendations
     if pdf.get_y() > 240:
         pdf.add_page()
 

@@ -10,7 +10,7 @@ from apps.sensors.simulation.models import BuildingSimulator
 from apps.sensors.simulation.physics.pump import _update_pump
 from apps.sensors.simulation.physics.elevator import _update_elevator
 from apps.sensors.engine import _run_sim_tick, _handle_enum_alert
-from apps.alerts.models import Notification
+from apps.events.models import Notification
 from apps.sensors.sensor_config import RISK_CRITICO
 
 
@@ -141,16 +141,16 @@ class SimulatorPhysicsAndAlertsTests(TestCase):
         _handle_enum_alert(self.sim, "door_status", "open")
         self.assertIn("door_status", self.sim.active_alerts)
 
-    @patch("apps.alerts.alerts.engine.threading.Thread")
+    @patch("apps.events.alerts.engine.threading.Thread")
     def test_email_cooldown_per_variable(self, mock_thread):
 
-        with patch("apps.alerts.services.alert_service.get_building_emails") as mock_emails:
+        with patch("apps.events.services.alert_service.get_building_emails") as mock_emails:
             mock_emails.return_value = ["juanp@example.com"]
             
             self.sim.last_email_sent_time_per_var.clear()
             self.sim.active_alerts.clear()
             
-            from apps.alerts.alerts.engine import send_alert
+            from apps.events.alerts.engine import send_alert
             
             send_alert("motor_stuck", True, "Crítico", "Revisar motor", sim=self.sim)
             self.assertEqual(mock_thread.call_count, 1)

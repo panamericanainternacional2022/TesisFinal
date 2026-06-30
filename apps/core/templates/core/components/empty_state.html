@@ -1,0 +1,62 @@
+{% comment %}
+    Componente: empty_state.html
+    Muestra estados de carga, sin conexión, sin equipos, y empty states parametrizables.
+
+    Variables para empty state parametrizable:
+      - icon              : clase FontAwesome (ej. "fa-bell", "fa-building")
+      - id                : id del contenedor (opcional)
+      - title             : título del estado (opcional)
+      - message           : texto descriptivo
+      - action_url        : URL del botón de acción (opcional)
+      - action_text       : texto del botón de acción (opcional)
+
+    Variables para estados de monitoreo en tiempo real (existentes):
+      - #stateLoading     : visible mientras carga (spinner)
+      - #stateOffline     : visible si el servidor no responde
+      - #stateNoEquipment : visible si el edificio no tiene equipos configurados
+
+    Variables opcionales (legacy):
+      - loading_text       : texto del título de carga          (default: "Cargando...")
+      - loading_subtext    : subtexto de carga                  (default: "Obteniendo datos del sensor.")
+      - offline_subtext    : subtexto de sin conexión           (default: genérico)
+      - no_equipment_title : título de sin equipos              (default: "Sin equipos de monitoreo")
+      - no_equipment_text  : subtexto de sin equipos            (default: genérico)
+
+    Uso (nuevo):
+      {% include 'core/components/empty_state.html' with icon="fa-bell" title="Sin alertas" message="Mensaje aquí." action_url="..." action_text="Acción" %}
+
+    Uso (legacy):
+      {% include 'core/components/empty_state.html' with loading_text="Cargando umbrales..." %}
+{% endcomment %}
+
+{% if icon %}
+<div class="no-notif empty-state"{% if id %} id="{{ id }}"{% endif %}>
+    <i class="fa-solid {{ icon }} empty-state-icon" aria-hidden="true"></i>
+    {% if title %}<h3 class="section-label">{{ title }}</h3>{% endif %}
+    <p class="help-text">{{ message }}</p>
+    {% if action_url and action_text %}
+    <div class="empty-state-action">
+        <a href="{{ action_url }}" class="btn btn-secondary">{{ action_text }}</a>
+    </div>
+    {% endif %}
+</div>
+{% else %}
+
+<div id="stateLoading" class="no-notif empty-state">
+    <i class="fa-solid fa-spinner fa-spin empty-state-icon text-ink" aria-hidden="true"></i>
+    <h3 class="section-label">{{ loading_text|default:"Cargando..." }}</h3>
+    <p class="help-text">{{ loading_subtext|default:"Obteniendo datos del sensor." }}</p>
+</div>
+
+<div id="stateOffline" class="no-notif empty-state d-none">
+    <i class="fa-solid fa-triangle-exclamation empty-state-icon text-warn" aria-hidden="true"></i>
+    <h3 class="section-label">Sin conexión</h3>
+    <p class="help-text">{{ offline_subtext|default:"No se pudo obtener la configuración. Verifica que el servidor esté activo." }}</p>
+</div>
+
+<div id="stateNoEquipment" class="no-notif empty-state d-none">
+    <i class="fa-solid fa-circle-info empty-state-icon text-secondary" aria-hidden="true"></i>
+    <h3 class="section-label">{{ no_equipment_title|default:"Sin equipos de monitoreo" }}</h3>
+    <p class="help-text">{{ no_equipment_text|default:"Este edificio no tiene equipos configurados." }}</p>
+</div>
+{% endif %}

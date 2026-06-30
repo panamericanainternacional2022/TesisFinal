@@ -1,0 +1,63 @@
+{% extends 'core/layouts/base_sidebar.html' %}
+{% load static %}
+
+{% block title %}{% block config_title %}{% endblock %}{% endblock %}
+{% block meta_description %}<meta name="description" content="{% block config_description %}{% endblock %}">{% endblock %}
+
+{% block content %}
+<div class="reports-card">
+    <header class="page-header">
+        <div class="row-start">
+            <h1 class="m-0">{% block config_heading %}{% endblock %}</h1>
+        </div>
+        <p class="mt-1">{% block config_subtext %}{% endblock %}</p>
+    </header>
+    {% if not edificios %}
+    <div class="notif-card mt-3">
+        <div class="no-notif">
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
+            {% if request.session.usuario_es_admin %}
+            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+            {% else %}
+            <p>No tienes edificios asignados. Contacta al administrador.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="toolbar">
+        {% if edificios|length > 1 %}
+        <div class="select-container">
+            <select id="buildingSelect" aria-label="Seleccionar edificio" class="custom-select-init">
+{% for building in edificios %}
+                 <option value="{{ building.id }}" {% if building.id == edificio_id %}selected{% endif %}>{{ building.name }}</option>
+                 {% endfor %}
+            </select>
+        </div>
+        <div class="divider-v"></div>
+        {% endif %}
+        <div class="thresh-legend">
+            <span class="ml-auto row-sm">
+                {% block config_toolbar_actions %}{% endblock %}
+            </span>
+        </div>
+    </div>
+
+    <div class="notif-card mt-3" id="stateCard">
+        {% block config_loading %}{% endblock %}
+    </div>
+
+    <div id="activeMonitoring" class="d-none">
+        {% block config_panel_bomba %}{% endblock %}
+        {% block config_panel_elevador %}{% endblock %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+    {{ config_json|json_script:"appConfig" }}
+    <script>
+        window.IS_ADMIN = {{ request.session.usuario_es_admin|lower }};
+        {% block config_extra_js_flags %}{% endblock %}
+    </script>
+{% endblock %}

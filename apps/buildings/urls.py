@@ -1,12 +1,12 @@
 from django.urls import path
-from apps.buildings.views.building_views import (
+
+from .views import (
     register_building_view,
     building_list_view,
     edit_building_view,
     delete_building_view,
     check_rif_uniqueness_view,
 )
-from apps.buildings.views.configuration_view import configuration_view
 
 urlpatterns = [
     path("buildings/create/", register_building_view, name="register_building"),
@@ -21,6 +21,5 @@ urlpatterns = [
         delete_building_view,
         name="delete_building",
     ),
-    path("settings/", configuration_view, name="configuration"),
     path("api/check-rif/", check_rif_uniqueness_view, name="check_rif"),
 ]

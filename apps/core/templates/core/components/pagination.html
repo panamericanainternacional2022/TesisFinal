@@ -1,0 +1,27 @@
+{% comment %}
+    Componente: pagination.html
+    Uso:
+      {% include 'core/components/pagination.html' with page_obj=notificaciones extra_query=filter_query_string %}
+    Parámetros:
+      - page_obj     : objeto Page de Django con .has_previous, .previous_page_number, etc.
+      - extra_query  : string con parámetros query adicionales (ej. "edificio=3&severidad=Alto")
+{% endcomment %}
+{% if page_obj.has_other_pages %}
+<div class="pagination-container">
+    {% if page_obj.has_previous %}
+        <a href="?page=1{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Primera página"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Página anterior"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></a>
+    {% else %}
+        <button type="button" disabled class="btn btn-icon" aria-label="Primera página" aria-disabled="true"><i class="fa-solid fa-angles-left" aria-hidden="true"></i></button>
+        <button type="button" disabled class="btn btn-icon" aria-label="Página anterior" aria-disabled="true"><i class="fa-solid fa-angle-left" aria-hidden="true"></i></button>
+    {% endif %}
+    <span class="page-current-info">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Página siguiente"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if extra_query %}&{{ extra_query }}{% endif %}" class="btn btn-icon" aria-label="Última página"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></a>
+    {% else %}
+        <button type="button" disabled class="btn btn-icon" aria-label="Página siguiente" aria-disabled="true"><i class="fa-solid fa-angle-right" aria-hidden="true"></i></button>
+        <button type="button" disabled class="btn btn-icon" aria-label="Última página" aria-disabled="true"><i class="fa-solid fa-angles-right" aria-hidden="true"></i></button>
+    {% endif %}
+</div>
+{% endif %}

@@ -233,7 +233,7 @@ class LoginViewTests(TestCase):
     def test_login_get_renders_form(self):
         response = self.client.get(reverse("login"))
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "public/auth/login.html")
+        self.assertTemplateUsed(response, "authentication/login.html")
 
     def test_login_post_success(self):
         response = self.client.post(

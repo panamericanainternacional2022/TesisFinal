@@ -1,0 +1,334 @@
+{% extends 'core/layouts/base_sidebar.html' %}
+{% load static %}
+
+{% block title %}Eventos{% endblock %}
+{% block meta_description %}<meta name="description" content="Historial completo de eventos, alertas y notificaciones del sistema INES.">{% endblock %}
+
+{% block content %}
+<div class="reports-card">
+
+    <header class="page-header">
+        <div class="row-start">
+            <h1 class="m-0">Eventos</h1>
+            <span id="notificationBadgeCount" class="notif-count-badge{% if total_count > 0 %} visible{% endif %}">{{ total_count }}</span>
+        </div>
+        <p class="mt-1">Registro cronológico de alertas, eventos del sistema y reportes de sensores. Filtra por severidad, variable o período para analizar el comportamiento del sistema.</p>
+    </header>
+
+    {% if not edificios %}
+    <div class="notif-card mt-3">
+        <div class="no-notif">
+            <i class="fa-solid fa-building" aria-hidden="true"></i>
+            {% if request.session.usuario_es_admin %}
+            <p>No hay edificios registrados en el sistema. Crea uno para comenzar.</p>
+            {% else %}
+            <p>No tienes edificios asignados. Contacta al administrador.</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+
+    <div class="toolbar">
+        <form method="GET" action="" id="eventosFilterForm" class="row-center m-0">
+
+            <input type="hidden" name="edificio"    id="hidden-edificio"    value="{% if selected_edificio_id %}{{ selected_edificio_id }}{% endif %}">
+            <input type="hidden" name="severidad"   id="hidden-severidad"   value="{{ severidad }}">
+            <input type="hidden" name="variable"    id="hidden-variable"    value="{{ variable_filter }}">
+            <input type="hidden" name="fecha_desde" id="hidden-fecha-desde" value="{{ fecha_desde }}">
+            <input type="hidden" name="fecha_hasta" id="hidden-fecha-hasta" value="{{ fecha_hasta }}">
+
+            <div class="row-center">
+
+                <div class="select-container">
+                    <select id="periodoSelect" name="periodo" aria-label="Período" class="custom-select-init">
+                        <option value="1h"     {% if periodo_seleccionado == '1h'     or not periodo_seleccionado %}selected{% endif %}>Última hora</option>
+                        <option value="12h"    {% if periodo_seleccionado == '12h'    %}selected{% endif %}>Últimas 12 horas</option>
+                        <option value="24h"    {% if periodo_seleccionado == '24h'    %}selected{% endif %}>Último día</option>
+                        <option value="3d"     {% if periodo_seleccionado == '3d'     %}selected{% endif %}>Últimos 3 días</option>
+                        <option value="7d"     {% if periodo_seleccionado == '7d'     %}selected{% endif %}>Últimos 7 días</option>
+                        <option value="custom" {% if periodo_seleccionado == 'custom' %}selected{% endif %}>Personalizado...</option>
+                    </select>
+                </div>
+
+                {% if periodo_seleccionado == 'custom' %}
+                <button type="button" id="editCustomDatesBtn" class="btn btn-secondary">
+                    <i class="fa-solid fa-calendar-days" aria-hidden="true"></i> Editar fechas
+                </button>
+                {% endif %}
+
+                <div class="divider-v"></div>
+
+                <button id="openFilterPanel" type="button" class="btn btn-primary">
+                    <i class="fa-solid fa-sliders" aria-hidden="true"></i> Filtrar
+                    {% if severidad or variable_filter or selected_edificio_id %}
+                    <span class="filter-dot"></span>
+                    {% endif %}
+                </button>
+
+                <button type="button" id="toggleAlertsBtn" class="btn {% if alerts_disabled %}btn-critical{% else %}btn-secondary{% endif %} is-hidden" data-enabled="{% if alerts_disabled %}false{% else %}true{% endif %}" data-disabled-until-ms="{% if alerts_disabled_until_ms %}{{ alerts_disabled_until_ms }}{% endif %}" data-is-admin="{% if request.session.usuario_es_admin %}true{% else %}false{% endif %}">
+                    <span class="js-fallback">Alertas</span>
+                </button>
+
+                <div class="actions-dropdown">
+                    <button type="button" class="btn btn-icon" aria-label="Más acciones">
+                        <i class="fa-solid fa-ellipsis-vertical" aria-hidden="true"></i>
+                    </button>
+                    <div class="dropdown-menu">
+                        <button type="button" id="clearDbNotificationsBtn" class="dropdown-item">
+                            <i class="fa-solid fa-trash-can" aria-hidden="true"></i> Limpiar alertas
+                        </button>
+                        <a id="pdfDownloadBtn"
+                           href="{% url 'history_pdf' %}?{{ filter_query_string }}"
+                           class="dropdown-item"
+                           title="Descargar PDF con los filtros actuales">
+                            <i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Descargar PDF
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </form>
+    </div>
+
+    <div class="notif-card">
+        <div id="stateLoading" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-spinner fa-spin empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Cargando eventos…</h3>
+        </div>
+        <div id="stateError" class="no-notif empty-state d-none">
+            <i class="fa-solid fa-triangle-exclamation empty-state-icon" aria-hidden="true"></i>
+            <h3 class="section-label">Error de carga</h3>
+            <p class="help-text">No se pudieron cargar los eventos. Verifica tu conexión e intenta de nuevo.</p>
+            <div class="empty-state-action">
+                <button type="button" class="btn btn-secondary" onclick="location.reload()">Reintentar</button>
+            </div>
+        </div>
+        <div id="live-notifications-list">
+            {% if notifications %}
+            <ul class="notif-list">
+            {% for notif in notifications %}
+            {% include 'core/components/notification_item.html' %}
+            {% endfor %}
+            </ul>
+            {% elif severidad or variable_filter or selected_edificio_id %}
+            <div class="no-notif">
+                <i class="fa-solid fa-filter-circle-xmark empty-state-icon" aria-hidden="true"></i>
+                <p>No se encontraron eventos que coincidan con los filtros seleccionados. Prueba con un período más amplio o limpia los filtros.</p>
+                <div class="empty-state-action">
+                    <a href="{% url 'notifications' %}" class="btn btn-secondary">Limpiar filtros</a>
+                </div>
+            </div>
+            {% elif periodo_seleccionado == 'custom' %}
+            <div class="no-notif">
+                <i class="fa-solid fa-calendar-xmark empty-state-icon" aria-hidden="true"></i>
+                <p>No hay eventos entre el {{ fecha_desde }} y el {{ fecha_hasta }}. Prueba con un rango más amplio.</p>
+                <div class="empty-state-action">
+                    <a href="{% url 'notifications' %}" class="btn btn-secondary">Ver todos los eventos</a>
+                </div>
+            </div>
+            {% elif alerts_disabled %}
+            <div class="no-notif">
+                <i class="fa-solid fa-bell-slash" aria-hidden="true"></i>
+                <p>Las alertas están desactivadas. Los operadores no recibirán notificaciones hasta que se activen desde el panel de control.</p>
+            </div>
+            {% else %}
+            <div class="no-notif">
+                <i class="fa-solid fa-clock empty-state-icon" aria-hidden="true"></i>
+                <p>No hay eventos registrados en el sistema. El historial se irá poblando a medida que los sensores generen lecturas.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'core/components/pagination.html' with page_obj=notifications extra_query=filter_query_string %}
+
+    {% endif %}
+</div>
+
+<div id="filterPanelOverlay" class="filter-overlay"></div>
+<aside id="filterPanel" class="filter-panel">
+    <div class="filter-panel-header">
+        <div class="row-sm"><i class="fa-solid fa-sliders" aria-hidden="true"></i><span>Filtros</span></div>
+        <button type="button" id="closeFilterPanelBtn" class="btn btn-icon" aria-label="Cerrar panel de filtros"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <div class="filter-panel-body">
+        {% if edificios|length > 1 %}
+        <div class="filter-panel-section">
+            <div class="filter-section-label"><i class="fa-solid fa-building" aria-hidden="true"></i> Edificio</div>
+            <select id="panel-edificio-filter" aria-label="Filtrar por edificio" class="custom-select-init">
+                <option value="">Todos los edificios</option>
+                {% for building in edificios %}
+                <option value="{{ building.id }}" {% if selected_edificio_id == building.id %}selected{% endif %}>{{ building.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% endif %}
+        <div class="filter-panel-section">
+            <div class="filter-section-label"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i> Severidad</div>
+            <select id="panel-severidad" aria-label="Filtrar por severidad" class="custom-select-init">
+                <option value="">Todas las severidades</option>
+                {% for sev in ALL_SEVERITIES %}
+                <option value="{{ sev }}" {% if severidad == sev %}selected{% endif %}>{{ sev }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-panel-section">
+            <div class="filter-section-label"><i class="fa-solid fa-gauge" aria-hidden="true"></i> Variable</div>
+            <select id="panel-variable" aria-label="Filtrar por variable" class="custom-select-init">
+                <option value="">Todas las variables</option>
+                {% for var in all_variables %}
+                <option value="{{ var }}" {% if variable_filter == var %}selected{% endif %}>{{ var }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <div class="filter-panel-footer">
+        <button type="button" id="applyPanelFilters" class="btn btn-primary btn-flex">
+            <i class="fa-solid fa-filter" aria-hidden="true"></i> Aplicar
+        </button>
+        <a href="{% url 'notifications' %}?periodo={{ periodo_seleccionado }}{% if periodo_seleccionado == 'custom' %}&fecha_desde={{ fecha_desde }}&fecha_hasta={{ fecha_hasta }}{% endif %}" class="btn btn-secondary btn-flex">
+            <i class="fa-solid fa-rotate-left" aria-hidden="true"></i> Limpiar
+        </a>
+    </div>
+</aside>
+
+<div id="customDateBackdrop" class="custom-modal-backdrop">
+    <div class="custom-modal-container max-w-420">
+        <div class="row-md mb-2">
+            <i class="fa-solid fa-calendar-days text-xl text-ink" aria-hidden="true"></i>
+            <span class="drawer-title">Rango personalizado</span>
+        </div>
+        <p class="text-sm text-secondary m-0 mb-3">Selecciona las fechas de inicio y fin del período que quieres consultar.</p>
+
+        <div class="col-stack">
+            <div>
+                <div class="field-label">Desde</div>
+                <input type="date" id="modal-fecha-desde"
+                       value="{{ fecha_desde }}" class="form-input">
+            </div>
+            <div>
+                <div class="field-label">Hasta</div>
+                <input type="date" id="modal-fecha-hasta"
+                       value="{{ fecha_hasta }}" class="form-input">
+            </div>
+
+            <div id="customDateError" class="error-msg" style="visibility:hidden">
+                La fecha "Desde" no puede ser posterior a "Hasta"
+            </div>
+        </div>
+
+        <div class="flex justify-end gap-2 mt-3">
+            <button id="cancelCustomDate" type="button" class="btn btn-secondary">
+                Cancelar
+            </button>
+            <button id="applyCustomDate" type="button" class="btn btn-primary" disabled>
+                <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Ver eventos
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.CSRF_TOKEN = "{{ csrf_token|escapejs }}";
+
+    var periodoSelect = document.getElementById('periodoSelect');
+    var form          = document.getElementById('eventosFilterForm');
+
+    periodoSelect.addEventListener('change', function () {
+        if (this.value === 'custom') {
+            openCustomDateModal();
+            this.value = this.dataset.prev || '1h';
+        } else {
+            this.dataset.prev = this.value;
+            form.submit();
+        }
+    });
+    periodoSelect.dataset.prev = (periodoSelect.value === 'custom') ? '1h' : periodoSelect.value;
+
+    var editCustomDatesBtn = document.getElementById('editCustomDatesBtn');
+    if (editCustomDatesBtn) {
+        editCustomDatesBtn.addEventListener('click', openCustomDateModal);
+    }
+
+    var backdrop      = document.getElementById('customDateBackdrop');
+    var inputDesde    = document.getElementById('modal-fecha-desde');
+    var inputHasta    = document.getElementById('modal-fecha-hasta');
+    var applyBtn      = document.getElementById('applyCustomDate');
+    var cancelBtn     = document.getElementById('cancelCustomDate');
+    var errorBox      = document.getElementById('customDateError');
+
+    function openCustomDateModal() {
+        backdrop.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        checkCustomDates();
+    }
+    function closeCustomDateModal() {
+        backdrop.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function checkCustomDates() {
+        var desde = inputDesde.value;
+        var hasta = inputHasta.value;
+        var bothFilled = desde && hasta;
+        var valid = !bothFilled || desde <= hasta;
+        errorBox.style.visibility = (bothFilled && !valid) ? 'visible' : 'hidden';
+        var invalid = !valid && bothFilled;
+        inputDesde.classList.toggle('input-error-state', invalid);
+        inputHasta.classList.toggle('input-error-state', invalid);
+        applyBtn.disabled = !(bothFilled && valid);
+    }
+
+    inputDesde.addEventListener('change', checkCustomDates);
+    inputHasta.addEventListener('change', checkCustomDates);
+
+    var todayStr = new Date().toISOString().split('T')[0];
+    inputDesde.setAttribute('max', todayStr);
+    inputHasta.setAttribute('max', todayStr);
+
+    cancelBtn.addEventListener('click', closeCustomDateModal);
+
+    backdrop.addEventListener('click', function (e) {
+        if (e.target === backdrop) closeCustomDateModal();
+    });
+
+    applyBtn.addEventListener('click', function () {
+        if (!inputDesde.value || !inputHasta.value) return;
+        document.getElementById('hidden-fecha-desde').value = inputDesde.value;
+        document.getElementById('hidden-fecha-hasta').value = inputHasta.value;
+        periodoSelect.value = 'custom';
+        closeCustomDateModal();
+        form.submit();
+    });
+
+    (function () {
+        var stored = "{{ periodo_seleccionado|escapejs }}";
+        if (stored === 'custom') {
+            periodoSelect.value = 'custom';
+            periodoSelect.dataset.prev = '1h';
+        }
+    })();
+
+    var filterPanel   = document.getElementById('filterPanel');
+    var filterOverlay = document.getElementById('filterPanelOverlay');
+
+    function openFilterPanel()  { filterPanel.classList.add('open'); filterOverlay.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function closeFilterPanel() { filterPanel.classList.remove('open'); filterOverlay.classList.remove('open'); document.body.style.overflow = ''; }
+
+    document.getElementById('openFilterPanel').addEventListener('click', openFilterPanel);
+    filterOverlay.addEventListener('click', closeFilterPanel);
+    document.getElementById('closeFilterPanelBtn').addEventListener('click', closeFilterPanel);
+
+    document.getElementById('applyPanelFilters').addEventListener('click', function () {
+        var edi = document.getElementById('panel-edificio-filter');
+        var sev = document.getElementById('panel-severidad');
+        var vrb = document.getElementById('panel-variable');
+        if (edi) document.getElementById('hidden-edificio').value  = edi.value;
+        if (sev) document.getElementById('hidden-severidad').value = sev.value;
+        if (vrb) document.getElementById('hidden-variable').value  = vrb.value;
+        form.submit();
+    });
+</script>
+{% endblock %}

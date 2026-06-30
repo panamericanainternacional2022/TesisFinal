@@ -25,7 +25,7 @@ _MAX_BACKOFF_TICKS: int = 30
 def _run_sim_tick(sim: BuildingSimulator) -> None:
     if sim.sim_paused:
         return
-    from apps.alerts.alerts.protection import update_protection_state
+    from apps.events.alerts.protection import update_protection_state
     update_protection_state(sim=sim)
     update_sensor_data(active_sim=sim)
     alert_vars = _get_alert_vars(sim)
@@ -45,7 +45,7 @@ def _get_alert_vars(sim: BuildingSimulator) -> set[str]:
 def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None:
     from apps.core.services.risk_service import classify_risk
     from apps.sensors.sensor_config import PUMP_VARS, ELEVATOR_VARS
-    from apps.alerts.services.threshold_service import get_thresholds
+    from apps.thresholds.services import get_thresholds
 
     thresholds = get_thresholds(sim.edificio_id)
 
@@ -69,15 +69,15 @@ def _process_sensor_alerts(sim: BuildingSimulator, alert_vars: set[str]) -> None
         if var in ENUM_VARS:
             _handle_enum_alert(sim, var, value)
             continue
-        from apps.alerts.alerts.engine import send_alert
-        from apps.alerts.services.alert_service import get_professional_action
+        from apps.events.alerts.engine import send_alert
+        from apps.events.services.alert_service import get_professional_action
         risk, _ = classify_risk(var, value, thresholds)
         if risk in (RISK_ALTO, RISK_CRITICO):
             action = get_professional_action(var, risk, value)
             send_alert(var, value, risk, action, sim=sim)
         else:
             sim.active_alerts.pop(var, None)
-    from apps.alerts.alerts.engine import check_rationing
+    from apps.events.alerts.engine import check_rationing
     if not pump_protected:
         check_rationing(sim.sensor_data["flow_rate"], sim=sim)
     else:
@@ -88,8 +88,8 @@ def _handle_motor_stuck_alert(
     sim: BuildingSimulator, var: str, value: object,
 ) -> None:
     if value:
-        from apps.alerts.alerts.engine import send_alert
-        from apps.alerts.services.alert_service import get_professional_action
+        from apps.events.alerts.engine import send_alert
+        from apps.events.services.alert_service import get_professional_action
         action = get_professional_action(var, RISK_CRITICO, value)
         send_alert(var, value, RISK_CRITICO, action, sim=sim)
     else:
@@ -99,8 +99,8 @@ def _handle_motor_stuck_alert(
 def _handle_enum_alert(
     sim: BuildingSimulator, var: str, value: object,
 ) -> None:
-    from apps.alerts.alerts.engine import send_alert
-    from apps.alerts.services.alert_service import get_professional_action
+    from apps.events.alerts.engine import send_alert
+    from apps.events.services.alert_service import get_professional_action
     from apps.sensors.sensor_config import ENUM_RISK_VALUES, RISK_CRITICO
     from apps.sensors.simulation.constants import MAX_DOOR_CLOSE_ATTEMPTS
 
@@ -122,7 +122,7 @@ def _handle_enum_alert(
 
 def _build_history_records(sim: BuildingSimulator, alert_vars: set[str]) -> None:
     from apps.core.services.risk_service import classify_risk
-    from apps.alerts.services.threshold_service import get_thresholds
+    from apps.thresholds.services import get_thresholds
 
     thresholds = get_thresholds(sim.edificio_id)
 

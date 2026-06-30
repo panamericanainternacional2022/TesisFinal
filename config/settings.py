@@ -27,9 +27,13 @@ INSTALLED_APPS = [
     "apps.users",
     "apps.buildings",
     "apps.sensors",
-    "apps.alerts",
-    "apps.monitoring",
     "apps.reports",
+    "apps.authentication",
+    "apps.dashboard",
+    "apps.events",
+    "apps.limits",
+    "apps.thresholds",
+    "apps.settings",
 ]
 
 MIDDLEWARE = [
@@ -48,14 +52,14 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
-                "apps.alerts.context_processors.unread_notifications",
+                "apps.events.context_processors.unread_notifications",
             ],
         },
     },

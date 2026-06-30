@@ -6,7 +6,7 @@ from typing import Any
 from django.db.models import Q, QuerySet
 from django.utils import timezone
 
-from apps.alerts.models import Notification
+from apps.events.models import Notification
 from apps.buildings.models import Building, MonitoringEquipment, UserBuilding
 from apps.sensors.sensor_config import (
     RISK_INFORMATIVO, RISK_ALTO, RISK_CRITICO,
@@ -55,7 +55,7 @@ def _filter_by_role_and_building(
     role: str,
     building_id: str,
 ) -> tuple[QuerySet, str]:
-    from apps.alerts.views.shared import _build_notification_query
+    from apps.events.shared import _build_notification_query
     if user_id is None:
         return Notification.objects.none(), ""
     notifications, building_name = _build_notification_query(user_id, role, building_id)
@@ -67,7 +67,7 @@ def _filter_by_role_and_building(
 def _apply_severity_filter(
     notifications: QuerySet, severity: str
 ) -> QuerySet:
-    from apps.alerts.views.shared import filter_severity_include
+    from apps.events.shared import filter_severity_include
     if severity:
         notifications = filter_severity_include(notifications, severity)
     return notifications
@@ -103,7 +103,7 @@ def _apply_period_filter(
 def _parse_and_filter_notifications(
     notifications: QuerySet, variable: str
 ) -> list[Any]:
-    from apps.alerts.views.shared import parse_notification_for_display
+    from apps.events.shared import parse_notification_for_display
 
     notifications = (
         notifications.select_related("monitoring_equipment__building")
