@@ -979,15 +979,15 @@ function renderStatsTable(entries, containerId, firstColLabel) {
         `<tr><td>${getVariableName(k)}</td><td>${formatNumeric(v.avg, k)}</td><td>${formatNumeric(v.min, k)}</td><td>${formatNumeric(v.max, k)}</td></tr>`
     ).join('');
     div.innerHTML = `
-        <div class="table-wrapper"><div class="table-responsive">
-            <table class="report-table stats-table">
+        <div class="table-wrapper">
+            <table class="report-table">
                 <thead><tr>
-                    <th><i class="fa-solid fa-square-poll-vertical"></i> ${firstColLabel}</th>
+                    <th>${firstColLabel}</th>
                     <th>Prom.</th><th>Mín.</th><th>Máx.</th>
                 </tr></thead>
                 <tbody>${rows}</tbody>
             </table>
-        </div></div>`;
+        </div>`;
 }
 
 function updateStatsAndRecs(stats, recs, attempts) {
