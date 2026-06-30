@@ -10,7 +10,7 @@
     <header class="page-header">
         <div class="row-start">
             <h1 class="m-0">Eventos</h1>
-            <span class="notif-count-badge">{{ total_count }}</span>
+            <span id="notificationBadgeCount" class="notif-count-badge{% if total_count > 0 %} visible{% endif %}">{{ total_count }}</span>
         </div>
         <p class="mt-1">Registro cronológico de alertas, eventos del sistema y reportes de sensores. Filtra por severidad, variable o período para analizar el comportamiento del sistema.</p>
     </header>

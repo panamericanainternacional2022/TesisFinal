@@ -1400,10 +1400,13 @@ button {
 }
 
 .notif-count-badge {
-    border-radius: var(--radius-badge);
-    padding: 2px var(--sp-2);
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--radius);
     margin-left: var(--sp-4);
     vertical-align: middle;
+    box-shadow: 2px 2px 0px var(--color-ink);
 }
 
 .sidebar-notif-badge {
