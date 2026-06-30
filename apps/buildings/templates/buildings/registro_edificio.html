@@ -61,10 +61,10 @@
                 <div class="form-group full-width">
                     <label>Equipamiento del edificio</label>
                     <div class="flex" role="group" style="gap:0.5rem">
-                        <button type="button" class="btn" style="background:var(--color-accent);border:var(--border-brutal);color:var(--color-surface);box-shadow:var(--shadow-brutal);pointer-events:none;cursor:default;opacity:0.65;filter:saturate(0.6)">
+                        <button type="button" class="equip-btn" style="background:var(--color-accent);color:var(--color-surface);pointer-events:none;cursor:default;opacity:0.65;filter:saturate(0.6)">
                             <i class="fa-solid fa-tint" aria-hidden="true"></i> Bomba de agua
                         </button>
-                        <button type="button" class="btn js-equip-toggle {% if has_elevator %}btn-primary{% else %}btn-secondary{% endif %}">
+                        <button type="button" class="equip-btn js-equip-toggle {% if has_elevator %}btn-primary{% else %}btn-secondary{% endif %}">
                             <i class="fa-solid fa-arrow-up" aria-hidden="true"></i> Elevador
                         </button>
                         <input type="hidden" name="con_elevador" value="{% if has_elevator %}true{% else %}false{% endif %}" />

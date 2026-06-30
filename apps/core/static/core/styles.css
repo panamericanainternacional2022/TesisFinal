@@ -1448,10 +1448,22 @@ button {
     background: var(--state-ok);
     transition: background var(--transition-base);
 }
-.status-cell.cell-ok::before    { background: var(--state-ok); }
-.status-cell.cell-warn::before  { background: var(--state-warn); }
-.status-cell.cell-crit::before  { background: var(--state-critical); }
-.status-cell.cell-muted::before { background: var(--state-inactive); }
+
+.status-cell.cell-ok::before {
+    background: var(--state-ok);
+}
+
+.status-cell.cell-warn::before {
+    background: var(--state-warn);
+}
+
+.status-cell.cell-crit::before {
+    background: var(--state-critical);
+}
+
+.status-cell.cell-muted::before {
+    background: var(--state-inactive);
+}
 
 .status-cell-label {
     font-size: var(--text-xs);
@@ -2107,6 +2119,24 @@ input.is-dirty.input-error-state:active {
     color: var(--color-ink);
 }
 
+.equip-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--sp-2);
+    padding: var(--sp-3) var(--sp-4);
+    border: var(--border-brutal);
+    box-shadow: var(--shadow-brutal);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    user-select: none;
+    font-weight: var(--weight-medium);
+    font-size: var(--text-sm);
+    font-family: inherit;
+    line-height: 1;
+}
+
 /* ─── Duración grid ─── */
 .duration-grid {
     display: grid;
@@ -2133,11 +2163,13 @@ input.is-dirty.input-error-state:active {
 #manualRiskPreview:empty {
     display: none;
 }
+
 #manualValueContainer .error-msg,
 #manualValueContainer .risk-preview {
     margin-top: 4px;
 }
-#manualControlsRow > div:last-child {
+
+#manualControlsRow>div:last-child {
     padding-top: calc(1em + var(--sp-1));
 }
 
