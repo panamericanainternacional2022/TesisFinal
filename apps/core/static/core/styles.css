@@ -1524,8 +1524,11 @@ button {
 }
 
 .sensor-card {
-    padding: var(--sp-5);
+    padding: 20px var(--sp-5);
     position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .sensor-card::before {
@@ -1534,7 +1537,7 @@ button {
     top: 0;
     left: 0;
     bottom: 0;
-    width: 5px;
+    width: 6px;
     background: transparent;
     transition: background var(--transition-base);
 }
@@ -1552,25 +1555,31 @@ button {
 }
 
 .sensor-card-name {
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
     letter-spacing: var(--tracking-wide);
     color: var(--color-ink);
-    margin-bottom: 4px;
+    margin-bottom: var(--sp-2);
 }
 
 .sensor-card-value {
-    font-size: var(--text-xl);
+    font-size: 1.625rem;
     font-weight: var(--weight-bold);
     color: var(--color-ink);
     line-height: var(--leading-tight);
 }
 
 .sensor-card-footer {
-    margin-top: var(--sp-1);
+    margin-top: var(--sp-2);
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+@media (max-width: 768px) {
+    .sensor-cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
 
 /* ─── Chart panel ─── */
