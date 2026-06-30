@@ -619,6 +619,16 @@ button {
     box-shadow: 6px 6px 0px var(--color-ink);
 }
 
+.login-card .form-input:hover,
+.login-card .form-input:focus {
+    transform: translate(-3px, -3px);
+}
+
+.login-card .form-input:active {
+    transform: translate(0, 0);
+    box-shadow: none;
+}
+
 .input-with-icon :is(.form-input, .search-input):hover,
 .input-with-icon:focus-within :is(.form-input, .search-input) {
     transform: translate(-3px, -3px);
