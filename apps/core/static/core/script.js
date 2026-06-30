@@ -1039,7 +1039,11 @@ function updateStatsAndRecs(stats, recs, attempts) {
 // Valida el orden lógico de los niveles de umbral
 function _validateThresholdRange(dir, low, med, high) {
     if (isNaN(low) || isNaN(high) || (dir !== 'range' && isNaN(med))) {
-        return { valid: false, errorText: 'Introduzca valores numéricos válidos.', errorInputs: [] };
+        const errs = [];
+        if (isNaN(low)) errs.push('low');
+        if (isNaN(med)) errs.push('med');
+        if (isNaN(high)) errs.push('high');
+        return { valid: false, errorText: 'Introduzca valores numéricos válidos.', errorInputs: errs };
     }
     if (dir === 'range') {
         if (!(low < high)) return { valid: false, errorText: 'El mínimo aceptable debe ser menor al máximo aceptable.', errorInputs: ['low', 'high'] };
