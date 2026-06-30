@@ -10,7 +10,7 @@
         <p class="login-card-subtitle">Sistema inteligente de automatización</p>
     </div>
 
-    <h1>Acceso al sistema</h1>
+    <h1 style="margin-bottom: 1.5rem;">Acceso al sistema</h1>
     {% if error %}
         <div class="alert alert-error">
             {{ error }}
@@ -30,7 +30,9 @@
             <div class="error-msg">{% if form_errors.password %}{{ form_errors.password }}{% endif %}</div>
         </div>
 
-        {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Ingresar' %}
+        <div style="margin-top: 1.5rem; text-align: center;">
+            {% include 'core/components/boton.html' with type='submit' class='btn btn-primary' text='Ingresar' %}
+        </div>
     </form>
 </section>
 {% endblock %}

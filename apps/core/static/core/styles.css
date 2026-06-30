@@ -2331,7 +2331,7 @@ input.is-dirty.input-error-state:active {
     background: var(--color-surface);
     border: var(--border-brutal);
     box-shadow: var(--shadow-brutal);
-    padding: var(--sp-8) var(--sp-6);
+    padding: var(--sp-6) var(--sp-6);
     position: relative;
 }
 
