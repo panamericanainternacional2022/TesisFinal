@@ -754,10 +754,9 @@ function renderConnectionStatus(isConnected) {
     else showState('stateOffline');
 }
 
-function updateStatusBadge(badgeId, emptyId, statusVal) {
+function updateStatusBadge(badgeId, statusVal) {
     const badgeEl = document.getElementById(badgeId);
-    const emptyEl = document.getElementById(emptyId);
-    if (!badgeEl || !emptyEl) return;
+    if (!badgeEl) return;
 
     const cellEl = badgeEl.closest('.status-cell');
     if (cellEl) {
@@ -769,13 +768,11 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
     }
 
     if (statusVal) {
-        badgeEl.style.display = 'inline-block';
         badgeEl.textContent = statusVal.charAt(0).toUpperCase() + statusVal.slice(1);
-        emptyEl.style.display = 'none';
         badgeEl.className = CSS_CLASSES.statusBadge[statusVal] || 'badge badge-normal';
     } else {
-        badgeEl.style.display = 'none';
-        emptyEl.style.display = 'inline';
+        badgeEl.textContent = 'Normal';
+        badgeEl.className = 'badge badge-normal';
     }
 }
 
@@ -792,30 +789,28 @@ function updateEquipmentVisibility(equipTypes) {
     toggle(['bombaSection', 'chartPumpPanel', 'statsBombaPanel'], hasPump);
     toggle(['elevadorSection', 'chartElevatorPanel', 'statsElevadorPanel'], hasElev);
 
-    const pumpNI = document.getElementById('pumpNotInstalled');
     const pumpBadge = document.getElementById('pumpStatusBadge');
-    const pumpEmpty = document.getElementById('pumpStatusEmpty');
     const pumpCell = document.getElementById('pumpStatusRow');
-    if (pumpNI && pumpBadge && pumpEmpty && pumpCell) {
+    if (pumpBadge && pumpCell) {
         if (!hasPump) {
-            pumpBadge.style.display = 'none'; pumpEmpty.style.display = 'none'; pumpNI.style.display = 'inline';
-            pumpCell.classList.remove('cell-normal', 'cell-high', 'cell-crit'); pumpCell.classList.add('cell-info');
+            pumpBadge.textContent = 'No instalado';
+            pumpBadge.className = 'badge badge-info';
+            pumpCell.classList.remove('cell-normal', 'cell-high', 'cell-crit');
+            pumpCell.classList.add('cell-info');
         } else {
-            pumpNI.style.display = 'none';
             pumpCell.classList.remove('cell-info');
         }
     }
 
-    const elevNI = document.getElementById('elevatorNotInstalled');
     const elevBadge = document.getElementById('elevatorStatusBadge');
-    const elevEmpty = document.getElementById('elevatorStatusEmpty');
     const elevCell = document.getElementById('elevatorStatusRow');
-    if (elevNI && elevBadge && elevEmpty && elevCell) {
+    if (elevBadge && elevCell) {
         if (!hasElev) {
-            elevBadge.style.display = 'none'; elevEmpty.style.display = 'none'; elevNI.style.display = 'inline';
-            elevCell.classList.remove('cell-normal', 'cell-high', 'cell-crit'); elevCell.classList.add('cell-info');
+            elevBadge.textContent = 'No instalado';
+            elevBadge.className = 'badge badge-info';
+            elevCell.classList.remove('cell-normal', 'cell-high', 'cell-crit');
+            elevCell.classList.add('cell-info');
         } else {
-            elevNI.style.display = 'none';
             elevCell.classList.remove('cell-info');
         }
     }
@@ -928,8 +923,8 @@ function applyPayload(data) {
     if (data.current) { currentReadings = data.current; updateCards(data.current); }
     if (data.history) updateCharts(data.history);
 
-    updateStatusBadge('pumpStatusBadge', 'pumpStatusEmpty', data.pump_status);
-    updateStatusBadge('elevatorStatusBadge', 'elevatorStatusEmpty', data.elevator_status);
+    updateStatusBadge('pumpStatusBadge', data.pump_status);
+    updateStatusBadge('elevatorStatusBadge', data.elevator_status);
 
     const lastUpd = document.getElementById('lastUpdate');
     if (lastUpd) lastUpd.innerText = new Date().toLocaleTimeString();
