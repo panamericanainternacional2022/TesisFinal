@@ -761,10 +761,10 @@ function updateStatusBadge(badgeId, emptyId, statusVal) {
 
     const cellEl = badgeEl.closest('.status-cell');
     if (cellEl) {
-        cellEl.classList.remove('cell-normal', 'cell-warn', 'cell-crit', 'cell-info');
+        cellEl.classList.remove('cell-normal', 'cell-high', 'cell-crit', 'cell-info');
         if (statusVal === 'operativo') cellEl.classList.add('cell-normal');
         else if (statusVal === 'falla') cellEl.classList.add('cell-crit');
-        else if (statusVal === 'mantenimiento') cellEl.classList.add('cell-warn');
+        else if (statusVal === 'mantenimiento') cellEl.classList.add('cell-high');
         else cellEl.classList.add('cell-normal');
     }
 
@@ -799,7 +799,7 @@ function updateEquipmentVisibility(equipTypes) {
     if (pumpNI && pumpBadge && pumpEmpty && pumpCell) {
         if (!hasPump) {
             pumpBadge.style.display = 'none'; pumpEmpty.style.display = 'none'; pumpNI.style.display = 'inline';
-            pumpCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit'); pumpCell.classList.add('cell-info');
+            pumpCell.classList.remove('cell-normal', 'cell-high', 'cell-crit'); pumpCell.classList.add('cell-info');
         } else {
             pumpNI.style.display = 'none';
             pumpCell.classList.remove('cell-info');
@@ -813,7 +813,7 @@ function updateEquipmentVisibility(equipTypes) {
     if (elevNI && elevBadge && elevEmpty && elevCell) {
         if (!hasElev) {
             elevBadge.style.display = 'none'; elevEmpty.style.display = 'none'; elevNI.style.display = 'inline';
-            elevCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit'); elevCell.classList.add('cell-info');
+            elevCell.classList.remove('cell-normal', 'cell-high', 'cell-crit'); elevCell.classList.add('cell-info');
         } else {
             elevNI.style.display = 'none';
             elevCell.classList.remove('cell-info');
@@ -965,8 +965,8 @@ function applyPayload(data) {
 
             const simCell = document.getElementById('simStatusRow');
             if (simCell) {
-                simCell.classList.remove('cell-normal', 'cell-warn', 'cell-crit');
-                simCell.classList.add(isPaused ? 'cell-warn' : 'cell-normal');
+                simCell.classList.remove('cell-normal', 'cell-high', 'cell-crit');
+                simCell.classList.add(isPaused ? 'cell-high' : 'cell-normal');
             }
         }
     }
@@ -1839,7 +1839,7 @@ function addLiveNotificationEvent(data) {
     const li = document.createElement('li');
     li.className = 'notif-item';
 
-    const BADGE_MAP = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'INFORMATIVO': 'sensor-info', 'NORMAL': 'sensor-active' };
+    const BADGE_MAP = { 'CRÍTICO': 'sensor-critical', 'ALTO': 'sensor-high', 'INFORMATIVO': 'sensor-info', 'NORMAL': 'sensor-normal' };
     const badgeClass = BADGE_MAP[data.risk] || 'sensor-info';
     const valueStr = String(data.value);
     const unit = getUnit(data.variable);

@@ -1112,7 +1112,7 @@ button {
 
 /* Variantes de estado */
 .risk-normal,
-.sensor-active,
+.sensor-normal,
 .badge-normal {
     background: var(--state-normal-bg);
     color: var(--state-normal);
@@ -1442,7 +1442,7 @@ button {
     background: var(--state-normal);
 }
 
-.status-cell.cell-warn::before {
+.status-cell.cell-high::before {
     background: var(--state-high);
 }
 
