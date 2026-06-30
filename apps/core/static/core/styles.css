@@ -2320,11 +2320,11 @@ input.is-dirty.input-error-state:active {
    19. LOGIN
    ============================================================ */
 .login-page {
-    flex: 1;
+    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: var(--sp-9) var(--sp-5);
+    padding: calc(var(--header-height) + var(--sp-5)) var(--sp-5) var(--sp-5);
 }
 
 .login-card {
@@ -2379,7 +2379,7 @@ input.is-dirty.input-error-state:active {
 @media (max-width: 480px) {
     .login-page {
         align-items: flex-start;
-        padding: var(--sp-9) var(--sp-4) var(--sp-7);
+        padding: calc(var(--header-height) + var(--sp-4)) var(--sp-4) var(--sp-7);
     }
 
     .login-card {
