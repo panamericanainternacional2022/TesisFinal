@@ -1095,8 +1095,8 @@ button {
 .badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px var(--sp-2);
-    font-size: var(--text-xs);
+    padding: 4px var(--sp-3);
+    font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     letter-spacing: 0.03em;
     border: var(--border-brutal);
@@ -1105,8 +1105,8 @@ button {
 /* Sensor badge (tiene más padding) */
 .sensor-badge {
     display: inline-block;
-    padding: 3px 8px;
-    font-size: var(--text-xs);
+    padding: 4px 10px;
+    font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     letter-spacing: 0.03em;
     border: var(--border-brutal);
@@ -1466,11 +1466,11 @@ button {
 }
 
 .status-cell-label {
-    font-size: var(--text-xs);
+    font-size: var(--text-md);
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-wide);
     color: var(--color-ink);
-    margin-bottom: 4px;
+    margin-bottom: var(--sp-3);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -1482,7 +1482,7 @@ button {
 }
 
 .status-cell-value {
-    font-size: var(--text-xl);
+    font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     color: var(--color-ink);
     line-height: var(--leading-tight);
@@ -1509,7 +1509,7 @@ button {
 }
 
 .sensor-card-name {
-    font-size: var(--text-xs);
+    font-size: var(--text-base);
     font-weight: var(--weight-bold);
     letter-spacing: var(--tracking-wide);
     color: var(--color-ink);
