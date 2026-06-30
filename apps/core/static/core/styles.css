@@ -1139,16 +1139,19 @@ button {
     font-weight: var(--weight-bold);
     letter-spacing: 0.03em;
     border: var(--border-brutal);
+    line-height: 1.2;
 }
 
 /* Sensor badge (tiene más padding) */
 .sensor-badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     padding: 4px 10px;
     font-size: var(--text-sm);
     font-weight: var(--weight-bold);
     letter-spacing: 0.03em;
     border: var(--border-brutal);
+    line-height: 1.2;
 }
 
 /* Variantes de estado (indicador) */
@@ -1402,8 +1405,8 @@ button {
 }
 
 .notif-count-badge {
-    min-width: 18px;
-    height: 18px;
+    min-width: 22px;
+    height: 22px;
     padding: 0 5px;
     border-radius: var(--radius);
     margin-left: var(--sp-4);
@@ -1420,8 +1423,8 @@ button {
 }
 
 .sidebar-notif-badge {
-    min-width: 18px;
-    height: 18px;
+    min-width: 22px;
+    height: 22px;
     padding: 0 5px;
     border-radius: var(--radius);
     vertical-align: middle;
