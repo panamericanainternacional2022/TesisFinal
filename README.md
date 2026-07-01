@@ -1,6 +1,6 @@
 ¿Qué es INES?
 Es un sistema web de monitoreo en tiempo real para edificios. Supervisa bombas de agua y elevadores mediante sensores simulados. Si algo se sale de los rangos normales, envía alertas por correo electrónico y puede apagar dispositivos automáticamente para protegerlos.
-Flujo completo del sistema
+Flujo completo del sistemas
 1. Inicio del sistema
 Cuando ejecutas python server.py, pasan varias cosas:
 - Se carga la configuración y las credenciales de correo (Gmail).
